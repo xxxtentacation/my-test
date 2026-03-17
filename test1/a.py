@@ -42,6 +42,7 @@ for col in data.columns:
 if lvef_col is None:
     raise ValueError("未找到包含 'lvef' 的列，请检查数据")
 
+
 # 清洗数据：去除 LVEF 缺失值
 df_class = data.dropna(subset=[lvef_col]).copy()
 df_class['low_lvef'] = (df_class[lvef_col] < 50).astype(int)
