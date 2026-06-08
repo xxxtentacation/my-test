@@ -1,10 +1,9 @@
 教材/
-.idea/
 .claude/
 
 .obsidian
 
-
+#论文
 *.aux
 *.log
 *.bbl
@@ -16,3 +15,68 @@
 *.js
 *.cfg
 *.bib
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+ENV/
+
+
+# Virtual Environment
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# OS
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log
+
+# Data files (large)
+*.pkl
+*.h5
+*.hdf5
+*.parquet
+
+# Model files
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.ckpt
+*.onnx
+
+
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+.nyc_output/
