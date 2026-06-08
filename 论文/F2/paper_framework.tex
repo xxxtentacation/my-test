@@ -1,0 +1,357 @@
+\documentclass[12pt]{article}
+\textheight=24.5cm \textwidth=16.5cm
+\parskip = 0.165cm
+\renewcommand\baselinestretch{1.2}
+\topmargin=-2cm \oddsidemargin=0cm \evensidemargin=0cm
+
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amscd}
+\usepackage{latexsym}
+\usepackage[round, sort]{natbib}
+\usepackage[colorlinks=true,linkcolor=black,anchorcolor=black,citecolor=black,urlcolor=black]{hyperref}
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{algorithmicx}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{enumerate}
+\usepackage{float}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{cor}{Corollary}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{rem}{Remark}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{obs}{Observation}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{exam}{Example}[section]
+
+\title{\LARGE\bf Two-Machine Flow Shop Scheduling to Minimize Total Weighted Completion Time: Structural Properties and Dynamic Programming}
+\author{Author One$^{a,}$\footnote{Corresponding author. E-mail address: author@email.com}, Author Two$^{b}$\\
+{\small $^{a}$Institution One, Location, Country}\\
+{\small $^{b}$Institution Two, Location, Country}\\}
+\date{}
+
+\begin{document}
+\begin{sloppypar}
+
+\maketitle 
+
+\begin{abstract}	
+We study the two-machine flow shop scheduling problem to minimize the total weighted completion time, denoted as $F2 \parallel \sum W_j C_j$. By partitioning jobs into at most $K$ categories according to their weights in non-increasing order, the schedule decomposes into $K$ sequential segments. We establish four structural properties of optimal schedules: the permutation property, the positional constraint $\pi(J_k)\le k$, the block-end condition requiring the last job of segment $k$ to carry weight $W_k$, and the SPT(1)-LPT(2) ordering rule within each segment. Building on these properties and drawing on the interval-based dynamic programming framework developed for $F2|r_j|C_{\max}$, we design a pseudo-polynomial time dynamic programming algorithm that constructs the schedule block by block. We further discuss how the algorithm can be converted into a polynomial-time approximation scheme (PTAS) via geometric rounding of weights and processing times.
+\end{abstract}
+
+\noindent \textbf{Keywords:} Flow shop scheduling; Total weighted completion time; Dynamic programming; Structural properties
+
+\section{Introduction}
+\label{sec:intro}
+% 介绍两台机器流水车间问题背景、重要性
+% 现有文献综述 (Literature Review)
+% 本文的主要贡献与论文结构编排
+
+\section{Problem Formulation}
+\label{sec:problem}
+% 确立数学模型：给出 F2 || sum W_j C_j 的问题定义，给出参数如 A_j, B_j, W_j 的定义
+% 进行工件集的预处理（如按权重分至多K类等）
+
+\section{Structural Properties}
+\label{sec:properties}
+
+We partition the job set $J$ into $K$ weight categories $J_1, J_2, \dots, J_K$ such that all jobs in $J_k$ share the same weight $W_k$, and the weights satisfy $W_1 > W_2 > \dots > W_K$. Let $n_k = |J_k|$ and $\sum_{k=1}^K n_k = n$.
+
+The schedule is divided into $K$ contiguous logical segments (blocks) $S_1, S_2, \dots, S_K$, processed sequentially on both machines. We use $\pi(j)$ to denote the position (block index) to which job $j$ is assigned.
+
+\begin{lemma}
+\label{lem:permutation}
+\textbf{(Permutation property.)} For the $F2 \parallel \sum W_j C_j$ problem, there exists an optimal schedule in which the processing order of jobs is identical on both machines.
+\end{lemma}
+
+This is a classic result for two-machine flow shops with regular objective functions~\cite{conway1967theory}.
+
+\begin{lemma}
+\label{lem:positional}
+\textbf{(Positional constraint.)} In an optimal schedule, $\pi(J_k) \le k$ for all $k = 1, \dots, K$. That is, every job from weight class $J_k$ must be assigned to one of the first $k$ blocks $S_1, S_2, \dots, S_k$.
+\end{lemma}
+
+Lemma~\ref{lem:positional} implies that after block $S_k$ is processed, all jobs with weights $W_1, \dots, W_k$ are fully scheduled. Consequently, block $S_k$ can only contain jobs from classes $J_k, J_{k+1}, \dots, J_K$.
+
+\begin{lemma}
+\label{lem:block_end}
+\textbf{(Block-end condition.)} In an optimal schedule, the last job of block $S_k$ must have weight $W_k$, i.e., belongs to class $J_k$, for each $k = 1, \dots, K$.
+\end{lemma}
+
+\begin{lemma}
+\label{lem:spt_lpt}
+\textbf{(Intra-block ordering.)} Within each block $S_k$, all jobs are sequenced according to the SPT(1)-LPT(2) rule (Johnson's rule): for any two jobs $x, y \in S_k$, job $x$ precedes job $y$ if and only if
+\[
+\min\{a_x, b_y\} < \min\{a_y, b_x\},
+\]
+or, in case of equality, ties are broken by non-decreasing $a_j$.
+\end{lemma}
+
+Collectively, these four properties fully determine the structure of an optimal schedule: the jobs are organized into $K$ blocks in order of decreasing weight; within each block, the sequence obeys Johnson's rule; class $k$ jobs cannot appear beyond block $k$; and the final position of block $k$ is occupied by a class $k$ job.
+
+\section{Dynamic Programming Algorithm}
+\label{sec:dp_algorithm}
+
+The structural properties established in Section~\ref{sec:properties} allow us to design a dynamic programming algorithm that builds the schedule block by block. Our DP is inspired by the interval-based state representation technique used in the PTAS for $F2|r_j|C_{\max}$~\cite{hall1998polynomial}, where the schedule is partitioned into intervals, jobs are sequenced within each interval by Johnson's rule, and the DP state tracks the completion time of each interval. We adapt this framework to the weighted completion time objective by processing blocks in order and accumulating the weighted sum incrementally. We present the algorithm in four stages, introducing notation at each stage as it becomes relevant.
+
+\subsection{Preprocessing}
+
+\noindent\textbf{Notation.}
+\begin{tabular}{@{}c|l@{}}
+    $n$        & total number of jobs \\
+    $K$        & number of distinct weight classes \\
+    $J_k$      & set of jobs with weight $W_k$ ($k=1,\dots,K$) \\
+    $W_k$      & common weight of jobs in $J_k$, with $W_1 > W_2 > \dots > W_K$ \\
+    $n_k$      & $|J_k|$, number of jobs in class $k$ \\
+    $a_j$      & processing time of job $j$ on machine~1 \\
+    $b_j$      & processing time of job $j$ on machine~2 \\
+    $w_j$      & weight of job $j$ (equals $W_k$ iff $j \in J_k$) \\
+    $L_k$      & list of jobs in $J_k$ sorted by Johnson's rule \\
+    $S_k$      & the $k$-th contiguous block in the schedule \\
+\end{tabular}
+\smallskip
+
+We first partition the $n$ jobs into $K$ sets $J_1, J_2, \dots, J_K$ by weight, with $W_1 > W_2 > \dots > W_K$. Within each set $J_k$, we sort the jobs according to the SPT(1)-LPT(2) rule (Johnson's order). Let the resulting ordered list be
+\[
+L_k = \bigl(j_{k,1}, j_{k,2}, \dots, j_{k,n_k}\bigr), \quad k = 1,2,\dots,K,
+\]
+where $n_k = |J_k|$. Since block $S_k$ of the schedule will contain jobs drawn from classes $k, k+1, \dots, K$ and must obey Johnson ordering internally, taking prefixes of each $L_m$ ($m \ge k$) and merging them by the same Johnson comparator yields the correct within-block sequence. Algorithm~\ref{alg:merge} formalizes this merging procedure.
+
+\begin{algorithm}[H]
+    \renewcommand{\baselinestretch}{1.2}\selectfont
+    \caption{Merge\_By\_Johnson($T$): merge jobs into Johnson order}
+    \label{alg:merge}
+    \begin{algorithmic}[1]
+        \State \textbf{Input:} a set of jobs $T$, each with processing times $(a_j, b_j)$
+        \State \textbf{Output:} sequence $\sigma$ in Johnson order
+        \State Partition $T$ into $T_1 = \{j \in T \mid a_j \le b_j\}$ and $T_2 = \{j \in T \mid a_j > b_j\}$
+        \State Sort $T_1$ by non-decreasing $a_j$
+        \State Sort $T_2$ by non-increasing $b_j$
+        \State \Return concatenation of $T_1$ followed by $T_2$
+    \end{algorithmic}
+\end{algorithm}
+
+\subsection{State Definition}
+
+\noindent\textbf{Notation.}
+\begin{tabular}{@{}c|l@{}}
+    $\mathcal{Y}^{(k)}$ & set of non-dominated states after processing blocks $1..k$ ($k=0,\dots,K$) \\
+    $\vec{p}$            & prefix vector $(p_{k+1},\dots,p_K)$; $p_m =$ \# jobs already taken from $L_m$ \\
+    $A$                  & total M1 processing time accumulated over blocks $1..k$ \\
+    $C$                  & M2 completion time at the end of block $k$ (M2 ready for block $k{+}1$) \\
+    $z$                  & total weighted completion time accumulated over blocks $1..k$ \\
+    $\vec{0}$            & the all-zero vector $(0,\dots,0) \in \mathbb{N}^K$ \\
+\end{tabular}
+\smallskip
+
+For each block index $k = 0, 1, \dots, K$, we maintain a state set $\mathcal{Y}^{(k)}$. A state in $\mathcal{Y}^{(k)}$ represents a complete assignment of jobs to the first $k$ blocks and is described by the tuple
+\[
+(\vec{p},\; A,\; C,\; z),
+\]
+where:
+\begin{itemize}
+    \item $\vec{p} = (p_{k+1}, p_{k+2}, \dots, p_K)$ with $0 \le p_m \le n_m$: the number of jobs already taken from class $J_m$ ($m > k$) and assigned to blocks $1, \dots, k$.
+    \item $A$: the total processing time accumulated on machine~1 over blocks $1, \dots, k$.
+    \item $C$: the completion time of the last job of block $k$ on machine~2 (i.e., the time at which machine~2 becomes available for block $k+1$). For $k=0$, $C=0$.
+    \item $z$: the total weighted completion time contributed by all jobs assigned to blocks $1, \dots, k$.
+\end{itemize}
+
+By Lemma~\ref{lem:positional}, all jobs of classes $1, \dots, k$ must be fully assigned by the end of block $k$. Hence $\vec{p}$ does not need to track indices $m \le k$; we have the invariant $p_m = n_m$ for all $m \le k$ in every state of $\mathcal{Y}^{(k)}$.
+
+The initial state set contains a single entry:
+\[
+\mathcal{Y}^{(0)} = \bigl\{ (\vec{0},\; 0,\; 0,\; 0) \bigr\}, \quad \text{where } \vec{0} = (0,0,\dots,0) \in \mathbb{N}^K.
+\]
+
+\subsection{Computing a Block}
+
+\label{sec:compute_block}
+
+\noindent\textbf{Notation.}
+\begin{tabular}{@{}c|l@{}}
+    $\vec{d}$    & selection $(d_{k+1},\dots,d_K)$: $d_m$ jobs taken from $L_m$ for block $k{+}1$ \\
+    $r$          & $= n_{k+1} - p_{k+1}$, number of remaining class $k{+}1$ jobs ($\ge 1$) \\
+    $d_{k+1}$    & fixed to $r$: all remaining class $k{+}1$ jobs must enter this block \\
+    $T$          & set of jobs assigned to the current block \\
+    $\sigma$     & $T$ in Johnson order (Algorithm~\ref{alg:merge}) \\
+    $A_{\rm init}, C_{\rm init}$ & M1 total and M2 time at block entry ($=A, C$) \\
+    $A_{\rm cur}$& running M1 cumulative time across $\sigma$ \\
+    $C_{\rm cur}$& running M2 completion time across $\sigma$ \\
+    $C_j$        & M2 completion time of job $j \in \sigma$ \\
+    $\Delta z$   & weighted cost $\sum_{j \in T} w_j C_j$ from this block \\
+    $A', C'$     & M1 total and M2 time after the block (output) \\
+    $\vec{p}'$   & prefix vector after the block (output) \\
+    $z'$         & $z + \Delta z$, accumulated cost (output) \\
+\end{tabular}
+\smallskip
+
+Given a state $(\vec{p}, A, C, z) \in \mathcal{Y}^{(k)}$ and a selection of jobs to populate block $S_{k+1}$, we must compute the resulting new state. Let the job selection be specified by taking the next $d_m$ jobs from each prefix $L_m[p_m{+}1 \,\dots\, p_m{+}d_m]$ for $m = k{+}1, \dots, K$, where $d_{k+1} = r$ (all $r$ remaining class $k{+}1$ jobs are mandatory by Lemma~\ref{lem:positional}) and $d_m \ge 0$ for $m > k{+}1$.
+
+Let $T$ be the set of selected jobs. Sort $T$ by Johnson's rule (Algorithm~\ref{alg:merge}). To satisfy Lemma~\ref{lem:block_end}, the last job in the resulting sequence $\sigma$ must belong to $J_{k+1}$; otherwise this selection is discarded.
+
+Starting from initial machine availabilities $(A_{\rm init}, C_{\rm init}) = (A, C)$, we process $\sigma$ through the two-machine flow shop:
+\begin{align}
+    A_{\rm cur} &\gets A_{\rm init}, \quad C_{\rm cur} \gets C_{\rm init}, \quad \Delta z \gets 0; \nonumber \\
+    &\text{for each job } j \in \sigma \text{ in order:} \nonumber \\
+    &\qquad A_{\rm cur} \gets A_{\rm cur} + a_j, \label{eq:comp1} \\
+    &\qquad C_j \gets \max\{C_{\rm cur},\; A_{\rm cur}\} + b_j, \label{eq:comp2} \\
+    &\qquad \Delta z \gets \Delta z + w_j \cdot C_j, \label{eq:comp3} \\
+    &\qquad C_{\rm cur} \gets C_j. \nonumber
+\end{align}
+After processing all jobs in $T$, the new state components are:
+\[
+A' = A_{\rm cur}, \qquad C' = C_{\rm cur}, \qquad z' = z + \Delta z,
+\]
+and $\vec{p}'$ is obtained from $\vec{p}$ by incrementing $p_m \gets p_m + d_m$ for each $m > k$.
+
+Algorithm~\ref{alg:compute_block} summarizes this procedure.
+
+\begin{algorithm}[H]
+    \renewcommand{\baselinestretch}{1.2}\selectfont
+    \caption{Compute\_Block$(k, \vec{p}, A, C, \vec{d})$}
+    \label{alg:compute_block}
+    \begin{algorithmic}[1]
+        \Require Block index $k$, prefix counts $\vec{p}$, M1 total $A$, M2 time $C$, selection vector $\vec{d} = (d_{k+1}, \dots, d_K)$
+        \Ensure New state $(A', C', \Delta z)$, or \textsc{invalid} if block-end condition is violated
+        \State $T \gets \emptyset$
+        \For{$m = k{+}1$ to $K$}
+            \For{$i = 1$ to $d_m$}
+                \State $T \gets T \cup \{ L_m[p_m + i] \}$
+            \EndFor
+        \EndFor
+        \State $\sigma \gets \textsc{Merge\_By\_Johnson}(T)$
+        \If{$\text{weight}(\sigma[|\sigma|]) \neq W_{k+1}$}
+            \State \Return \textsc{invalid}
+        \EndIf
+        \State $A_{\rm cur} \gets A$, $C_{\rm cur} \gets C$, $\Delta z \gets 0$
+        \For{$j \in \sigma$ (in sequence order)}
+            \State $A_{\rm cur} \gets A_{\rm cur} + a_j$
+            \State $C_j \gets \max(C_{\rm cur}, A_{\rm cur}) + b_j$
+            \State $\Delta z \gets \Delta z + w_j \cdot C_j$
+            \State $C_{\rm cur} \gets C_j$
+        \EndFor
+        \State \Return $(A_{\rm cur},\; C_{\rm cur},\; \Delta z)$
+    \end{algorithmic}
+\end{algorithm}
+
+\subsection{State Transition}
+
+\noindent\textbf{Notation.} All symbols $\vec{p}, A, C, z, \vec{d}, r, \Delta z, A', C', \vec{p}', z'$ inherit their meanings from the preceding subsections. Additionally:
+\begin{tabular}{@{}c|l@{}}
+    $A_{\max}$ & $\sum_{j=1}^n a_j$, upper bound on M1 total time \\
+    $C_{\max}$ & $\sum_{j=1}^n (a_j + b_j)$, upper bound on M2 completion time \\
+\end{tabular}
+\smallskip
+
+The DP proceeds from $k = 0$ to $K-1$. For each state $(\vec{p}, A, C, z) \in \mathcal{Y}^{(k)}$, we consider the transition to block $k+1$.
+
+Let $r = n_{k+1} - p_{k+1}$ be the number of remaining jobs in class $J_{k+1}$. By Lemma~\ref{lem:positional}, these must all enter block $k+1$, so $d_{k+1} = r$ is fixed ($r \ge 1$). For the higher-indexed classes $m = k{+}2, \dots, K$, we choose $d_m \in \{0, 1, \dots, n_m - p_m\}$ additional jobs to include in block $k+1$.
+
+For each admissible vector $\vec{d} = (r, d_{k+2}, \dots, d_K)$, we invoke Algorithm~\ref{alg:compute_block}. If it returns a valid tuple $(A', C', \Delta z)$, we update:
+\[
+\vec{p}' = (p_{k+2}{+}d_{k+2},\; \dots,\; p_K{+}d_K), \qquad z' = z + \Delta z,
+\]
+and insert $(\vec{p}', A', C', z')$ into $\mathcal{Y}^{(k+1)}$. If multiple transitions reach the same state $(\vec{p}', A', C')$, only the one with minimal $z'$ is retained.
+
+\subsection{Complete Algorithm}
+
+\noindent\textbf{Notation.}
+\begin{tabular}{@{}c|l@{}}
+    $Z^*$ & optimal (minimum) total weighted completion time \\
+\end{tabular}
+\smallskip
+
+The overall procedure is given in Algorithm~\ref{alg:dp}.
+
+\begin{algorithm}[H]
+    \renewcommand{\baselinestretch}{1.2}\selectfont
+    \caption{DP\_F2\_WeightedSum$(J, A, B, W)$}
+    \label{alg:dp}
+    \begin{algorithmic}[1]
+        \State \textbf{Input:} job set $J$ with processing times $a_j, b_j$ and weights $w_j$
+        \State \textbf{Output:} optimal weighted sum $Z^*$
+
+        \State \textbf{// --- Preprocessing ---}
+        \State Group jobs by weight into $J_1, \dots, J_K$ with $W_1 > \dots > W_K$
+        \For{$k = 1$ to $K$}
+            \State $L_k \gets \textsc{Merge\_By\_Johnson}(J_k)$ \Comment{sort class $k$ by Johnson}
+        \EndFor
+
+        \State \textbf{// --- Initialization ---}
+        \State $\mathcal{Y}^{(0)} \gets \{ (\vec{0},\, 0,\, 0,\, 0) \}$ \Comment{$\vec{0} \in \mathbb{N}^K$}
+
+        \State \textbf{// --- Block-by-block DP ---}
+        \For{$k = 0$ to $K-1$}
+            \State $\mathcal{Y}^{(k+1)} \gets \emptyset$
+            \For{each $(\vec{p}, A, C, z) \in \mathcal{Y}^{(k)}$}
+                \State $r \gets n_{k+1} - p_{k+1}$ \Comment{remaining class $k{+}1$ jobs}
+                \For{each $\vec{d} = (r, d_{k+2}, \dots, d_K)$ with $0 \le d_m \le n_m - p_m$}
+                    \State $(A', C', \Delta z) \gets \textsc{Compute\_Block}(k, \vec{p}, A, C, \vec{d})$
+                    \If{result is \textsc{invalid}} \textbf{continue} \EndIf
+                    \State $\vec{p}' \gets (p_{k+2}{+}d_{k+2},\; \dots,\; p_K{+}d_K)$
+                    \State $z' \gets z + \Delta z$
+                    \If{$\nexists\,(\vec{p}', A', C', \hat{z}) \in \mathcal{Y}^{(k+1)}$ with $\hat{z} \le z'$}
+                        \State Insert $(\vec{p}', A', C', z')$ into $\mathcal{Y}^{(k+1)}$, pruning dominated states
+                    \EndIf
+                \EndFor
+            \EndFor
+        \EndFor
+
+        \State \textbf{// --- Extract optimum ---}
+        \State $Z^* \gets \min\{\, z \mid (\emptyset, A, C, z) \in \mathcal{Y}^{(K)} \,\}$
+        \State \Return $Z^*$
+    \end{algorithmic}
+\end{algorithm}
+
+\begin{rem}
+The state pruning in line~17 discards any new state $(\vec{p}', A', C', z')$ for which a state with the same $(\vec{p}', A', C')$ and a lower or equal $z$ already exists. This is a standard dominance rule that reduces the number of active states without compromising optimality.
+\end{rem}
+
+\section{Complexity Analysis}
+\label{sec:complexity}
+
+\subsection{State Space Size}
+
+For a fixed block index $k$, the prefix vector $\vec{p} = (p_{k+1}, \dots, p_K)$ can take at most $\prod_{m=k+1}^K (n_m + 1) = O(n^{K-k})$ distinct values. The machine~1 total $A$ ranges over $0, 1, \dots, A_{\max}$ where $A_{\max} = \sum_{j=1}^n a_j$, and the machine~2 completion time $C$ ranges over $0, 1, \dots, C_{\max}$ with $C_{\max} \le \sum_{j=1}^n (a_j + b_j)$. Hence
+\[
+|\mathcal{Y}^{(k)}| = O\bigl(n^{K-k} \cdot A_{\max} \cdot C_{\max}\bigr).
+\]
+
+\subsection{Transition Cost}
+
+At block $k$, for a given state we enumerate all selection vectors $\vec{d} = (r, d_{k+2}, \dots, d_K)$, which amounts to $O(n^{K-k-1})$ possibilities. For each $\vec{d}$, Algorithm~\ref{alg:compute_block} executes in $O(|T| \log |T|) = O(n \log n)$ time (dominated by Johnson sorting of the selected jobs) followed by an $O(|T|) = O(n)$ pass to compute completion times. Thus each state expansion costs $O(n^{K-k-1} \cdot n \log n)$.
+
+\subsection{Overall Complexity}
+
+Summing over all $K$ blocks, the total running time is
+\[
+O\Bigl( \sum_{k=0}^{K-1} |\mathcal{Y}^{(k)}| \cdot n^{K-k-1} \cdot n \log n \Bigr)
+= O\bigl( n^{2K-1} \cdot A_{\max} \cdot C_{\max} \cdot \log n \bigr).
+\]
+
+This bound is pseudo-polynomial because $A_{\max}$ and $C_{\max}$ depend on the numeric values of the processing times rather than on $n$ alone. For a fixed number of weight classes $K$, the complexity is polynomial in $n$, $A_{\max}$, and $C_{\max}$, which is consistent with the fact that $F2 \parallel \sum W_j C_j$ is NP-hard only in the ordinary sense~\cite{garey1976complexity}.
+
+\subsection{Towards a PTAS}
+
+Following the approach of~\cite{hall1998polynomial}, the above exact DP can be converted into a polynomial-time approximation scheme (PTAS) through two rounding steps:
+\begin{enumerate}
+    \item \textbf{Weight rounding:} Partition the weight range geometrically so that $K = O(\frac{1}{\varepsilon}\log W_{\max})$, bounding the number of weight classes.
+    \item \textbf{Time rounding:} Scale and round all processing times $a_j$, $b_j$ to multiples of $\delta = \varepsilon \cdot \max_j(a_j, b_j) / n$, reducing $A_{\max}$ and $C_{\max}$ to $O(n^2 / \varepsilon)$.
+\end{enumerate}
+With both discretizations in place, the DP runs in time polynomial in $n$ and $1/\varepsilon$, delivering a $(1+\varepsilon)$-approximate solution.
+
+\section{Conclusion}
+\label{sec:conclusion}
+% 结论及未来展望
+
+\bibliographystyle{apalike}
+\bibliography{ref_IJPR} 
+
+\end{sloppypar}
+\end{document}

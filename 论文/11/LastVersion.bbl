@@ -1,0 +1,344 @@
+\begin{thebibliography}{}
+
+\bibitem[Agnetis et~al., 2014]{AgnetisBillaut2014Springer}
+Agnetis, A., Billaut, J.~C., Gawiejnowicz, S., Pacciarelli, D., and Soukhal, A. (2014).
+\newblock {\em Multiagent Scheduling: Models and Algorithms}.
+\newblock Springer Berlin, Heidelberg.
+\newblock {\color{blue}\href{https://doi.org/10.1007/978-3-642-41880-8}{https://doi.org/10.1007/978-3-642-41880-8}}.
+
+\bibitem[Agnetis et~al., 2019]{AgnetisChen2019EJOR}
+Agnetis, A., Chen, B., Nicosia, G., and Pacifici, A. (2019).
+\newblock Price of fairness in two-agent single-machine scheduling problems.
+\newblock {\em European Journal of Operational Research}, 276(1):79--87.
+\newblock {\color{blue}\href{https://doi.org/10.1016/j.ejor.2018.12.048}{https://doi.org/10.1016/j.ejor.2018.12.048}}.
+
+\bibitem[Agnetis et~al., 2004]{AgnetisMirchandani2004OR}
+Agnetis, A., Mirchandani, P.~B., Pacciarelli, D., and Pacifici, A. (2004).
+\newblock Scheduling problems with two competing agents.
+\newblock {\em Operations Research}, 52(2):229--242.
+\newblock {\color{blue}\href{https://doi.org/10.1287/opre.1030.0092}{https://doi.org/10.1287/opre.1030.0092}}.
+
+\bibitem[Akafuah et~al., 2016]{Akafuah2016Coatings}
+Akafuah, N.~K., Poozesh, S., Salaimeh, A., Patrick, G., Lawler, K., and Saito, K. (2016).
+\newblock Evolution of the automotive body coating process: A review.
+\newblock {\em Coatings}, 6(2):24.
+\newblock {\color{blue}\href{https://doi.org/10.3390/coatings6020024}{https://doi.org/10.3390/coatings6020024}}.
+
+\bibitem[Baker and Smith, 2003]{BakerSmithJOS2003}
+Baker, K.~R. and Smith, J.~C. (2003).
+\newblock A multiple-criterion model for machine scheduling.
+\newblock {\em Journal of Scheduling}, 6(1):7--16.
+\newblock {\color{blue}\href{https://doi.org/10.1023/A:1022231419049}{https://doi.org/10.1023/A:1022231419049}}.
+
+\bibitem[Baptiste, 2000]{Baptiste2000MMOR}
+Baptiste, P. (2000).
+\newblock Batching identical jobs.
+\newblock {\em Mathematical Methods of Operations Research}, 52(3):355--367.
+\newblock {\color{blue}\href{https://doi.org/10.1007/s001860000088}{https://doi.org/10.1007/s001860000088}}.
+
+\bibitem[Brucker et~al., 1998]{Brucker1998JOS}
+Brucker, P., Gladky, A., Hoogeveen, J.~A., Kovalyov, M.~Y., Potts, C.~N., Tautenhahn, T., and van~de Velde, S.~L. (1998).
+\newblock Scheduling a batching machine.
+\newblock {\em Journal of Scheduling}, 1(1):31--54.
+\newblock {\color{blue}\href{https://doi.org/10.1002/(SICI)1099-1425(199806)1:1<31::AID-JOS4>3.0.CO;2-R}{https://doi.org/10.1002/(SICI)1099-1425(199806)1:1\textless31::AID-JOS4\textgreater3.0.CO;2-R}}.
+
+\bibitem[Cai et~al., 2023]{CaiLiLuoHe2023IJPR}
+Cai, L., Li, W., Luo, Y., and He, L. (2023).
+\newblock Real-time scheduling simulation optimisation of job shop in a production-logistics collaborative environment.
+\newblock {\em International Journal of Production Research}, 61(5):1373--1393.
+\newblock {\color{blue}\href{https://doi.org/10.1080/00207543.2021.2023777}{https://doi.org/10.1080/00207543.2021.2023777}}.
+
+\bibitem[Chen et~al., 2022]{ChenRB2022EJOR}
+Chen, R.~B., Geng, Z.~C., Lu, L.~F., Yuan, J.~J., and Zhang, Y. (2022).
+\newblock Pareto-scheduling of two competing agents with their own equal processing times.
+\newblock {\em European Journal of Operational Research}, 301(2):414--431.
+\newblock {\color{blue}\href{https://doi.org/10.1016/j.ejor.2021.10.064}{https://doi.org/10.1016/j.ejor.2021.10.064}}.
+
+\bibitem[Cheng et~al., 2001]{ChengLiuYU2001IIE}
+Cheng, T. C.~E., Liu, Z.~H., and Yu, W.~C. (2001).
+\newblock Scheduling jobs with release dates and deadlines on a batch processing machine.
+\newblock {\em IIE Transactions}, 33(8):685--690.
+\newblock {\color{blue}\href{https://doi.org/10.1080/07408170108936864}{https://doi.org/10.1080/07408170108936864}}.
+
+\bibitem[Cheng et~al., 2005]{ChengYuanYang2005COR}
+Cheng, T. C.~E., Yuan, J.~J., and Yang, A.~F. (2005).
+\newblock Scheduling a batch-processing machine subject to precedence constraints, release dates and identical processing times.
+\newblock {\em Computers \& Operations Research}, 32(4):849--859.
+\newblock {\color{blue}\href{https://doi.org/10.1016/j.cor.2003.09.001}{https://doi.org/10.1016/j.cor.2003.09.001}}.
+
+\bibitem[Chubanov et~al., 2006]{ChubanovKP2006MP}
+Chubanov, S., Kovalyov, M.~Y., and Pesch, E. (2006).
+\newblock An {FPTAS} for a single-item capacitated economic lot-sizing problem with monotone cost structure.
+\newblock {\em Mathematical Programming}, 106(3):453--466.
+\newblock {\color{blue}\href{https://doi.org/10.1007/s10107-005-0641-0}{https://doi.org/10.1007/s10107-005-0641-0}}.
+
+\bibitem[Dover and Shabtay, 2016]{DoverShabtay2016ANoR}
+Dover, O. and Shabtay, D. (2016).
+\newblock Single machine scheduling with two competing agents, arbitrary release dates and unit processing times.
+\newblock {\em Annals of Operations Research}, 238(1-2):145--178.
+\newblock {\color{blue}\href{https://doi.org/10.1007/s10479-015-2054-7}{https://doi.org/10.1007/s10479-015-2054-7}}.
+
+\bibitem[Fan et~al., 2013]{FanBQCheng2013JOS}
+Fan, B.~Q., Cheng, T. C.~E., Li, S.~S., and Feng, Q. (2013).
+\newblock Bounded parallel-batching scheduling with two competing agents.
+\newblock {\em Journal of Scheduling}, 16(3):261--271.
+\newblock {\color{blue}\href{https://doi.org/10.1007/s10951-012-0274-0}{https://doi.org/10.1007/s10951-012-0274-0}}.
+
+\bibitem[Fan et~al., 2023]{FanGQWang2023IJPR}
+Fan, G.~Q., Wang, J.~Q., and Liu, Z. (2023).
+\newblock Two-agent scheduling on mixed batch machines to minimize the total weighted makespan.
+\newblock {\em International Journal of Production Research}, 61(1):238--257.
+\newblock {\color{blue}\href{https://doi.org/10.1080/00207543.2020.18200952}{https://doi.org/10.1080/00207543.2020.18200952}}.
+
+\bibitem[Fowler and Monch, 2022]{FowlerMonch2022EJOR}
+Fowler, J.~W. and Monch, L. (2022).
+\newblock A survey of scheduling with parallel batch (p-batch) processing.
+\newblock {\em European Journal of Operational Research}, 298(1):1--24.
+\newblock {\color{blue}\href{https://doi.org/10.1016/j.ejor.2021.06.012}{https://doi.org/10.1016/j.ejor.2021.06.012}}.
+
+\bibitem[Freud and Mosheiov, 2021]{FreudMosheiov2021COR}
+Freud, D. and Mosheiov, G. (2021).
+\newblock Scheduling with competing agents, total late work and job rejection.
+\newblock {\em Computers \& Operations Research}, 133:105329.
+\newblock {\color{blue}\href{https://doi.org/10.1016/j.cor.2021.105329}{https://doi.org/10.1016/j.cor.2021.105329}}.
+
+\bibitem[Gao et~al., 2019]{GaoYuanNgCheng2019EJOR}
+Gao, Y., Yuan, J.~J., Ng, C.~T., and Cheng, T. C.~E. (2019).
+\newblock A further study on two-agent parallel-batch scheduling with release dates and deteriorating jobs to minimize the makespan.
+\newblock {\em European Journal of Operational Research}, 273(1):74--81.
+\newblock {\color{blue}\href{https://doi.org/10.1016/j.ejor.2018.07.040}{https://doi.org/10.1016/j.ejor.2018.07.040}}.
+
+\bibitem[Garey and Johnson, 1979]{Garey1979computer}
+Garey, M.~R. and Johnson, D.~S. (1979).
+\newblock {\em Computers and Intractability: A Guide to the Theory of $\mathcal{NP}$-Completeness}.
+\newblock W. H. Freeman and Company, San Francisco.
+
+\bibitem[Geng and Yuan, 2023]{GengYuan2023EJOR}
+Geng, Z.~C. and Yuan, J.~J. (2023).
+\newblock Single-machine scheduling of multiple projects with controllable processing times.
+\newblock {\em European Journal of Operational Research}, 308(3):1074--1090.
+\newblock {\color{blue}\href{https://doi.org/10.1016/j.ejor.2023.01.026}{https://doi.org/10.1016/j.ejor.2023.01.026}}.
+
+\bibitem[Hall and Posner, 2001]{HallPosner2001OR}
+Hall, N.~G. and Posner, M.~E. (2001).
+\newblock Generating experimental data for computational testing with machine scheduling applications.
+\newblock {\em Operations Research}, 49(7):854--865.
+\newblock {\color{blue}\href{https://doi.org/10.1287/opre.49.6.854.10014}{https://doi.org/10.1287/opre.49.6.854.10014}}.
+
+\bibitem[He et~al., 2022]{HeWuLin2022DiscreteOptimization}
+He, C., Wu, J., and Lin, H. (2022).
+\newblock Two-agent bounded parallel-batching scheduling for minimizing maximum cost and makespan.
+\newblock {\em Discrete Optimization}, 45:100698.
+\newblock {\color{blue}\href{https://doi.org/10.1016/j.disopt.2022.100698}{https://doi.org/10.1016/j.disopt.2022.100698}}.
+
+\bibitem[Huang et~al., 2020]{HuangWangJiang2020IJPR}
+Huang, J., Wang, L., and Jiang, Z. (2020).
+\newblock A method combining rules with genetic algorithm for minimizing makespan on a batch processing machine with preventive maintenance.
+\newblock {\em International Journal of Production Research}, 58(13):4086--4102.
+\newblock {\color{blue}\href{https://doi.org/10.1080/00207543.2019.1641643}{https://doi.org/10.1080/00207543.2019.1641643}}.
+
+\bibitem[Ikura and Gimple, 1986]{IkuraGimple1986ORL}
+Ikura, Y. and Gimple, M. (1986).
+\newblock Efficient scheduling algorithms for a single batch processing machine.
+\newblock {\em Operations Research Letters}, 5(2):61--65.
+\newblock {\color{blue}\href{https://doi.org/10.1016/0167-6377(86)90104-5}{https://doi.org/10.1016/0167-6377(86)90104-5}}.
+
+\bibitem[Kong et~al., 2024]{KongWang2024IJPR}
+Kong, M., Wang, W., Deveci, M., Zhang, Y., Wu, X., and Coffman, D. (2024).
+\newblock A novel carbon reduction engineering method-based deep {Q}-learning algorithm for energy-efficient scheduling on a single batch-processing machine in semiconductor manufacturing.
+\newblock {\em International Journal of Production Research}, 62(18):6449--6472.
+\newblock {\color{blue}\href{https://doi.org/10.1080/00207543.2023.2252932}{https://doi.org/10.1080/00207543.2023.2252932}}.
+
+\bibitem[Kovalyov et~al., 2015]{Kovalyov2015JOS}
+Kovalyov, M.~Y., Oulamara, A., and Soukhal, A. (2015).
+\newblock Two-agent scheduling with agent specific batches on an unbounded serial batching machine.
+\newblock {\em Journal of Scheduling}, 18(4):423--434.
+\newblock {\color{blue}\href{https://doi.org/10.1007/s10951-014-0410-0}{https://doi.org/10.1007/s10951-014-0410-0}}.
+
+\bibitem[Kravchenko and Werner, 2011]{KravchenkoWerner2011JOS}
+Kravchenko, S.~A. and Werner, F. (2011).
+\newblock Parallel machine problems with equal processing times: A survey.
+\newblock {\em Journal of Scheduling}, 14(5):435--444.
+\newblock {\color{blue}\href{https://doi.org/10.1007/s10951-011-0231-3}{https://doi.org/10.1007/s10951-011-0231-3}}.
+
+\bibitem[Kucukkoc et~al., 2024]{KucukkocKK2024IJPR}
+Kucukkoc, I., Keskin, G.~A., Karaoglan, A.~D., and Karadag, S. (2024).
+\newblock A hybrid discrete differential evolution-genetic algorithm approach with a new batch formation mechanism for parallel batch scheduling considering batch delivery.
+\newblock {\em International Journal of Production Research}, 62(1--2):460--482.
+\newblock {\color{blue}\href{https://doi.org/10.1080/00207543.2023.2233626}{https://doi.org/10.1080/00207543.2023.2233626}}.
+
+\bibitem[Lee and Uzsoy, 1999]{LeeUzsoy1999IJPR}
+Lee, C.~Y. and Uzsoy, R. (1999).
+\newblock Minimizing makespan on a single batch processing machine with dynamic job arrivals.
+\newblock {\em International Journal of Production Research}, 37(1):219--236.
+\newblock {\color{blue}\href{https://doi.org/10.1080/002075499192020}{https://doi.org/10.1080/002075499192020}}.
+
+\bibitem[Lee et~al., 1992]{LeeUzsoy1992OR}
+Lee, C.~Y., Uzsoy, R., and Martin-Vega, L.~A. (1992).
+\newblock Efficient algorithms for scheduling semi-conductor burn-in operations.
+\newblock {\em Operations Research}, 40(4):764--775.
+\newblock {\color{blue}\href{https://doi.org/10.1287/opre.40.4.764}{https://doi.org/10.1287/opre.40.4.764}}.
+
+\bibitem[Lei and Dai, 2024]{LeiDai2024IJPR}
+Lei, D. and Dai, T. (2024).
+\newblock An adaptive shuffled frog-leaping algorithm for parallel batch processing machines scheduling with machine eligibility in fabric dyeing process.
+\newblock {\em International Journal of Production Research}, 62(21):7704--7721.
+\newblock {\color{blue}\href{https://doi.org/10.1080/00207543.2024.2324452}{https://doi.org/10.1080/00207543.2024.2324452}}.
+
+\bibitem[Li et~al., 2022]{LiWangGupta2022CIE}
+Li, C., Wang, F., Gupta, J. N.~D., and Chung, T. (2022).
+\newblock Scheduling identical parallel batch processing machines involving incompatible families with different job sizes and capacity constraints.
+\newblock {\em Computers \& Industrial Engineering}, 169:108115.
+\newblock {\color{blue}\href{https://doi.org/10.1016/j.cie.2022.108115}{https://doi.org/10.1016/j.cie.2022.108115}}.
+
+\bibitem[Li and Lee, 1997]{LiLee1997EJOR}
+Li, C.~L. and Lee, C.~Y. (1997).
+\newblock Scheduling with agreeable release times and due dates on a batch processing machine.
+\newblock {\em European Journal of Operational Research}, 96(3):564--569.
+\newblock {\color{blue}\href{https://doi.org/10.1016/0377-2217(95)00332-0}{https://doi.org/10.1016/0377-2217(95)00332-0}}.
+
+\bibitem[Li and Chen, 2023]{LiChen2023JOS}
+Li, S.~S. and Chen, R.~X. (2023).
+\newblock Competitive two-agent scheduling with release dates and preemption on a single machine.
+\newblock {\em Journal of Scheduling}, 26(3):227--249.
+\newblock {\color{blue}\href{https://doi.org/10.1007/s10951-023-00779-5}{https://doi.org/10.1007/s10951-023-00779-5}}.
+
+\bibitem[Li et~al., 2020]{LiChenTian2020EngineeringOptimization}
+Li, S.~S., Chen, R.~X., and Tian, J. (2020).
+\newblock Multitasking scheduling problems with two competitive agents.
+\newblock {\em Engineering Optimization}, 52(11):1940--1956.
+\newblock {\color{blue}\href{https://doi.org/10.1080/0305215X.2019.1678609}{https://doi.org/10.1080/0305215X.2019.1678609}}.
+
+\bibitem[Li and Yuan, 2012]{LiYuan2012JOS}
+Li, S.~S. and Yuan, J.~J. (2012).
+\newblock Unbounded parallel-batching scheduling with two competitive agents.
+\newblock {\em Journal of Scheduling}, 15(5):629--640.
+\newblock {\color{blue}\href{https://doi.org/10.1007/s10951-011-0253-x}{https://doi.org/10.1007/s10951-011-0253-x}}.
+
+\bibitem[Liu et~al., 2007]{LiuNgCheng2007TCS}
+Liu, L.~L., Ng, C.~T., and Cheng, T. C.~E. (2007).
+\newblock Scheduling jobs with agreeable processing times and due dates on a single batch processing machine.
+\newblock {\em Theoretical Computer Science}, 374(1-3):159--169.
+\newblock {\color{blue}\href{https://doi.org/10.1016/j.tcs.2006.12.039}{https://doi.org/10.1016/j.tcs.2006.12.039}}.
+
+\bibitem[Liu et~al., 2003]{LiuYuanCheng2003ORL}
+Liu, Z.~H., Yuan, J.~J., and Cheng, T. C.~E. (2003).
+\newblock On scheduling an unbounded batch machine.
+\newblock {\em Operations Research Letters}, 31(1):42--48.
+\newblock {\color{blue}\href{https://doi.org/10.1016/S0167-6377(02)00186-4}{https://doi.org/10.1016/S0167-6377(02)00186-4}}.
+
+\bibitem[Misra and Maravelias, 2022]{MisraMaravelias2022Springer}
+Misra, S. and Maravelias, C.~T. (2022).
+\newblock {\em Overview of Scheduling Methods for Pharmaceutical Production}.
+\newblock Springer Berlin, Cham.
+\newblock {\color{blue}\href{https://doi.org/10.1007/978-3-030-90924-6\_13}{https://doi.org/10.1007/978-3-030-90924-6\_13}}.
+
+\bibitem[Monch et~al., 2011]{MonchFowler2011JOS}
+Monch, L., Fowler, J.~W., Dauzere-Peres, S., Mason, S.~J., and Rose, O. (2011).
+\newblock A survey of problems, solution techniques, and future challenges in scheduling semiconductor manufacturing operations.
+\newblock {\em Journal of Scheduling}, 14(6):583--599.
+\newblock {\color{blue}\href{https://doi.org/10.1007/s10951-010-0222-9}{https://doi.org/10.1007/s10951-010-0222-9}}.
+
+\bibitem[Nouiri et~al., 2020]{NouiriBekrar2020IJPR}
+Nouiri, M., Bekrar, A., and Trentesaux, D. (2020).
+\newblock An energy-efficient scheduling and rescheduling method for production and logistics systems.
+\newblock {\em International Journal of Production Research}, 58(11):3263--3283.
+\newblock {\color{blue}\href{https://doi.org/10.1080/00207543.2019.1660826}{https://doi.org/10.1080/00207543.2019.1660826}}.
+
+\bibitem[Oron, 2021]{OronDaniel2021Omega}
+Oron, D. (2021).
+\newblock Two-agent scheduling problems under rejection budget constraints.
+\newblock {\em Omega}, 102:102313.
+\newblock {\color{blue}\href{https://doi.org/10.1016/j.omega.2020.102313}{https://doi.org/10.1016/j.omega.2020.102313}}.
+
+\bibitem[Oron et~al., 2015]{OronShabtaySteiner2015EJOR}
+Oron, D., Shabtay, D., and Steiner, G. (2015).
+\newblock Single machine scheduling with two competing agents and equal job processing times.
+\newblock {\em European Journal of Operational Research}, 244(1):86--99.
+\newblock {\color{blue}\href{http://dx.doi.org/10.1016/j.ejor.2015.01.003}{http://dx.doi.org/10.1016/j.ejor.2015.01.003}}.
+
+\bibitem[Perez-Gonzalez and Framinan, 2014]{PerezGonzalez2014EJOR}
+Perez-Gonzalez, P. and Framinan, J.~M. (2014).
+\newblock A common framework and taxonomy for multicriteria scheduling problems with interfering and competing jobs: Multi-agent scheduling problems.
+\newblock {\em European Journal of Operational Research}, 235(1):1--16.
+\newblock {\color{blue}\href{http://dx.doi.org/10.1016/j.ejor.2013.09.017}{http://dx.doi.org/10.1016/j.ejor.2013.09.017}}.
+
+\bibitem[Phosavanh and Oron, 2024]{PhosavanhOron2024EJOR}
+Phosavanh, J. and Oron, D. (2024).
+\newblock Two-agent single-machine scheduling with a rate-modifying activity.
+\newblock {\em European Journal of Operational Research}, 312(3):866--876.
+\newblock {\color{blue}\href{https://doi.org/10.1016/j.ejor.2023.08.002}{https://doi.org/10.1016/j.ejor.2023.08.002}}.
+
+\bibitem[Rania and Mathirajan, 2023]{RaniaMathirajan2023IJPR}
+Rania, M.~V. and Mathirajan, M. (2023).
+\newblock A state-of-art review and a simple meta-analysis on deterministic scheduling of diffusion furnaces in semiconductor manufacturing.
+\newblock {\em International Journal of Production Research}, 61(16):5744--5771.
+\newblock {\color{blue}\href{https://doi.org/10.1080/00207543.2022.2102449}{https://doi.org/10.1080/00207543.2022.2102449}}.
+
+\bibitem[Sabouni and Jolai, 2010]{SabouniJolai2010AMM}
+Sabouni, M. T.~Y. and Jolai, F. (2010).
+\newblock Optimal methods for batch processing problem with makespan and maximum lateness objectives.
+\newblock {\em Applied Mathematical Modelling}, 34(2):314--324.
+\newblock {\color{blue}\href{https://doi.org/10.1016/j.apm.2009.04.007}{https://doi.org/10.1016/j.apm.2009.04.007}}.
+
+\bibitem[Sahni, 1976]{Sahni1976JACM}
+Sahni, S. (1976).
+\newblock Algorithms for scheduling independent tasks.
+\newblock {\em Journal of the ACM}, 23(1):116--127.
+\newblock {\color{blue}\href{https://doi.org/10.1145/321921.321934}{https://doi.org/10.1145/321921.321934}}.
+
+\bibitem[Servranckx et~al., 2022]{ServranckxCoelho2022IJPR}
+Servranckx, T., Coelho, J., and Vanhoucke, M. (2022).
+\newblock Various extensions in resource-constrained project scheduling with alternative subgraphs.
+\newblock {\em International Journal of Production Research}, 60(11):3501--3520.
+\newblock {\color{blue}\href{https://doi.org/10.1080/00207543.2021.1924411}{https://doi.org/10.1080/00207543.2021.1924411}}.
+
+\bibitem[Streitberger and Dossel, 2008]{Streitberger20082014Wiley}
+Streitberger, H.~J. and Dossel, K.~F. (2008).
+\newblock {\em Automotive Paints and Coatings}.
+\newblock Wiley, VCH.
+\newblock {\color{blue}\href{https://doi.org/10.1002/9783527622375}{https://doi.org/10.1002/9783527622375}}.
+
+\bibitem[Tang et~al., 2017]{TangZhaoLiu2017EJOR}
+Tang, L., Zhao, X., Liu, J.~L., and Leung, J. Y.~T. (2017).
+\newblock Competitive two-agent scheduling with deteriorating jobs on a single parallel-batching machine.
+\newblock {\em European Journal of Operational Research}, 263(2):401--411.
+\newblock {\color{blue}\href{https://doi.org/10.1016/j.ejor.2017.05.019}{https://doi.org/10.1016/j.ejor.2017.05.019}}.
+
+\bibitem[T'kindt and Billaut, 2006]{TkindtBillaut2006book}
+T'kindt, V. and Billaut, J.~C. (2006).
+\newblock {\em Multicriteria Scheduling: Theory, Models and Algorithms}.
+\newblock Springer Berlin, Heidelberg, second edition.
+\newblock {\color{blue}\href{https://doi.org/10.1007/b106275}{https://doi.org/10.1007/b106275}}.
+
+\bibitem[Wang et~al., 2021]{WangYuYin2021IJPR}
+Wang, D.~J., Yu, Y., Yin, Y., and Cheng, T. C.~E. (2021).
+\newblock Multi-agent scheduling problems under multitasking.
+\newblock {\em International Journal of Production Research}, 59(12):3633--3663.
+\newblock {\color{blue}\href{https://doi.org/10.1080/00207543.2020.1748908}{https://doi.org/10.1080/00207543.2020.1748908}}.
+
+\bibitem[Wang et~al., 2024]{WangRenBai2024IJPR}
+Wang, X., Ren, T., Bai, D., Chu, F., Yu, Y., Meng, F., and Wu, C.~C. (2024).
+\newblock Scheduling a multi-agent flow shop with two scenarios and release dates.
+\newblock {\em International Journal of Production Research}, 62(1--2):421--443.
+\newblock {\color{blue}\href{https://doi.org/10.1080/00207543.2023.2188646}{https://doi.org/10.1080/00207543.2023.2188646}}.
+
+\bibitem[Yu et~al., 2025]{YuLiuLuGu2025EJOR}
+Yu, J., Liu, P., Lu, X., and Gu, M. (2025).
+\newblock Analyzing the price of fairness in scheduling problems with two agents.
+\newblock {\em European Journal of Operational Research}, 321(3):750--759.
+\newblock {\color{blue}\href{https://doi.org/10.1016/j.ejor.2024.10.023}{https://doi.org/10.1016/j.ejor.2024.10.023}}.
+
+\bibitem[Zhao and Yuan, 2020]{ZhaoYuan2020JOCO}
+Zhao, Q.~L. and Yuan, J.~J. (2020).
+\newblock Bicriteria scheduling of equal length jobs on uniform parallel machines.
+\newblock {\em Journal of Combinatorial Optimization}, 39(3):637–661.
+\newblock {\color{blue}\href{https://doi.org/10.1007/s10878-019-00507-w}{https://doi.org/10.1007/s10878-019-00507-w}}.
+
+\bibitem[Zhou et~al., 2022]{ZhouJinLiu2022ESA}
+Zhou, S., Jin, M., Liu, C., Zheng, X., and Chen, H. (2022).
+\newblock Scheduling a single batch processing machine with non-identical two-dimensional job sizes.
+\newblock {\em Expert Systems with Applications}, 201:116907.
+\newblock {\color{blue}\href{https://doi.org/10.1016/j.eswa.2022.116907}{https://doi.org/10.1016/j.eswa.2022.116907}}.
+
+\end{thebibliography}

@@ -1,0 +1,423 @@
+ELSEVIER
+
+Operations Research Letters 20 (1997) 75-79
+
+A polynomial approximation scheme for problem F2/Cmax
+Mikhail Y. Kovalyov a,*, Frank Werner b
+alnstitute of Engineering Cybernetics, Belarus Academy of Sciences, Suganova 6, 220012 Minsk, Belarus
+bOtto-von-Guericke-Universitiit Magdeburg, Fakultgitfiir Mathematik, PSF 4120, Magdeburg, Germany
+Received 1 January 1995; revised 1 August 1996
+
+Abstract
+
+We present a polynomial approximation scheme {H,} for the strongly NP-hard problem of scheduling n jobs in a twomachine flow-shop subject to release dates. This scheme is based on a dynamic programming approach applied to a problem
+with rounded release dates and processing times. In comparison with Hall's polynomial approximation scheme, our scheme
+has a better time complexity estimation for small e and sufficiently large n.
+
+Keywords: Scheduling; Two-machine flow-shop; Polynomial approximation scheme; Dynamic programming
+
+I. Introduction
+
+We consider the following flow-shop scheduling
+problem. There are n independent non-preemptive
+jobs to be scheduled for processing on machines A
+and B. Each machine can handle at most one job at a
+time. Job j must be processed aj >>,0 time units on
+machine A and then bj >10 time units on machine B.
+The processing of job j cannot be started before a release date ~. ~> 0 and the processing of a job does not
+necessarily have to start on machine B immediately
+after its completion on machine A. The objective is
+to minimize the length of the schedule, i.e. the time
+at which the last job on machine B is completed. We
+denote the length of an arbitrary schedule S by C(S)
+and the length of an optimal schedule by C*.
+According to the traditional notation for scheduling
+problems of Graham et al. [2], this problem is denoted
+by F2/rj/Cmax. The problem is strongly NP-hard (see
+* Corresponding author.
+
+[10]), therefore there is no pseudopolynomial algorithm or fully polynomial approximation scheme for
+this problem unless P = NP [1].
+In this paper, we develop a polynomial approximation scheme for the problem F2/r//Cmax, i.e. a family {He} of algorithms with the property that, for any
+> 0, H~ produces a schedule of a length at most
+(1 + e)C* and it has a running time polynomial in n
+and exponential in 1/e.
+As far as we know, there are only the following
+approximation results for the problem F2/rj/Cmax.
+Potts [ 11] investigated the performance of five heuristics and showed that the best one guarantees a
+relative error e = 2. Hall [3] constructed a polynomial
+approximation scheme with O((1 + 2/e) ~12+6e)/~2(1 +
+running time of each
+algorithm. This result is based on the notion of a
+(1 + e)-approximation outline scheme introduced by
+Hall and Shmoys [4-6] for solving single-machine
+scheduling problems. An outline scheme is a labeling of feasible solutions such that, for each feasible
+
+(12+6e)/fz)l+2/~nlogn)
+
+0167-6377/97/$17.00 Copyright (~ 1997 Elsevier Science B.V. All rights reserved
+PII S01 67-63 77( 96 )00049-!
+
+76
+
+M. Y
+
+Kovalyot', IK Werner/ Operations Research Letters 20 (1997) 75-79
+
+solution x, the associated label w, called an outline,
+provides concise information about x. More specifically, the length of w is bounded by a polynomial
+function of the length of x. For e, > 0, a (1 + e)approximation outline scheme is an outline scheme
+and a polynomial-time algorithm R with the following property: given any outline w for an instance I
+of a problem, algorithm R delivers a feasible solution
+to I with a value at most (1 + e) times the value of
+any feasible solution of I, which is labeled with w.
+Our polynomial approximation scheme {H,~} for
+the problem F2/§'/Cmax is to apply a dynamic programming algorithm to a problem with rounded
+release dates and processing times. This approach
+is similar to the rounding technique described by
+Sahni [13] for knapsack-type problems. In comparison with Hall's scheme, our scheme has some benefits. Firstly, it is based on a well-known dynamic
+programming technique and, hence, an analysis of
+our scheme is rather simple. Secondly, it works more
+efficiently for small e, and sufficiently large n. Algorithm H~ runs in O(28/~+2((n + l)/~;) 6/~+2) time. A
+similar approach is used by Kovalyov [8] to construct
+a polynomial approximation scheme for the problem of scheduling several two-machine flow-shops in
+parallel.
+The rest of the paper is organized as follows. In
+the next section, we present some known results,
+which allow us to simplify an analysis of the problem
+and provide a basis for the application of a dynamic
+programming technique. In Section 3, we describe
+a dynamic programming algorithm for the problem
+with a fixed number of distinct release dates. This
+algorithm, applied to the problem with specifically
+rounded release dates and processing times, is our
+approximation algorithm H~. It is shown in the last
+section that the family of algorithms {H~} forms a
+polynomial approximation scheme.
+
+2. Preliminaries
+
+Our dynamic programming approach is based on
+the results analogous to those used by Hall [3] for
+constructing a (1 + e)-outline scheme for the problem F2/rj/Cmax. They are the following. We first
+observe that we may restrict our attention to socalled permutation schedules. They are schedules
+
+for which the job processing order is the same on
+machines A and B. Johnson [7] showed that there
+is always an optimal schedule that is a permutation
+one. If release dates of all jobs are equal, the problem can be solved by Johnson's algorithm [7]. It has
+a time complexity of O(nlogn) and works as
+follows. First arrange the jobs with aj ~< bj in
+the order of non-decreasing a/, and then arrange
+the remaining jobs in the order of non-increasing
+bj. The algorithm produces a permutation schedule. If this schedule is determined as a permutation S = (fi .... ,in), then its length can be found
+as
+
+C ( S ) = max _ E a #
+l<~r<'nt 1=1
+
++
+
+bit
+
+•
+
+(1)
+
+I=r
+
+The following lemma allows us to focus on
+a restricted version of the problem F2/rj/Cm~x. This
+result is due to Hall [3] but we present the proof because it includes an algorithm, which is also used in
+our approximation scheme.
+Lemma 1 (Hall [3]). Given a polynomial approx-
+
+imation scheme for the restricted version of
+F2/r;/Cmax in which there is a fixed (but arbitrary)
+number of distinct release dates, then there is
+a polynomial approximation scheme for F2/r;/Cma×.
+Proof. Define r* = max1 ~<j,<n{t)} and consider the
+following algorithm for the unrestricted version of the
+problem F2/rj/Cmax. Round each release date 13 down
+to the nearest multiple of A = er*/2:
+
+~i = AL~)/AJ,
+
+j = l ..... n,
+
+where ]xJ is the largest integer no greater than x. Note
+that A ~ eC*/2 since r* ~< C*. Clearly, the number of
+distinct release dates rj is at most 1 + r*/A <<.1 + 2/~.
+Apply a (1 + e/2)-approximation algorithm for the
+problem with release dates rj. Add A to each job's
+starting time in the schedule just created to make it
+feasible for the original problem. Let R be the optimal
+objective value for the problem with release dates rj.
+Since the rounded problem is less constrained than the
+original one, we have R ~< C* and the length of the
+final schedule is bounded by
+
+( I + e/2 )R + A <~ ( I + e )C*.
+
+[]
+
+M. E Kovalyov, F. Werner / Operations Research Letters 20 (1997) 75-79
+
+Let us assume that there are k distinct release dates
+denoted by p~ < p2 < " ' " < Pk. For notational convenience, we set Pk+l ----c~. For a given schedule S,
+we denote the starting time of job j on machine A
+by aj. Following Hall [3], we refer to the jobs j with
+Pi ~< trj < Pi+~ as the ith interval set. It is clear that
+only jobs with release dates 1) ~< Pi can form the ith
+interval set.
+The following lemma provides the basis for Hall's
+outline scheme and partially explains the choice of
+state variables in our dynamic programming approach.
+Lemma 2 (Hall [3]). For a 9iven schedule S, resche-
+
+dulin9 each interval set accordin9 to Johnson's algorithm and concatenatin9 interval schedules delivers a
+schedule of length at most C(S).
+Lemma 2 shows that the problem F2/rj/Cm~x with k
+distinct release dates can be solved by constructing all
+k" assignments of n jobs to k interval sets, scheduling
+each interval set according to Johnson's algorithm and
+concatenating interval schedules.
+
+3. Dynamic programming
+
+In this section, we present a dynamic programming
+algorithm for the problem F2/rj/Cm~x with k distinct
+release dates assuming that all processing times are
+integers.
+Suppose that the jobs are numbered according to
+Johnson's algorithm. Consider arbitrary schedules
+S1 . . . . . Sk in which jobs are sequenced from time zero
+in increasing order. Schedule Si corresponds to ith interval set, i = 1..... k. Let us assign jobs to schedules
+St ..... Sk in all possible ways. Job j can be assigned
+to schedule Si if ~ ~< Pi. Assume that schedule Si consists ofjobs ij < i2 < ... < ip a n d j o b j is additionally
+assigned to this schedule. Then due to (1), the length
+of the new schedule can be calculated as follows:
+
+C(Si)=max
+
+Zai'
+
+max
+
++ ~
+
+bi,
+
+/=1
+
+= max{C(SD + bj,A(Si) + aj + bj},
+
+(2)
+
+77
+
+where A(Si) = ~P=I ai, is the total processing time
+on machine A.
+We now present an algorithm to calculate the length
+C(S) of a schedule S obtained by concatenating
+schedules Sl . . . . . Sk. In this algorithm CON, schedules $1 ..... Sk are consecutively concatenated so that
+the current completion times TA and T8 of machines
+A and B, respectively, are minimized. This strategy
+evidently leads to a schedule with minimal C(S)
+value. The following parameters are assumed to be
+known for each schedule S/: the total processing time
+on the first machine Ai = A(Si), the total processing
+time on the second machine Bi = B(Si) = ~-']~t~{s,}bl
+and the length Ci = C(Si). In iteration i of the algorithm, schedule Si is concatenated with the current schedule. Denote by Tffld, T~ld and Tj ew, T~ew
+the values of TA and T~ calculated before and after
+concatenating Si, respectively. Since Tffl~ is the minimal current value of TA and Si corresponds to the
+ith interval set, jobs from Si cannot be started before Ei = max{pi, T~ld}. Therefore, T~ew = Ei + Ai.
+Furthermore, since the sequence of jobs in Si is
+fixed, T~ ew = max{Ei + Ci, T~ ld Jr- Bi}. We have
+C ( S ) - - T~ew, where T~eW is calculated in iteration
+k. It is evident that algorithm CON runs in O(k)
+time.
+Let us denote by ~ the set of the schedules obtained
+by concatenating interval schedules $1 ..... Sk constructed in all possible ways. Lemma 2 shows
+that there is an optimal schedule corresponding to
+
+min{ C(S) [S E S }.
+Consider schedules S, S' c ~; obtained by concatenating $1 .... , Sk and S[ . . . . . S~, respectively. It follows
+from algorithm CON that C(S) = C(S') if C(Si) =
+C(S[), A(Si) ----A(S/') and B(Si) = B(S'), i = 1..... k.
+This observation and formula (2) provide the basis
+for the following dynamic programming algorithm H,
+which is similar to those used by Rothkopf [12] and
+Lawler and Moore [9] for parallel machine scheduling problems. The algorithm proceeds by computing
+a sequence of sets X(°),X(~),...,X (n). Each X (j) is
+a set of 3k-tuples (C1 ..... Ck,A1 ..... Ak,B1 ..... Bk).
+Each tuple in X(J) corresponds to a certain assignment of the first j jobs into k interval schedules
+S1. . . . . Sk. The components Ci,Ai and Bi correspond
+to the length and the total processing time on machines A and B, respectively, for schedule Si, i =1. . . . . k.
+
+78
+
+M.Y. Kovalyov, I~ W e r n e r / O p e r a t i o n s Research Letters 20 (1997) 75 79
+and replace the given processing times aj and bj by
+scaled processing times
+
+Algorithm H
+Step 1 (Initialization): Set X (°) = {(0 ..... 0)}.
+Step 2 (Generation of X O) . . . . . x(n)): For j =
+1..... n, perform the following computations. Set
+Yi=O, i= 1. . . . . k. For each tuple (C1 ..... Ck, A i . . . . . Ak,
+B 1..... Bk ) E X (j - 1) and i : 1..... k, do the following.
+If ~ ~< pi, then set
+Yi = Y; U ( C1 . . . . . G - l , m a x { G 4- bj,Ai 4- aj 4- bj },
+Ci+l , . . . , C k ,
+
+A1,... ,Ai-l,Ai 4- ai,Ai+l,... ,Ak,
+Bl
+
+.....
+
+Bi-l,Bi + bj,Bi+l ..... Bk).
+
+Merge Yi, i = 1,...,k, to obtain X Cj). If we get the
+same tuples during the merge, store only one of them.
+Step 3 (Determination of an optimal solution):
+For each tuple from X (n) apply algorithm CON to
+compute the length of the corresponding schedule. A
+tuple from X ~n) with the minimal length corresponds
+to an optimal schedule, which is found by backtracking.
+We now evaluate the time complexity of this algorithm. It is evident that the procedure of generating
+X (j+l) requires no more than O(klX(J)[) time. Define
+V = max{~i~ 1ai, ~ i n l bi}. It is not difficult to see
+that for each tuple (C~ ..... Ck, A ~..... Ak, B1 ..... Bk ) E
+X (j), j = 1..... n, we have Ci<<.2V, Ai<~ V and
+Bi <<. V, i = 1. . . . . k. Hence, the number of different
+tuples in X ~j) is not greater than (2V)kV 2k. This
+value can be reduced to (2V) k V2k-2 since only k - 1
+of the values Al ..... Ak and k - 1 of the values
+B1 ..... Bk are independent in each tuple. Thus, the
+time complexity of algorithm H can be estimated as
+O(nk(2 V) k V2k-2), i.e. it is a pseudopolynomial algorithm if the number k of distinct release dates is a
+constant.
+
+4. A polynomial approximation scheme
+Let us consider the problem F2/rj/Cmax with k distinct release dates and arbitrary processing times. We
+define
+
+6 = ~V/(2n + 2)
+
+a~ = [aj/fJ
+
+and
+
+b~. = Lbj/rJ.
+
+Note that V ~< C* which implies 6(n+ 1) <~ (e/2)C*.
+Suppose we have found an optimal schedule and its
+length R' for the problem with scaled processing times.
+Let C' denote the length of this schedule with respect
+to the original processing times and let R* denote the
+length of an optimal schedule for the original problem
+with respect to the scaled processing times. Making
+use of the inequalities
+
+6a'i <~a~ < 6(a~ + 1),
+
+6b~ <~ bj < 3(b~ + 1)
+
+and noticing that, for any permutation schedule, if all
+a~ and bj are increased by some value t, then the length
+of the schedule increases by at most (n+ 1)t, we obtain
+
+C; < fiR' + (n + l )fi <~ fiR* + (n + l )6
+~< C* + ( n +
+
+1)6 ~<(1 + e/2)C*.
+
+Thus, any exact algorithm for the problem with scaled
+processing times a~ and b~ is a (1 + ~/2)-approximation
+algorithm for the problem with original processing
+times.
+We now define a family of algorithms {H~ }, where
+H~ is the algorithm H applied to the problem with
+scaled release dates r~ (see Section 2) and scaled processing times a~ and b~.. The value A (see Section 2)
+is added to each job's starting time in the final schedule to make it feasible for the original problem. Our
+main result is the following.
+
+Theorem 1. The family of algorithms {H~} is a polynomial approximation scheme for F2/rj/Crnax with
+a time complexity of
+O(28/e+2((n q- 1 )/~)6/e.+2).
+Proof. Algorithm H applied to the problem with
+scaled processing times a~ and bj. and k distinct release dates is a (1 + e/2)-approximation algorithm for
+the problem with original processing times. Let k be
+the number of distinct release dates rj. Then due to
+Lemma 1, algorithm H~. delivers a schedule of length
+at most (1 + e)C*.
+We now establish the time complexity of//,:. We define U =max{~in_l ai,/ ~ i n l b~}. Clearly, U <<. V/6 =
+
+M. K Kovalyov, F WernerlOperations Research Letters 20 (1997) 75-79
+
+2(n + 1 )/~. Since k ~< 1 +2/~ (see proof of Lemma 1),
+the running time of algorithm He is
+
+O((n/e )( 2 U )1+2/t: U4/E),
+from which the required time complexity is derived. []
+For an arbitrary instance of the problem F2/rj/Cmax,
+we cannot say whether our scheme or Hall's [3]
+scheme is better from the computational point of
+view. However, a simple estimation of the time complexities shows that our scheme can be expected to be
+5
+faster for instance for e ~< ½ and n ~< 20 000, e ~< T~
+2
+and n~< 1000, e~< 1/2 and n~<500 or e < g and
+n ~< 100. I f e / > 2, then Potts' [11] heuristic is preferable, since it guarantees e = 2 and works more efficiently. It should be noted that the space requirement
+of our scheme is the same as its time requirement
+while Hall's scheme and Potts' heuristic both require
+a linear space.
+
+Acknowledgements
+The authors have been supported by Deutsche
+Forschungsgemeinschaft (Project ScheMA) and by
+1NTAS (Project 1NTAS-93-257).
+
+References
+[ 1] M.R. Garey and D.S. Johnson, Computers and Intractability."
+A Guide to the Theory ofNP-Completeness, W.H. Freeman
+and Co., New York, 1979.
+
+79
+
+[2] R.L. Graham, E.L Lawler, J.K. Lenstra and A.H.G. Rinnooy
+Kan, "Optimization and approximation in deterministic
+sequencing and scheduling: a survey", Ann. Discrete Math.
+5, 287-326 (1979).
+[3] L.A. Hall, "A polynomial approximation scheme for a
+constrained flow-shop scheduling problem", Math. Oper.
+Res. 19, 68-85 (1994).
+[4] L.A. Hall and D.B. Shmoys, "Approximation algorithms for
+constrained scheduling problems", Proc. IEEE 30th Ann.
+Symp. Foundations o f Computer Science, 1989.
+[5] L.A. Hall and D.B. Shmoys, "Near-optimal sequencing with
+precedence constraints", Proc. Math. Prog. Soc. Conference
+on Integer Programming and Combinatorial Optimization,
+University of Waterloo, 1990.
+[6] L.A. Hall and D.B. Shmoys, "Jackson's rule for singlemachine scheduling: making a good heuristic better", Math.
+Oper. Res. 17, 22-35 (1992).
+[7] S.M. Johnson, "Optimal two- and three-stage production
+scheduling with setup times included", Naval Res. Logist.
+Quart. 1, 61-68 (1954).
+[8] M.Y. Kovalyov, "Scheduling two-machine flow-shops in
+parallel", preprint 3, Institute of Engineering Cybernetics,
+Belarus Academy of Sciences, Minsk, 1993.
+[9] E.L. Lawler and J.M. Moore, "A functional equation and its
+application to resource allocation and sequencing problems",
+Management Sci. 16, 77-84 (1969).
+[10] J.K. Lenstra, A.H.G. Rinnooy Kan, and P. Brucker, "Complexity of machine scheduling problems", Ann. Discrete
+Math. 1, 343-362 (1977).
+[11 ] C.N. Potts, "Analysis of heuristics for two-machine flow-shop
+sequencing subject to release dates", Math. Oper. Res. 10,
+576-584 (1985).
+[12] M.H. Rothkopf, "Scheduling independent tasks on parallel
+processors", Management Sci. 12, 437-447 (1966).
+[13] S. Sahni, "General techniques for combinatorial approximation", Oper. Res. 25, 920-936 (1977).
+
+

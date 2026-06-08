@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pdftotext \"e:/Study/研究生/2.文献/作业禁制/Computational complexity and exact techniques for scheduling problems with job prohibitions_unlocked.pdf\" /tmp/paper.txt)",
+      "Read(//tmp/**)",
+      "Bash(pdftotext \"e:/Study/研究生/2.文献/作业禁制/Computational complexity and exact techniques for scheduling problems with job prohibitions_unlocked.pdf\" -)"
+    ]
+  }
+}

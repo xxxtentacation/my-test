@@ -1,0 +1,1221 @@
+%\documentclass[12pt, eqno, limlimits]{article}
+\documentclass[12pt]{article}
+\usepackage[round, sort]{natbib}
+\usepackage{amsfonts, amsmath, amssymb, amscd} 
+\usepackage{latexsym}
+\usepackage[colorlinks=true,linkcolor=black,anchorcolor=black,citecolor=black,urlcolor=black]{hyperref}
+\usepackage{color, xcolor}
+\usepackage{array}
+\usepackage{algorithmicx}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{enumerate}
+\usepackage{float}
+\usepackage{colortbl}
+\textheight=24.5cm \textwidth=16.5cm
+\parskip = 0.165cm
+\renewcommand\baselinestretch{1.2}
+\topmargin=-2cm \oddsidemargin=0cm \evensidemargin=0cm
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{cor}{Corollary}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{rem}{Remark}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{obs}{Observation}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{exam}{Example}[section]
+\title{\LARGE\bf Parallel-batching scheduling with two agents, release dates and equal processing times}
+\author{Shi-Sheng Li$^{a,}$\footnote{Corresponding author.
+E-mail address: shishengli96@163.com (S.S. Li)}, Ren-Xia Chen$^{a}$\\
+{\small $^{a}$School of Mathematics and Information Science, Zhongyuan University of Technology,}\\
+{\small Zhengzhou 450007, People's Republic of China}\\}
+\date{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\begin{sloppypar}
+
+\maketitle 
+
+\begin{abstract}	
+This paper investigates a two-agent scheduling problem with release dates and equal processing times on an unbounded parallel-batching machine. Each agent’s scheduling criterion is regular and takes either the max-form or the sum-form. We address three variants of the problem. The first variant is the restricted version, which aims to determine a feasible schedule that minimizes one agent's criterion while keeping the other agent's objective value not exceeding a specified upper bound. The second variant is the linear-combination version, which seeks to find a feasible schedule that minimizes a linear combination of the criteria of both agents. The third variant is the Pareto version, which wants to identify all Pareto-optimal points and generate the corresponding Pareto-optimal schedules. When one agent's criterion is of the max-form, we present polynomial-time algorithms for all three variants. However, when both agents' criteria are of the sum-form, several variants of the problem are shown to be $\mathcal{NP}$-hard. In the Pareto version under this scenario, we design a pseudo-polynomial-time algorithm and a $(1, 1+\epsilon)$-approximate Pareto-optimal frontier. For the restricted version, we provide a fully polynomial-time approximation scheme (FPTAS) as well as a super-dual FPTAS. 
+\end{abstract}
+
+\noindent \textbf{Keywords:} Two-agent scheduling; Parallel-batching; Release date; Equal processing times; Approximation scheme
+
+\section{Introduction}
+
+In smart manufacturing, modern production systems are increasingly complex, dynamic, and decentralized. Traditional scheduling approaches, which rely on centralized decision-making, often struggle to address the challenges such as real-time disruptions, heterogeneous resource constraints, and competing objectives in contemporary industrial environments. Multi-agent scheduling (MAS) addresses these limitations through distributed intelligence, autonomous negotiation, and collaborative solutions. In a general MAS framework, multiple agents utilize shared processing resources to manage their respective sets of jobs, which may not be disjoint. Each agent desires to optimize its scheduling criterion by minimizing or maximizing specific objective functions, based on its assigned tasks. Applications of MAS span diverse domains, including packet-switching networks (\citealp{PerezGonzalez2014EJOR}), cross-docking distribution (\citealp{AgnetisBillaut2014Springer}; \citealp{Kovalyov2015JOS}), production and logistics (\citealp{NouiriBekrar2020IJPR}; \citealp{CaiLiLuoHe2023IJPR}), cloud computing and manufacturing (\citealp{WangYuYin2021IJPR}; \citealp{WangRenBai2024IJPR}), and resource-constrained project scheduling (\citealp{ServranckxCoelho2022IJPR}; \citealp{GengYuan2023EJOR}).
+
+The use of parallel-batching ($p$-batch) processing has become prevalent in industrial manufacturing due to its ability to eliminate setup times/costs while streamlining production processes. Notable implementations include semiconductor manufacturing processes such as wafer fabrication (diffusion, deposition, oxidation) and burn-in operations in test facilities (\citealp{LeeUzsoy1992OR}; \citealp{RaniaMathirajan2023IJPR}; \citealp{KongWang2024IJPR}), heat treatments in ceramic and steel industries (\citealp{LiWangGupta2022CIE}; \citealp{FanGQWang2023IJPR}), food freezing processes (\citealp{KucukkocKK2024IJPR}), and fabric dyeing operations (\citealp{LeiDai2024IJPR}). In a typical $p$-batch production system, a parallel-batching processing machine (PBPM) can process multiple jobs simultaneously. Jobs within the same batch share identical starting and completion times, and the  processing time of the batch is determined by the maximum processing time of jobs assigned to it.
+
+Scheduling with equal processing times is a common strategy in repetitive manufacturing environments, particularly for large-scale production of standardized or similar items (\citealp{KravchenkoWerner2011JOS}; \citealp{OronShabtaySteiner2015EJOR}). In real-world scenarios involving different job processing times, models that assume equal processing times can serve as critical benchmarks for evaluating algorithmic efficiency and identifying structural properties in scheduling systems. Moreover, algorithms designed for equal-duration tasks can generate lower bounds or approximate schedules for problems with different durations by decomposing tasks into a pseudo-polynomial number of equal-duration components (\citealp{DoverShabtay2016ANoR}). 
+
+In this paper, we explore a parallel-batching scheduling problem involving two competing agents, different job release dates, and equal processing times. As a practical application, we consider the automotive manufacturing sector (\citealp{Streitberger20082014Wiley}; \citealp{Akafuah2016Coatings}), where a coating station (machine) is utilized to apply protective layers to various car parts (jobs), including engine components, chassis parts, and body panels. To maximize throughput and efficiency, the coating station operates as a $p$-batch machine, capable of processing multiple parts simultaneously within a single batch. Parts arrive dynamically from upstream processes, such as machining or assembly, which results in arbitrary release dates. Each part has a specified delivery date (due date) by which it is expected to be completed and delivered. The processing time for each part is uniform, as the coating process requires a fixed duration regardless of the part's size or type. These car parts are designated for two customers (agents). The first customer wants to minimize the maximum tardiness of their parts to ensure timely delivery of critical components and avoid delays in downstream assembly processes. In contrast, the second customer seeks to minimize the total tardiness of their parts to enhance production efficiency and reduce inventory holding costs. Consequently, the decision-maker should devise a scheduling strategy that effectively balances the objective functions of both customers: minimizing the maximum tardiness of the first customer while minimizing the total tardiness of the second customer as well. This context can be formulated as a parallel-batching scheduling problem involving two competing agents, dynamic job arrivals, and equal processing times. Similar applications also exist in other fields such as pharmaceutical production (\citealp{MisraMaravelias2022Springer}), semiconductor manufacturing (\citealp{LeeUzsoy1999IJPR}; \citealp{RaniaMathirajan2023IJPR}), and fabric dyeing processes in the clothing industry (\citealp{LeiDai2024IJPR}). 
+
+\subsection{Problem description}
+The scheduling problem under investigation is formally defined as follows:
+We have two disjoint groups of jobs, ${\mathcal J}^{A}=\{J_1^{A}, J_2^{A}, \ldots, J_{n_A}^{A}\}$ and ${\mathcal J}^{B}=\{J_1^{B}, J_2^{B}, \ldots, J_{n_B}^{B}\}$. For  $X \in \{A, B\}$, the jobs in ${\mathcal J}^{X}$ are referred to as $X$-jobs and associated with agent $X$. Let $\mathcal{J}=\mathcal{J}^{A} \cup \mathcal{J}^{B}$ denote the set of all jobs, and let $n=n_A+n_B$ represent the number of jobs in $\mathcal{J}$. All $n$ jobs have equal integer processing times, denoted by $p$. For $X \in \{A, B\}$ and $j \in \{1, 2, \ldots, n_X\}$, each job $J_j^X$ has an integer release date $r_j^X \geq 0$, an integer due date $d_j^X \geq 0$, and an integer weight $w_j^X \geq 0$. For simplicity, we denote a job in $\mathcal{J}$ by $J_j$, with $r_j$, $d_j$, and $w_j$ representing its release time, due date, and weight, respectively. The processing of jobs occurs on a single PBPM, which can handle up to $b$ jobs simultaneously in a single batch. The processing time $p(\mathcal{B})$ of a batch $\mathcal{B}$ is determined by the maximum processing time of jobs assigned to it. There are two variants of the $p$-batch model regarding the batch size $b$: the bounded variant ($b < n$) and the unbounded variant ($b = n$). We focus on the scenario in which the batch size is unbounded. Moreover, we assume compatibility between the two agents, meaning that jobs from different agents can be processed together in the same batch.
+
+A feasible schedule (or solution) for the $n$ jobs in $\mathcal{J}$ is defined by a batch processing sequence $\mathcal{BPS}=(\mathcal{B}_1, \mathcal{B}_2, \ldots, \mathcal{B}_N)$, where each batch $\mathcal{B}_k$ is characterized by the set of jobs assigned to it and its starting time $S(\mathcal{B}_k)$. It is required that $S(\mathcal{B}_k) \geq r_{\max}(\mathcal{B}_k)=\max \{r_j, J_j \in \mathcal{B}_k\}$, where $r_{\max}(\mathcal{B}_k)$ denotes the release date of $\mathcal{B}_k$. The completion time of $\mathcal{B}_k$ is given by $C(\mathcal{B}_k)=S(\mathcal{B}_k)+p$. Given a feasible schedule $\rho$, let $S_j(\rho)$ ($S_j^{X}(\rho)$) denote the starting time and $C_j(\rho)$ ($C_j^{X}(\rho)$) denote the completion time of  job $J_j$ ($J_j^{X}$).
+
+The evaluation of a schedule's quality involves two scheduling criteria, each pertaining to a different agent. For $X \in \{A, B\}$, let $\gamma^X$ be the objective function of agent $X$ to be minimized. Since the two agents are competing, $\gamma^X$ is solely related to the completion times of the $X$-jobs. An objective function $\gamma^X$ is referred to as \emph{regular} if it is non-decreasing in the completion times $C_j^X$, $j=1, 2, \ldots, n_X$. We examine two forms of regular objective functions: the \emph{max-form} $f_{\max}^{X}=\max\{f_j^X(C_j^X): j=1, 2, \ldots, n_X\}$, and the \emph{sum-form} $f_{\mathrm{sum}}^{X}=\sum_{j=1}^{n_X}f_j^X(C_j^X)$, where $f_j^X(C_j^X)$ is non-decreasing in $C_j^X$. Special cases of $f_j^X(C_j^X)$ under consideration include $C_j^X$, $L_j^X$, $T_j^X$, $U_j^X$ and $Y_j^X$. For each job $J_j^X$, the following definitions apply: $L_j^{X}=C_j^{X}-d_j^{X}$ indicates the lateness, $T_j^{X}=\max \{0, C_j^{X}-d_j^{X}\}$ represents the tardiness, $Y_j^X=\min\{\max \{0, C_j^{X}-d_j^{X}\}, p\}$ denotes the late work, and $U_j^{X}$ is the tardy indicator, where $U_j^X=1$ if $T_j^X > 0$ and $U_j^X=0$ if $T_j^X = 0$. Furthermore, given a feasible schedule $\rho$, job $J_j^X$ is classified as (i) \emph{early} if $Y_j^X(\rho)=0$; (ii) \emph{tardy} if $T_j^X(\rho)>0$; (iii) \emph{late} if $Y_j^X(\rho)=p$; and (iv) \emph{non-late} if $Y_j^X(\rho)< p$.
+
+According to the scheduling framework and notation established in \cite{TkindtBillaut2006book} and \cite{AgnetisBillaut2014Springer}, we employ the following approach to characterize variants of two-agent scheduling problems. Here, $\alpha$ denotes the machine configuration, $\beta$ includes additional problem-specific constraints, and $Q_X$ is a specified upper bound on $\gamma^X$. 
+
+\begin{itemize}
+\item Linear-combination version $\mathbf{V}_1$: $\alpha| \beta | \lambda \gamma^A+(1-\lambda)\gamma^B$. The aim is to determine a feasible
+schedule that minimizes $\lambda \gamma^A+(1-\lambda)\gamma^B$, where $0 \leq \lambda \leq 1$ is a constant.
+
+\item Decision version $\mathbf{V}_2$: $\alpha | \beta, \gamma^A \leq Q_A, \gamma^B \leq Q_B |-$. The aim is to verify the existence of a feasible schedule satisfying $\gamma^A \leq Q_A$ and $\gamma^B \leq Q_B$. 
+
+\item Restricted version $\mathbf{V}_3$: $\alpha| \beta | \epsilon(\gamma^A, \gamma^B)$. The aim is to determine a feasible schedule that minimizes $\gamma^A$ subject to $\gamma^B \leq Q_B$.
+
+\item Restricted version $\mathbf{V}_4$: $1| \beta | \epsilon(\gamma^B, \gamma^A)$. The aim is to determine a feasible schedule that minimizes $\gamma^B$ subject to $\gamma^A \leq Q_A$. 
+
+\item Pareto version $\mathbf{V}_5$: $\alpha | \beta | \#(\gamma^A, \gamma^B)$. The aim is to identify all Pareto-optimal points and generate the corresponding Pareto-optimal schedules. 
+A feasible schedule $\rho$ is referred to as \emph{Pareto-optimal}
+with respect to $\gamma^A$ and $\gamma^B$ if there exists no other schedule $\rho'$ with $\gamma^A(\rho') \leq \gamma^A(\rho)$ and $\gamma^B(\rho') \leq \gamma^B(\rho)$, where at least one of the two inequalities is strict. In this context, $(\gamma^A(\rho), \gamma^B(\rho))$ is referred to as a \emph{Pareto-optimal point}. A set of $\alpha | \beta | \#(\gamma^A, \gamma^B)$ is referred to as a \emph{Pareto-optimal frontier} (POF) if it contains all Pareto-optimal points.
+\end{itemize}
+
+To simplify the discussion, we use the notation $\alpha | \beta| \{\gamma^A, \gamma^B\}$ to denote the five variants of the general problem. Following the observations in \cite{TkindtBillaut2006book}, we note that: (i) the algorithm designed for $\mathbf{V}_5$ can solve $\mathbf{V}_1 \text{-} \mathbf{V}_4$ as a by-product; (ii) $\mathbf{V}_2$ is the decision version of both $\mathbf{V}_3$ and $\mathbf{V}_4$, which implies that either neither $\mathbf{V}_3$ nor $\mathbf{V}_4$ is $\mathcal{NP}$-hard, or both are $\mathcal{NP}$-hard; (iii) $\mathbf{V}_3$ and $\mathbf{V}_4$ are computationally at least as difficult as $\mathbf{V}_2$; (iv) if any one variant among $\mathbf{V}_2 \text{-} \mathbf{V}_4$ admits a pseudo-polynomial-time algorithm, then the other two can also be solved in pseudo-polynomial time; (v) for any $\mathbf{V}_i$ ($i=1, 2, 3, 4$), the existence of a feasible schedule guarantees the existence of a Pareto-optimal schedule.
+
+For convenience, we denote ``$p\text{-batch}, b = n, r_j, p_j=p$" in the $\beta$ field as $\beta^{*}$  in subsequent discussions. Accordingly, the decision version of the problem under study is denoted by $1 | \beta^{*}, \gamma^A \leq Q_A, \gamma^B \leq Q_B |-$, while the other variants are denoted by $1 | \beta^{*} | \gamma$, where $\gamma$ is substituted by $\{\gamma^A, \gamma^B\}$ for the general problem, and by $\lambda \gamma^A+(1-\lambda)\gamma^B$, $\epsilon(\gamma^A, \gamma^B)$, $\epsilon(\gamma^B, \gamma^A)$, and $\#(\gamma^A, \gamma^B)$ for the variants $\mathbf{V}_1$, $\mathbf{V}_3$, $\mathbf{V}_4$, and $\mathbf{V}_5$, respectively.
+
+\subsection{Literature review}
+
+The scheduling problem addressed in this research falls within the categories of parallel-batching scheduling and multi-agent scheduling. Given the extensive nature of problems related to these two categories, we review only some relevant works in the single-machine context.  
+
+The initial research on parallel-batching scheduling traces back to \cite{IkuraGimple1986ORL}, who proposed an $O(n \log n)$-time algorithm for $1 | p\text{-batch}, b < n, r_j, p_j=p| C_{\max}$. \cite{LeeUzsoy1992OR} designed polynomial-time dynamic programming (DP) algorithms for $1 | p\text{-batch}, b < n, p_j=p, arg(r_j, d_j)| T_{\max}$ and $1 | p\text{-batch}, b < n, p_j=p, arg(r_j, d_j)| \sum U_j$, where $T_{\max}=\max\{T_j: 1 \leq j \leq n\}$ denotes the maximum tardiness, and $arg(r_j, d_j)$ indicates that the release dates and due dates of all jobs are agreeable (i.e., $r_i \leq r_j$ implies $d_i \leq d_j$ for each $i, j =1, 2, \ldots, n$). \cite{LiLee1997EJOR} demonstrated that problems $1 | p\text{-batch}, b < n, arg(r_j, d_j)| T_{\max}$ and $1 | p\text{-batch}, b < n, arg(r_j, d_j)| \sum U_j$ are both strongly $\mathcal{NP}$-hard. Additionally, they presented polynomial-time algorithms for $1 | p\text{-batch}, b < n, arg(r_j, d_j, p_j)| T_{\max}$ and $1 | p\text{-batch}, b < n, arg(r_j, d_j, p_j)| \sum U_j$, where $arg(r_j, d_j, p_j)$ denotes that the release dates, due dates, and processing times of all jobs are agreeable. \cite{Brucker1998JOS} provided a systematic complexity classification for both bounded and unbounded versions of the single PBPM scheduling problem under various regular criteria. \cite{LeeUzsoy1999IJPR} concentrated on minimizing the makespan for a single PBPM with dynamic job arrivals. They developed an $O(n^2)$-time algorithm for $1 | p\text{-batch}, b = n, r_j| C_{\max}$ and a pseudo-polynomial-time algorithm for $1 | p\text{-batch}, b < n, r_j| C_{\max}$ with two release dates. They also proposed several heuristics and evaluated their effectiveness through numerical testing. \cite{Baptiste2000MMOR} provided polynomial-time
+algorithms for $1 | p\text{-batch}, b < n, p_j=p, r_j| \gamma$, where $\gamma \in \{\sum w_j U_j, \sum w_j C_j, \sum T_j\}$. \cite{ChengLiuYU2001IIE} demonstrated that problem
+$1 | p\text{-batch}, b = n, r_j, arg(p_j, d_j)| L_{\max}$ is binary $\mathcal{NP}$-hard and designed polynomial-time algorithms for several special cases. \cite{LiuYuanCheng2003ORL} showed that  problem $1 | p\text{-batch}, b = n| \sum T_j$ is $\mathcal{NP}$-hard and proposed pseudo-polynomial-time algorithms for $1 | p\text{-batch}, b = n, r_j| f_{\max}$ and $1 | p\text{-batch}, b = n, r_j| f_{\mathrm{sum}}$. \cite{ChengYuanYang2005COR} investigated an unbounded PBPM scheduling involving precedence constraints, dynamic job arrivals, and equal processing times, aiming to minimize a regular criterion $\gamma$. They designed an $O(n^3)$-time algorithm for $1 | p\text{-batch}, b = n, r_j, p_j=p| \gamma$ and developed a $\frac{3}{2}$-approximation algorithm for $1 | prec, p\text{-batch}, b = n, r_j, p_j=p| \sum w_j C_j$. \cite{LiuNgCheng2007TCS} established that problem $1 | p\text{-batch}, b =2, arg(p_j, d_j)| \sum T_j$ is $\mathcal{NP}$-hard and problems $1 | p\text{-batch}, b <n, arg(p_j, d_j)| \sum T_j$ and $1 | p\text{-batch}, b <n, arg(p_j, d_j)| \sum w_jU_j$ are pseudo-polynomially solvable. Recent studies on parallel-batching scheduling problems have explored various themes, such as preventive maintenance (\citealp{HuangWangJiang2020IJPR}), non-identical job sizes (\citealp{ZhouJinLiu2022ESA}), energy-aware objective (\citealp{KucukkocKK2024IJPR}), and energy conservation concerns (\citealp{KongWang2024IJPR}). For a more comprehensive overview of this area, the readers are directed to the reviews by \cite{MonchFowler2011JOS} and \cite{FowlerMonch2022EJOR}.
+
+The set of MAS models stems from two seminal papers by \cite{BakerSmithJOS2003} and \cite{AgnetisMirchandani2004OR}, which pioneered the analysis of two-agent scheduling scenarios. For various combinations of scheduling criteria between the two agents, \cite{BakerSmithJOS2003} investigated the linear-combination version, while \cite{AgnetisMirchandani2004OR} analyzed
+the restricted and Pareto variants. \cite{AgnetisBillaut2014Springer} and \cite{PerezGonzalez2014EJOR} established a comprehensive framework and taxonomy for MAS literature, systematically analyzing computational complexity and solution methods in studies published through 2014. MAS model demonstrates broad applicability across diverse domains, as evidenced by the variety of models explored in the literature. Recent studies on two-agent scheduling models have investigated topics, such as equal processing times (\citealp{ZhaoYuan2020JOCO}; \citealp{ChenRB2022EJOR}), multitasking (\citealp{LiChenTian2020EngineeringOptimization}; \citealp{WangYuYin2021IJPR}), optional job rejection (\citealp{OronDaniel2021Omega}; \citealp{FreudMosheiov2021COR}), dynamic job arrivals (\citealp{LiChen2023JOS}; \citealp{WangRenBai2024IJPR}), rate-modifying activities (\citealp{PhosavanhOron2024EJOR}), and the price of fairness (\citealp{AgnetisChen2019EJOR}; \citealp{YuLiuLuGu2025EJOR}). 
+
+There are also some studies focusing on two-agent scheduling in the context of parallel-batching. \cite{SabouniJolai2010AMM} examined a single PBPM scheduling problem in which one agent’s objective function is the makespan and the other agent's objective function is the maximum lateness.
+They designed polynomial-time algorithms for $1 |p\text{-batch}, b = n, IG|\lambda C_{\max}^{A}+(1-\lambda)L_{\max}^{B}$, $1 |p\text{-batch}, b < n, p_j^B=p^B, IG|\lambda C_{\max}^{A}+(1-\lambda)L_{\max}^{B}$, and $1 |p\text{-batch}, b < n, p_j^B=p^B, CG|\#(C_{\max}^{A}, L_{\max}^{B}) $, where $p_j^B=p^B$ means that all $B$-jobs have equal processing times, $\mathit{IG}$ denotes incompatibility between the two agents (i.e., jobs from different agents cannot be handled together in the same batch), and $\mathit{CG}$ indicates compatibility (i.e., jobs from different agents can be handled together in the same batch). \cite{LiYuan2012JOS} addressed the restricted variant of two-agent scheduling problem on a single unbounded PBPM. They demonstrated that: (i) problems $1 |p\text{-batch}, b = n, \phi|\epsilon(f_{\max}^{A},f_{\max}^{B})$ and $1 |p\text{-batch}, b = n, \phi|\epsilon(\sum U_j^{A},\sum U_j^{B})$ are polynomially solvable, (ii) problems $1 |p\text{-batch}, b = n, \phi|\epsilon(\sum w_j^A C_j^{A},C_{\max}^{B})$ and $1 |p\text{-batch}, b = n, \phi|\epsilon(\sum w_j^A C_j^{A},\sum C_j^{B})$ are binary $\mathcal{NP}$-hard, and (iii) problems $1 |p\text{-batch}, b = n, \phi|\epsilon(\sum f_j^{A},f_{\max}^{B})$ and $1 |p\text{-batch}, b = n, \phi|\epsilon(\sum f_j^{A},\sum f_j^{B})$ are pseudo-polynomially solvable, where $\phi \in \{ IG, CG\}$. \cite{FanBQCheng2013JOS} studied the bounded PBPM variant of two-agent scheduling, establishing the following results: (i) problem $1 |p\text{-batch}, b < n, IG|\epsilon(C_{\max}^{A},C_{\max}^{B})$ is solvable in $O(n \log n)$ time, (ii) problem $1 |p\text{-batch}, b < n, CG|\epsilon(C_{\max}^{A},C_{\max}^{B})$ is $\mathcal{NP}$-hard and admits a pseudo-polynomial-time solution, and (iii) problem $1 |p\text{-batch}, b < n, CG|\epsilon(\sum C_j^A, C_{\max}^{B})$ is $\mathcal{NP}$-hard. \cite{TangZhaoLiu2017EJOR} investigated the restricted variant of two-agent scheduling problem on a single PBPM, analyzing both bounded and unbounded batch sizes with  time-dependent processing times that deteriorate in a proportional-linear manner. 
+Depending on the objective function combinations of the two agents, the problem was shown to be either $\mathcal{NP}$-hard or solvable by an exact algorithm. Focusing on the goal of minimizing the makespan for both agents, \cite{GaoYuanNgCheng2019EJOR} revisited the work of \cite{TangZhaoLiu2017EJOR} and derived new theoretical insights. \cite{HeWuLin2022DiscreteOptimization} introduced a polynomial-time algorithm for $1 |p\text{-batch}, b < n, p_j^B=p^B, CG|\#(C_{\max}^{A},f_{\max}^{B})$.
+
+To the best of our knowledge, none of the studies mentioned above or their references have investigated the issue of two-agent scheduling in a parallel-batching environment with dynamic job arrivals. This gap is particularly significant given the increasing complexity of scheduling problems in modern manufacturing systems. Considering this issue, our research represents the first attempt to integrate parallel-batching scheduling, two competing agents, job release dates, and equal processing times. The primary focus of this research is twofold: (i) to ascertain the complexity status of various problem variants, and (ii) to develop efficient exact and approximation algorithms (schemes) for these $\mathcal{NP}$-hard problems.
+
+The remainder of this paper is structured as follows. Section 2 presents some preliminary results for the general problem $1 | \beta^{*} |\{\gamma^A, \gamma^B\}$. In Section 3, we analyze the problem when one agent's scheduling criterion is of the max-form, demonstrating that all problem variants can be solved in polynomial time. Section 4 investigates problem $1 | \beta^{*}, f_{\mathrm{sum}}^A \leq Q_A, f_{\mathrm{sum}}^B \leq Q_B|-$ and establishes $\mathcal{NP}$-completeness results for various combinations of $f_{\mathrm{sum}}^A$ and $f_{\mathrm{sum}}^B$. Section 5 introduces an exact DP algorithm for $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$. In Section 6, we address problem $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ and propose three algorithmic approaches: (i) an exact pseudo-polynomial-time algorithm with time complexity $O(n^4 Q_B)$, (ii) an FPTAS with time complexity $O(n^5 (\log \log n_A+ 1/\epsilon))$, and (iii) a super-dual FPTAS with time complexity $O(n^5 /\epsilon)$. Section 7 devises a $(1, 1+\epsilon)$-approximate POF for $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$. Section 8  evaluates the proposed algorithms through numerical experiments. In Section 9, we provide some managerial insights. Section 10 concludes the paper and discusses future research directions.
+
+\section{Preliminaries}
+
+We start with providing some important properties that can be applied to the general problem
+$1 | \beta^{*} |\{\gamma^A, \gamma^B\}$ and their various special scenarios.
+
+Since the objective functions $\gamma^A$ and $\gamma^B$ under study are both regular, we only concentrate on the schedules in which each batch starts as early as possible. Hence, we obtain the following lemma.
+
+\begin{lemma} \label{L-2.1}
+If $\mathcal{BPS}=(\mathcal{B}_1, \mathcal{B}_2, \ldots, \mathcal{B}_N)$ is a feasible schedule for $1 | \beta^{*} |\{\gamma^A, \gamma^B\}$, then we have $S(\mathcal{B}_1)=r(\mathcal{B}_1)$, $S(\mathcal{B}_i)=\max \{S(\mathcal{B}_{i-1})+p, r(\mathcal{B}_i)\}$ for $i=2, 3, \ldots, N$.
+\end{lemma}
+
+In the remainder of this paper, the $n$ jobs in $\mathcal{J}$ are renumbered in line with the earliest release date (ERD) rule, i.e.
+\begin{equation}\label{E-2.1}
+r_1 \leq r_2 \leq \cdots \leq r_n.
+\end{equation}
+
+A schedule is called an \emph{ERD-batch schedule} if, for any $J_h \in \mathcal{B}_i$ and $J_k \in \mathcal{B}_{i+1}$, $r_h < r_k$ holds. The following result demonstrates that a feasible schedule for $1 | \beta^{*} |\{\gamma^A, \gamma^B\}$ can be selected among all Pareto-optimal ERD-batch schedules.
+
+\begin{lemma} \label{L-2.2}
+If a feasible schedule exists for $1 | \beta^{*} |\{\gamma^A, \gamma^B\}$, then a Pareto-optimal ERD-batch schedule also exists.
+\end{lemma}
+
+\noindent \textbf{Proof.} Let $\sigma$ be a Pareto-optimal schedule for $1 | \beta^{*} |\{\gamma^A, \gamma^B\}$, but not an ERD-batch schedule. Then for some $i$, there exist two jobs $J_h \in \mathcal{B}_i$ and $J_k \in \mathcal{B}_{i+1}$ in $\sigma$ such that $r_h \geq r_k$. We construct another schedule $\sigma'$ from  $\sigma$ by moving $J_k$ to $\mathcal{B}_i$.
+Based on Lemma \ref{L-2.1} and the fact that $r_k \leq r_h \leq r(\mathcal{B}_i)$, we have $C_k(\sigma') < C_k(\sigma)$ and $C_j(\sigma') \leq C_j(\sigma)$ for each $J_j \in \mathcal{J} \setminus \{J_k\}$. Since $\gamma^A$ and $\gamma^B$ are
+both regular, we have $\gamma^A(\sigma') \leq \gamma^A(\sigma)$ and $\gamma^B(\sigma') \leq \gamma^B(\sigma)$. Therefore, $\sigma'$ is a Pareto-optimal schedule as well. By iteratively repeating this procedure, we can construct a feasible schedule with the desired form. \hfill$\Box$\\
+
+By Lemma \ref{L-2.2}, an optimal schedule exists where jobs from both agents with identical release dates are scheduled in the same batch. Furthermore, due to the unbounded batch size, the starting time of the last batch in such a schedule does not exceed  $r_{\max}(\mathcal{J})+p-1$. Write $\Lambda=r_{\max}(\mathcal{J})+2p-1$, and define
+\begin{equation}\label{E-2.2}
+\mathcal{R}=\{r_j+k_j p: r_j+k_j p \leq \Lambda, j=1, 2, \ldots, n; k_j=1, 2, \ldots, n-j+1\}.
+\end{equation}
+Let $R_1< R_2 < \cdots < R_m$ denote the ordered sequence of distinct members in $\mathcal{R}$.
+Since $m=|\mathcal{R}|=O(n^2)$, this sequence can be obtained in $O(n^2 \log n)$ time.
+Moreover, define
+\begin{equation}\label{E-B.1}
+\mathcal{V}_X=\{f_j^X(R_k): j=1, 2, \ldots, n_X, k=1, 2, \ldots, m\}, ~ X \in \{A, B\}.
+\end{equation}
+
+Based on Lemmas \ref{L-2.1} and \ref{L-2.2}, for $1 | \beta^{*} |\{\gamma^A, \gamma^B\}$, we focus on optimal schedules  in which each batch' completion time belongs to the set $\mathcal{R}$. Consequently, $\mathcal{V}_X$ denotes the set of all possible $f_{\max}^X$ values of agent $X$. From the fact that $|\mathcal{R}|=O(n^2)$, the following lemma holds.
+
+\begin{lemma} \label{L-2.3}
+For $X \in \{A, B\}$, the number of different possible $f_{\max}^X$ values of agent $X$ is bounded by $O(n^2 n_X)$.
+\end{lemma}
+
+When all jobs belong to a single agent, \cite{ChengYuanYang2005COR} establishes the following result, which plays a critical role in our subsequent discussion.
+
+\begin{lemma} \label{L-2.4} (\citealp{ChengYuanYang2005COR})
+Problem $1 | \beta^{*} | \gamma$ is solvable in $O(n^3)$ time, where $\gamma$ is an arbitrary regular scheduling criterion.
+\end{lemma}
+
+The DP algorithm proposed by \cite{ChengYuanYang2005COR} has a space complexity of  $O(n^3)$, as it must store all necessary states and variables during execution.
+
+\begin{theorem} \label{T-2.1}
+Problem $1|\beta^{*}|\lambda f_{\mathrm{sum}}^{A}+(1-\lambda) f_{\mathrm{sum}}^{B}$ is solvable in $O(n^3)$ time.
+\end{theorem}
+\noindent \textbf{Proof.} Note that problem $1|\beta^{*}|\lambda f_{\mathrm{sum}}^{A}+(1-\lambda) f_{\mathrm{sum}}^{B}$ can be reduced in linear time to problem $1 | \beta^{*} | f_{\mathrm{sum}}$ over the same job set $\mathcal{J}$. Here, $f_{\mathrm{sum}}=\sum_{j=1}^n f_j(C_j)$ is defined such that for each $J_j \in \mathcal{J}$, $f_j(t)=\lambda f_j^A(t)$ if $J_j \in \mathcal{J}^A$, and $f_j(t)=(1-\lambda) f_j^B(t)$ if $J_j \in \mathcal{J}^B$. By Lemma \ref{L-2.4}, the theorem follows directly. \hfill$\Box$\\
+
+Let $\widehat{r}_1 < \widehat{r}_2 < \cdots < \widehat{r}_h$ denote the ordered sequence of distinct release dates of jobs in $\mathcal{J}$. When $p_j=1$ for each $J_j \in \mathcal{J}$, Lemma \ref{L-2.1} implies that $\mathcal{BPS}=(\mathcal{B}_1, \mathcal{B}_2, \ldots, \mathcal{B}_h)$ is an optimal schedule
+for $1 | \beta^{*}, p=1|\{\gamma^A, \gamma^B\}$, where 
+$\mathcal{B}_k=\{J_j \in \mathcal{J}: r_j=\widehat{r}_k\}$ for each $k=1, 2, \ldots, h$. This leads to the following theorem.
+
+\begin{theorem} \label{T-2.2}
+Problem $1 | \beta^{*}, p=1|\{\gamma^A, \gamma^B\}$ is solvable in $O(n \log n)$ time.
+\end{theorem}
+
+\section{Problems with $\gamma^X=f_{\max}^X$ for some agent $X \in \{A, B\}$}
+
+In this section, we address the problem when one agent's scheduling criterion is of the max-form, demonstrating that all problem variants can be solved in polynomial time. 
+
+\subsection{Problem $1 | \beta^{*} |\epsilon(\gamma^A, f_{\max}^B)$}
+
+By borrowing the approach used in \cite{AgnetisMirchandani2004OR} for $1 | |\epsilon(f_{\max}^A, f_{\max}^B)$, we show that $1 | \beta^{*} |\epsilon(\gamma^A, f_{\max}^B)$ can be solved through a reduction to $1 | \beta^{*} | \gamma$, which was studied by \cite{ChengYuanYang2005COR}.
+
+For $\gamma^A=f_{\max}^A$, define $\gamma=\max \{f_j(C_j): j=1, 2, \ldots, n\}$, where, for each $t \geq 0$,
+\begin{equation*}\label{E-3.1}
+f_j(t)=\left\{
+\begin{array}{ll}
+f_j^A(t), & \hbox{if} ~ J_j \in \mathcal{J}^A; \\
+-\infty, & \hbox{if} ~ J_j \in \mathcal{J}^B ~ \hbox{and} ~ f_j^B(t) \leq Q_B;\\
++\infty, & \hbox{if} ~ J_j \in \mathcal{J}^B ~ \hbox{and} ~ f_j^B(t) > Q_B.
+\end{array}
+\right.
+\end{equation*}
+
+For $\gamma^A=f_{\mathrm{sum}}^{A}$, define $\gamma=\sum_{j=1}^n f_j(C_j)$, where, for each $t \geq 0$,
+\begin{equation*}\label{E-3.2}
+f_j(t)=\left\{
+\begin{array}{ll}
+f_j^A(t), & \hbox{if} ~ J_j \in \mathcal{J}^A; \\
+0, & \hbox{if} ~ J_j \in \mathcal{J}^B ~ \hbox{and} ~ f_j^B(t) \leq Q_B;\\
++\infty, & \hbox{if} ~ J_j \in \mathcal{J}^B ~ \hbox{and} ~ f_j^B(t) > Q_B.
+\end{array}
+\right.
+\end{equation*}
+
+If $\rho^{*}$ is an optimal schedule for $1 | \beta^{*} | \gamma$ with $\gamma(\rho^{*})<+\infty$, then $\rho^{*}$ is also an optimal schedule for $1 |\beta^{*} |\epsilon(\gamma^A, f_{\max}^B)$ and $\gamma^A(\rho^{*})=\gamma(\rho^{*})$. Otherwise, if $\gamma(\rho^{*})=+\infty$, then $1 | \beta^{*} |\epsilon(\gamma^A, f_{\max}^B)$ has no feasible solution. Combining the above analysis with Lemma \ref{L-2.4}, we establish the following theorem. 
+
+\begin{theorem} \label{T-3.1}
+Problems $1|\beta^{*}|\epsilon(f_{\max}^A, f_{\max}^B)$ and
+$1 | \beta^{*} |\epsilon(f_{\mathrm{sum}}^{A}, f_{\max}^B)$ are both solvable in $O(n^3)$ time.
+\end{theorem}
+
+\subsection{Problem $1 | \beta^{*} |\epsilon(f_{\max}^A, f_{\mathrm{sum}}^B)$}
+
+The following result is given by \cite{OronShabtaySteiner2015EJOR}, which characterizes an important symmetric property for $\alpha| \beta | \epsilon(\gamma^A, \gamma^B)$ and $\alpha| \beta | \epsilon(\gamma^B, \gamma^A)$.
+
+\begin{lemma} \label{L-3.1} (\citealp{OronShabtaySteiner2015EJOR})
+If there exists an optimal algorithm for $\alpha| \beta | \epsilon(\gamma^A, \gamma^B)$ with time complexity $O(T_2)$, then problem $\alpha| \beta | \epsilon(\gamma^B, \gamma^A)$ can be solved in
+$O(\max\{T_2,  N_2\} \log N_2)$ time, where the number of different $\gamma^B$ values does not exceed $N_2$.
+\end{lemma}
+
+Based on the facts that: (i) problem $1 | \beta^{*} |\epsilon(f_{\mathrm{sum}}^{B}, f_{\max}^A)$
+is solvable in $O(n^3)$ time (Theorem \ref{T-3.1}), (ii) the number of different $f_{\max}^A$ values is bounded by $O(n^2 n_A)$ (Lemma \ref{L-2.3}), and (iii) the symmetric property (Lemma \ref{L-3.1}), we obtain the following theorem.
+
+\begin{theorem} \label{T-3.2}
+Problem $1 | \beta^{*} |\epsilon(f_{\max}^A, f_{\mathrm{sum}}^B)$ is solvable in $O(n^3 \log n)$ time.
+\end{theorem}
+
+\subsection{Problem $1 | \beta^{*}, f_{\max}^A \leq Q_A, f_{\max}^B \leq Q_B |-$}
+
+The approach in Section 3.1 can be directly applied to solve $1 | \beta^{*}, f_{\max}^A \leq Q_A, f_{\max}^B \leq Q_B |-$ and $1 | \beta^{*}, f_{\mathrm{sum}}^A \leq Q_A, f_{\max}^B \leq Q_B |-$ in $O(n^3)$ time. For the former problem, we next provide a faster $O(n^2)$-time algorithm by adapting the  DP framework designed for $1 | p\text{-batch}, b = n, r_j, arg(r_j, p_j), C_j \leq \overline{d}_j|-$ (\citealp{ChengLiuYU2001IIE}), where $arg(r_j, p_j)$ denotes that the release dates and processing times of all jobs are agreeable.
+
+Any ERD-batch schedule can be generated by first sorting jobs in ascending order of their indices and then partitioning the sorted sequence into batches. Let $M(j)$ denote the minimum makespan among all feasible ERD-batch schedules that consist of jobs $J_1, J_2, \ldots, J_j$. If no such schedules exist, define $M(j)=+\infty$. Following Lemma \ref{L-2.2}, the proposed approach schedules jobs $J_1, J_2, \ldots, J_{k-1}$ optimally for some $k$ ($1 \leq k \leq j$), then processes jobs $J_k, J_{k+1}, \ldots, J_j$ as a single batch starting at time $\max \{M(k-1), r_j\}$. For each $j=1, 2, \ldots, n$ and $t \geq 0$, define
+\begin{equation*}\label{E-3.3}
+m_j(t)=\left\{
+\begin{array}{ll}
+0, & \hbox{if} ~ J_j \in \mathcal{J}^A ~ \hbox{and} ~ f_j^A(t) \leq Q_A; \\
+0, & \hbox{if} ~ J_j \in \mathcal{J}^B ~ \hbox{and} ~ f_j^B(t) \leq Q_B;\\
++\infty, & \hbox{if} ~ J_j \in \mathcal{J}^A ~ \hbox{and} ~ f_j^A(t) > Q_A;\\
++\infty, & \hbox{if} ~ J_j \in \mathcal{J}^B ~ \hbox{and} ~ f_j^B(t) > Q_B.
+\end{array}
+\right.
+\end{equation*}
+
+The initial condition is $M(0)=0$. 
+
+For $j=1, 2, \ldots, n$, the recursive formula for $M(j)$ is defined as follows:
+\begin{equation*}\label{E-3.4}
+M(j)=\min\{M(j, k): k=1, 2, \ldots, j\},
+\end{equation*}
+where
+\begin{equation*}\label{E-3.5}
+M(j, k)=\left\{
+\begin{array}{ll}
+\max \{M(k-1), r_j\}+p, & \hbox{if}~ \sum\limits_{i=k}^j m_i(\max \{M(k-1), r_j\}+p)=0; \\
++\infty, & \hbox{otherwise.}
+\end{array}
+\right.
+\end{equation*}
+
+The recursive procedure terminates if some $M(j)=+\infty$ is reached, indicating that no feasible schedule exists for $1 | \beta^{*}, f_{\max}^A \leq Q_A, f_{\max}^B \leq Q_B |-$. If $M(n)<+\infty$, then the problem admits a feasible solution, and the associated schedule can be retrieved through backtracking. The time complexity of the above algorithm is $O(n^2)$, as each $M(j)$ computation requires $O(n)$ time and there are $n$ iterations. Since all possible states $(j,k)$ must be stored, the space complexity is also $O(n^2)$. This leads to the following theorem.
+
+\begin{theorem} \label{T-3.3}
+Problem $1 | \beta^{*}, f_{\max}^A \leq Q_A, f_{\max}^B \leq Q_B |-$ is solvable in $O(n^2)$ time.
+\end{theorem}
+
+\subsection{Problem $1 | \beta^{*} |\#(\gamma^A, f_{\max}^B)$}
+
+According to \eqref{E-B.1}, we know that $\mathcal{V}_B=\{f_j^B(R_k): j=1, 2, \ldots, n_B, k=1, 2, \ldots, m\}$. To solve $1 | \beta^{*} |\#(\gamma^A, f_{\max}^B)$, we generate $|\mathcal{V}_B|=O(n^2 n_B)$ optimal schedules for instances of $1 | \beta^{*} |\epsilon(\gamma^{A}, f_{\max}^B)$, where each instance corresponds to a distinct upper bound $Q_B \in \mathcal{V}_B$ for $f_{\max}^B$. Among these schedules, Pareto-optimal solutions are then extracted. Utilizing the results of Lemma \ref{L-2.3} and Theorem \ref{T-3.1}, the following result holds.
+
+\begin{theorem} \label{T-3.4}
+Problems $1 | \beta^{*} |\#(f_{\max}^A, f_{\max}^B)$ and
+$1 | \beta^{*} |\#(f_{\mathrm{sum}}^{A}, f_{\max}^B)$ are both solvable in $O(n^5 n_B)$ time.
+\end{theorem} 
+
+Since the algorithm developed for $1 | \beta^{*} |\#(\gamma^A, f_{\max}^B)$ can be directly applied to  $1 | \beta^{*} |\lambda \gamma^A +(1-\lambda) f_{\max}^B$, the following two results hold.
+
+\begin{cor} \label{C-3.1}
+Problem $1 | \beta^{*} |\lambda f_{\max}^A +(1-\lambda) f_{\max}^B$ is solvable in $O(n^5 n_B)$ time.
+\end{cor}
+
+\begin{cor} \label{C-3.2}
+Problem $1 | \beta^{*} |\lambda f_{\mathrm{sum}}^A +(1-\lambda) f_{\max}^B$ is solvable in $O(n^5 n_B)$ time.
+\end{cor}
+
+\section{$\mathcal{NP}$-completeness results}
+
+In this section, we demonstrate that some variants of the problem $1 | \beta^{*}, f_{\mathrm{sum}}^A \leq Q_A, f_{\mathrm{sum}}^B \leq Q_B|-$ are $\mathcal{NP}$-completeness, where $f_{\mathrm{sum}}^X \in \{\sum C_j^X, \sum w_j^X C_j^X, \sum Y_j^X, \sum T_j^X, \sum w_j^X U_j^X\}$ for $X \in \{A, B\}$. Notably, these $\mathcal{NP}$-completeness results remain valid for the case of bounded batch size (i.e., $b < n$), as shown in the proofs of the following theorems. All reductions are derived from the $\mathcal{NP}$-complete \textbf{\emph{Partition}} problem (\citealp{Garey1979computer}), which is described as follows:
+
+\begin{description}
+\item[Partition problem (PP):] Given $g$ positive integers $z_1, z_2, \ldots, z_g$ and an integer $Z$ with $\sum_{j=1}^g z_j=2 Z$, determine whether the index set $\mathcal{I}=\{1, 2, \ldots, g\}$ can be partitioned into two disjoint subsets $\mathcal{I}_1$ and $\mathcal{I}_2$ with $\sum_{j \in \mathcal{I}_1} z_j=\sum_{j \in \mathcal{I}_2} z_j=Z$? 
+\end{description}
+
+The following lemma establishes that the two objective functions $\sum Y_j^X$ and $\sum T_j^X$ play the same role under a certain condition.
+
+\begin{lemma} \label{L-4.1}
+Let $\rho$ be a feasible schedule for $1 | \beta^{*}, \sum f_j^A \leq Q_A, \sum f_j^B \leq Q_B|-$, and let $\sum f_j^X \in \{\sum Y_j^X, \sum T_j^X\}$ for some $X$ ($X \in \{A, B\}$). If $\sum f_j^X(\rho) < p$, then each $X$-job is non-late in $\rho$, and so $f_k^X=Y_k^X=T_k^X$ for each $J_k^X \in \mathcal{J}^X$.
+\end{lemma}
+
+\noindent \textbf{Proof.} If $J_k^X$ is a late $X$-job in $\rho$, its completion time satisfies $C_k^X(\rho) \geq d_k^X+p$. This implies $T_k^X(\rho) \geq p$ and $Y_k^X(\rho)=p$. Consequently, $\sum f_j^X(\rho) \geq f_k^X(\rho) \geq p$, which contradicts the condition $\sum f_j^X(\rho) < p$. \hfill$\Box$
+
+\subsection{$\mathcal{NP}$-completeness of $1 | \beta^{*}, \sum w_j^A C_j^A \leq Q_A, \sum w_j^B C_j^B \leq Q_B|-$} 
+
+Given an instance $\Phi=(z_1, z_2, \ldots, z_g; Z)$ of $\mathbf{PP}$, we build an
+instance $\Psi$ of $1 | \beta^{*}, \sum w_j^A C_j^A \leq Q_A, \sum w_j^B C_j^B \leq Q_B|-$ as follows:
+\begin{itemize}
+\item Each group $\mathcal{J}_X$ consists of $g$ jobs $J_1^X, J_2^X, \ldots, J_{g}^X$, all with equal processing times $p=2Z$, where $X =A, B$.
+
+\item Each job $J_j^A$, $j=1, 2, \ldots, g$, has a release date $r_j^A=(4j-4)Z$ and a weight $w_j^A=z_j$.
+
+\item Each job $J_j^B$, $j=1, 2, \ldots, g$, has a release date $r_j^B=(4j-3)Z$ and a weight $w_j^B=z_j$.
+
+\item The upper bounds of the two agents are $Q_A=\sum_{j=1}^g z_j(4j-2)Z + Z^2$ and $Q_B=\sum_{j=1}^g z_j(4j-1)Z + Z^2$, respectively.
+
+\item The decision is to find whether there is a schedule $\rho$ (called \emph{normal})
+with $\sum_{j=1}^g w_j^A C_j^A(\rho) \leq Q_A$ and $\sum_{j=1}^g w_j^B C_j^B(\rho) \leq Q_B$.
+\end{itemize}
+
+Next, we demonstrate that $\Phi$ has a solution if and only if $\Psi$ has a normal schedule.
+
+\begin{lemma} \label{L-4.1.1}
+If $\Phi$ has a solution, then $\Psi$ has a normal schedule.
+\end{lemma}
+\noindent \textbf{Proof.} Let $(\mathcal{I}_1, \mathcal{I}_2)$ be a solution to $\Phi$.
+For each $j \in \mathcal{I}_1$, define $\mathcal{B}_j^1=\{J_j^A\}$ and $\mathcal{B}_j^2=\{J_j^B\}$.
+For each $j \in \mathcal{I}_2$, define $\mathcal{B}_j^1=\{J_j^A, J_j^B\}$ and $\mathcal{B}_j^2=\emptyset$.
+A schedule $\rho$ for $\Psi$ is defined by the batch processing sequence
+$\mathcal{BPS}=(\mathcal{B}_1^1, \mathcal{B}_1^2, \mathcal{B}_2^1, \mathcal{B}_2^2,\ldots,
+\mathcal{B}_{g}^1,\mathcal{B}_{g}^2)$, where $p(\emptyset)=0$.
+
+By Lemma \ref{L-2.1}, we obtain that (i) $C_j^A(\rho)=r_j^A+p=(4j-2)Z$ and $C_j^B(\rho)=C_j^A(\rho)+p=4jZ$ for $j \in \mathcal{I}_1$, and (ii) $C_j^A(\rho)=C_j^B(\rho)=r_j^B+p=(4j-1)Z$ for $j \in \mathcal{I}_2$. 
+
+Since $\sum_{j \in \mathcal{I}_1} z_j= \sum_{j \in \mathcal{I}_2} z_j=Z$, it follows that (i) $\sum_{j=1}^g w_j^A C_j^A(\rho)=\sum_{j \in \mathcal{I}_1} z_j (4j-2)Z+\sum_{j \in \mathcal{I}_2} z_j (4j-1)Z =\sum_{j \in \mathcal{I}} z_j (4j-2)Z+\sum_{j \in \mathcal{I}_2} z_j Z
+=\sum_{j=1}^g z_j(4j-2)Z + Z^2=Q_A$, and (ii) $\sum_{j=1}^g w_j^B C_j^B(\rho)=\sum_{j \in \mathcal{I}_1} z_j (4jZ)+\sum_{j \in \mathcal{I}_2} z_j (4j-1)Z=\sum_{j \in \mathcal{I}} z_j (4j-1)Z+\sum_{j \in \mathcal{I}_1} z_j Z =\sum_{j=1}^g z_j(4j-1)Z + Z^2=Q_B$.
+Therefore, $\rho$ is a normal schedule for $\Psi$. \hfill$\Box$
+
+\begin{lemma} \label{L-4.1.2}
+If $\Psi$ has a normal schedule, then $\Phi$ has a solution.
+\end{lemma}
+\noindent \textbf{Proof.} Let $\rho$ be a normal ERD-batch schedule for $\Psi$ (Lemma \ref{L-2.2}).
+From the definition of job parameters, we have
+\begin{equation*}\label{E-4.1.1}
+r_j^A <r_j^B<r_j^A+p<r_j^B+p<r_j^A+2p = r_{j+1}^A, ~ j \in \{1, 2, \ldots, g\},
+\end{equation*}
+where $r_{g+1}^A=4gZ$. In view of Lemmas \ref{L-2.1} and \ref{L-2.2}, the starting time of $J_j^A$ in $\rho$ is constrained to be either $r_j^A$ or $r_j^B$. In the former case, $J_j^B$ starts at time $r_j^A+p$. In the latter case, $J_j^B$ starts at time $r_j^B$ as well. Define $\mathcal{I}_1=\{j: S_j^A(\rho)=r_j^A\}$
+and $\mathcal{I}_2=\{j: S_j^A(\rho)=r_j^B\}$. By simple computation, we obtain that (i)
+$C_j^A(\rho)=r_j^A+p=(4j-2) Z$ and $C_j^B(\rho)=C_j^A(\rho)+p=4jZ$ for $j \in \mathcal{I}_1$,
+and (ii) $C_j^A(\rho)=C_j^B(\rho)=r_j^B+p=(4j-1)Z$ for $j \in \mathcal{I}_2$.
+
+Since $\rho$ is a normal schedule for $\Psi$, we have
+\begin{equation} \label{E-4.1.3}
+\sum_{j=1}^g w_j^A C_j^A(\rho)=\sum_{j \in \mathcal{I}_1} z_j (4j-2)Z+\sum_{j \in \mathcal{I}_2} z_j (4j-1)Z
+=\sum_{j=1}^g z_j (4j-2)Z+\sum_{j \in \mathcal{I}_2} z_j Z \leq Q_A
+\end{equation}
+and
+\begin{equation}\label{E-4.1.4}
+\sum_{j=1}^g w_j^B C_j^B(\rho)=\sum_{j \in \mathcal{I}_1} z_j (4jZ)+\sum_{j \in \mathcal{I}_2} z_j (4j-1)Z
+=\sum_{j=1}^g z_j (4j-1)Z+\sum_{j \in \mathcal{I}_1} z_j Z \leq Q_B.
+\end{equation}
+Recall that $Q_A=\sum_{j=1}^g z_j(4j-2)Z + Z^2$ and $Q_B=\sum_{j=1}^g z_j(4j-1)Z + Z^2$.
+From \eqref{E-4.1.3} and \eqref{E-4.1.4}, we deduce that
+$\sum_{j \in \mathcal{I}_1} z_j \leq Z$ and $\sum_{j \in \mathcal{I}_2} z_j \leq Z$.
+Since $\sum_{j \in \mathcal{I}_1}z_j +\sum_{j \in \mathcal{I}_2} z_j = \sum_{j=1}^g z_j =2Z$, we further deduce that $\sum_{j \in \mathcal{I}_1} z_j= \sum_{j \in \mathcal{I}_2} z_j=Z$.
+Therefore, $(\mathcal{I}_1, \mathcal{I}_2)$ is a solution to $\Phi$. \hfill$\Box$\\
+
+Combining the results of Lemmas \ref{L-4.1.1} and \ref{L-4.1.2}, we obtain the following theorem.
+
+\begin{theorem} \label{T-4.1}
+Problem $1 | \beta^{*}, \sum w_j^A C_j^A \leq Q_A, \sum w_j^B C_j^B \leq Q_B|-$ is $\mathcal{NP}$-complete.
+\end{theorem}
+
+\subsection{$\mathcal{NP}$-completeness of $1 | \beta^{*}, \sum w_j^A U_j^A \leq Q_A, \sum w_j^B U_j^B \leq Q_B|-$}
+
+Given an instance $\Phi=(z_1, z_2, \ldots, z_g; Z)$ of $\mathbf{PP}$, we build an
+instance $\Psi$ of $1 | \beta^{*}, \sum w_j^A U_j^A \leq Q_A, \sum w_j^B U_j^B \leq Q_B|-$ as follows:
+\begin{itemize}
+\item Each group $\mathcal{J}_X$ consists of $g$ jobs $J_1^X, J_2^X, \ldots, J_{g}^X$, all with equal processing times $p=Z$, where $X =A, B$. 
+
+\item Each job $J_j^A$, $j=1, 2, \ldots, g$, has a release date $r_j^A=(j-1) (Z+1)$, a due date $d_j^A=j(Z+1)-1$, and a weight $w_j^A=z_j$.
+
+\item Each job $J_j^B$, $j=1, 2, \ldots, g$, has a release date $r_j^B=(j-1) (Z+1)+1$, a due date $d_j^B=j (Z+1)$, and a weight $w_j^B=z_j$.
+
+\item The upper bounds of the two agents are $Q_A=Z$ and $Q_B=Z$, respectively.
+
+\item The decision is to find whether there is a schedule $\rho$ (called \emph{normal})
+with $\sum_{j=1}^g w_j^A U_j^A(\rho) \leq Q_A$ and $\sum_{j=1}^g w_j^B U_j^B(\rho) \leq Q_B$. 
+\end{itemize}
+
+\begin{lemma} \label{L-4.3.1}
+If $\Phi$ has a solution, then $\Psi$ has a normal schedule.
+\end{lemma}
+\noindent \textbf{Proof.} Let $(\mathcal{I}_1, \mathcal{I}_2)$ be a solution to $\Phi$.
+For each $j \in \mathcal{I}_1$, define $\mathcal{B}_j=\{J_j^A\}$. For each $j \in \mathcal{I}_2$,
+define $\mathcal{B}_j=\{J_j^B\}$. Define an extra batch
+$\mathcal{B}_{g+1}=\{J_j^A: j \in \mathcal{I}_2\} \cup \{J_j^B: j \in \mathcal{I}_1\} $.
+A schedule $\rho$ for $\Psi$ is defined by the batch processing sequence
+$\mathcal{BPS}=(\mathcal{B}_1, \mathcal{B}_2, \ldots, \mathcal{B}_{g+1})$.
+
+By Lemma \ref{L-2.1}, we obtain that (i) $C_j^A(\rho)=j(Z+1)-1=d_j^A$ for $j \in \mathcal{I}_1$, (ii) $C_j^B(\rho)=j(Z+1)=d_j^B$ for $j \in \mathcal{I}_2$, and (iii)
+$C_j^X(\rho)=C(\mathcal{B}_{g+1})=C(\mathcal{B}_{g})+p \geq (g-1)(Z+1)+2p >d_g^X \geq d_j^X$ for $J_j^X \in \mathcal{B}_{g+1}$. This shows that (i) $U_j^A(\rho)=0$ and $U_j^B(\rho)=1$ for $j \in \mathcal{I}_1$, and (ii) $U_j^A(\rho)=1$ and $U_j^B(\rho)=0$ for $j \in \mathcal{I}_2$.
+
+Since $\sum_{j \in \mathcal{I}_1} z_j= \sum_{j \in \mathcal{I}_2} z_j=Z$, it follows that 
+$\sum_{j=1}^g w_j^A U_j^A(\rho)=\sum_{j \in \mathcal{I}_2} w_j^A =\sum_{j \in \mathcal{I}_2} z_j=Z=Q_A$
+and $\sum_{j=1}^g w_j^B U_j^B(\rho)=\sum_{j \in \mathcal{I}_1} w_j^B =\sum_{j \in \mathcal{I}_1} z_j=Q_B$.
+Therefore, $\rho$ is a normal schedule for $\Psi$. \hfill$\Box$
+
+\begin{lemma} \label{L-4.3.2}
+If $\Psi$ has a normal schedule, then $\Phi$ has a solution.
+\end{lemma}
+\noindent \textbf{Proof.} Let $\rho$ be a normal schedule for $\Psi$.
+From the definition of job parameters, we have
+\begin{equation}\label{E-4.3.1}
+r_1^A <r_1^B<d_1^A<d_1^B=r_2^A < r_2^B <d_2^A<d_2^B=r_3^A< \cdots =r_g^A <r_g^B<d_g^A<d_g^B
+\end{equation}
+and
+\begin{equation}\label{E-4.3.2}
+d_j^X=r_j^X+p, ~ X \in \{A, B\}, ~ j \in \{1, 2, \ldots, g\}.
+\end{equation}
+
+From \eqref{E-4.3.1} and \eqref{E-4.3.2}, it follows that $C_j^X(\rho)=d_j^X$ if job $J_j^X$ is 
+early in $\rho$ for $X \in \{A, B\}$. Define $\mathcal{I}_1=\{j: C_j^A(\rho)=d_j^A\}$
+and $\mathcal{I}_2=\{j: C_j^B(\rho)=d_j^B\}$. This implies that all jobs $J_j^A$ ($j \in \mathcal{I} \setminus \mathcal{I}_1$) and $J_j^B$ ($j \in \mathcal{I} \setminus \mathcal{I}_2$) in $\rho$ are tardy.
+
+Since $\rho$ is a normal schedule for $\Psi$, we have
+\begin{equation} \label{E-4.3.3}
+\sum_{j=1}^g w_j^A U_j^A(\rho)=\sum_{j=1}^g w_j^A-\sum_{j \in \mathcal{I}_1} w_j^A
+=\sum_{j=1}^g z_j-\sum_{j \in \mathcal{I}_1} z_j =2Z-\sum_{j \in \mathcal{I}_1} z_j\leq Q_A
+\end{equation}
+and
+\begin{equation}\label{E-4.3.4}
+\sum_{j=1}^g w_j^B U_j^B(\rho)=\sum_{j=1}^g w_j^B-\sum_{j \in \mathcal{I}_2} w_j^B
+=\sum_{j=1}^g z_j-\sum_{j \in \mathcal{I}_2} z_j =2Z-\sum_{j \in \mathcal{I}_2} z_j\leq Q_B.
+\end{equation}
+Recall that $Q_A=Q_B=Z$. From \eqref{E-4.3.3} and \eqref{E-4.3.4}, we deduce that
+\begin{equation}\label{E-4.3.5}
+\sum_{j \in \mathcal{I}_1} z_j \geq Z ~\mathrm{and} ~\sum_{j \in \mathcal{I}_2} z_j \geq Z.
+\end{equation}
+Based on the facts that $\mathcal{I}_1 \subseteq \mathcal{I}$, $\mathcal{I}_2 \subseteq \mathcal{I}$ and
+$\mathcal{I}_1 \cap \mathcal{I}_2=\emptyset$, we have $(\mathcal{I}_1\cup \mathcal{I}_2) \subseteq \mathcal{I}$. Hence, 
+\begin{equation}\label{E-4.3.6}
+\sum_{j \in \mathcal{I}_1}z_j +\sum_{j \in \mathcal{I}_2} z_j \leq \sum_{j \in \mathcal{I}} z_j =2Z.
+\end{equation}
+From \eqref{E-4.3.5} and \eqref{E-4.3.6}, we deduce that $\sum_{j \in \mathcal{I}_1} z_j= \sum_{j \in \mathcal{I}_2} z_j=Z$
+and $\mathcal{I}_1\cup \mathcal{I}_2 = \mathcal{I}$.
+Therefore, $(\mathcal{I}_1, \mathcal{I}_2)$ is a solution to $\Phi$. \hfill$\Box$\\
+
+Combining the results of Lemmas \ref{L-4.3.1} and \ref{L-4.3.2}, we obtain the following theorem.
+\begin{theorem} \label{T-4.3}
+Problem $1 | \beta^{*}, \sum w_j^A U_j^A \leq Q_A, \sum w_j^B U_j^B \leq Q_B|-$ is $\mathcal{NP}$-complete.
+\end{theorem}
+
+\subsection{$\mathcal{NP}$-completeness of $1 | \beta^{*}, \sum Y_j^A \leq Q_A, \sum Y_j^B \leq Q_B|-$}
+
+Given an instance $\Phi=(z_1, z_2, \ldots, z_g; Z)$ of $\mathbf{PP}$, we build an
+instance $\Psi$ of $1 | \beta^{*}, \sum Y_j^A \leq Q_A, \sum Y_j^B \leq Q_B|-$ as follows:
+\begin{itemize}
+\item Each group $\mathcal{J}_X$ consists of $g$ jobs $J_1^X, J_2^X, \ldots, J_{g}^X$, all with equal processing times $p=2Z$, where $X =A, B$. 
+
+\item Each job $J_j^A$, $j=1, 2, \ldots, g$, has a release date $r_j^A=(4j-4) Z$ and a due date $d_j^A=(4j-2)Z$.
+
+\item Each job $J_j^B$, $j=1, 2, \ldots, g$, has a release date $r_j^B=(4j-4) Z+z_j$ and a due date $d_j^B=4jZ-z_j$.
+
+\item The upper bounds of the two agents are $Q_A=Z$ and $Q_B=Z$, respectively.
+
+\item The decision is to find whether there is a schedule $\rho$ (called \emph{normal}) with $\sum_{j=1}^g Y_j^A(\rho) \leq Q_A$ and $\sum_{j=1}^g Y_j^B(\rho) \leq Q_B$. 
+\end{itemize}
+
+\begin{lemma} \label{L-4.5.1}
+If $\Phi$ has a solution, then $\Psi$ has a normal schedule.
+\end{lemma}
+\noindent \textbf{Proof.} Let $(\mathcal{I}_1, \mathcal{I}_2)$ be a solution to $\Phi$.
+For each $j \in \mathcal{I}_1$, define $\mathcal{B}_j^1=\{J_j^A\}$ and $\mathcal{B}_j^2=\{J_j^B\}$.
+For each $j \in \mathcal{I}_2$, define $\mathcal{B}_j^1=\{J_j^A, J_j^B\}$ and $\mathcal{B}_j^2=\emptyset$.
+A schedule $\rho$ for $\Psi$ is defined by the batch processing sequence
+$\mathcal{BPS}=(\mathcal{B}_1^1, \mathcal{B}_1^2, \mathcal{B}_2^1, \mathcal{B}_2^2,\ldots,
+\mathcal{B}_{g}^1,\mathcal{B}_{g}^2)$.
+
+By Lemma \ref{L-2.1}, we obtain that (i) $C_j^A(\rho)=r_j^A+p=(4j-2)Z=d_j^A$ and $C_j^B(\rho)=C_j^A(\rho)+p=4jZ>4jZ-z_j=d_j^B$ for $j \in \mathcal{I}_1$, and (ii) $C_j^A(\rho)=r_j^B+p=(4j-2)Z+z_j>d_j^A$ and $C_j^B(\rho)=C_j^A(\rho)=(4j-2)Z+z_j<4jZ-z_j=d_j^B$ for $j \in \mathcal{I}_2$. This implies that (i) $Y_j^A(\rho)=0$ and $Y_j^B(\rho)=z_j$ for $j \in \mathcal{I}_1$,
+and (ii) $Y_j^A(\rho)=z_j$ and $Y_j^B(\rho)=0$ for $j \in \mathcal{I}_2$.
+
+Since $\sum_{j \in \mathcal{I}_1} z_j= \sum_{j \in \mathcal{I}_2} z_j=Z$, it follows that 
+$\sum_{j=1}^g Y_j^A(\rho)=\sum_{j \in \mathcal{I}_2} Y_j^A(\rho) =\sum_{j \in \mathcal{I}_2} z_j=Z=Q_A$
+and $\sum_{j=1}^g Y_j^B(\rho)=\sum_{j \in \mathcal{I}_1} Y_j^B(\rho)=\sum_{j \in \mathcal{I}_1} z_j=Z=Q_B$.
+Therefore, $\rho$ is a normal schedule for $\Psi$. \hfill$\Box$
+
+\begin{lemma} \label{L-4.5.2}
+If $\Psi$ has a normal schedule, then $\Phi$ has a solution.
+\end{lemma}
+\noindent \textbf{Proof.} Let $\rho$ be a normal ERD-batch schedule for $\Psi$ (Lemma \ref{L-2.2}).
+Based on Lemma \ref{L-4.1} and the fact that $p=2Z>Q_A=Q_B$, it follows that each job $J_j^X$ is non-late in $\rho$ for $X=A, B$ and $j=1, 2, \ldots, n_X$. From the definition of job parameters, we have
+\begin{equation}\label{E-4.5.1}
+r_j^A <r_j^A+z_j=r_j^B<r_j^A+p=d_j^A<d_j^B=r_j^B+p<d_j^A+p= r_{j+1}^A, ~ j \in \{1, 2, \ldots, g\},
+\end{equation}
+where $r_{g+1}^A=4gZ$. In view of Lemmas \ref{L-2.1}, \ref{L-2.2}, and \eqref{E-4.5.1}, the starting time of $J_j^A$ in $\rho$ is constrained to be either $r_j^A$ or $r_j^B$. In the former case, $J_j^B$ starts at time $r_j^A+p$. In the latter case, $J_j^B$ starts at time $r_j^B$ as well. Define $\mathcal{I}_1=\{j: S_j^A(\rho)=r_j^A\}$
+and $\mathcal{I}_2=\{j: S_j^A(\rho)=r_j^B\}$. By simple computation, we obtain that (i)
+$C_j^A(\rho)=r_j^A+p=(4j-2) Z =d_j^A$ and $C_j^B(\rho)=r_j^A+2p=4jZ>4jZ-z_j=d_j^B$ for $j \in \mathcal{I}_1$, and (ii) $d_j^A=(4j-2)Z<(4j-2)Z+z_j=C_j^A(\rho)=C_j^B(\rho)=r_j^B+p<d_j^B=4jZ-z_j$ for $j \in \mathcal{I}_2$. This implies that (i) $Y_j^A(\rho)=0$ and $Y_j^B(\rho)=z_j$ for $j \in \mathcal{I}_1$, and (ii) $Y_j^A(\rho)=z_j$ and $Y_j^B(\rho)=0$ for $j \in \mathcal{I}_2$.
+
+Since $\rho$ is a normal schedule for $\Psi$, we have
+\begin{equation} \label{E-4.5.3}
+\sum_{j=1}^g Y_j^A(\rho)=\sum_{j \in \mathcal{I}_2} Y_j^A(\rho)=\sum_{j \in \mathcal{I}_2} z_j\leq Q_A
+\end{equation}
+and
+\begin{equation}\label{E-4.5.4}
+\sum_{j=1}^g Y_j^B(\rho)=\sum_{j \in \mathcal{I}_1} w_j^B =\sum_{j \in \mathcal{I}_1} z_j \leq Q_B.
+\end{equation}
+Recall that $Q_A=Q_B=Z$. From \eqref{E-4.5.3} and \eqref{E-4.5.4}, we deduce that
+$\sum_{j \in \mathcal{I}_1} z_j \leq Z$ and $\sum_{j \in \mathcal{I}_2} z_j \leq Z$.
+Since $\sum_{j \in \mathcal{I}_1}z_j +\sum_{j \in \mathcal{I}_2} z_j = \sum_{j=1}^g z_j =2Z$, we further deduce that $\sum_{j \in \mathcal{I}_1} z_j= \sum_{j \in \mathcal{I}_2} z_j=Z$.
+Therefore, $(\mathcal{I}_1, \mathcal{I}_2)$ is a solution to $\Phi$. \hfill$\Box$\\
+
+Combining the results of Lemmas \ref{L-4.5.1} and \ref{L-4.5.2}, we obtain the following theorem.
+\begin{theorem} \label{T-4.5}
+Problem $1 | \beta^{*}, \sum Y_j^A \leq Q_A, \sum Y_j^B \leq Q_B|-$ is $\mathcal{NP}$-complete.
+\end{theorem}
+
+Based on Lemma \ref{L-4.1} and the proof of Theorem \ref{T-4.5}, the following two corollaries hold.
+
+\begin{cor} \label{C-4.5.1}
+Problem $1 | \beta^{*}, \sum T_j^A \leq Q_A, \sum Y_j^B \leq Q_B|-$ is $\mathcal{NP}$-complete.
+\end{cor}
+
+\begin{cor} \label{C-4.5.2}
+Problem $1 | \beta^{*}, \sum T_j^A \leq Q_A, \sum T_j^B \leq Q_B|-$ is $\mathcal{NP}$-complete.
+\end{cor}
+
+\subsection{$\mathcal{NP}$-completeness of $1 | \beta^{*}, \sum C_j^A \leq Q_A, \sum w_j^B U_j^B \leq Q_B|-$}
+
+\begin{theorem} \label{T-4.2}
+Problem $1 | \beta^{*}, \sum C_j^A \leq Q_A, \sum w_j^B U_j^B \leq Q_B|-$ is $\mathcal{NP}$-complete.
+\end{theorem}
+
+\noindent \textbf{Proof.} Given an instance $\Phi=(z_1, z_2, \ldots, z_g; Z)$ of $\mathbf{PP}$, we build an instance $\Psi$ of $1 | \beta^{*}, \sum C_j^A \leq Q_A, \sum w_j^B U_j^B \leq Q_B|-$ as follows: (i) for $X \in \{A, B\}$, $\mathcal{J}_X=\{J_1^X, J_2^X, \ldots, J_{g}^X\}$, $p=2Z$; (ii)  for $j=1, 2, \ldots, g$, $r_j^A=(4j-4) Z$, $r_j^B=(4j-4) Z+z_j$, and $w_j^B=z_j$; (iii) $Q_A=(2g^2+1)Z$ and $Q_B=Z$. The proof follows an approach analogous to that used in Theorems \ref{T-4.1} and \ref{T-4.3}. \hfill$\Box$
+
+\subsection{$\mathcal{NP}$-completeness of $1 | \beta^{*}, \sum Y_j^A \leq Q_A, \sum w_j^B U_j^B \leq Q_B|-$}
+
+\begin{theorem} \label{T-4.4}
+Problem $1 | \beta^{*}, \sum Y_j^A \leq Q_A, \sum w_j^B U_j^B \leq Q_B|-$ is $\mathcal{NP}$-complete.
+\end{theorem}
+
+\noindent \textbf{Proof.} Given an instance $\Phi=(z_1, z_2, \ldots, z_g; Z)$ of $\mathbf{PP}$, we build an instance $\Psi$ of $1 | \beta^{*}, \sum Y_j^A \leq Q_A, \sum w_j^B U_j^B \leq Q_B|-$ as follows: (i) for $X \in \{A, B\}$, $\mathcal{J}_X=\{J_1^X, J_2^X, \ldots, J_{g}^X\}$, $p=2Z$; (ii) for $j=1, 2, \ldots, g$, $r_j^A=(4j-4) Z$, $d_j^A=(4j-2)Z$, $r_j^B=(4j-4) Z+z_j$, $d_j^B=(4j-2) Z+z_j$, and $w_j^B=z_j$; (iii) $Q_A=Z$ and $Q_B=Z$. The proof follows an approach analogous to that used in Theorems \ref{T-4.3} and \ref{T-4.5}. \hfill$\Box$\\
+
+Based on Lemma \ref{L-4.1} and the proof of Theorem \ref{T-4.4}, the following corollary hold.
+
+\begin{cor} \label{C-4.4.1}
+Problem $1 | \beta^{*}, \sum T_j^A \leq Q_A, \sum w_j^B U_j^B \leq Q_B|-$ is $\mathcal{NP}$-complete.
+\end{cor}
+
+\subsection{$\mathcal{NP}$-completeness of $1 | \beta^{*}, \sum C_j^A \leq Q_A, \sum Y_j^B \leq Q_B|-$}
+
+\begin{theorem} \label{T-4.6}
+Problem $1 | \beta^{*}, \sum C_j^A \leq Q_A, \sum Y_j^B \leq Q_B|-$ is $\mathcal{NP}$-complete.
+\end{theorem}
+
+\noindent \textbf{Proof.} Given an instance $\Phi=(z_1, z_2, \ldots, z_g; Z)$ of $\mathbf{PP}$, we build an instance of $1 | \beta^{*}, \sum C_j^A \leq Q_A, \sum Y_j^B \leq Q_B|-$ as follows: (i) for $X \in \{A, B\}$, $\mathcal{J}_X=\{J_1^X, J_2^X, \ldots, J_{g}^X\}$, $p=2Z$; (ii) for $j=1, 2, \ldots, g$, $r_j^A=(4j-4) Z$, $r_j^B=(4j-4) Z+z_j$, and $d_j^B=4jZ-z_j$; (iii) $Q_A=(2g^2+1)Z$ and $Q_B=Z$. The proof follows an approach analogous to that used in Theorems \ref{T-4.1} and \ref{T-4.5}. \hfill$\Box$\\
+
+Based on Lemma \ref{L-4.1} and the proof of Theorem \ref{T-4.6}, the following corollary hold.
+
+\begin{cor} \label{C-4.6.1}
+Problem $1 | \beta^{*}, \sum C_j^A \leq Q_A, \sum T_j^B \leq Q_B|-$ is $\mathcal{NP}$-complete.
+\end{cor}
+
+
+\section{An exact DP algorithm for $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$}
+
+Given the intractability of problem $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$, we develop a pseudo-polynomial-time DP framework for its exact solution. In view of Lemmas \ref{L-2.1} and \ref{L-2.2}, we focus exclusively on the ERD-batch schedules, where the completion times of all batches belong to $\mathcal{R}$, as defined by \eqref{E-2.2}. The remaining decision to be made is how to partition jobs into bathes. For ease of notation, define $\mathcal{J}_j=\{J_1, J_2, \ldots, J_j\}$ for $j=1, 2, \ldots, n$ and $\mathcal{J}_0=\emptyset$.
+
+In our DP framework, we sequentially scan jobs in $\mathcal{J}$ according to the ordering defined by \eqref{E-2.1}, dynamically constructing the state space and applying a dominance rule to improve computational efficiency. For each $j \in \{1, 2, \ldots, n\}$, let $\Phi_j$ represent the set of all schedules $\rho$ for $\mathcal{J}_j$, where $\rho$ is a partial schedule derived from some ERD-batch schedule $\rho'$ for $\mathcal{J}$. This partial schedule $\rho$ can be constructed from $\rho'$ by removing jobs $J_{j+1}, J_{j+2}, \ldots, J_n$. Each schedule $\rho \in \Phi_j$ can be uniquely characterized by a state $\mathcal{S}(\rho)=(j, t, u, v)$, where (i) $t$ represents the last job's completion time; (ii) $u$ denotes agent $A$'s objective value; and (iii) $v$ indicates agent $B$'s objective value. In this framework, $\rho$ is classified as an ERD-batch schedule that attains the state $(j, t, u, v)$, i.e., $t=C_{\max}(\rho)=C_j(\rho)$, $u=\sum_{J_k \in \mathcal{J}_j \cap \mathcal{J}^{A}} f_k^A(\rho)$, and $v=\sum_{J_k \in \mathcal{J}_j \cap \mathcal{J}^{B}} f_k^B(\rho)$. 
+
+Let $\mathcal{H}_j=\{\mathcal{S}(\rho): \rho \in \Phi_j\}$ denote the state space encompassing all attainable states derived from the schedules in $\Phi_j$.
+The initial set $\mathcal{H}_0$ consists solely of the state $\mathcal{S}(\rho_0)=\{(0, 0, 0, 0)\}$,
+where $\rho_0$ denotes an empty schedule. For each index $j \in \{1, 2, \ldots, n\}$, $\mathcal{H}_j$ can be
+generated from $\mathcal{H}_i$ for $i=0, 1, \ldots, j-1$.
+For a given state $(j, t, u, v) \in \mathcal{H}_j$, let $\rho_j \in \Phi_j$ be a feasible ERD-batch schedule that attains the state $\mathcal{S}(\rho_j)=(j, t, u, v)$. According to Lemma \ref{L-2.2}, there exists an index $i \in \{0, 1, \ldots, j-1\}$ such that the last batch in $\rho_j$ consists of jobs $J_{i+1}, J_{i+2}, \ldots, J_j$. Let $\rho_i$ be the schedule for $\mathcal{J}_i$ constructed from $\rho_j$ by removing jobs $J_{i+1}, J_{i+2}, \ldots, J_j$. This implies that
+$\rho_i \in \Phi_i$. Assume $\mathcal{S}(\rho_i)=(i, t', u', v') \in \mathcal{H}_i$. Then in view of Lemmas \ref{L-2.1} and \ref{L-2.2}, it follows that $t'=C_i(\rho_i)=C_i(\rho_j) \in \mathcal{R}$ and $\max \{t', r_j\}+p = t=C_{i+1}(\rho_j)=C_{i+2}(\rho_j)=\cdots=C_j(\rho_j)$.
+In this context, we obtain that  $u=u'+\sum_{J_k \in (\mathcal{J}_j \setminus \mathcal{J}_i) \cap \mathcal{J}^{A}} f_k^A(t)$ and $v=v'+\sum_{J_k \in (\mathcal{J}_j \setminus \mathcal{J}_i) \cap \mathcal{J}^{B}} f_k^B(t)$.
+
+The above discussion reveals that set $\mathcal{H}_j$ can be generated from sets $\mathcal{H}_i$ for $i=0, 1, \ldots, j-1$. To streamline the state space of the DP algorithm, the following dominance rule is established.
+
+\begin{lemma} \label{L-5.1}
+Given any two states $(j, t, u_1, v_1)$ and $(j, t, u_2, v_2)$ in $\mathcal{H}_j$ satisfying $u_1 \leq u_2$ and $v_1 \leq v_2$, the latter state can be removed from $\mathcal{H}_j$.
+\end{lemma}
+
+\noindent{\bf Proof.} Let $\rho_j^1$ and $\rho_j^2$ be two ERD-batch schedules that attain the states $(j, t, u_1, v_1)$ and $(j, t, u_2, v_2)$, respectively. Let $\mathcal{BPS}=(\mathcal{B}_1, \mathcal{B}_2, \ldots, \mathcal{B}_k)$ denote a batch processing sequence of $\mathcal{J} \setminus \mathcal{J}_j$. Appending $\mathcal{BPS}$ to $\rho_j^2$ yields a complete schedule $\rho_n^2$ for $\mathcal{J}$. Similarly, appending $\mathcal{BPS}$ to $\rho_j^1$ yields a complete schedule $\rho_n^1$ for $\mathcal{J}$. Since the contribution of jobs in $\mathcal{J} \setminus \mathcal{J}_j$ is identical for both $\rho_n^1$ and $\rho_n^2$, we have $f_{\mathrm{sum}}^A(\rho_n^1) \leq f_{\mathrm{sum}}^A(\rho_n^2)$ and
+$f_{\mathrm{sum}}^B(\rho_n^1) \leq f_{\mathrm{sum}}^B(\rho_n^2)$.
+Therefore, we conclude that $\rho_j^1$ dominates $\rho_j^2$. \hfill$\Box$\\
+
+For each $j=1, 2, \ldots, n$ and $t \in \mathcal{R}$, define
+\begin{equation}\label{E-5.1}
+g_j(t)=\left\{
+\begin{array}{ll}
+f_j^A(t), & \hbox{if} ~ J_j \in \mathcal{J}^A; \\
+0, & \hbox{if} ~ J_j \in \mathcal{J}^B.\\
+\end{array}
+\right.
+\end{equation}
+and
+\begin{equation}\label{E-5.2}
+h_j(t)=\left\{
+\begin{array}{ll}
+f_j^B(t), & \hbox{if} ~ J_j \in \mathcal{J}^B; \\
+0, & \hbox{if} ~ J_j \in \mathcal{J}^A.\\
+\end{array}
+\right.
+\end{equation}
+
+Recall that $\Lambda=r_{\max}(\mathcal{J})+2p-1$. In view of the above discussion, we introduce the following generic DP algorithm to solve $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$. 
+
+
+\begin{description}
+\item [Algorithm $\mathbf{DP_1}$.] An exact algorithm for $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$
+
+\item [Input:] ${\mathcal J}^{X}=\{J_1^{X}, J_2^{X}, \ldots, J_{n_X}^{X}\}$, $p$, $r_j^X$, $w_j^X$, $d_j^X$, $f_j^X$ for $X = A,B$ and $j=1, 2, \ldots, n_X$.
+
+\item [Step 1.] (\textbf{Pre-processing}) Renumber the jobs in $\mathcal{J}$ in line with \eqref{E-2.1}
+and determine the set $\mathcal{R}$ in line with \eqref{E-2.2}. For each $j=1, 2, \ldots, n$ and $t \in \mathcal{R}$, if $t \geq r_j+p$, then compute $G_j(t)=\sum_{k=1}^j g_k(t)$ and $H_j(t)=\sum_{k=1}^j h_k(t)$, where $G_0(t)=H_0(t)=0$.
+
+\item [Step 2.] (\textbf{Initialization}) Set $\mathcal{H}_0=\{(0,0,0,0)\}$, ${\mathcal H}_j=\emptyset$, and $\mathcal{H}_{j,i}=\emptyset$ for $j=1, 2, \ldots, n$ and $i=0, 1, \ldots, j-1$.
+
+\item [Step 3.] (\textbf{Generation}) Generate ${\mathcal H}_j$ from ${\mathcal H}_0, {\mathcal H}_1, \ldots, {\mathcal H}_{j-1}$.
+
+\textbf{For} $j=1$ to $n$ \textbf{do}
+
+\quad \textbf{For} $i=0$ to $j-1$ \textbf{do}
+
+\qquad  \textbf{For} each $(i, t, u, v) \in \mathcal{H}_i$ \textbf{do} 
+
+\quad \qquad Set $t'=\max\{t, r_j\}+p$, $u'=u+G_j(t')-G_i(t')$, and $v'=v+H_j(t')-H_i(t')$.
+
+\quad \qquad \textbf{If} $\max\{t, r_j\}+p \leq \Lambda$, \textbf{then} 
+
+\quad \qquad \qquad Add $(j, t', u', v')$ to $\mathcal{H}_{j,i}$.
+
+\quad \qquad \textbf{End if}
+
+\qquad \textbf{End for}
+
+\quad \textbf{End for}
+
+\quad Set $\mathcal{H}_j=\mathcal{H}_{j,0} \cup \mathcal{H}_{j,1} \cup \cdots \cup \mathcal{H}_{j,j-1}$.
+
+\quad (\textbf{Elimination}) For any two states $(j, t, u, v)$ and $(j, t, u', v')$ in $\mathcal{H}_j$ such that $u \leq u'$ and $v \leq v'$,
+retain only the first one in $\mathcal{H}_j$.
+
+\textbf{End for}
+
+\item [Step 4.] (\textbf{Extraction}) For any two states $(n, t, u, v)$ and $(n, t', u', v')$ in $\mathcal{H}_n$ such that $u \leq u'$ and $v \leq v'$, retain only the first one in $\mathcal{H}_n$.
+
+\item [Step 5.] (\textbf{Result}) Set $\mathcal{Q}=\{(u, v): (n, t, u, v) \in \mathcal{H}_n\}$.
+
+\item [Output:] The Pareto-optimal points in $\mathcal{Q}$ and their associated Pareto-optimal schedules.
+\end{description}
+
+Define $\Delta_A=\sum_{j=1}^{n_A} f_j^A(\Lambda)$, $\Delta_B=\sum_{j=1}^{n_B} f_j^B(\Lambda)$, and $\Delta=\min \{\Delta_A, \Delta_B\}$.
+Clearly, $\Delta_X$ is a valid upper bound on $f_{\mathrm{sum}}^X$ of $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$, where $X=A, B$.
+
+\begin{theorem} \label{T-5.1}
+Algorithm $\mathbf{DP_1}$ solves $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ in $O(n^4 \Delta)$ time.
+\end{theorem}
+
+\noindent{\bf Proof.} Based on Lemmas \ref{L-2.1}, \ref{L-2.2}, \ref{L-5.1}, and the preceding analysis, $\mathbf{DP_1}$ provides a correct solution to $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$. In Step 1, the sorting action requires $O(n \log n)$ time and the computation of all $G_j(t)$ and $H_j(t)$ takes $O(n^3)$ time. Step 2 requires linear time for [Initialization]. For each state $(i, t, u, v) \in \mathcal{H}_i$, its components satisfy $i \in \{0, 1, \ldots, j-1\}$, $t \in \mathcal{R}$ with $|\mathcal{R}|=O(n^2)$, $u \leq \Delta_A$, and $v \leq \Delta_B$. Hence, after executing [Elimination] in Step 3, the number of distinct states in $\mathcal{H}_i$ is at most $O(n^2 \Delta)$. Hence, each set $\mathcal{H}_{j,i}$ can be generated from $\mathcal{H}_i$ in $O(n^2 \Delta)$ time. This further implies that the generation of $\mathcal{H}_j$ takes $O(n^3 \Delta)$ time. Step 4 requires $O(n^2 \Delta)$ time for [Extraction], while Step 5 requires $O(\Delta)$ time for [Result]. Since Step 3 executes $n$ iterations, the time complexity of $\mathbf{DP_1}$ is bounded by $O(n^4 \Delta)$.  \hfill$\Box$\\
+
+For each $j=1, 2, \ldots, n$, storing all values of $G_j(t)$ and $H_j(t)$ consumes $O(n^2)$ space. According to Lemma \ref{L-5.1}, the space required for states $(j, t, u, v) \in \mathcal{H}_j$ is bounded by $O(n^2 \Delta)$. Therefore, the total space complexity of $\mathbf{DP_1}$ is $O(n^3 \Delta)$.
+
+Note that if $\gamma^X=\sum w_j^X U_j^X$, $X \in \{A, B\}$, then $\Delta_X \leq \sum_{j=1}^{n_X} w_j^X$. As a direct consequence of Theorem \ref{T-5.1}, we obtain the following two corollaries. 
+
+\begin{cor} \label{C-5.1}
+Algorithm $\mathbf{DP_1}$ solves $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, \sum w_j^B U_j^B)$ in $O(n^4 \sum_{j=1}^{n_B} w_j^B)$ time.
+\end{cor}
+
+\begin{cor} \label{C-5.2}
+Algorithm $\mathbf{DP_1}$ solves $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, \sum U_j^B)$ in $O(n^4 n_B)$ time.
+\end{cor}
+
+\section{Algorithms for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$}
+
+In this section, we study problem $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$. Since Lemma \ref{L-2.4} shows that the single-agent problem $1 | \beta^{*} | f_{\mathrm{sum}}$ is solvable in $O(n^3)$ time, we can assume that $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ is feasible. Let $\rho^{*}$ be an optimal schedule of this problem, and let $F^{*}$ be its associated objective value, i.e., $F^{*}=f_{\mathrm{sum}}^A(\rho^{*})=\sum_{j=1}^{n_A} f_j^A(\rho^{*})$. In this context, we have $f_{\mathrm{sum}}^B(\rho^{*}) \leq Q_B$.
+
+\begin{definition} \label{D-6.1}
+An algorithm $\mathcal{H}$ for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ is a $\lambda$-approximation algorithm if it delivers a schedule $\rho$ with $f_{\mathrm{sum}}^A(\rho) \leq \lambda F^{*}$ and $f_{\mathrm{sum}}^B(\rho) \leq Q_B$. A family of algorithms $\{H_\epsilon: \epsilon >0\}$ is  an FPTAS if, for
+each $\epsilon  > 0$, $\mathcal{H}_\epsilon$ is a $(1+\epsilon)$-approximation algorithm that runs in
+polynomial time in the input length and $1/\epsilon$.
+\end{definition}
+
+\begin{definition} \label{D-6.2}
+An algorithm $\mathcal{H}$ for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ is a super-dual $\lambda$-approximation
+algorithm if it delivers a schedule $\rho$ with $f_{\mathrm{sum}}^A(\rho) \leq F^{*}$ and
+$f_{\mathrm{sum}}^B(\rho) \leq \lambda Q_B$. A family of algorithms $\{\mathcal{H}_\epsilon: \epsilon >0\}$ is a super-dual FPTAS if, for
+each $\epsilon  > 0$, $H_\epsilon$ is a super-dual $(1+\epsilon)$-approximation algorithm that runs in
+polynomial time in the input length and $1/\epsilon$.
+\end{definition}
+
+\subsection{An exact algorithm for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$}
+
+The exact algorithm $\mathbf{DP_1}$ described in Section 5 for $1 |\beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ can be directly applied to solve $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ in $O(n^4 \Delta)$ time.  However, to facilitate the development of an FPTAS for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$, we propose a refined and modified DP formulation.
+
+\begin{description}
+\item [Algorithm $\mathbf{DP_2(Q_B)}$.] An exact algorithm for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$
+
+\item [Input:] ${\mathcal J}^{X}=\{J_1^{X}, J_2^{X}, \ldots, J_{n_X}^{X}\}$, $p$, $Q_B$, $r_j^X$, $w_j^X$, $d_j^X$, $f_j^X$ for $X = A,B$ and $j=1, 2, \ldots, n_X$.
+
+\item [Step 1.] (\textbf{Pre-processing}) Same as that in Step 1 of Algorithm $\mathbf{DP_1}$.
+
+\item [Step 2.] (\textbf{Initialization}) Set $\mathcal{D}_0=\{(0,0,0,0)\}$, ${\mathcal D}_j=\emptyset$, and $\mathcal{D}_{j,i}=\emptyset$ for $j=1, 2, \ldots, n$ and $i=0, 1, \ldots, j-1$.
+
+\item [Step 3.] (\textbf{Generation}) Generate ${\mathcal D}_j$ from ${\mathcal D}_0, {\mathcal D}_1, \ldots, {\mathcal D}_{j-1}$.
+
+\textbf{For} $j=1$ to $n$ \textbf{do}
+
+\quad \textbf{For} $i=0$ to $j-1$ \textbf{do}
+
+\qquad \textbf{For} each $(i, t, u, v) \in \mathcal{D}_i$ \textbf{do}
+
+\quad \qquad Set $t'=\max\{t, r_j\}+p$, $u'=u+G_j(t')-G_i(t')$, $v'=v+H_j(t')-H_i(t')$.
+
+\quad \qquad \textbf{If} $t' \leq \Lambda$ and $v' \leq Q_B$, \textbf{then}
+
+\quad \qquad \qquad Add $(j, t', u', v')$ to $\mathcal{D}_{j,i}$.
+
+\quad \qquad \textbf{End if}
+
+\qquad \textbf{End for}
+
+\quad \textbf{End for}
+
+\quad Set $\mathcal{D}_j=\mathcal{D}_{j,0} \cup \mathcal{D}_{j,1} \cup \cdots \cup \mathcal{D}_{j,j-1}$.
+
+\quad (\textbf{Elimination})  For any two states $(j, t, u, v)$ and $(j, t, u, v')$ in $\mathcal{D}_j$ such that $v \leq v'$, retain only the first one in $\mathcal{D}_j$.
+
+\textbf{End for}
+
+\item [Step 4.] (\textbf{Result}) Set $F^{*}=\min\{u: (n, t, u, v) \in \mathcal{D}_n\}$.
+
+\item [Output:] The optimal solution value $F^{*}$ and its associated optimal schedule $\rho^{*}$.
+\end{description}
+
+According to the [Elimination] procedure in Step 3, at most $O(n^2 Q_B)$ states are retained in $\mathcal{D}_j$. Similar to analysis of Theorem \ref{T-5.1}, we obtain the following theorem.
+
+\begin{theorem} \label{T-6.1}
+Algorithm $\mathbf{DP_2(Q_B)}$ solves $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ in $O(n^4 Q_B)$ time.
+\end{theorem}
+
+\subsection{An FPTAS for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$}
+
+We first employ the \emph{interval-partitioning} technique introduced by \cite{Sahni1976JACM} to design a generic approximation procedure for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$. Subsequently, we apply the \emph{bound improvement procedure} (BIP) proposed by \cite{ChubanovKP2006MP} to establish valid lower and upper bounds. Finally, we construct an FPTAS based on these components.
+
+To design a generic approximation procedure, let $F_{\mathcal{LB}}$ and $F_{\mathcal{UB}}$ be two given lower and upper bounds that satisfy $0< F_{\mathcal{LB}} \leq F^{*} \leq F_{\mathcal{UB}}$.
+
+\begin{description}
+\item [Algorithm $\mathbf{DP_{gen}(Q_B)}$.] A generic approximation procedure for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$
+
+\item [Input:] ${\mathcal J}^{X}=\{J_1^{X}, J_2^{X}, \ldots, J_{n_X}^{X}\}$, $p$, $Q_B$, $\epsilon$, $F_{\mathcal{LB}}$, $F_{\mathcal{UB}}$, $r_j^X$, $w_j^X$, $d_j^X$, $f_j^X$ for $X = A,B$ and $j=1, 2, \ldots, n_X$.
+
+\item [Step 1.] (\textbf{Partition}) Set $\Theta=F_{\mathcal{UB}}+\epsilon F_{\mathcal{LB}}$, $\theta=\frac{\epsilon F_{\mathcal{LB}}}{n-1}$, and
+$z= \lceil \frac{\Theta}{\theta} \rceil =\lceil (n-1)(\frac{ F_{\mathcal{UB}}}{\epsilon F_{\mathcal{LB}}}+1) \rceil$. Divide the interval $[0, \Theta]$ into $z$ subintervals $\mathcal{I}_k$ with $\mathcal{I}_k=[(k-1) \theta, k \theta)$ for $k=1, 2, \ldots, z-1$,
+and $I_{z}=[(z-1) \theta, \Theta]$.
+
+\item [Step 2.] (\textbf{Pre-processing}) Same as that in Step 1 of Algorithm $\mathbf{DP_1}$.
+
+\item [Step 3.] (\textbf{Initialization}) Set $\mathcal{D}_0^{\epsilon}=\{(0,0,0,0)\}$, and ${\mathcal D}_j^{\epsilon}=\emptyset$, and $\mathcal{D}_{j,i}^{\epsilon}=\emptyset$ for $j=1, 2, \ldots, n$ and $i=0, 1, \ldots, j-1$.
+
+\item [Step 4.] (\textbf{Generation}) Generate ${\mathcal D}_j^{\epsilon}$ from ${\mathcal D}_0^{\epsilon}, {\mathcal D}_1^{\epsilon}, \ldots, {\mathcal D}_{j-1}^{\epsilon}$.
+
+\textbf{For} $j=1$ to $n$ \textbf{do}
+
+\quad \textbf{For} $i=0$ to $j-1$ \textbf{do}
+
+\qquad \textbf{For} each $(i, t, u, v) \in \mathcal{D}_i^{\epsilon}$ \textbf{do}
+
+\quad \qquad Set $t'=\max\{t, r_j\}+p$, $u'=u+G_j(t')-G_i(t')$, and $v'=v+H_j(t')-H_i(t')$.
+
+\quad \qquad \textbf{If}  $t' \leq \Lambda$, $u' \leq \Theta$, and $v' \leq Q_B$, \textbf{then}
+
+\quad \qquad \qquad Add $(j, t', u', v')$ to $\mathcal{D}_{j,i}^{\epsilon}$.
+
+\quad \qquad \textbf{End if}
+
+\qquad \textbf{End for}
+
+\quad \textbf{End for}
+
+\quad Set $\mathcal{D}_j^{\epsilon}=\mathcal{D}_{j,0}^{\epsilon} \cup \mathcal{D}_{j,1}^{\epsilon} \cup \cdots \cup \mathcal{D}_{j,j-1}^{\epsilon}$.
+
+\quad (\textbf{Elimination})  Among all states $(j, t, u, v) \in \mathcal{D}_{j}^{\epsilon}$ sharing the same $t$ value and $u \in \mathcal{I}_k$, retain only the one with the smallest $v$ value.
+
+\textbf{End for}
+
+\item [Step 5.] (\textbf{Result}) Set $\overline{F}=\min\{u: (n, t, u, v) \in \mathcal{D}_n^{\epsilon}\}$.
+
+\item [Output:] The approximate objective value $\overline{F}$ and its associated schedule $\bar{\rho}$.
+\end{description}
+
+\begin{lemma} \label{L-6.1}
+For any eliminated state $(j, t, u, v) \in \mathcal{D}_j$ with $u \leq F_{\mathcal{UB}}$,
+Algorithm $\mathbf{DP_{gen}(Q_B)}$ finds a state
+$(j, t, \bar{u}, \bar{v}) \in \mathcal{D}_j^{\epsilon}$ with $\bar{u} \leq u+(j-1) \theta$ and $\bar{v} \leq v$.
+\end{lemma}
+
+\noindent\textbf{Proof.} We prove the lemma via induction on $j=1, 2, \ldots, n$. From the execution of $\mathbf{DP_2(Q_B)}$ and $\mathbf{DP_{gen}(Q_B)}$, we have $\mathcal{D}_1=\mathcal{D}_1^{\epsilon}=\{(1, r_1+p, f_1^A(r_1+p), 0)\}$ if $J_1 \in \mathcal{J}^A$, and $\mathcal{D}_1=\mathcal{D}_1^{\epsilon}=\{(1, r_1+p,  0, f_1^B(r_1+p))\}$ if $J_1 \in \mathcal{J}^B$.
+Thus, the lemma holds for $j=1$.
+
+Assume that the lemma is correct for all $k=1, 2, \ldots, j-1$ with some $j \geq 2$. Then, 
+for any eliminated state $(k, t', u', v') \in \mathcal{D}_k$ with $k \leq j-1$ and $u' \leq F_{\mathcal{UB}}$, there exists a state $(k, t', \bar{u'}, \bar{v'}) \in \mathcal{D}_k^{\epsilon}$ with $\bar{u'} \leq u'+(k-1)\theta$ and $\bar{v'} \leq v'$.
+
+We now prove that the lemma is correct for $k=j$. Consider an arbitrary eliminated state $(j, t, u, v) \in \mathcal{D}_j$ with $u \leq F_{\mathcal{UB}}$. Let $\rho_j$ be a feasible ERD-batch schedule for $\mathcal{J}_j$ attaining the state $\mathcal{S}(\rho_j)=(j, t, u, v)$. Since $D_j=\mathcal{D}_{j,0} \cup \mathcal{D}_{j,1} \cup \cdots \cup \mathcal{D}_{j,j-1}$, we can assume that $(j, t, u, v) \in D_{j,i}$ for some $i=0, 1, \ldots, j-1$.
+In view of Lemma \ref{L-2.2}, the last batch consists of jobs $J_{i+1}, J_{i+2}, \ldots, J_j$ in $\rho_j$. Let $\rho_i$ be the schedule for $\mathcal{J}_i$ constructed from $\rho_j$ by removing  its last batch. Write $\mathcal{S}(\rho_i)=(i, \tilde{t}, \tilde{u}, \tilde{v})$. Since $(i, \tilde{t}, \tilde{u}, \tilde{v}) \in \mathcal{D}_i$ and according to the execution of $\mathbf{DP_2(Q_B)}$, we have $\tilde{t}=C_i(\rho_i)=C_i(\rho_j)$,
+$t=\max \{\tilde{t}, r_j\}+p = C_{i+1}(\rho_j)=C_{i+2}(\rho_j)=\cdots=C_j(\rho_j)$,
+$u=\tilde{u}+G_j(t)-G_i(t)$, and $v=\tilde{v}+H_j(t)-H_i(t)$. Based on the induction assumption,
+there exists a state $(i, \tilde{t}, \bar{\tilde{u}}, \bar{\tilde{v}}) \in \mathcal{D}_i^{\epsilon}$ with
+$\bar{\tilde{u}} \leq \tilde{u}+(i-1)\theta$ and $\bar{\tilde{v}} \leq \tilde{v}$.
+According to the execution (before [Elimination]) of $\mathbf{DP_{gen}(Q_B)}$, the state
+$(j, t', u', v')$ is added to $\mathbf{DP_{gen}(Q_B)}$, where $t'=\max \{\tilde{t}, r_j\}+p$,
+$u'=\bar{\tilde{u}}+G_j(t')-G_i(t')$, and $v'=\bar{\tilde{v}}+H_j(t')-H_i(t')$.
+Then after executing [Elimination] of $\mathbf{DP_{gen}(Q_B)}$, there exists a
+state $(j, t', \bar{u}, \bar{v})$ with $\bar{u} \leq u'+\theta$ and $\bar{v} \leq v'$.
+Based on the facts that $t'=\max \{\tilde{t}, r_j\}+p=t$, $\bar{u} \leq u'+\theta=\bar{\tilde{u}}+G_j(t')-G_i(t')+\theta
+\leq \tilde{u}+(i-1)\theta+G_j(t')-G_i(t')+\theta=u+i \theta \leq u+ (j-1) \theta$, and $\bar{v} \leq v'=\bar{\tilde{v}}+H_j(t')-H_i(t') \leq \tilde{v}+H_j(t')-H_i(t')=v$, the lemma holds for $k=j$ as well. \hfill$\Box$
+
+\begin{theorem} \label{T-6.2}
+Let the state $(n, t, u^{*}, v^{*}) \in \mathcal{D}_n$ characterize an optimal schedule for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$. 
+Algorithm $\mathbf{DP_{gen}(Q_B)}$ finds, in $O(\frac{n^5 F_{\mathcal{UB}}}{\epsilon F_{\mathcal{LB}}})$ time, an approximate schedule defined by the state $(n, t, \bar{u}, \bar{v}) \in \mathcal{D}_n^{\epsilon}$
+with $\bar{u} \leq (1+\epsilon) u^{*}=(1+\epsilon) F^{*}$ and $\bar{v} \leq Q_B$.
+\end{theorem}
+
+\noindent\textbf{Proof.} By Theorem \ref{T-6.1}, $\mathbf{DP_2(Q_B)}$ finds an optimal schedule $\rho^{*}$, which corresponds to the state $(n, t, u^{*}, v^{*}) \in \mathcal{D}_n$ for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$.
+From the definition of $\rho^{*}$, we have $F^{*}=u^{*} \leq F_{\mathcal{UB}}$ and $v^{*} \leq Q_B$.
+If $(n, t, u^{*}, v^{*})\notin \mathcal{D}_n^{\epsilon}$, by Lemma \ref{L-6.1}, there exists a state
+$(n, t, \overline{u^{*}}, \overline{v^{*}}) \in \mathcal{D}_n^{\epsilon}$ with
+$\overline{u^{*}} \leq u^{*}+(n-1) \theta =F^{*} +\epsilon F_{\mathcal{LB}} \leq (1+\epsilon) F^{*}$
+and $\overline{v^{*}} \leq v^{*} \leq Q_B$. Then, after executing Step 5, a state
+$(n, t, \bar{u}, \bar{v}) \in \mathcal{D}_n^{\epsilon}$ with $\bar{u} \leq \overline{u^{*}} \leq (1+\epsilon) F^{*}$ and $\bar{v} \leq Q_B$ is found.
+
+Next, we establish the time complexity of $\mathbf{DP_{gen}(Q_B)}$. Step 1 takes $O((n-1) (\frac{F_{\mathcal{UB}}}{\epsilon F_{\mathcal{LB}}}+1))=O(\frac{nF_{\mathcal{UB}}}{\epsilon F_{\mathcal{LB}}})$ time for [Partition], Step 2 takes $O(n^3)$ time for [Pre-processing], and Step 3 takes $O(n)$ time for [Initialization]. Due to [Elimination] in Step 4, at most $O(\frac{n^3 F_{\mathcal{UB}}}{\epsilon F_{\mathcal{LB}}})$ different states are retained in $\mathcal{D}_{j}^{\epsilon}$. Because it needs to generate $\mathcal{D}_{j}^{\epsilon}$ for
+$j=1, 2, \ldots, n$, Step 4 takes $O(\frac{n^5 F_{\mathcal{UB}}}{\epsilon F_{\mathcal{LB}}})$ time.
+Step 5 takes $O(\frac{n^3 F_{\mathcal{UB}}}{\epsilon F_{\mathcal{LB}}})$ time for [Result].
+Therefore, the time complexity of $\mathbf{DP_{gen}(Q_B)}$ is bounded by
+$O(\frac{n^5 F_{\mathcal{UB}}}{\epsilon F_{\mathcal{LB}}})$.  \hfill$\Box$\\
+
+Building on the space complexity analysis of $\mathbf{DP_1}$ and integrating the partition procedure, it follows that $\mathbf{DP_{gen}(Q_B)}$ requires $O(\frac{n^4 F_{\mathcal{UB}}}{\epsilon F_{\mathcal{LB}}})$ space. Both the time and space complexity of $\mathbf{DP_{gen}(Q_B)}$ depend on the choice of $F_{\mathcal{LB}}$ and $F_{\mathcal{UB}}$. To this end, we deal with its corresponding auxiliary problem $1 | \beta^{*}|\epsilon(f_{\mathrm{max}}^A, f_{\mathrm{sum}}^B)$. Let $\phi^{*}$ denote an optimal schedule for $1 | \beta^{*}|\epsilon(f_{\mathrm{max}}^A, f_{\mathrm{sum}}^B)$, and let $G^{*}$ denote its associated objective value, i.e., $G^{*}=f_{\mathrm{max}}^A(\phi^{*})=\max\{f_j^A(\phi^{*}): 1 \leq j \leq n_A\}$. By Theorem \ref{T-3.2}, $\phi^{*}$ can be determined in $O(n^3 \log n)$ time.
+If  $G^{*}=0$, then $\phi^{*}$ is also an optimal schedule for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$. In this case, we have $F^{*}=0$. Assume that $G^{*}>0$, then $F^{*}>0$. From the definitions of $\rho^{*}$ and $\phi^{*}$, we have
+\begin{equation}\label{E-6.1}
+G^{*}=f_{\mathrm{max}}^A(\phi^{*}) \leq f_{\mathrm{max}}^A(\rho^{*}) \leq f_{\mathrm{sum}}^A(\rho^{*})
+= F^{*}\leq f_{\mathrm{sum}}^A(\phi^{*}) \leq n_A f_{\mathrm{max}}^A(\phi^{*})= n_A G^{*}.
+\end{equation}
+By setting $F_{\mathcal{LB}}=G^{*}$ and $F_{\mathcal{UB}}=n_A G^{*}$, the time complexity of $\mathbf{DP_{gen}(Q_B)}$ is $O(\frac{n^5 n_A}{\epsilon})$.
+
+To derive tight lower and upper bounds, we employ the BIP proposed by \cite{ChubanovKP2006MP}. Consider a minimization problem $\mathcal{P}$ with optimal objective value $Z^{*}>0$. The application of BIP hinges on the existence of an approximation algorithm, denoted as $\mathcal{A}(X_1, X_2)$, which must satisfy the following two essential features: 
+
+\begin{description}
+\item [(F-1)] Given an instance $\mathcal{I}$ of problem $\mathcal{P}$ and two positive values $X_1$ and $X_2$, $\mathcal{A}(X_1, X_2)$ outputs a feasible solution with objective value $Z_{\mathcal{A}(X_1, X_2)} \leq X_1 + X_2$ if $Z^{*} \leq X_2$.
+
+\item [(F-2)] The running time of $\mathcal{A}(X_1, X_2)$ is bounded by a polynomial $P(Len, X_2/X_1)$ of two variables, where $Len$ is the binary encoding length of $\mathcal{I}$.
+\end{description}
+
+\begin{lemma} \label{L-6.2} (\citealp{ChubanovKP2006MP})
+If $\mathcal{A}(X_1, X_2)$ satisfies the features (F-1) and (F-2) and $0 < X \leq Z^{*} \leq Y$, then
+BIP delivers a value $Z_0$ for $\mathcal{P}$ with
+$Z_0 \leq Z^{*} \leq 3 Z_0$ in $O(P(Len, 2) \log \log (Y/X))$ time.
+\end{lemma}
+
+By Theorem \ref{T-6.2}, $\mathbf{DP_{gen}(Q_B)}$ finds a state
+$(n, t, \overline{u}, \overline{v}) \in \mathcal{D}_n^{\epsilon}$ with
+$\overline{u} \leq F^{*} +\epsilon F_{\mathcal{LB}} \leq \epsilon F_{\mathcal{LB}}+F_{\mathcal{UB}}$. Therefore,  $\mathbf{DP_{gen}(Q_B)}$ satisfies feature (F-1) with $X_1=\epsilon F_{\mathcal{LB}}$ and $X_2=F_{\mathcal{UB}}$. Note that the length of $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ is $O(n)$ and the time complexity of $\mathbf{DP_{gen}(Q_B)}$ is $O(\frac{n^5 F_{\mathcal{UB}}}{\epsilon F_{\mathcal{LB}}})=O(\frac{n^5 X_2}{X_1})$. Hence, $\mathbf{DP_{gen}(Q_B)}$ satisfies feature (F-2) as well. This leads to the following lemma.
+
+\begin{lemma} \label{L-6.3}
+For $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$, a pair of tight bounds with  $F_0 \leq F^{*} \leq 3 F_0$ can be achieved via BIP in $O(n^5 \log \log n_A)$ time.
+\end{lemma}
+
+In view of Theorem \ref{T-6.2} and Lemma \ref{L-6.3}, the following algorithm is an FPTAS for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$.
+
+\begin{description}
+\item [Algorithm $\mathbf{DP_{\epsilon}(Q_B)}$.] An FPTAS for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$
+
+\item [Input:] ${\mathcal J}^{X}=\{J_1^{X}, J_2^{X}, \ldots, J_{n_X}^{X}\}$, $p$, $Q_B$, $\epsilon$, $r_j^X$, $w_j^X$, $d_j^X$, $f_j^X$ for $X = A,B$ and $j=1, 2, \ldots, n_X$.
+
+\item [Step 1.] Determine an optimal schedule $\phi^{*}$ for $1 | \beta^{*}|\epsilon(f_{\mathrm{max}}^A, f_{\mathrm{sum}}^B)$, and let $G^{*}$ be its associated objective value. If $G^{*}=0$, the algorithm is terminated. Otherwise, go to Step 2.
+
+\item [Step 2.] Narrow $[G^{*}, n_A G^{*}]$ to $[F_0, 3 F_0]$ by applying the BIP of \cite{ChubanovKP2006MP}.
+
+\item [Step 3.] Invoke $\mathbf{DP_{gen}(Q_B)}$ with $F_{\mathcal{LB}}=F_0$ and $F_{\mathcal{UB}}=3F_0$ to
+find an approximate schedule $\rho$.
+
+\item [Output:] The schedule $\phi^{*}$ (if $G^{*}=0$) or $\rho$ (if $G^{*}>0$).
+\end{description}
+
+\begin{theorem} \label{T-6.3}
+For $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$, Algorithm $\mathbf{DP_{\epsilon}(Q_B)}$ provides an FPTAS with time complexity $O(n^5(\log \log n_A +\frac{1}{\epsilon}))$.
+\end{theorem}
+
+\noindent\textbf{Proof.} The correctness of $\mathbf{DP_{\epsilon}(Q_B)}$ is ensured by Theorem \ref{T-6.2} and Lemma \ref{L-6.3}. By Theorem \ref{T-3.2}, Step 1 takes $O(n^3 \log n)$ time to solve 
+$1 | \beta^{*}|\epsilon(f_{\mathrm{max}}^A, f_{\mathrm{sum}}^B)$. By Lemma \ref{L-6.3}, Step 2 takes $O(n^5 \log \log n_A)$ time to apply the BIP. By Theorem \ref{T-6.2}, Step 3 takes $O(n^5 /\epsilon)$ time to invoke $\mathbf{DP_{gen}(Q_B)}$. Thus, the time complexity of $\mathbf{DP_{\epsilon}(Q_B)}$ is $O(n^5(\log \log n_A +\frac{1}{\epsilon}))$. \hfill$\Box$\\
+
+Next, we establish the space complexity of $\mathbf{DP_{\epsilon}(Q_B)}$. In Step 1, computing an optimal schedule requires $O(n^3 \log n)$ space. In Step 2, the application of BIP invokes $\mathbf{DP_{gen}(Q_B)}$ $O(\log \log n_A)$ times, and each invocation requires $O(n^4)$ space to maintain all intermediate states, so the total storage for this step is $O(n^4 \log \log n_A)$. In Step 3, executing $\mathbf{DP_{gen}(Q_B)}$ necessitates $O(n^4/\epsilon)$ space to retain the required state information. Therefore, the total space complexity of $\mathbf{DP_{\epsilon}(Q_B)}$ is bounded by $O(n^4(\log \log n_A +\frac{1}{\epsilon}))$.
+
+\subsection{A super-dual FPTAS for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$}
+
+Our super-dual FPTAS for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ is similar to the FPTAS developed in Section 6.2, but it does not need to construct valid lower and upper bounds.
+
+\begin{description}
+\item [Algorithm $\mathbf{SDDP_{\epsilon}(Q_B)}$.] A super-dual FPTAS for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$
+
+\item [Input:] ${\mathcal J}^{X}=\{J_1^{X}, J_2^{X}, \ldots, J_{n_X}^{X}\}$, $p$, $Q_B$, $\epsilon$, $r_j^X$, $w_j^X$, $d_j^X$, $f_j^X$ for $X = A,B$ and $j=1, 2, \ldots, n_X$.
+
+\item [Step 1.] (\textbf{Partition}) Set $\Psi=(1+\epsilon)Q_B$, $\psi=\frac{\epsilon Q_B}{n-1}$, and
+$y= \lceil \frac{\Psi}{\psi} \rceil =\lceil (n-1)(1+\frac{1}{\epsilon}) \rceil$.
+Divide the interval $[0, \Psi]$ into $y$ subintervals $\mathcal{I}_k$ with $\mathcal{I}_k=[(k-1) \psi, k \psi)$ for $k=1, 2, \ldots, y-1$,
+and $I_{y}=[(y-1) \psi, \Psi]$.
+
+\item [Step 2.] (\textbf{Pre-processing}) Same as that in Step 1 of Algorithm $\mathbf{DP_1}$.
+
+\item [Step 3.] (\textbf{Initialization}) Set $\mathcal{L}_0^{\epsilon}=\{(0,0,0,0)\}$, ${\mathcal L}_j^{\epsilon}=\emptyset$, and $\mathcal{L}_{j,i}^{\epsilon}=\emptyset$ for $j=1, 2, \ldots, n$ and $i=0, 1, \ldots, j-1$.
+
+\item [Step 4.] (\textbf{Generation}) Generate ${\mathcal L}_j^{\epsilon}$ from ${\mathcal L}_0^{\epsilon}, {\mathcal L}_1^{\epsilon}, \ldots, {\mathcal L}_{j-1}^{\epsilon}$.
+
+\textbf{For} $j=1$ to $n$ \textbf{do}
+
+\quad \textbf{For} $i=0$ to $j-1$ \textbf{do}
+
+\qquad \textbf{For} each $(i, t, u, v) \in \mathcal{L}_i^{\epsilon}$ \textbf{do}
+
+\quad \qquad Set $t'=\max\{t, r_j\}+p$, $u'=u+G_j(t')-G_i(t')$, and $v'=v+H_j(t')-H_i(t')$.
+
+\quad \qquad \textbf{If} $t' \leq \Lambda$ and $v' \leq \Psi$, \textbf{then}
+
+\quad \qquad \qquad Add $(j, t', u', v')$ to $\mathcal{L}_{j,i}^{\epsilon}$.
+
+\quad \qquad \textbf{End if}
+
+\qquad \textbf{End for}
+
+\quad \textbf{End for}
+
+\quad Set $\mathcal{L}_j^{\epsilon}=\mathcal{L}_{j,0}^{\epsilon} \cup \mathcal{L}_{j,1}^{\epsilon} \cup \cdots \cup \mathcal{L}_{j,j-1}^{\epsilon}$.
+
+\quad (\textbf{Elimination}) Among all states $(j, t, u, v) \in \mathcal{L}_{j}^{\epsilon}$ sharing the same $t$ value and $v \in \mathcal{I}_k$, retain only the one with the smallest $u$ value.
+
+\textbf{End for}
+
+\item [Step 5.] (\textbf{Result}) Set $\widehat{F}=\min\{u: (n, t, u, v) \in \mathcal{L}_n^{\epsilon}\}$.
+
+\item [Output:] The approximate objective value $\widehat{F}$ and its associated schedule $\widehat{\rho}$.
+\end{description}
+
+Analogous to the proof of Lemma \ref{L-6.1}, we obtain the following lemma.  
+
+\begin{lemma} \label{L-6.4}
+For any eliminated state $(j, t, u, v) \in \mathcal{D}_j$ with $v \leq Q_B$,
+Algorithm $\mathbf{SDDP_{\epsilon}(Q_B)}$ finds a state
+$(j, t, \widehat{u}, \widehat{v}) \in \mathcal{L}_j^{\epsilon}$ with $\widehat{u} \leq u$ and $\widehat{v} \leq v+(j-1) \psi$.
+\end{lemma}
+
+\begin{theorem} \label{T-6.4}
+Let the state $(n, t, u^{*}, v^{*}) \in \mathcal{D}_n$ characterize an optimal schedule for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$.
+Algorithm $\mathbf{SDDP_{\epsilon}(Q_B)}$ finds, in $O(\frac{n^5}{\epsilon})$ time,
+an approximate schedule defined by the state $(n, t, \widehat{u}, \widehat{v}) \in \mathcal{L}_n^{\epsilon}$
+with $\widehat{u} \leq  u^{*}= F^{*}$ and $\widehat{v} \leq (1+\epsilon) Q_B$.
+\end{theorem}
+
+\noindent\textbf{Proof.} By Theorem \ref{T-6.1}, $\mathbf{DP_2(Q_B)}$ finds an optimal schedule $\rho^{*}$, which corresponds to the state $(n, t, u^{*}, v^{*}) \in \mathcal{D}_n$ for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$. Therefore, we have $F^{*}=u^{*}$ and $v^{*} \leq Q_B$. If $(n, t, u^{*}, v^{*}) \notin \mathcal{L}_n^{\epsilon}$, by Lemma \ref{L-6.4}, there exists a state $(n, t, \widehat{u^{*}}, \widehat{v^{*}}) \in \mathcal{L}_n^{\epsilon}$ with
+$\widehat{u^{*}} \leq u^{*} =F^{*}$ and $\widehat{v^{*}} \leq v^{*} +(n-1)\varphi \leq Q_B+\epsilon Q_B=(1+\epsilon)Q_B$. After executing Step 5, a state
+$(n, t, \widehat{u}, \widehat{v}) \in \mathcal{L}_n^{\epsilon}$ with $\widehat{u} \leq \widehat{u^{*}} \leq u^{*} =F^{*}$ and $\widehat{v} \leq \Psi=(1+\epsilon)Q_B$ is found. 
+
+Note that according to the elimination procedure in Step 4, each $\mathcal{L}_j^{\epsilon}$ contains at most $O(\frac{n^3}{\epsilon})$ different states. Following the analysis of Theorem \ref{T-6.2}, the time complexity of $\mathbf{SDDP_{\epsilon}(Q_B)}$ is bounded by $O(\frac{n^5}{\epsilon})$. \hfill$\Box$\\
+
+Building on the space complexity analysis of $\mathbf{DP_1}$ and integrating the partition procedure, it follows that $\mathbf{SDDP_{\epsilon}(Q_B)}$ requires $O(\frac{n^4}{\epsilon})$ space.  
+
+\begin{rem} \label{R-6.1}
+Given an instance of $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ and a fixed $\epsilon>0$, there may be no feasible schedule $\rho$ with $f_{\mathrm{sum}}^B(\rho) \leq Q_B$, while a feasible schedule $\rho'$ satisfying $f_{\mathrm{sum}}^B(\rho') \leq (1+\epsilon) Q_B$ might still exist.
+\end{rem}  
+
+\section{A $(1, 1+\epsilon)$-approximate POF for $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$}
+
+In this section, we propose an approximate POF for $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$. To simplify the notation, let $\mathcal{Q}$ denote the set of POF for $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$. 
+
+\begin{definition} \label{D-7.1}
+A set $\mathcal{Q}_{(\lambda_1, \lambda_2)}$ for $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ is a $(\lambda_1, \lambda_2)$-approximate POF if, for each point $(Z_A, Z_B) \in \mathcal{Q}$, there exists a point $(Z'_A, Z'_B) \in \mathcal{Q}_{(\lambda_1, \lambda_2)}$ with $Z'_A \leq \lambda_1 Z_A$ and $Z'_B \leq \lambda_2 Z_B$, and there exists an associated feasible schedule $\rho$ with $f_{\mathrm{sum}}^A(\rho)= Z'_A$ and $f_{\mathrm{sum}}^B(\rho) =Z'_B$.
+\end{definition}
+
+In view of Theorems \ref{T-6.3} and \ref{T-6.4}, we obtain the following remark.
+
+\begin{rem} \label{R-7.1}
+If $(Z_A, Z_B)$ is a Pareto-optimal point for $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$, then Algorithm $\mathbf{DP_{\epsilon}(Z_B)}$ finds a schedule $\pi$ with $f_{\mathrm{sum}}^A(\pi) \leq (1+\epsilon) Z_A$ and $f_{\mathrm{sum}}^B(\pi) \leq Z_B$ in $O(n^5(\log \log n_A +\frac{1}{\epsilon}))$ time, and  Algorithm $\mathbf{SDDP_{\epsilon}(Z_B)}$ finds a schedule $\rho$ with $f_{\mathrm{sum}}^A(\rho) \leq Z_A$ and $f_{\mathrm{sum}}^B(\rho)  \leq (1+\epsilon) Z_B$ in $O(\frac{n^5}{\epsilon})$ time.
+\end{rem} 
+
+Based on Remark \ref{R-7.1}, if a Pareto-optimal point $(Z_A, Z_B) \in \mathcal{Q}$ is selected, then $\mathbf{SDDP_{\epsilon}(Z_B)}$ will deliver an approximate schedule $\rho$ with
+$f_{\mathrm{sum}}^A(\rho) \leq Z_A$ and $f_{\mathrm{sum}}^B(\rho)  \leq (1+\epsilon) Z_B$.
+Although $(Z_A, Z_B)$ cannot be determined in advance, a good approximate schedule can still be achieved by using a point close to $(Z_A, Z_B)$. 
+
+\begin{theorem} \label{T-7.1}
+Let $(Z_A, Z_B)$ be a Pareto-optimal point for $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$,
+and let $\epsilon'=\sqrt{1+\epsilon}-1$. If $Z'_B \in [Z_B, (1+\epsilon')Z_B]$, then Algorithm $\mathbf{SDDP_{\epsilon'}(Z'_B)}$ finds an approximate schedule $\rho$ with $f_{\mathrm{sum}}^A(\rho) \leq Z_A$ and $f_{\mathrm{sum}}^B(\rho)  \leq (1+\epsilon) Z_B$.
+\end{theorem}
+
+\noindent\textbf{Proof.} Given that $(Z_A, Z_B) \in \mathcal{Q}$, Theorem \ref{T-6.1} ensures that applying $\mathbf{DP_2(Z_B)}$ to $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ with $Q_B=Z_B$ yields an optimal schedule $\rho^{*}$, which corresponds to a state $(n, t, Z_A, Z_B) \in \mathcal{D}_n$. If $Z'_B \in [Z_B, (1+\epsilon')Z_B]$, then $(n, t, Z_A, Z_B)$ remains a feasible state in $\mathcal{D}_n$ for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ with $Q_B=Z'_B$. By Lemma \ref{L-6.4}, if this state is eliminated during the execution of $\mathbf{SDDP_{\epsilon'}(Z'_B)}$, a new state $(n, t, \widehat{Z_A}, \widehat{Z_B}) \in \mathcal{L}_n^{\epsilon}$ is identified, where $\widehat{Z_A} \leq Z_A$, $\widehat{Z_B} \leq Z_B+(n-1)\varphi \leq (1+\epsilon')Z'_B$.
+After executing Step 5, $\mathbf{SDDP_{\epsilon'}(Z'_B)}$ constructs an approximate schedule $\rho$, defined by a state $(n, \widehat{t}, \widehat{u}, \widehat{v}) \in \mathcal{L}_n^{\epsilon}$, where  $\widehat{u} \leq \widehat{Z_A} \leq Z_A$ and $\widehat{v} \leq (1+\epsilon')Z'_B$.
+Given that $Z'_B \leq (1+\epsilon')Z_B$ and $\epsilon'=\sqrt{1+\epsilon}-1$, we further have
+$f_{\mathrm{sum}}^A(\rho) = \widehat{u} \leq Z_A$ and
+$f_{\mathrm{sum}}^B(\rho) = \widehat{v} \leq (1+\epsilon')Z'_B \leq (1+\epsilon')^2 Z_B=(1+\epsilon) Z_B$. \hfill$\Box$\\ 
+
+Recall that $\Delta_B=\sum_{j=1}^{n_B} f_j^B(\Lambda)$ is an upper bound on $f_{\mathrm{sum}}^B$. Let $\delta_B$ denote the minimum objective value of $1 | \beta^{*}| f_{\mathrm{sum}}^B$ over the job set $\mathcal{J}^B$. Clearly, $\delta_B$ is a lower bound on $f_{\mathrm{sum}}^B$ of $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$.
+Below, we provide a bi-criteria approximation algorithm for $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$, which constructs a $(1, 1+\epsilon)$-approximate POF.
+
+\begin{description}
+\item [Algorithm $\mathbf{APF_{\epsilon}}$.] A $(1, 1+\epsilon)$-approximate POF for $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$
+
+\item [Input:] ${\mathcal J}^{X}=\{J_1^{X}, J_2^{X}, \ldots, J_{n_X}^{X}\}$, $p$, $\Delta_B$, $\delta_B$, $\epsilon$, $\epsilon'=\sqrt{1+\epsilon}-1$, $r_j^X$, $w_j^X$, $d_j^X$, $f_j^X$ for $X = A,B$ and $j=1, 2, \ldots, n_X$.
+
+\item [Step 1.] If $\delta_B > 0$, set $\mathcal{X}=\{(1+\epsilon')^k \delta_B: k=0, 1, \ldots, \mu\}$, otherwise set $\mathcal{X}=\{0\} \cup \{(1+\epsilon')^k: k=0, 1, \ldots, \nu\}$, where $\mu$ is the smallest
+integer with $(1+\epsilon')^{\mu} \delta_B \geq \Delta_B$, and $\nu$ is the smallest
+integer with $(1+\epsilon')^{\nu} \geq \Delta_B$. Set $\mathcal{Q}_{(1, 1+\epsilon)}=\emptyset$.
+
+\item [Step 2.] For each $Z_B \in \mathcal{X}$, invoke $\mathbf{SDDP_{\epsilon'}(Z_B)}$ to find a schedule $\rho_{Z_B}$ for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ with $Q_B=Z_B$ (if possible), and add $(f_{\mathrm{sum}}^A(\rho_{Z_B}), f_{\mathrm{sum}}^B(\rho_{Z_B}))$ to $\mathcal{Q}_{(1, 1+\epsilon)}$.
+
+\item [Step 3.] For any two states $(u, v)$ and $(u', v')$ in $\mathcal{Q}_{(1, 1+\epsilon)}$ such that $u \leq u'$ and $v \leq v'$, retain only the first one.
+
+\item [Output:] The $(1, 1+\epsilon)$-approximate POF $\mathcal{Q}_{(1, 1+\epsilon)}$.
+\end{description}
+
+In $\mathbf{APF_{\epsilon}}$, if $\delta_B > 0$, then
+$\mu= \lceil \log_{1+\epsilon'}\frac{\Delta_B}{\delta_B}\rceil=O(\frac{1}{\epsilon} \log_2 \frac{\Delta_B}{\delta_B})$; otherwise $\nu= \lceil \log_{1+\epsilon'} \Delta_B \rceil=O(\frac{\log_2 \Delta_B}{\epsilon})$. Since each execution of $\mathbf{SDDP_{\epsilon'}(Z_B)}$ requires $O(\frac{n^5}{\epsilon})$ time, by applying Theorem \ref{T-7.1}, we obtain the following theorem.
+
+\begin{theorem} \label{T-7.2}
+Algorithm $\mathbf{APF_{\epsilon}}$ finds a $(1, 1+\epsilon)$-approximate
+POF for $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ in $O(\frac{n^5}{\epsilon^2} \log_2 \frac{\Delta_B}{\max\{\delta_B,1\}})$ time.
+\end{theorem}
+
+In $\mathbf{APF_{\epsilon}}$, each execution of $\mathbf{SDDP_{\epsilon'}(Z_B)}$ in Step 2 requires $O(n^4 /\epsilon)$ space to store all essential states. Since all possible values of $Z_B$ must be enumerated, the total space complexity of $\mathbf{APF_{\epsilon}}$ is $O(\frac{n^4}{\epsilon^2} \log_2 \frac{\Delta_B}{\max\{\delta_B,1\}})$.
+
+\begin{rem} \label{R-7.3}
+In Step 2 of $\mathbf{APF_{\epsilon}}$, if $\mathbf{DP_{\epsilon}(Z_B)}$ is invoked to solve $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$, then a $(1+\epsilon, 1+\epsilon)$-approximate POF is generated for $1 |\beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ in $O(\frac{n^5(\log \log n_A+ 1/\epsilon)}{\epsilon^2} \log_2 \frac{\Delta_B}{\max\{\delta_B,1\}})$ time.
+\end{rem}
+
+\section{Numerical study}
+We conduct a series of computational experiments to evaluate the performance (running times) of the proposed algorithms for $1 |\beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$, as discussed in Sections 5 and 7. All programs were implemented in Matlab and run on a PC with a 12th Gen Intel(R) Core(TM) i7-1260P processor (2.10 GHz) and 16 GB of RAM. 
+
+Note that $\mathbf{DP_1}$ is used to find the exact POF (i.e., the set of all Pareto optimal points) for $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$, while $\mathbf{APF_{\epsilon}}$ is employed to find a $(1, 1+\epsilon)$-approximate POF. The complexity of these algorithms varies across different combinations of scheduling criteria. In our analysis, we focus on three representative problems: 
+
+$\bullet$ Problem $\mathbf{P_1}$: $1 | \beta^{*}|\#(\sum w_j^A C_j^A, \sum w_j^B C_j^B)$; 
+
+$\bullet$ Problem $\mathbf{P_2}$: $1 | \beta^{*}|\#(\sum w_j^A C_j^A, \sum w_j^B Y_j^B)$;
+
+$\bullet$ Problem $\mathbf{P_3}$: $1 | \beta^{*}|\#(\sum w_j^A T_j^A, \sum w_j^B U_j^B)$.
+
+\noindent These problems involve classical scheduling criteria: $\sum w_j C_j$, $\sum w_j Y_j$, $\sum w_j T_j$, and $\sum w_j U_j$. To evaluate the performance of the algorithms, we generated random instances of varying sizes by considering a range of values for key parameters. Let $r_{\max}$ denote the maximum release date and $w_{\max}$ denote the maximum weight of jobs in $\mathcal{J}$.
+
+Following the parameter settings in \cite{HallPosner2001OR}, we employed the assumptions detailed below to create diverse sets of parameter values. The number of jobs $n$ was chosen from the set $\{20, 50, 100, 150, 200\}$; the processing time $p$ was selected from $\{5, 15\}$; the release date $r_j^X$ was uniformly drawn from the integer range $[1, r_{\max}]$, where $r_{\max} \in \{50, 100\}$; the weight $w_j^X$ was uniformly drawn from the integer range $[1, w_{\max}]$, where $w_{\max} \in \{20, 50\}$; and the due date $d_j^X$ was uniformly drawn from the integer range $[r_j^X, \Lambda]$, where $\Lambda=r_{\max}+2p-1$. The rationale for selecting due date is that, in an optimal solution, all jobs can be completed by time $\Lambda$. For each combination of parameters $n$ (with $n_A=n_B= n/2$), $p$, $w_{\max}$, and $r_{\max}$, we simulated and solved 20 problem instances. Tables \ref{TA-D1}, \ref{TA-D2}, and \ref{TA-D3} report the average and maximum running times (in seconds) for $\mathbf{DP_1}$ and $\mathbf{APF_{\epsilon}}$, where $\epsilon \in \{0.1, 0.4\}$ is the relative error. Instances that could not be solved due to exceeding the 16 GB memory limit are indicated with ``--'' in the tables.
+
+\begin{table}[H]	
+\footnotesize  
+\setlength{\tabcolsep}{2 pt} % \scriptsize
+\caption{Average and maximum running times (sec) of $\mathbf{DP_1}$ and $\mathbf{APF_{\epsilon}}$ for $\mathbf{P_1}$} \label{TA-D1} 
+\vspace{-10pt}
+\begin{center}
+\begin{tabular}{|ccc|cc|cc|cc|cc|cc|cc|}  
+\hline
+\multicolumn{3}{|c|}{} & \multicolumn{6}{c|}{$r_{\max}=50$} & \multicolumn{6}{c|}{$r_{\max}=100$}\\ \hline
+\multicolumn{3}{|c|}{} & \multicolumn{2}{c|}{$\mathbf{DP_1}$} & \multicolumn{2}{c|}{$\mathbf{AFP_{0.1}}$} & \multicolumn{2}{c|}{$\mathbf{AFP_{0.4}}$} & \multicolumn{2}{c|}{$\mathbf{DP_1}$} & \multicolumn{2}{c|}{$\mathbf{AFP_{0.1}}$} & \multicolumn{2}{c|}{$\mathbf{AFP_{0.4}}$} \\ \hline
+$n$ & $p$ & $w_{\max}$&   avg & max  & avg & max & avg & max &avg &  max  & avg & max & avg & max \\ \hline 
+20 & 5 & 20 & 1.79 & 4.36 &	0.06 & 0.11	& 0.02 & 0.04 & 18.60 & 46.41 & 0.16 & 0.25 & 0.05 & 0.09 \\ \hline
+20 & 5 & 50 & 4.21 & 8.71 & 0.07 & 0.14 & 0.02 &	0.04 & 27.81 & 55.32 & 0.19 & 0.29 & 0.06 &	0.11 \\ \hline
+20 & 15 & 20 & 1.66 & 2.61 & 0.03 & 0.04 & 0.01 & 0.02 & 5.84 & 10.34 & 0.07 & 0.10 & 0.03 & 0.04 \\ \hline
+20 & 15 & 50 & 4.25 & 8.11 & 0.04 & 0.09 & 0.01 & 0.03 & 13.54 & 26.87 & 0.08 & 0.15	& 0.03 & 0.05 \\ \hline
+50 & 5 & 20 & 31.07	& 42.10 & 0.61 & 1.25 & 0.30 & 0.51 & 150.61 & 217.89 & 2.86 & 4.48 & 0.81 &	2.36 \\ \hline
+50 & 5 & 50 & 76.72	& 105.74 & 0.86 & 1.85 & 0.34 &	0.69 & 376.22 &	601.31 & 2.16 &	3.51 & 1.08	& 2.59 \\ \hline
+50 & 15 & 20 & 38.81 & 58.42 & 0.50 & 0.67 &	0.16 & 0.23 & 135.77 & 265.23 & 1.56 & 2.87	& 0.55 & 1.13 \\ \hline
+50 & 15 & 50 & 90.42 & 126.71 & 0.54 & 0.88 &	0.17 & 0.27 & 389.34 & 768.95 &	2.13 & 4.58 & 0.79 & 2.79 \\ \hline 
+100 & 5 & 20 & 264.33 &	334.42 & 24.19 & 31.86 & 8.61 &	12.09 & 1138.96 & 1507.84 &	62.57 &	81.36 &	19.97 &	25.72 \\ \hline
+100 & 5 & 50 & 625.09 &	719.82 & 28.82 & 48.75 & 9.87 &	31.96 & 4335.28 & 6931.52 & 68.46 &	92.37 & 21.07 &	27.67 \\ \hline
+100 & 15 & 20 & 331.71 & 385.79 & 8.17 & 10.30 & 3.37 & 4.43 & 1931.84 & 3618.74 & 36.07 & 45.75 & 14.20 &	16.63 \\ \hline
+100 & 15 & 50 & 954.98 & 1106.62 & 8.93 & 11.50 & 3.47 & 5.23 & 3635.43 & 5685.09 & 40.34	& 50.70 & 14.11 & 17.26 \\ \hline
+150 & 5 & 20 & 396.10 & 464.36 & 79.22 & 98.43 & 29.48 & 36.67 & 4573.46 & 5954.6 & 259.53 & 319.12 & 82.52 & 103.19 \\ \hline
+150 & 5 & 50 & 2413.34 & 2922.72 & 100.17 &	137.3 & 32.41 &	47.55 & --& -- & 290.00 & 338.91 & 89.45 & 125.58 \\ \hline
+150 & 15 & 20 & 795.67 & 1271.26 & 26.61 & 31.28	& 11.34 & 13.48 & 5026.51 & 6619.89 & 128.49 & 167.75 &	51.33 & 65.05 \\ \hline
+150 & 15 & 50 & 3646.48 & 6662.78 & 31.02 & 48.08 & 154.01 & 25.15 & --& -- & 163.72 & 200.88 & 59.55 & 86.84 \\ \hline
+200 & 5 & 20 & 983.04 & 1414.55	& 206.89 & 256.9 & 78.42 & 98.12 & --& -- & 650.64 & 773.28	& 207.40 & 251.81 \\ \hline
+200 & 5 & 50 & 6462.08 & 8922.55 & 277.95 &	395.22 & 86.43 & 121.34 & --& -- & 711.46 &	871.91 & 231.58	& 313.43 \\ \hline
+200 & 15 & 20 & 1842.41 & 2450.58 & 107.74 & 268.42 & 41.21 & 140.75 & --& -- & 332.6 & 366.51 & 132.61 & 210.69 \\ \hline
+200 & 15 & 50 & --& -- & 135.97 & 341.4 & 40.22 & 135.83 & --& -- & 385.19 &	486.42 & 181.83	& 297.81 \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+Focusing on problem $\mathbf{P_1}$ (Table \ref{TA-D1}), we observe that $\mathbf{DP_1}$ exhibits a sharp increase in computational demand as instance size grows. For instances with $n=20$, the maximum running time does not exceed 56 seconds. However, for instances with $n=100$ under the worst-case scenario ($p=5$, $w_{\max}=50$, and $r_{\max}=100$), the running time escalates dramatically to 6931.52 seconds. For instances with $n=200$, $\mathbf{DP_1}$ becomes entirely impractical. In contrast, $\mathbf{APF_{\epsilon}}$ achieves significantly shorter average and maximum running times under identical conditions. Notably, increasing the value of $\epsilon$ from 0.1 to 0.4 further reduces the running time, which aligns with the expected decrease in the number of iterations required. Specifically, for all 200-job instances, $\mathbf{APF_{0.1}}$ can identify a $(1, 1.1)$-approximate POF in no more than 872 seconds, while $\mathbf{APF_{0.4}}$ can find a $(1, 1.4)$-approximate POF in no more than 314 seconds. 
+
+\begin{table}[H]
+\footnotesize  
+\setlength{\tabcolsep}{2 pt} % \scriptsize
+\caption{Average and maximum running times (sec) of $\mathbf{DP_1}$ and $\mathbf{APF_{\epsilon}}$ for $\mathbf{P_2}$}  \label{TA-D2}
+\vspace{-10pt} 
+\begin{center}
+\begin{tabular}{|ccc|cc|cc|cc|cc|cc|cc|}  \hline	
+\multicolumn{3}{|c|}{} & \multicolumn{6}{c|}{$r_{\max}=50$} & \multicolumn{6}{c|}{$r_{\max}=100$}\\ \hline
+\multicolumn{3}{|c|}{} & \multicolumn{2}{c|}{$\mathbf{DP_1}$} & \multicolumn{2}{c|}{$\mathbf{AFP_{0.1}}$} & \multicolumn{2}{c|}{$\mathbf{AFP_{0.4}}$} & \multicolumn{2}{c|}{$\mathbf{DP_1}$} & \multicolumn{2}{c|}{$\mathbf{AFP_{0.1}}$} & \multicolumn{2}{c|}{$\mathbf{AFP_{0.4}}$} \\ \hline 
+$n$ & $p$ & $w_{\max}$& avg & max & avg & max & avg & max &avg & max & avg & max & avg & max \\ \hline
+20 & 5 & 20 & 0.11 & 0.28 & 0.03 & 0.06 & 0.01 & 0.02 & 0.21 & 0.42 & 0.03 & 0.06 & 0.02 & 0.02 \\ \hline
+20 & 5 & 50 & 0.21 & 0.48 & 0.03 & 0.08	& 0.01 & 0.02 & 0.76 & 1.29	& 0.04 & 0.07 &	0.02 & 0.02 \\ \hline
+20 & 15 & 20 & 0.19 & 0.53 & 0.02 & 0.04 & 0.01 & 0.01 & 0.77 &	2.43 & 0.03	& 0.04 & 0.01 &	0.02 \\ \hline
+20 & 15 & 50 & 0.47 & 0.93 & 0.03 & 0.04 & 0.01 & 0.01 & 1.15 &	2.65 & 0.05 & 0.19 & 0.02 &	0.04 \\ \hline
+50 & 5 & 20 & 2.25 & 3.67 &	0.62 & 1.56 & 0.32 & 0.79 & 4.66 & 9.12 & 1.16 & 1.94 &	0.56 & 1.21 \\ \hline
+50 & 5 & 50 & 5.58 & 17.81 & 0.72 &	1.98 & 0.42 & 1.14 & 12.71 & 22.99 &	1.66 & 3.32 & 0.65 & 1.44 \\ \hline
+50 & 15 & 20 & 5.07 & 10.28	& 0.26 & 0.57 &	0.11 & 0.24 & 12.11	& 28.63	& 1.14 & 1.86 &	0.49 & 0.91 \\ \hline
+50 & 15 & 50 & 11.87 & 17.62 & 0.31 & 0.73 & 0.13 &	0.35 & 33.31 & 59.93 & 1.44	& 2.26 & 0.59 &	1.21 \\ \hline 
+100 & 5 & 20 & 16.25 & 22.32 & 7.87	& 9.79 & 4.54 &	5.77 & 39.55 & 53.43 & 21.73 & 27.28 & 13.36 & 17.77 \\ \hline
+100 & 5 & 50 & 38.22 & 56.33 & 12.04 & 19.03 & 5.21	& 9.12 & 100.48	& 127.43 & 36.47 & 53.75 & 16.47 & 28.45 \\ \hline
+100 & 15 & 20 & 43.98 &	61.87 &	3.74 & 4.49	& 1.48 & 2.07 & 114.97 & 186.92 & 18.86 & 25.79 & 9.15 & 13.82 \\ \hline
+100 & 15 & 50 & 94.48 &	155.95 & 4.93 &	7.58 & 1.94	& 2.96 & 267.04 & 359.45 & 22.16 & 29.59 & 10.06 & 15.97 \\ \hline
+150 & 5 & 20 & 56.42 & 79.86 & 35.69	& 51.18	& 19.73 & 32.54 & 147.72 & 184.99 &	108.77 & 135.08	& 69.15 &	76.31 \\ \hline
+150 & 5 & 50 & 151.59 &	239.59 & 57.68 & 83.57 & 26.43 & 39.55 & 350.09	& 456.39 & 162.22 &	199.44 & 76.21 &	92.89 \\ \hline
+150 & 15 & 20 & 178.93 & 254.54 & 13.37 & 15.89 & 6.12 & 8.25 & 421.71 & 564.95 & 99.37 & 120.02 & 42.25 &	59.62 \\ \hline
+150 & 15 & 50 & 457.14 & 625.57 & 26.58 & 36.65 & 10.14 & 14.59 & 938.12 & 1284.6 & 115.98 & 146.68 
+& 47.67 & 64.95 \\ \hline
+200 & 5 & 20 & 135.03 &	182.55 & 85.14 & 133.16	& 52.97 & 78.65 & 337.43 & 400.46 & 256.79 & 310.62 & 166.47 & 186.84 \\ \hline
+200 & 5 & 50 & 350.73 &	514.98 & 144.57 & 228.11 & 65.47 & 88.69 & 739.18 &	1008.12 & 378.02 & 407.26 & 178.42 & 211.12 \\ \hline
+200 & 15 & 20 & 376.25 & 542.2 & 38.93 & 58.43 & 16.88 & 27.15 & 1193.22 &	1578.12	& 317.91 & 419.13 & 138.15 & 185.04 \\ \hline
+200 & 15 & 50 & 886.04 & 1285.9	& 43.36	& 65.66 & 21.16 & 38.88 & 2370.71 & 3279.98 & 342.55 & 524.27 & 174.62 & 249.42 \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+Regarding problem $\mathbf{P_2}$, the analysis of Table \ref{TA-D2} reveals that $\mathbf{DP_1}$ effectively solves all instances with $n=50$ in no more than 60 seconds, while requiring no more than 360 seconds for instances with $n=100$. The maximum running time observed does not exceed 3280 seconds for instances with $n=200$. In contrast, for all 200-job instances, $\mathbf{APF_{0.1}}$ successfully identifies a $(1, 1.1)$-approximate POF within 525 seconds, whereas $\mathbf{APF_{0.4}}$ achieves a $(1, 1.4)$-approximate POF within 250 seconds.
+
+Turning to problem $\mathbf{P_3}$ (Table \ref{TA-D3}), both $\mathbf{DP_1}$ and $\mathbf{APF_{\epsilon}}$ demonstrate high efficiency across all generated instances. Remarkably, even for instances with $n=200$, $\mathbf{DP_1}$ requires no more than 354 seconds, and $\mathbf{APF_{0.1}}$ can identify a $(1, 1.1)$-approximate POF within 148 seconds.
+
+Based on the results from Tables \ref{TA-D1}, \ref{TA-D2}, and \ref{TA-D3}, we observe that: (i) the running times for both  $\mathbf{DP_1}$ and $\mathbf{APF_{\epsilon}}$ are sensitive to the parameters $n$, $r_{\max}$, and $w_{\max}$ as they increase; (ii) $\mathbf{DP_1}$ exhibits significantly longer running times compared to $\mathbf{APF_{\epsilon}}$ (e.g., $\epsilon=0.4$), particularly for larger instance sizes and higher values of $r_{\max}$ and $w_{\max}$. Moreover, the computational effort varies considerably across problems $\mathbf{P_1}$, $\mathbf{P_2}$ and $\mathbf{P_3}$, even with identical parameter configurations. For example, with the configuration of $n=100$, $p=5$, $w_{\max}=20$, and $r_{\max}=100$ across their respective 20 generated instances, $\mathbf{DP_1}$ requires approximately 1138.96 seconds for $\mathbf{P_1}$, 39.55 seconds for $\mathbf{P_2}$, and 10.01 seconds for $\mathbf{P_3}$. In contrast, $\mathbf{APF_{0.1}}$ and $\mathbf{APF_{0.4}}$ exhibit significantly lower computational demands, with average times of 62.57 and 19.97 seconds for $\mathbf{P_1}$, 21.73 and 13.36 seconds for $\mathbf{P_2}$, and 7.14 and 5.38 seconds for $\mathbf{P_3}$, respectively. Additionally, the specific structures related to the scheduling criteria significantly influence computational effort. For instances with $150  \leq n \leq 200$, $\mathbf{DP_1}$ is the preferred algorithm when one agent wants to minimize its weighted number of tardy jobs, while $\mathbf{APF_{\epsilon}}$ is favored when both agents aim to minimize their weighted completion time.
+
+\begin{table}[H]
+\footnotesize  
+\setlength{\tabcolsep}{2 pt} % \scriptsize
+\caption{Average and maximum running times (sec) of $\mathbf{DP_1}$ and $\mathbf{APF_{\epsilon}}$ for  $\mathbf{P_3}$}  \label{TA-D3} 
+\vspace{-10pt}
+\begin{center}
+\begin{tabular}{|ccc|cc|cc|cc|cc|cc|cc|}  \hline
+\multicolumn{3}{|c|}{} & \multicolumn{6}{c|}{$r_{\max}=50$} & \multicolumn{6}{c|}{$r_{\max}=100$}\\ \hline
+\multicolumn{3}{|c|}{} & \multicolumn{2}{c|}{$\mathbf{DP_1}$} & \multicolumn{2}{c|}{$\mathbf{AFP_{0.1}}$} & \multicolumn{2}{c|}{$\mathbf{AFP_{0.4}}$} & \multicolumn{2}{c|}{$\mathbf{DP_1}$} & \multicolumn{2}{c|}{$\mathbf{AFP_{0.1}}$} & \multicolumn{2}{c|}{$\mathbf{AFP_{0.4}}$} \\ \hline
+$n$ & $p$ & $w_{\max}$&   avg & max  & avg & max & avg & max &avg & max & avg & max & avg & max \\ \hline
+20 & 5 & 20 & 0.03 & 0.07 &	0.01 & 0.03	& 0.01 & 0.01 & 0.07 & 0.23 & 0.03 & 0.05 &	0.01 & 0.02 \\ \hline
+20 & 5 & 50 & 0.06 & 0.12 &	0.02 & 0.02 & 0.01 & 0.01 & 0.11 & 0.25 & 0.03 & 0.04 &	0.01 & 0.02 \\ \hline
+20 & 15 & 20 & 0.03 & 0.08 & 0.01 &	0.04 & 0.01 & 0.01 & 0.04 &	0.11 & 0.02 & 0.03 & 0.01 &	0.01 \\ \hline
+20 & 15 & 50 & 0.04 & 0.09 & 0.01 &	0.02 & 0.01 & 0.01 & 0.07 &	0.17 & 0.02 & 0.03 & 0.01 &	0.01 \\ \hline
+50 & 5 & 20 & 0.42 & 0.69 &	0.19 & 0.29 & 0.11 & 0.25 & 1.03 & 1.62 & 0.55 & 0.85 &	0.27 & 0.41 \\ \hline
+50 & 5 & 50 & 1.22 & 2.12 &	0.38 & 0.52 & 0.18 & 0.28 & 2.63 & 4.36 & 0.71 & 1.22 &	0.33 & 0.65 \\ \hline
+50 & 15 & 20 & 0.45 & 0.82 & 0.15 & 0.26 & 0.06 & 0.14 & 0.85 &	1.36 & 0.39 & 0.71 & 0.17 &	0.39 \\ \hline
+50 & 15 & 50 & 1.01 & 1.68 & 0.29 &	0.48 & 0.10 & 0.13 & 2.72 &	5.31 & 0.57 & 0.82 & 0.23 &	0.41 \\ \hline 
+100 & 5 & 20 & 3.86 & 5.72 & 2.77 &	3.77 & 1.61 & 2.38 & 10.01 & 15.12 & 7.14 &	9.95 & 5.38 & 6.91 \\ \hline
+100 & 5 & 50 & 8.56 & 12.3 & 3.82 &	5.63 & 2.21 & 3.51 & 26.3 &	40.67 &	10.97 &	14.86 &	7.33 & 10.70 \\ \hline
+100 & 15 & 20 & 3.85 & 6.44 & 1.72 & 2.16 &	0.56 & 0.76 & 9.14 & 12.36 & 5.45 &	6.81 & 2.97 & 4.42 \\ \hline
+100 & 15 & 50 & 10.42 &	13.92 &	2.34 & 3.06 & 0.71 & 1.04 & 24.03 &	32.55 &	8.23 & 10.18 & 4.81 &	6.42 \\ \hline
+150 & 5 & 20 & 12.14 & 16.82 & 9.87 & 12.84 & 6.88 & 9.55 & 31.49 &	42.06 &	26.56 &	31.18 &	19.98 & 25.97 \\ \hline
+150 & 5 & 50 & 33.94 & 47.43 & 16.65 & 23.81 & 11.6 & 17.11 & 74.85 & 96.83 & 43.14 & 54.75 & 31.48 & 43.32 \\ \hline
+150 & 15 & 20 & 14.62 &	31.98 &	6.06 & 7.44 & 2.40 & 3.44 & 29.69 &	39.37 &	24.83 &	29.09 & 15.46 & 20.96 \\ \hline
+150 & 15 & 50 & 29.52 &	41.12 &	6.69 & 8.13 & 2.58 & 3.92 & 69.96 &	96.61 &	33.31 &	45.62 &	19.57 & 31.35 \\ \hline
+200 & 5 & 20 & 30.37 & 38.22 & 24.53 & 31.11 & 18.14 & 24.51 & 76.64 & 113.06 &	60.89 &	86.73 & 54.63 & 72.69 \\ \hline
+200 & 5 & 50 & 75.81 & 93.01 & 40.43 & 52.87 & 30.09 & 42.42 & 163.82 &	216.09 & 109.38 & 147.59 & 84.46 &	103.37 \\ \hline
+200 & 15 & 20 & 31.94 &	48.13 &	13.69 &	17.85 &	6.62 & 10.81 & 70.16 & 94.37 & 53.97 & 81.56 & 35.51 & 48.99 \\ \hline
+200 & 15 & 50 & 76.28 & 109.04 & 16.24 & 20.18 & 7.41 & 11.72 & 176.81 & 353.83 & 79.62 & 114.47 & 55.19 &	83.93 \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\section{Managerial insights}
+
+In this study, we explore a two-agent parallel-batching scheduling model with dynamic job arrivals and equal processing times, applicable to industries such as semiconductor and automotive manufacturing. Our findings, based on theoretical analyses and numerical experiments, provide several key managerial insights for guiding actual production.
+
+$\bullet$ \textbf{Sensitivity to critical parameter.} The computational effort is highly sensitive to several parameters, including the number of jobs $n$, the maximum release date $r_{\max}$, and the maximum job weight $w_{\max}$. High values of $r_{\max}$ can lead to increased idle times, more processing batches, and larger objective values. Similarly, large job weights complicate scheduling and increase objective values. Thus, reducing job weights proportionally and clustering jobs with similar release dates can facilitate the construction of approximate schedules.
+
+$\bullet$ \textbf{Balancing competing objectives of the two agents.} The POF provides a systematic framework to evaluate trade-offs between conflicting objectives of the two agents. When one agent’s objective is of the max-form, all problem variants are computationally tractable and can be optimally solved in polynomial time. In contrast, when both agent’s objectives are of the sum-form, most variants are $\mathcal{NP}$-hard. We designed a pseudo-polynomial-time algorithm ($\mathbf{DP_1}$) and a $(1, 1+\epsilon)$-approximate POF ($\mathbf{APF_{\epsilon}}$) for the Pareto problem $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$. Our computational experiments indicate that these algorithms can be effectively applied in production settings for instances with $n \leq 200$. For the linear-combination models, production managers can apply the DP algorithm from \cite{ChengYuanYang2005COR} to solve $1|\beta^{*}|\lambda f_{\mathrm{sum}}^{A}+(1-\lambda) f_{\mathrm{sum}}^{B}$, and the approach from Section 3.4 for $1 | \beta^{*} |\lambda \gamma^A +(1-\lambda) f_{\max}^B$, where $\gamma^A \in \{f_{\max}, f_{\mathrm{sum}}\}$. For the restricted problem $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$, employing the exact $\mathbf{DP_2(Q_B)}$ for small-scale instances (e.g., $n \leq 50$) is recommended, $\mathbf{SDDP_{\epsilon}(Q_B)}$ is preferred if a small error can be tolerated for the bound $Q_B$, while $\mathbf{DP_{\epsilon}(Q_B)}$ can be used if $f_{\mathrm{sum}}^B \leq Q_B$ must be satisfied.
+
+$\bullet$ \textbf{Algorithm selection strategy.} The computational efficiency of algorithms varies significantly based on specific structures related to the scheduling criteria, instance sizes and precision requirements. For instances with $n \leq 50$, the exact algorithms $\mathbf{DP_1}$ and $\mathbf{DP_2(Q_B)}$ are suitable for achieving precise decision-making for $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ and $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$, respectively. However, for instances with $150 \leq n \leq 200$, exact algorithms become impractical due to the exponential growth in runtime and memory demands. In these cases, based on the specific combination of objective functions and problem variants, the approximation algorithms $\mathbf{APF_{\epsilon}}$, $\mathbf{DP_{\epsilon}(Q_B)}$, and $\mathbf{SDDP_{\epsilon}(Q_B)}$ provide a practical balance between solution quality and computational efficiency. For instance, with respect to $1 | \beta^{*}|\#(\sum w_j^A C_j^A, \sum w_j^B C_j^B)$, the scenario where $n=200$, $p=5$, $w_{\max}=50$, and $r_{\max}=100$ allows $\mathbf{APF_{0.1}}$ to achieve a $(1, 1.1)$-approximate POF within 872 seconds, while $\mathbf{APF_{0.4}}$ yields a $(1, 1.4)$-approximate POF within 314 seconds. On the other hand, Table \ref{TA-D3} implies that $\mathbf{DP_1}$ can solve all 200-job instances optimally within 6 minutes for $1 | \beta^{*}|\#(\sum w_j^A T_j^A, \sum w_j^B U_j^B)$. Therefore, production managers should
+select algorithms based on the problem's specific characteristics and operational requirements: prioritizing exact
+algorithms for small-scale instances, employing approximation algorithms for larger instances, and adjusting the precision parameter $\epsilon$ to balance solution accuracy against computational efficiency.
+
+\section{Conclusions}
+We addressed the scheduling problem with two competing agents, release dates, and equal processing times on an unbounded PBPM. For agent $X$ ($X \in \{A, B\}$), the scheduling criterion was either the max-form $f_{\max}^{X}=\max\limits_{1 \leq j \leq n_X}\{f_j^X(C_j^X)\}$ or the sum-form $f_{\mathrm{sum}}^{X}=\sum_{j=1}^{n_X}f_j^X(C_j^X)$. We characterized the structural properties inherent to the optimal solutions of the general problem and summarized the main complexity results in Table \ref{TA-9.1}. Additionally, we designed an $O(n^5 (\log \log n_A+ \frac{1}{\epsilon}))$-time FPTAS and an $O(\frac{n^5} {\epsilon})$-time super-dual FPTAS for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$. Furthermore, we proposed a $(1, 1+\epsilon)$-approximate POF for $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$. To assess the performance of our developed algorithms, we conducted a comprehensive set of numerical experiments.
+
+\begin{table}[H] 
+\footnotesize
+\caption{Complexity results for $1 | \beta^{*}|\{\gamma^A, \gamma^B\}$} \label{TA-9.1}
+\vspace{-10pt}
+\begin{center}
+\begin{tabular}{|l|c|c|} \hline
+~~~~~~~~~~~~Problem  & Complexity & Reference  \\ \hline
+$1|\beta^{*}|\lambda f_{\mathrm{sum}}^{A}+(1-\lambda) f_{\mathrm{sum}}^{B}$ & $O(n^3)$ &Theorem \ref{T-2.1}\\
+$1 | \beta^{*},p=1|\{\gamma^A, \gamma^B\}$ & $O(n \log n)$ &Theorem \ref{T-2.2}\\
+$1|\beta^{*}|\epsilon(f_{\max}^A, f_{\max}^B)$ & $O(n^3)$ &Theorem \ref{T-3.1}\\
+$1 | \beta^{*} |\epsilon(f_{\mathrm{sum}}^{A}, f_{\max}^B)$ & $O(n^3)$ &Theorem \ref{T-3.1}\\
+$1 | \beta^{*} |\epsilon(f_{\max}^A, f_{\mathrm{sum}}^B)$ & $O(n^3 \log n)$ &Theorem \ref{T-3.2}\\
+$1 | \beta^{*}, f_{\max}^A \leq Q_A, f_{\max}^B \leq Q_B |-$ & $O(n^2)$ &Theorem \ref{T-3.3}\\
+$1 | \beta^{*} |\#(f_{\max}^A, f_{\max}^B)$ & $O(n^5 n_B)$ &Theorem \ref{T-3.4}\\
+$1 | \beta^{*} |\#(f_{\mathrm{sum}}^A, f_{\max}^B)$ & $O(n^5 n_B)$ &Theorem \ref{T-3.4}\\
+$1 | \beta^{*} |\lambda f_{\max}^A +(1-\lambda) f_{\max}^B$ & $O(n^5 n_B)$ &Corollary \ref{C-3.1}\\
+$1 | \beta^{*} |\lambda f_{\mathrm{sum}}^A +(1-\lambda) f_{\max}^B$ & $O(n^5 n_B)$ &Corollary \ref{C-3.2}\\
+$1 | \beta^{*}, \sum w_j^A C_j^A \leq Q_A, \sum w_j^B C_j^B \leq Q_B|-$ & $\mathcal{NP}$-complete &Theorem \ref{T-4.1}\\
+$1 | \beta^{*}, \sum w_j^A U_j^A \leq Q_A, \sum w_j^B U_j^B \leq Q_B|-$ & $\mathcal{NP}$-complete &Theorem \ref{T-4.3}\\
+$1 | \beta^{*}, \sum Y_j^A \leq Q_A, \sum Y_j^B \leq Q_B|-$ & $\mathcal{NP}$-complete &Theorem \ref{T-4.5}\\
+$1 | \beta^{*}, \sum T_j^A \leq Q_A, \sum Y_j^B \leq Q_B|-$ & $\mathcal{NP}$-complete &Corollary \ref{C-4.5.1} \\
+$1 | \beta^{*}, \sum T_j^A \leq Q_A, \sum T_j^B \leq Q_B|-$ & $\mathcal{NP}$-complete &Corollary \ref{C-4.5.2} \\
+$1 | \beta^{*}, \sum C_j^A \leq Q_A, \sum w_j^B U_j^B \leq Q_B|-$ & $\mathcal{NP}$-complete &Theorem \ref{T-4.2}\\
+$1 | \beta^{*}, \sum Y_j^A \leq Q_A, \sum w_j^B U_j^B \leq Q_B|-$ & $\mathcal{NP}$-complete &Theorem \ref{T-4.4}\\
+$1 | \beta^{*}, \sum T_j^A \leq Q_A, \sum w_j^B U_j^B \leq Q_B|-$ & $\mathcal{NP}$-complete &Corollary \ref{C-4.4.1} \\
+$1 | \beta^{*}, \sum C_j^A \leq Q_A, \sum Y_j^B \leq Q_B|-$ & $\mathcal{NP}$-complete &Theorem \ref{T-4.6}\\
+$1 | \beta^{*}, \sum C_j^A \leq Q_A, \sum T_j^B \leq Q_B|-$ & $\mathcal{NP}$-complete &Corollary \ref{C-4.6.1}\\
+$1 | \beta^{*}, \sum C_j^A \leq Q_A, \sum C_j^B \leq Q_B|-$ & open & \\
+$1 | \beta^{*}, \sum C_j^A \leq Q_A, \sum w_j^BC_j^B \leq Q_B|-$ & open & \\
+$1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ & $O(n^4 \Delta)$ &Theorem \ref{T-5.1}\\
+$1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, \sum U_j^B)$ & $O(n^4 n_B)$ &Corollary \ref{C-5.2}\\
+$1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ & $O(n^4 Q_B)$ &Theorem \ref{T-6.1} \\ \hline
+\end{tabular}
+$\Delta=\min \{\sum_{j=1}^{n_A} f_j^A(\Lambda), \sum_{j=1}^{n_B} f_j^A(\Lambda)\}$, where $\Lambda=r_{\max}(\mathcal{J})+2p-1$.
+\end{center}
+\end{table}
+
+Future research could extend this work in several directions. First, determining the computational complexity of $1 | \beta^{*}, \sum C_j^A \leq Q_A, \sum C_j^B \leq Q_B|-$ and $1 | \beta^{*}, \sum C_j^A \leq Q_A, \sum w_j^BC_j^B \leq Q_B|-$ remains an open challenge, specifically regarding their classification as polynomially solvable or $\mathcal{NP}$-complete. Second, numerical tests demonstrate that $\mathbf{DP_1}$ and $\mathbf{APF_{\epsilon}}$ can solve instances with $n \leq 150$ within a reasonable time, memory limitations hinder their applicability to large-scale instances (e.g., $n \geq 300$). Therefore, developing exact or heuristic algorithms with reduced time and space complexity for such cases is critical. Third, extending the framework to $h \geq 3$ competing agents presents both theoretical and practical opportunities. Key observations include: (i) if the scheduling criterion of agent $k$ is $f_{\max}^k$ for $k=2, 3, \ldots, h$, then the $h$-agent problem $1 | \beta^{*} |\epsilon(\gamma^A, f_{\max}^{2}, f_{\max}^{3}, \ldots, f_{\max}^{h})$ reduces to the two-agent case $1 | \beta^{*} |\epsilon(\gamma^A, f_{\max}^B)$; (ii) when $h$ is fixed, the exact DP algorithm for $1 | \beta^{*}|\#(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ can be extended to solve $1 | \beta^{*}|\#(f_{\mathrm{sum}}^1, f_{\mathrm{sum}}^2, \ldots, f_{\mathrm{sum}}^h)$; (iii) when $h$ is fixed, the super-dual FPTAS for $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^A, f_{\mathrm{sum}}^B)$ can be extended to solve $1 | \beta^{*}|\epsilon(f_{\mathrm{sum}}^1, f_{\mathrm{sum}}^2, \ldots, f_{\mathrm{sum}}^h)$, while the FPTAS is not applicable; and (iv) when $h$ is arbitrary, new approaches are expected to address these intractable cases. Fourth, in contrast to the scenario where the two agents are competing and compatible, scenarios involving non-disjoint (i.e., ${\mathcal J}^{A} \cap {\mathcal J}^{B} \neq \emptyset$) and/or incompatible agents warrant further investigation. Finally, bounded batch scheduling with two agents poses significant theoretical challenges. Unlike the unbounded batch scenario, the ERD property no longer holds, rendering algorithms specifically designed for the unbounded case inapplicable. Instead of pursuing a generic solution, a promising approach would be to tailor efficient exact or heuristic algorithms to specific problems based on the objective functions of the two agents.
+
+\section*{Acknowledgements}
+The authors would like to thank the Editor, Associate Editor, and three anonymous reviewers for their insightful comments and suggestions, which have greatly improved the quality and presentation of this work.  
+
+\section*{Disclosure statement}
+No potential conflict of interest was reported by the authors.
+
+\section*{Funding}
+This work was supported by the National Natural Science Foundation of China [grant numbers 12401427, 12471305] and the Key Research Projects of Henan Higher Education Institutions [grant number 24A110014].
+
+\section*{Data availability statement}
+Not relevant for this paper.
+
+\end{sloppypar}
+\bibliographystyle{apalike}
+\bibliography{ref_IJPR}
+\end{document}
