@@ -296,7 +296,7 @@ The overall procedure is given in Algorithm~\ref{alg:dp}.
 \end{algorithm}
 
 \begin{rem}
-The dominance pruning in Algorithm~\ref{alg:dp} discards any new state $(\vec{p}', A', B', z')$ for which a state with the same $(\vec{p}', A', B')$ and a lower or equal $z$ already exists in $\mathcal{Y}^{(k+1)}$. This standard dominance rule reduces the number of active states without compromising optimality.
+The state pruning in line~17 discards any new state $(\vec{p}', A', B', z')$ for which a state with the same $(\vec{p}', A', B')$ and a lower or equal $z$ already exists. This is a standard dominance rule that reduces the number of active states without compromising optimality.
 \end{rem}
 
 \section{Complexity Analysis}
