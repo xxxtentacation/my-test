@@ -139,19 +139,12 @@ We retain the block-structured state space but replace the makespan accumulation
     $w_j$      & 工件 $j$ 的权重 ($j \in J_k \iff w_j = W_k$) \\
     $L_k$      & $J_k$ 中工件按 Johnson 规则排序后的有序列表 \\
     $S_k$      & 调度中第 $k$ 个连续块 \\
+    $J_{i,k}$  & 第 $k$ 个块中的第 $i$ 个工件 ($i = 1,\dots,|S_k|$) \\
     $\mathcal{Y}^{(k)}$ & 处理完前 $k$ 个块后的非支配状态集合 ($k=0,\dots,K$) \\
-    $\vec{p}$            & 前缀向量 $(p_{k+1},\dots,p_K)$；$p_m =$ 已从 $L_m$ 取用的工件数 \\
     $A$                  & 前 $k$ 个块在机器 1 上累计加工时间 \\
     $B$                  & 第 $k$ 个块在机器 2 上的完工时间（即第 $k{+}1$ 个块开始时机器 2 可用时刻） \\
     $z$                  & 前 $k$ 个块的累计加权完工时间和 \\
-    $\vec{0}$            & 全零向量 $(0,\dots,0) \in \mathbb{N}^K$ \\
-    $\vec{d}$            & 选择向量 $(d_{k+1},\dots,d_K)$；$d_m =$ 从 $J_m$ 放入当前块的工件数 \\
-    $T$          & 分配给当前块的工件集合 \\
-    $\sigma$     & $T$ 按 Johnson 规则排序后的序列 \\
-    $A', B'$     & 块处理过程中机器 1 累计时间与机器 2 完工时间的运行值 \\
-    $z'$         & 块处理过程中累计加权成本的运行值 \\
-    $A_{\max}$ & $\sum_{j=1}^n a_j$，机器 1 总时间的上界 \\
-    $B_{\max}$ & $\sum_{j=1}^n (a_j + b_j)$，机器 2 完工时间的上界 \\
+    $A_{\text{cur}}, B_{\text{cur}}, z_{\text{cur}}$ & 块构建过程中机器 1 累计时间、机器 2 完工时间、加权成本的运行值 \\
     $Z^*$      & 最优（最小）总加权完工时间 \\
 \end{tabular}}
 \end{CJK}
@@ -167,30 +160,56 @@ Within each set $J_k$, we sort the jobs according to Johnson's rule (SPT(1)-LPT(
 where $n_k = |J_k|$. Since block $S_k$ will contain jobs drawn from classes $k, k+1, \dots, K$ and
 must obey Johnson ordering internally (Lemma~\ref{lem:spt_lpt}),
 the correct within-block sequence is obtained by taking prefixes of each $L_m$ ($m \ge k$) and merging them under the same Johnson comparator.
-To merge a set $T$ of jobs into Johnson order, one partitions $T$ into those with $a_j \le b_j$ (sorted by non-decreasing $a_j$) and those with $a_j > b_j$ (sorted by non-increasing $b_j$), and concatenates the two subsequences. This procedure will be invoked whenever we form the sequence $\sigma$ of a block.
+To merge a set of jobs into Johnson order, one partitions it into those with $a_j \le b_j$ (sorted by non-decreasing $a_j$) and those with $a_j > b_j$ (sorted by non-increasing $b_j$), and concatenates the two subsequences. This procedure is used whenever the algorithm merges several $L_m$ suffixes into a single sequence.
 
 \subsection{Dynamic Programming Algorithm}
 
-We maintain a state set $\mathcal{Y}^{(k)}$ for each block index $k = 0, \dots, K$, where
-$\mathcal{Y}^{(0)} = \{(\vec{0}, 0, 0, 0)\}$.
-A state $(\vec{p}, A, B, z) \in \mathcal{Y}^{(k)}$ encodes a complete assignment of jobs to the first $k$ blocks:
-$\vec{p} = (p_{k+1}, \dots, p_K)$ counts how many jobs of each class have been taken from $L_m$ so far;
-$A$ is the total M1 processing time over blocks $1..k$;
-$B$ is the M2 completion time at the end of block $k$ (M2 ready for block $k{+}1$); and
-$z$ is the accumulated weighted completion time.
-By Lemma~\ref{lem:positional}, $p_m = n_m$ for all $m \le k$; thus $\vec{p}$ only tracks indices $m > k$.
+We build the schedule block by block. After the first $k$ blocks are fixed, let
+\[
+    S_m = (J_{1,m}, J_{2,m}, \dots, J_{|S_m|,m}), \quad m = 1,\dots,k,
+\]
+where $J_{i,m}$ denotes the $i$-th job in block $S_m$. Each pre-sorted list $L_m$
+is the Johnson order of class $J_m$. Since blocks consume prefixes of each $L_m$
+(Lemma~\ref{lem:spt_lpt}), the jobs already assigned to $S_1 \cup \dots \cup S_k$
+constitute a prefix of each $L_m$. Consequently, the set of remaining (unassigned)
+jobs of class $J_m$ is simply the suffix of $L_m$ after that prefix.
 
-Given a state $(\vec{p}, A, B, z) \in \mathcal{Y}^{(k)}$, we construct block $S_{k+1}$ by choosing how many jobs to take from each remaining class.
-Let $\vec{d} = (d_{k+1}, \dots, d_K)$ be the choice vector, where $d_m$ is the number of jobs from $J_m$ assigned to this block.
-By Lemma~\ref{lem:positional}, all remaining class $k{+}1$ jobs must enter this block, so $d_{k+1} = n_{k+1} - p_{k+1}$ is forced.
-For $m > k{+}1$, we choose $d_m \in \{0, \dots, n_m - p_m\}$.
-The block takes jobs $L_m[p_m{+}1 \dots p_m{+}d_m]$ ($m = k{+}1 \dots K$),
-sorts them by Johnson's rule into $\sigma$, and processes $\sigma$ through the two-machine flow shop
-($A' \gets A' + a_j$; $B' \gets \max(B', A') + b_j$; $z' \gets z' + w_j \cdot B'$) to obtain $(A', B', z')$.
-If $w_{\sigma[|\sigma|]} \neq W_{k+1}$, the selection is discarded (Lemma~\ref{lem:block_end}).
-The new prefix for $\mathcal{Y}^{(k+1)}$ becomes $(p_{k+2}{+}d_{k+2}, \dots, p_K{+}d_K)$,
-and the resulting state $(\vec{p}, A', B', z')$ enters $\mathcal{Y}^{(k+1)}$ under the dominance rule:
-states with identical $(\vec{p}, A', B')$ keep only the minimal $z'$.
+A state in $\mathcal{Y}^{(k)}$ is a tuple $(J_{i,k},\, A,\, B,\, z)$, where $J_{i,k}$
+collectively denotes the jobs assigned to each block $S_1,\dots,S_k$ (i.e.\
+$S_m = (J_{1,m},\dots,J_{|S_m|,m})$ for $m \le k$), $A$ is the total M1 processing
+time over blocks $1..k$, $B$ is the M2 completion time at the end of block $k$,
+and $z$ is the accumulated weighted completion time. Since blocks consume prefixes
+of each $L_m$ (Lemma~\ref{lem:spt_lpt}), the jobs assigned to $S_1 \cup \dots \cup S_k$
+constitute a prefix of each $L_m$; consequently, the set of remaining (unassigned)
+jobs of class $J_m$ is simply the suffix of $L_m$ after that prefix. The initial
+state is $\mathcal{Y}^{(0)} = \{(\emptyset,\, 0,\, 0,\, 0)\}$ with all blocks empty.
+
+To construct block $S_{k+1}$ from a state in $\mathcal{Y}^{(k)}$, we collect the
+remaining suffixes of $L_{k+1},\dots,L_K$ and merge them into a single
+Johnson-ordered sequence. Scanning this sequence from left to right, for each
+job $j \in \bigcup_{m=k+1}^K J_m$ we decide whether to \textbf{include} it in
+$S_{k+1}$ or \textbf{postpone} it to a later block:
+
+\begin{itemize}
+    \item If $j \in J_{k+1}$: \textbf{must include} (Lemma~\ref{lem:positional}).
+    \item If $j \in J_m$ with $m > k{+}1$: either include or postpone (binary branch).
+\end{itemize}
+
+When a job is included, it becomes the next $J_{i,k+1}$ and we update:
+\begin{align}
+    A_{\text{cur}} &\gets A_{\text{cur}} + a_j, \notag\\
+    B_{\text{cur}} &\gets \max(B_{\text{cur}}, A_{\text{cur}}) + b_j, \notag\\
+    z_{\text{cur}} &\gets z_{\text{cur}} + w_j \cdot B_{\text{cur}}. \notag
+\end{align}
+A postponed job remains in its suffix and participates in the next block's scan.
+At the end, we require that the last job of $S_{k+1}$ belongs to $J_{k+1}$
+(Lemma~\ref{lem:block_end}); otherwise the branch is discarded.
+
+A valid branch produces a successor state $(J_{i,k+1},\, A_{\text{cur}},\, B_{\text{cur}},\, z_{\text{cur}})$
+where $J_{i,k+1}$ extends the previous $J_{i,k}$ with the newly formed $S_{k+1} = U$.
+It is inserted into $\mathcal{Y}^{(k+1)}$ under the dominance rule:
+among states with the same block partition $(S_1,\dots,S_{k+1})$, only the one
+with minimal $z_{\text{cur}}$ for each $(A_{\text{cur}}, B_{\text{cur}})$ is retained.
 
 The complete procedure is given in Algorithm~\ref{alg:dp}.
 
@@ -199,39 +218,41 @@ The complete procedure is given in Algorithm~\ref{alg:dp}.
     \caption{DP\_F2\_WeightedSum}
     \label{alg:dp}
     \begin{algorithmic}[1]
-        \Require Preprocessing (Section~\ref{sec:dp_algorithm}.1) completed: weight classes $J_1,\dots,J_K$ with $W_1>\dots>W_K$, and Johnson-sorted lists $L_1,\dots,L_K$ are given.
+        \Require Jobs partitioned into $J_1,\dots,J_K$ with $W_1>\dots>W_K$; each $L_k$ is the Johnson-ordered list of $J_k$.
         \Ensure optimal weighted sum $Z^*$
 
-        \State $\mathcal{Y}^{(0)} \gets \{ (\vec{0},\, 0,\, 0,\, 0) \}$
+        \State $\mathcal{Y}^{(0)} \gets \{ (\emptyset,\, 0,\, 0,\, 0) \}$ \Comment{no block built yet}
+
         \For{$k = 0$ to $K-1$}
             \State $\mathcal{Y}^{(k+1)} \gets \emptyset$
-            \For{each $(\vec{p}, A, B, z) \in \mathcal{Y}^{(k)}$}
-                \State $d_{k+1} \gets n_{k+1} - p_{k+1}$ 
-                \For{each $\vec{d} = (d_{k+1}, \dots, d_K)$ with $d_m \in \{0, \dots, n_m - p_m\}$ for $m > k{+}1$}
-                    \State $T \gets \emptyset$
-                    \For{$m = k{+}1$ to $K$}
-                        \For{$i = p_m{+}1$ to $p_m{+}d_m$}
-                            \State $T \gets T \cup \{ L_m[i] \}$
-                        \EndFor
-                    \EndFor
-                    \State Sort $T$ in Johnson order to obtain $\sigma$
-                    \If{$w_{\sigma[|\sigma|]} \neq W_{k+1}$}
+            \For{each $(J_{i,k},\, A,\, B,\, z) \in \mathcal{Y}^{(k)}$}
+                \State Merge the remaining suffixes of $L_{k+1},\dots,L_K$ in Johnson order into a sequence $\sigma$
+                \State Initialize a stack with $(\ell,\, A_{\text{cur}},\, B_{\text{cur}},\, z_{\text{cur}},\, U,\, \textit{last}) \gets (1,\, A,\, B,\, z,\, \emptyset,\, \text{nil})$
+                \While{stack is not empty}
+                    \State Pop $(\ell,\, A_{\text{cur}},\, B_{\text{cur}},\, z_{\text{cur}},\, U,\, \textit{last})$
+                    \If{$\ell > |\sigma|$}
+                        \If{$U \neq \emptyset$ \textbf{and} $\textit{last} = k{+}1$}
+                            \State Let $S_{k+1} \gets U$; $J_{i,k+1} \gets J_{i,k} \cup \{S_{k+1}\}$
+                            \State Advance the taken-prefix pointer of each $L_m$ by $|U \cap J_m|$
+                            \If{$\nexists\,(J_{i,k+1},\, A_{\text{cur}},\, B_{\text{cur}},\, \hat{z}) \in \mathcal{Y}^{(k+1)}$ with $\hat{z} \le z_{\text{cur}}$}
+                                \State Insert $(J_{i,k+1},\, A_{\text{cur}},\, B_{\text{cur}},\, z_{\text{cur}})$ into $\mathcal{Y}^{(k+1)}$, pruning dominated states
+                            \EndIf
+                        \EndIf
                         \State \textbf{continue}
                     \EndIf
-                    \State $A' \gets A$, $B' \gets B$, $z' \gets z$
-                    \For{$j \in \sigma$ (in sequence order)}
-                        \State $A' \gets A' + a_j$
-                        \State $B' \gets \max(B', A') + b_j$
-                        \State $z' \gets z' + w_j \cdot B'$
-                    \EndFor
-                    \State $\vec{p}\,' \gets (p_{k+2}{+}d_{k+2},\, \dots,\, p_K{+}d_K)$
-                    \If{$\nexists\,(\vec{p}\,', A', B', \hat{z}) \in \mathcal{Y}^{(k+1)}$ with $\hat{z} \le z'$}
-                        \State Insert $(\vec{p}\,', A', B', z')$ into $\mathcal{Y}^{(k+1)}$, pruning dominated states
+                    \State $j \gets \sigma[\ell]$, let $m$ be the class index of $j$ 
+                    \If{$m = k{+}1$}
+                        \State $A' \gets A_{\text{cur}} + a_j$;\; $B' \gets \max(B_{\text{cur}}, A') + b_j$;\; $z' \gets z_{\text{cur}} + w_j \cdot B'$
+                        \State Push $(\ell{+}1,\, A',\, B',\, z',\, U \cup \{j\},\, k{+}1)$ onto stack
+                    \Else
+                        \State $A' \gets A_{\text{cur}} + a_j$;\; $B' \gets \max(B_{\text{cur}}, A') + b_j$;\; $z' \gets z_{\text{cur}} + w_j \cdot B'$
+                        \State Push $(\ell{+}1,\, A',\, B',\, z',\, U \cup \{j\},\, \textit{last})$ onto stack 
+                        \State Push $(\ell{+}1,\, A_{\text{cur}},\, B_{\text{cur}},\, z_{\text{cur}},\, U,\, \textit{last})$ onto stack 
                     \EndIf
-                \EndFor
+                \EndWhile
             \EndFor
         \EndFor
-        \State $Z^* \gets \min\{\, z \mid (\emptyset, A, B, z) \in \mathcal{Y}^{(K)} \,\}$
+        \State $Z^* \gets \min\{\, z \mid (J_{i,K},\, A,\, B,\, z) \in \mathcal{Y}^{(K)} \,\}$
         \State \Return $Z^*$
     \end{algorithmic}
 \end{algorithm}
