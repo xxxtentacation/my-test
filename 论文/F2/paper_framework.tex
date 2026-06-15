@@ -118,144 +118,153 @@ and the final position of block $k$ is occupied by a job of class $k$.
 \section{Dynamic Programming Algorithm}
 \label{sec:dp_algorithm}
 
-The structural properties established in Section~\ref{sec:properties} enable a dynamic programming algorithm that builds the schedule block by block. 
-Our approach adapts the interval-based state representation of , originally devised for the $F2|r_j|C_{\max}$ PTAS, 
-to the weighted completion time objective. In that framework, the schedule is partitioned into intervals, 
-each interval is internally sequenced by Johnson's rule, and the DP state tracks per-interval completion times. 
-We retain the block-structured state space but replace the makespan accumulation with an incremental weighted sum computation.
+The structural properties established in Section~\ref{sec:properties} enable a dynamic programming algorithm that constructs the schedule by iteratively inserting jobs into a partial permutation.
+Our approach adapts the interval-based state representation of \cite{hall1998}, originally devised for the $F2|r_j|C_{\max}$ PTAS,
+to the weighted completion time objective. In that framework, the schedule is partitioned into intervals,
+each interval is internally sequenced by Johnson's rule, and the DP state tracks per-interval completion times.
+We retain the Johnson ordering within blocks but replace the interval-based state space with a permutation-based representation and an incremental weighted sum computation.
 
-\noindent\textbf{Notation.}
-\begin{CJK}{UTF8}{gbsn}
-{\small\renewcommand{\arraystretch}{0.9}
-\begin{tabular}{@{}c|l@{}}
-    $J$        & 全体工件集合 \\
-    $n$        & 工件总数 ($n = |J|$) \\
-    $K$        & 不同权重的类别数 \\
-    $J_k$      & 权重为 $W_k$ 的工件集合 ($k=1,\dots,K$) \\
-    $W_k$      & $J_k$ 中工件的公共权重，满足 $W_1 > W_2 > \dots > W_K$ \\
-    $n_k$      & $|J_k|$，第 $k$ 类工件的数量 \\
-    $a_j$      & 工件 $j$ 在机器 1 上的加工时间 \\
-    $b_j$      & 工件 $j$ 在机器 2 上的加工时间 \\
-    $w_j$      & 工件 $j$ 的权重 ($j \in J_k \iff w_j = W_k$) \\
-    $L_k$      & $J_k$ 中工件按 Johnson 规则排序后的有序列表 \\
-    $S_k$      & 调度中第 $k$ 个连续块 \\
-    $J_{i,k}$  & 第 $k$ 个块中的第 $i$ 个工件 ($i = 1,\dots,|S_k|$) \\
-    $\mathcal{Y}^{(k)}$ & 处理完前 $k$ 个块后的非支配状态集合 ($k=0,\dots,K$) \\
-    $A$                  & 前 $k$ 个块在机器 1 上累计加工时间 \\
-    $B$                  & 第 $k$ 个块在机器 2 上的完工时间（即第 $k{+}1$ 个块开始时机器 2 可用时刻） \\
-    $z$                  & 前 $k$ 个块的累计加权完工时间和 \\
-    $A_{\text{cur}}, B_{\text{cur}}, z_{\text{cur}}$ & 块构建过程中机器 1 累计时间、机器 2 完工时间、加权成本的运行值 \\
-    $Z^*$      & 最优（最小）总加权完工时间 \\
-\end{tabular}}
-\end{CJK}
-\smallskip
+
 
 \subsection{Preprocessing}
 
-We first partition the $n$ jobs into $K$ sets $J_1, J_2, \dots, J_K$ by weight, with $W_1 > W_2 > \dots > W_K$. 
+We first partition the $n$ jobs into $K$ sets $J_1, J_2, \dots, J_K$ by weight, with $W_1 > W_2 > \dots > W_K$.
 Within each set $J_k$, we sort the jobs according to Johnson's rule (SPT(1)-LPT(2)). Let the resulting ordered list be
 \[
     L_k = \bigl(j_{k,1}, j_{k,2}, \dots, j_{k,n_k}\bigr), \quad k = 1,2,\dots,K,
 \]
-where $n_k = |J_k|$. Since block $S_k$ will contain jobs drawn from classes $k, k+1, \dots, K$ and
-must obey Johnson ordering internally (Lemma~\ref{lem:spt_lpt}),
-the correct within-block sequence is obtained by taking prefixes of each $L_m$ ($m \ge k$) and merging them under the same Johnson comparator.
-To merge a set of jobs into Johnson order, one partitions it into those with $a_j \le b_j$ (sorted by non-decreasing $a_j$) and those with $a_j > b_j$ (sorted by non-increasing $b_j$), and concatenates the two subsequences. This procedure is used whenever the algorithm merges several $L_m$ suffixes into a single sequence.
+where $n_k = |J_k|$.
 
-\subsection{Dynamic Programming Algorithm}
+\subsection{State Definition}
 
-We build the schedule block by block. After the first $k$ blocks are fixed, let
-\[
-    S_m = (J_{1,m}, J_{2,m}, \dots, J_{|S_m|,m}), \quad m = 1,\dots,k,
-\]
-where $J_{i,m}$ denotes the $i$-th job in block $S_m$. Each pre-sorted list $L_m$
-is the Johnson order of class $J_m$. Since blocks consume prefixes of each $L_m$
-(Lemma~\ref{lem:spt_lpt}), the jobs already assigned to $S_1 \cup \dots \cup S_k$
-constitute a prefix of each $L_m$. Consequently, the set of remaining (unassigned)
-jobs of class $J_m$ is simply the suffix of $L_m$ after that prefix.
-
-A state in $\mathcal{Y}^{(k)}$ is a tuple $(J_{i,k},\, A,\, B,\, z)$, where $J_{i,k}$
-collectively denotes the jobs assigned to each block $S_1,\dots,S_k$ (i.e.\
-$S_m = (J_{1,m},\dots,J_{|S_m|,m})$ for $m \le k$), $A$ is the total M1 processing
-time over blocks $1..k$, $B$ is the M2 completion time at the end of block $k$,
-and $z$ is the accumulated weighted completion time. Since blocks consume prefixes
-of each $L_m$ (Lemma~\ref{lem:spt_lpt}), the jobs assigned to $S_1 \cup \dots \cup S_k$
-constitute a prefix of each $L_m$; consequently, the set of remaining (unassigned)
-jobs of class $J_m$ is simply the suffix of $L_m$ after that prefix. The initial
-state is $\mathcal{Y}^{(0)} = \{(\emptyset,\, 0,\, 0,\, 0)\}$ with all blocks empty.
-
-To construct block $S_{k+1}$ from a state in $\mathcal{Y}^{(k)}$, we collect the
-remaining suffixes of $L_{k+1},\dots,L_K$ and merge them into a single
-Johnson-ordered sequence. Scanning this sequence from left to right, for each
-job $j \in \bigcup_{m=k+1}^K J_m$ we decide whether to \textbf{include} it in
-$S_{k+1}$ or \textbf{postpone} it to a later block:
-
+A state is a 5-tuple $(\pi,\, A,\, B,\, z,\, \text{last}_k)$, where
 \begin{itemize}
-    \item If $j \in J_{k+1}$: \textbf{must include} (Lemma~\ref{lem:positional}).
-    \item If $j \in J_m$ with $m > k{+}1$: either include or postpone (binary branch).
+    \item $\pi$ is the current partial permutation of already-scheduled jobs;
+    \item $A$ and $B$ are the cumulative M1 and M2 completion times when processing $\pi$ through the flow shop;
+    \item $z$ is the accumulated weighted sum of completion times for all jobs in $\pi$;
+    \item $\text{last}_k$ records the rightmost position in $\pi$ occupied by a job of the current class $J_k$ (0 if no job of $J_k$ has been inserted yet).
 \end{itemize}
 
-When a job is included, it becomes the next $J_{i,k+1}$ and we update:
-\begin{align}
-    A_{\text{cur}} &\gets A_{\text{cur}} + a_j, \notag\\
-    B_{\text{cur}} &\gets \max(B_{\text{cur}}, A_{\text{cur}}) + b_j, \notag\\
-    z_{\text{cur}} &\gets z_{\text{cur}} + w_j \cdot B_{\text{cur}}. \notag
-\end{align}
-A postponed job remains in its suffix and participates in the next block's scan.
-At the end, we require that the last job of $S_{k+1}$ belongs to $J_{k+1}$
-(Lemma~\ref{lem:block_end}); otherwise the branch is discarded.
+The initial state is $(\emptyset,\, 0,\, 0,\, 0,\, 0)$.
 
-A valid branch produces a successor state $(J_{i,k+1},\, A_{\text{cur}},\, B_{\text{cur}},\, z_{\text{cur}})$
-where $J_{i,k+1}$ extends the previous $J_{i,k}$ with the newly formed $S_{k+1} = U$.
-It is inserted into $\mathcal{Y}^{(k+1)}$ under the dominance rule:
-among states with the same block partition $(S_1,\dots,S_{k+1})$, only the one
-with minimal $z_{\text{cur}}$ for each $(A_{\text{cur}}, B_{\text{cur}})$ is retained.
+\subsection{Dynamic programming Algorithm}
 
-The complete procedure is given in Algorithm~\ref{alg:dp}.
+The algorithm constructs an optimal schedule by inserting jobs in the pre-sorted order $L_1, L_2, \dots, L_K$.
+At each step, a single job is inserted into every feasible position of the current partial permutation,
+and the structural constraints established in Section~\ref{sec:properties} are enforced incrementally to prune infeasible prefixes.
 
-\begin{algorithm}[H]
-    \renewcommand{\baselinestretch}{1.2}\selectfont
-    \caption{DP\_F2\_WeightedSum}
-    \label{alg:dp}
-    \begin{algorithmic}[1]
-        \Require Jobs partitioned into $J_1,\dots,J_K$ with $W_1>\dots>W_K$; each $L_k$ is the Johnson-ordered list of $J_k$.
-        \Ensure optimal weighted sum $Z^*$
+\smallskip\noindent\textbf{State transition.}
+Given a state $(\pi,\, A,\, B,\, z,\, \text{last}_k)$ with $N = |\pi|$ and a job $j \in J_k$ to be inserted,
+the algorithm evaluates $N+1$ candidate positions $\text{pos} \in \{0, 1, \dots, N\}$.
+Position $\text{pos}$ corresponds to inserting $j$ after the first $\text{pos}$ jobs of $\pi$,
+with $\text{pos}=0$ denoting insertion at the front of the permutation.
 
-        \State $\mathcal{Y}^{(0)} \gets \{ (\emptyset,\, 0,\, 0,\, 0) \}$ \Comment{no block built yet}
+\smallskip\noindent\textbf{Single-step expansion.}
+For each candidate position $\text{pos}$:
+\begin{enumerate}
+    \item \textbf{Construct} the augmented permutation $\pi' = \pi[1..\text{pos}] \parallel j \parallel \pi[\text{pos}{+}1..N]$.
+    \item \textbf{Update} $\text{last}'_k = \text{pos} + 1$.
+    \item \textbf{Compute} the cumulative metrics for $\pi'$ by simulating the flow shop:
+    \[
+    \begin{aligned}
+        A' &= \sum_{x \in \pi'} a_x, \\[2pt]
+        B' &= \text{flow-shop-M2-completion}(\pi'), \\[2pt]
+        z' &= \sum_{x \in \pi'} w_x \cdot C_x,
+    \end{aligned}
+    \]
+    where $C_x$ denotes the completion time of job $x$ on M2 under permutation $\pi'$.
+    \item \textbf{Validate} the block-end constraint. When $j$ is the final job of $J_k$ (i.e., all $n_k$ jobs of class $k$ have been processed), verify that $\text{last}'_k \ge k$.
+    Candidates that violate this condition are discarded.
+\end{enumerate}
 
-        \For{$k = 0$ to $K-1$}
-            \State $\mathcal{Y}^{(k+1)} \gets \emptyset$
-            \For{each $(J_{i,k},\, A,\, B,\, z) \in \mathcal{Y}^{(k)}$}
-                \State Merge the remaining suffixes of $L_{k+1},\dots,L_K$ in Johnson order into a sequence $\sigma$
-                \State Initialize a stack with $(\ell,\, A_{\text{cur}},\, B_{\text{cur}},\, z_{\text{cur}},\, U,\, \textit{last}) \gets (1,\, A,\, B,\, z,\, \emptyset,\, \text{nil})$
-                \While{stack is not empty}
-                    \State Pop $(\ell,\, A_{\text{cur}},\, B_{\text{cur}},\, z_{\text{cur}},\, U,\, \textit{last})$
-                    \If{$\ell > |\sigma|$}
-                        \If{$U \neq \emptyset$ \textbf{and} $\textit{last} = k{+}1$}
-                            \State Let $S_{k+1} \gets U$; $J_{i,k+1} \gets J_{i,k} \cup \{S_{k+1}\}$
-                            \State Advance the taken-prefix pointer of each $L_m$ by $|U \cap J_m|$
-                            \If{$\nexists\,(J_{i,k+1},\, A_{\text{cur}},\, B_{\text{cur}},\, \hat{z}) \in \mathcal{Y}^{(k+1)}$ with $\hat{z} \le z_{\text{cur}}$}
-                                \State Insert $(J_{i,k+1},\, A_{\text{cur}},\, B_{\text{cur}},\, z_{\text{cur}})$ into $\mathcal{Y}^{(k+1)}$, pruning dominated states
-                            \EndIf
-                        \EndIf
-                        \State \textbf{continue}
+\smallskip\noindent\textbf{Correctness of early pruning.}
+After the final job of class $J_k$ has been inserted, the scalar $\text{last}_k$ records its position in the current permutation.
+The check $\text{last}'_k \ge k$ enforces that the last job of class $k$ occupies a position no earlier than $k$, which is necessary for the block structure to accommodate one job from each of the $k$ weight classes preceding it.
+Should this condition be violated, subsequent insertions from classes $J_{k+1}, \dots, J_K$ can only increase $\text{last}_k$ (by shifting it rightward when jobs are inserted before position $\text{last}_k$),
+so the inequality $\text{last}_k \ge k$ may still be restored. However, states that already satisfy the condition are carried forward; those that do not are discarded early to limit state growth.
+
+\smallskip\noindent\textbf{Positional constraint.}
+The positional constraint of Lemma~\ref{lem:positional} is implicitly enforced by the insertion mechanism.
+Although a job $j \in J_k$ may be inserted at any position, the check $\text{last}'_k \ge k$ at each class boundary ensures that the final job of class $k$ occupies a position no earlier than $k$,
+which combined with the block-end condition guarantees that no job of class $k$ appears beyond block $k$ in any surviving state.
+
+\smallskip\noindent\textbf{Dominance-based pruning.}
+For each parent state $(\pi,\, A,\, B,\, z,\, \text{last}_k)$ and job $j$, the algorithm retains only those candidate positions that attain the minimum objective value.
+Formally, let
+\[
+    z^* = \min_{\text{pos} \in \{0,\dots,N\}} \{\, z'_{\text{pos}} \mid \text{candidate at pos is valid} \,\}.
+\]
+All candidates achieving $z' = z^*$ are inserted into $\mathcal{Y}_{\text{new}}$; the remainder are discarded.
+This dominance rule is exact: for a fixed set of unscheduled jobs, the completion time contribution of any suffix schedule is monotone non-decreasing in the prefix completion times $(A, B)$.
+A sub-optimal insertion of a single job therefore cannot be recovered by any subsequent extension of the partial schedule.
+
+\smallskip\noindent\textbf{Termination.}
+Upon processing all $n$ jobs, every surviving state satisfies the four structural properties of Section~\ref{sec:properties} by construction.
+The optimal total weighted completion time is
+\[
+    Z^* = \min\{\, z \mid (\pi,\, A,\, B,\, z,\, \text{last}_k) \in \mathcal{Y} \,\}.
+\]
+
+The complete procedure is given in Algorithm~1.
+
+\smallskip
+\noindent\rule{\textwidth}{0.4pt}
+\vskip -2pt
+{\noindent\textbf{Algorithm~1}~~DP\_F2\_WeightedSum}
+\vskip -2pt
+\noindent\rule{\textwidth}{0.4pt}
+\vskip 1pt
+\begin{algorithmic}[1]
+    \Require Jobs partitioned into $J_1,\dots,J_K$ with $W_1>\dots>W_K$; each $L_k$ is the Johnson-ordered list of $J_k$.
+    \Ensure optimal weighted sum $Z^*$
+
+    \State $\mathcal{Y} \gets \{ (\emptyset,\, 0,\, 0,\, 0,\, 0) \}$
+
+    \For{$k = 1$ to $K$}
+        \For{$i = 1$ to $n_k$}
+            \State $j \gets L_k[i]$
+            \State $\mathcal{Y}_{\text{new}} \gets \emptyset$
+            \For{each $(\pi,\, A,\, B,\, z,\, \text{last}_k) \in \mathcal{Y}$}
+                \State $N \gets |\pi|$
+                \State $\text{best}_z \gets +\infty$; \quad $\text{best\_states} \gets \emptyset$
+                \For{$\text{pos} = 0$ to $N$}
+                    \State $\pi' \gets \pi[1..\text{pos}] \parallel j \parallel \pi[\text{pos}{+}1..N]$
+                    \State $\text{last}'_k \gets \text{pos} + 1$
+                    \State Simulate $\pi'$ through the flow shop to compute $(A', B', z')$
+                    \If{$i = n_k$}
+                        \State \textbf{check} $\text{last}'_k \ge k$
+                        \If{violated} \textbf{continue} \EndIf
                     \EndIf
-                    \State $j \gets \sigma[\ell]$, let $m$ be the class index of $j$ 
-                    \If{$m = k{+}1$}
-                        \State $A' \gets A_{\text{cur}} + a_j$;\; $B' \gets \max(B_{\text{cur}}, A') + b_j$;\; $z' \gets z_{\text{cur}} + w_j \cdot B'$
-                        \State Push $(\ell{+}1,\, A',\, B',\, z',\, U \cup \{j\},\, k{+}1)$ onto stack
-                    \Else
-                        \State $A' \gets A_{\text{cur}} + a_j$;\; $B' \gets \max(B_{\text{cur}}, A') + b_j$;\; $z' \gets z_{\text{cur}} + w_j \cdot B'$
-                        \State Push $(\ell{+}1,\, A',\, B',\, z',\, U \cup \{j\},\, \textit{last})$ onto stack 
-                        \State Push $(\ell{+}1,\, A_{\text{cur}},\, B_{\text{cur}},\, z_{\text{cur}},\, U,\, \textit{last})$ onto stack 
+                    \If{$z' < \text{best}_z$}
+                        \State $\text{best}_z \gets z'$; \quad $\text{best\_states} \gets \{ (\pi', A', B', z', \text{last}'_k) \}$
+                    \ElsIf{$z' = \text{best}_z$}
+                        \State $\text{best\_states} \gets \text{best\_states} \cup \{ (\pi', A', B', z', \text{last}'_k) \}$
                     \EndIf
-                \EndWhile
+                \EndFor
+                \State $\mathcal{Y}_{\text{new}} \gets \mathcal{Y}_{\text{new}} \cup \text{best\_states}$
             \EndFor
+            \State $\mathcal{Y} \gets \mathcal{Y}_{\text{new}}$
         \EndFor
-        \State $Z^* \gets \min\{\, z \mid (J_{i,K},\, A,\, B,\, z) \in \mathcal{Y}^{(K)} \,\}$
-        \State \Return $Z^*$
-    \end{algorithmic}
-\end{algorithm}
+    \EndFor
+    \State $Z^* \gets \min\{\, z \mid (\pi,\, A,\, B,\, z,\, \text{last}_k) \in \mathcal{Y} \,\}$
+    \State \Return $Z^*$
+\end{algorithmic}
+\vskip -2pt
+\rule{\textwidth}{0.4pt}
+
+\subsection{Complexity Analysis}
+
+Let $|\mathcal{Y}|_{\max}$ denote the maximum number of states retained in any single iteration.
+For each state with prefix length $N$, the algorithm evaluates $N+1$ insertion positions,
+and each simulation of $\pi'$ takes $O(N)$ time, yielding $O(N^2)$ work per state per job.
+Since $N$ grows from $0$ to $n-1$ as jobs are inserted, the total time is
+\[
+    O\bigl(|\mathcal{Y}|_{\max} \cdot n^3\bigr).
+\]
+
+The state retention rule (keeping only minimal-$z$ candidates from each parent state)
+keeps $|\mathcal{Y}|_{\max}$ small in practice. The $\text{last}_k \ge k$ checks at class boundaries
+further prune infeasible states early, preventing exponential blow-up.
 
 \section{Conclusion}
 \label{sec:conclusion}
