@@ -119,7 +119,7 @@ and the final position of block $k$ is occupied by a job of class $k$.
 \label{sec:dp_algorithm}
 
 The structural properties established in Section~\ref{sec:properties} enable a dynamic programming algorithm that constructs the schedule by iteratively inserting jobs into a partial permutation.
-Our approach adapts the interval-based state representation of \cite{hall1998}, originally devised for the $F2|r_j|C_{\max}$ PTAS,
+Our approach adapts the interval-based state representation of , originally devised for the $F2|r_j|C_{\max}$,
 to the weighted completion time objective. In that framework, the schedule is partitioned into intervals,
 each interval is internally sequenced by Johnson's rule, and the DP state tracks per-interval completion times.
 We retain the Johnson ordering within blocks but replace the interval-based state space with a permutation-based representation and an incremental weighted sum computation.
