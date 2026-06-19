@@ -48,11 +48,12 @@
     denoted $F2 \parallel \sum w_j C_j$, is a classical NP-hard scheduling problem with applications in manufacturing, computing, and logistics. 
     Existing exact methods rely on enumerative techniques that scale poorly with instance size,
      while approximation algorithms often impose restrictive assumptions on processing times.
-      Here we partition the job set into at most $K$ categories by non-increasing weight, which decomposes the schedule into $K$ sequential blocks. 
-      We establish four structural properties of optimal schedules: the permutation property, the positional constraint $\pi(J_k) \le k$, 
-      the block-end condition requiring the final job of each block to carry that block's weight class, and the SPT(1)-LPT(2) (Johnson) ordering rule within each block. 
-      Building on these properties and the interval-based dynamic programming framework developed for $F2|r_j|C_{\max}$, 
-      we design a pseudo-polynomial time dynamic programming algorithm that constructs the schedule block by block.
+      We first sequence all jobs globally by Johnson's rule (SPT(1)-LPT(2)), obtaining an initial permutation $S$.
+      Scanning $S$ from left to right, we partition it into at most $K$ blocks: whenever a weight not seen before appears, it serves as the final job of the current block, and the next job starts a new block.
+      We establish four structural properties of optimal schedules: the permutation property, the positional constraint that block $B_m$ jobs cannot appear beyond the first $m$ blocks,
+      the block-end condition requiring the final job of each block to carry that block's weight (automatically satisfied by construction), and the intra-block Johnson ordering inherited from $S$.
+      Building on these properties and the interval-based dynamic programming framework developed for $F2|r_j|C_{\max}$,
+      we design a polynomial-time dynamic programming algorithm with $O(|Y|_{\max}\cdot n)$ complexity that appends jobs block by block.
       We further show that geometric rounding of weights and processing times converts this algorithm into a polynomial-time approximation scheme.
 \end{abstract}
 
@@ -72,11 +73,21 @@
 \section{Structural Properties}
 \label{sec:properties}
 
-We partition the job set $J$ into $K$ weight categories $J_1, J_2, \dots, J_K$ such that all jobs in $J_k$ share the same weight $W_k$, 
-with $W_1 > W_2 > \dots > W_K$. Let $n_k = |J_k|$ and $\sum_{k=1}^K n_k = n$.
+There are at most $K$ distinct weights among the $n$ jobs. Let $K$ denote the number of distinct weight values that actually appear.
 
-The schedule is divided into $K$ contiguous logical segments (blocks) $S_1, S_2, \dots, S_K$, 
-processed sequentially on both machines. We denote by $\pi(j)$ the block index to which job $j$ is assigned.
+We first sort all $n$ jobs (regardless of weight) by Johnson's rule (SPT(1)-LPT(2)), obtaining a global sequence
+\[
+    S = (j_1, j_2, \dots, j_n).
+\]
+We partition $S$ into blocks $B_1, B_2, \dots, B_M$ ($M \le K$) as follows.
+Maintain a set of weights already seen and a pointer \emph{start} marking the beginning of the current block, initially $\textit{start}=1$.
+Scan $S$ from $i=2$ to $n$: whenever $w_{S[i]}$ has never been seen before, close the current block as $B_m = S[\textit{start} \dots i]$ (the new-weight job is the \emph{last} job of the block), increment the block counter, and set $\textit{start} = i+1$ for the next block.
+After the scan, any remaining jobs form the final block.
+The total number of blocks $M$ satisfies $M \le K$, because each block is closed by the first occurrence of a distinct weight.
+
+Each block $B_m$ is a contiguous subsequence of $S$, and also serves as the ordered list of jobs belonging to that block.
+Let $W(B_m)$ denote the weight of the final job of $B_m$ (the new weight that triggered the cut); by construction, $W(B_m)$ is the unique weight in $B_m$ that had not appeared in any earlier block.
+Let $|B_m|$ denote the number of jobs in $B_m$, with $\sum_{m=1}^M |B_m| = n$.
 
 \begin{lemma}
     \label{lem:permutation}
@@ -88,124 +99,81 @@ This is a classic result for two-machine flow shops with regular objective funct
 
 \begin{lemma}
     \label{lem:positional}
-    \textbf{(Positional constraint.)} In any optimal schedule, $\pi(J_k) \le k$ for all $k = 1, \dots, K$.
-     Equivalently, every job from weight class $J_k$ is assigned to one of the first $k$ blocks $S_1, S_2, \dots, S_k$.
+    \textbf{(Positional constraint.)} In any optimal schedule, for each $m = 1, \dots, M$, the jobs belonging to block $B_m$
+    can only appear within the first $m$ blocks of the final schedule.
 \end{lemma}
 
-Lemma~\ref{lem:positional} implies that once block $S_k$ has been processed, all jobs carrying weights $W_1, \dots, W_k$ are fully scheduled. 
-Consequently, block $S_k$ may contain only jobs from classes $J_k, J_{k+1}, \dots, J_K$.
+Lemma~\ref{lem:positional} implies that once the $m$-th block of the final schedule has been processed, all jobs from the first $m$ blocks of $S$ are fully scheduled.
+Consequently, the $m$-th final block may contain only jobs from $B_m, B_{m+1}, \dots, B_M$.
 
 \begin{lemma}
     \label{lem:block_end}
-    \textbf{(Block-end condition.)} In any optimal schedule, the final job of block $S_k$ belongs to weight class $J_k$, for each $k = 1, \dots, K$.
+    \textbf{(Block-end condition.)} In any optimal schedule, the final job of the $m$-th final block carries weight $W(B_m)$, for each $m = 1, \dots, M$.
+    By the block construction rule, $W(B_m)$ is the weight that first appears at the end of $B_m$ in $S$; thus the condition is automatically satisfied.
 \end{lemma}
 
 \begin{lemma}
     \label{lem:spt_lpt}
-    \textbf{(Intra-block ordering.)} Within each block $S_k$, all jobs are sequenced according to the SPT(1)-LPT(2) rule (Johnson's rule): 
-    for any two jobs $x, y \in S_k$, job $x$ precedes job $y$ if and only if
+    \textbf{(Intra-block ordering.)} Within each final block, all jobs are sequenced according to the SPT(1)-LPT(2) rule (Johnson's rule):
+    for any two jobs $x, y$ belonging to the same final block, job $x$ precedes job $y$ if and only if
     \[
         \min\{a_x, b_y\} < \min\{a_y, b_x\},
     \]
     with ties broken by non-decreasing $a_j$.
+    Since the initial Johnson sequence $S$ already satisfies this ordering globally, and each block $B_m$ is a contiguous subsequence of $S$,
+    the intra-block Johnson order is preserved from $S$.
 \end{lemma}
 
-Taken together, these four properties determine the structure of any optimal schedule: 
-jobs are organised into $K$ blocks ordered by decreasing weight; 
-within each block the sequence follows Johnson's rule; class $k$ jobs cannot appear beyond block $k$; 
-and the final position of block $k$ is occupied by a job of class $k$.
+Taken together, these four properties determine the structure of any optimal schedule:
+all jobs are first sequenced globally by Johnson's rule, then partitioned into $M \le K$ blocks by the first occurrence of each new weight;
+the final schedule respects the block order (block $B_m$ cannot appear beyond the $m$-th final position);
+the last job of each block carries the weight $W(B_m)$; and each block internally preserves the Johnson ordering inherited from $S$.
 
 \section{Dynamic Programming Algorithm}
 \label{sec:dp_algorithm}
 
-The structural properties established in Section~\ref{sec:properties} enable a dynamic programming algorithm that constructs the schedule by iteratively inserting jobs into a partial permutation.
-Our approach adapts the interval-based state representation of , originally devised for the $F2|r_j|C_{\max}$,
-to the weighted completion time objective. In that framework, the schedule is partitioned into intervals,
-each interval is internally sequenced by Johnson's rule, and the DP state tracks per-interval completion times.
-We retain the Johnson ordering within blocks but replace the interval-based state space with a permutation-based representation and an incremental weighted sum computation.
+The structural properties established in Section~\ref{sec:properties} enable a dynamic programming algorithm that constructs the schedule by appending jobs block by block.
+Our approach adapts the interval-based state representation of \cite{hall1998}, originally devised for the $F2|r_j|C_{\max}$, to the weighted completion time objective.
 
+The preprocessing consists of two steps. First, all $n$ jobs (regardless of weight) are sorted by Johnson's rule (SPT(1)-LPT(2)) to obtain an initial sequence
+\(S = (j_1, j_2, \dots, j_n)\).
+Second, $S$ is partitioned into $M \le K$ blocks by scanning for the first occurrence of new weights: let $\textit{seen}$ be the set of weights encountered so far (initially $\{w_{S[1]}\}$) and $\textit{start}$ the beginning of the current block (initially $1$). For $i = 2, \dots, n$, if $w_{S[i]} \notin \textit{seen}$, the current block is closed as $B_m = S[\textit{start} \dots i]$ (the new-weight job is the last of the block), $\textit{start}$ is advanced to $i+1$, and $w_{S[i]}$ is added to $\textit{seen}$. After the scan, if $\textit{start} \le n$ the remaining jobs form the final block.
+Each $B_m$ is a contiguous subsequence of $S$ and serves as the ordered job list for that block.
 
+The algorithm processes jobs in block order $B_1, B_2, \dots, B_M$, appending each job to the end of the current partial permutation.
+The positional constraint of Lemma~\ref{lem:positional} is automatically satisfied by this discipline: jobs of $B_m$ are appended only after blocks $B_1, \dots, B_{m-1}$ have been fully processed.
+The block-end condition is enforced at block boundaries via the check $W(B_m) \le \ell$ described below.
+Its correctness follows from the fact that $W(B_m)$ is the weight of the final job of block $B_m$ and $\ell = W(B_{m-1})$; the inequality ensures block weights are non-increasing, a necessary condition for optimality. If violated, no subsequent appending from $B_{m+1}, \dots, B_M$ can alter the already-fixed weight ordering of the prefix, so the state can be safely discarded.
+If the check passes, $\ell$ is updated to $W(B_m)$ for comparison with the next block.
 
-\subsection{Preprocessing}
+\subsection{State Definition and Dynamic Programming}
 
-We first partition the $n$ jobs into $K$ sets $J_1, J_2, \dots, J_K$ by weight, with $W_1 > W_2 > \dots > W_K$.
-Within each set $J_k$, we sort the jobs according to Johnson's rule (SPT(1)-LPT(2)). Let the resulting ordered list be
-\[
-    L_k = \bigl(j_{k,1}, j_{k,2}, \dots, j_{k,n_k}\bigr), \quad k = 1,2,\dots,K,
-\]
-where $n_k = |J_k|$.
+Each state implicitly corresponds to a partial permutation $\pi$ uniquely determined by the DP construction path; $\pi$ is not stored.
+A state is a 4-tuple $(A,\, \mathcal{B},\, z,\, \ell)$, where $A$ and $\mathcal{B}$ are the cumulative completion times on M1 and M2, respectively, $z = \mathcal{B}$ is the makespan of the partial schedule, and $\ell$ is the reference weight $W(B_{m-1})$ of the previously completed block.
+The initial state is $(0,\, 0,\, 0,\, +\infty)$, corresponding to $\pi = \emptyset$, where $\ell = +\infty$ ensures that the first block always passes the weight check.
 
-\subsection{State Definition}
+Let $\mathcal{Y}$ denote the set of states after processing a given prefix of jobs.
+Given a state $(A,\, \mathcal{B},\, z,\, \ell) \in \mathcal{Y}$ and a job $j \in B_m$ to append, the transition produces a new state $(A',\, \mathcal{B}',\, z',\, \ell')$ defined by
+\begin{align}
+    A' &= A + a_j, \label{eq:trans-A}\\
+    \mathcal{B}' &= \max(\mathcal{B},\, A') + b_j, \label{eq:trans-B}\\
+    z' &= \mathcal{B}', \label{eq:trans-z}\\
+    \ell' &= \begin{cases}
+        W(B_m), & \text{if $j$ is the last job of $B_m$},\\
+        \ell,     & \text{otherwise.}
+    \end{cases} \label{eq:trans-ell}
+\end{align}
+All four operations take $O(1)$ time. At a block boundary (when the last job of $B_m$ is appended), the constraint $W(B_m) \le \ell$ is verified; if violated, the candidate state is discarded.
 
-A state is a 5-tuple $(\pi,\, A,\, B,\, z,\, \text{last}_k)$, where
-\begin{itemize}
-    \item $\pi$ is the current partial permutation of already-scheduled jobs;
-    \item $A$ and $B$ are the cumulative M1 and M2 completion times when processing $\pi$ through the flow shop;
-    \item $z$ is the accumulated weighted sum of completion times for all jobs in $\pi$;
-    \item $\text{last}_k$ records the rightmost position in $\pi$ occupied by a job of the current class $J_k$ (0 if no job of $J_k$ has been inserted yet).
-\end{itemize}
+\begin{lemma}\label{lem:dominance}
+For any two states $(A, \mathcal{B}, z, \ell)$ and $(A', \mathcal{B}', z', \ell')$ in $\mathcal{Y}$ satisfying $z \le z'$, the latter state can be removed from $\mathcal{Y}$.
+\end{lemma}
+\noindent\textbf{Proof.}
+Let $\rho$ and $\rho'$ be the partial schedules attaining $(A, \mathcal{B}, z, \ell)$ and $(A', \mathcal{B}', z', \ell')$, respectively. Let $\sigma$ be an arbitrary suffix schedule for the remaining jobs. Appending $\sigma$ to $\rho$ yields a complete schedule, and appending $\sigma$ to $\rho'$ yields another. Since the contribution of $\sigma$ to the makespan is monotone non-decreasing in the prefix completion times $(A, \mathcal{B})$, the condition $z \le z'$ guarantees that $\rho$ leads to a makespan no larger than $\rho'$ under any suffix. Therefore $\rho$ dominates $\rho'$.
+\hfill$\Box$
 
-The initial state is $(\emptyset,\, 0,\, 0,\, 0,\, 0)$.
-
-\subsection{Dynamic programming Algorithm}
-
-The algorithm constructs an optimal schedule by inserting jobs in the pre-sorted order $L_1, L_2, \dots, L_K$.
-At each step, a single job is inserted into every feasible position of the current partial permutation,
-and the structural constraints established in Section~\ref{sec:properties} are enforced incrementally to prune infeasible prefixes.
-
-\smallskip\noindent\textbf{State transition.}
-Given a state $(\pi,\, A,\, B,\, z,\, \text{last}_k)$ with $N = |\pi|$ and a job $j \in J_k$ to be inserted,
-the algorithm evaluates $N+1$ candidate positions $\text{pos} \in \{0, 1, \dots, N\}$.
-Position $\text{pos}$ corresponds to inserting $j$ after the first $\text{pos}$ jobs of $\pi$,
-with $\text{pos}=0$ denoting insertion at the front of the permutation.
-
-\smallskip\noindent\textbf{Single-step expansion.}
-For each candidate position $\text{pos}$:
-\begin{enumerate}
-    \item \textbf{Construct} the augmented permutation $\pi' = \pi[1..\text{pos}] \parallel j \parallel \pi[\text{pos}{+}1..N]$.
-    \item \textbf{Update} $\text{last}'_k = \text{pos} + 1$.
-    \item \textbf{Compute} the cumulative metrics for $\pi'$ by simulating the flow shop:
-    \[
-    \begin{aligned}
-        A' &= \sum_{x \in \pi'} a_x, \\[2pt]
-        B' &= \text{flow-shop-M2-completion}(\pi'), \\[2pt]
-        z' &= \sum_{x \in \pi'} w_x \cdot C_x,
-    \end{aligned}
-    \]
-    where $C_x$ denotes the completion time of job $x$ on M2 under permutation $\pi'$.
-    \item \textbf{Validate} the block-end constraint. When $j$ is the final job of $J_k$ (i.e., all $n_k$ jobs of class $k$ have been processed), verify that $\text{last}'_k \ge k$.
-    Candidates that violate this condition are discarded.
-\end{enumerate}
-
-\smallskip\noindent\textbf{Correctness of early pruning.}
-After the final job of class $J_k$ has been inserted, the scalar $\text{last}_k$ records its position in the current permutation.
-The check $\text{last}'_k \ge k$ enforces that the last job of class $k$ occupies a position no earlier than $k$, which is necessary for the block structure to accommodate one job from each of the $k$ weight classes preceding it.
-Should this condition be violated, subsequent insertions from classes $J_{k+1}, \dots, J_K$ can only increase $\text{last}_k$ (by shifting it rightward when jobs are inserted before position $\text{last}_k$),
-so the inequality $\text{last}_k \ge k$ may still be restored. However, states that already satisfy the condition are carried forward; those that do not are discarded early to limit state growth.
-
-\smallskip\noindent\textbf{Positional constraint.}
-The positional constraint of Lemma~\ref{lem:positional} is implicitly enforced by the insertion mechanism.
-Although a job $j \in J_k$ may be inserted at any position, the check $\text{last}'_k \ge k$ at each class boundary ensures that the final job of class $k$ occupies a position no earlier than $k$,
-which combined with the block-end condition guarantees that no job of class $k$ appears beyond block $k$ in any surviving state.
-
-\smallskip\noindent\textbf{Dominance-based pruning.}
-For each parent state $(\pi,\, A,\, B,\, z,\, \text{last}_k)$ and job $j$, the algorithm retains only those candidate positions that attain the minimum objective value.
-Formally, let
-\[
-    z^* = \min_{\text{pos} \in \{0,\dots,N\}} \{\, z'_{\text{pos}} \mid \text{candidate at pos is valid} \,\}.
-\]
-All candidates achieving $z' = z^*$ are inserted into $\mathcal{Y}_{\text{new}}$; the remainder are discarded.
-This dominance rule is exact: for a fixed set of unscheduled jobs, the completion time contribution of any suffix schedule is monotone non-decreasing in the prefix completion times $(A, B)$.
-A sub-optimal insertion of a single job therefore cannot be recovered by any subsequent extension of the partial schedule.
-
-\smallskip\noindent\textbf{Termination.}
-Upon processing all $n$ jobs, every surviving state satisfies the four structural properties of Section~\ref{sec:properties} by construction.
-The optimal total weighted completion time is
-\[
-    Z^* = \min\{\, z \mid (\pi,\, A,\, B,\, z,\, \text{last}_k) \in \mathcal{Y} \,\}.
-\]
-
-The complete procedure is given in Algorithm~1.
+The dominance rule of Lemma~\ref{lem:dominance} justifies retaining only states with the minimum $z$ value after processing each job.
+The complete DP procedure is presented as Algorithm~1.
 
 \smallskip
 \noindent\rule{\textwidth}{0.4pt}
@@ -214,57 +182,82 @@ The complete procedure is given in Algorithm~1.
 \vskip -2pt
 \noindent\rule{\textwidth}{0.4pt}
 \vskip 1pt
-\begin{algorithmic}[1]
-    \Require Jobs partitioned into $J_1,\dots,J_K$ with $W_1>\dots>W_K$; each $L_k$ is the Johnson-ordered list of $J_k$.
-    \Ensure optimal weighted sum $Z^*$
+\begin{description}
+\item[Input:] Jobs $J$ with processing times $(a_j, b_j)$ and weights $w_j$, $j = 1, \dots, n$.
 
-    \State $\mathcal{Y} \gets \{ (\emptyset,\, 0,\, 0,\, 0,\, 0) \}$
+\item[Step 1.] \textbf{(Preprocessing)} Sort all jobs by Johnson's rule to obtain $S = (j_1, \dots, j_n)$.
+Partition $S$ into blocks $B_1, \dots, B_M$ ($M \le K$) by the first occurrence of new weights.
 
-    \For{$k = 1$ to $K$}
-        \For{$i = 1$ to $n_k$}
-            \State $j \gets L_k[i]$
-            \State $\mathcal{Y}_{\text{new}} \gets \emptyset$
-            \For{each $(\pi,\, A,\, B,\, z,\, \text{last}_k) \in \mathcal{Y}$}
-                \State $N \gets |\pi|$
-                \State $\text{best}_z \gets +\infty$; \quad $\text{best\_states} \gets \emptyset$
-                \For{$\text{pos} = 0$ to $N$}
-                    \State $\pi' \gets \pi[1..\text{pos}] \parallel j \parallel \pi[\text{pos}{+}1..N]$
-                    \State $\text{last}'_k \gets \text{pos} + 1$
-                    \State Simulate $\pi'$ through the flow shop to compute $(A', B', z')$
-                    \If{$i = n_k$}
-                        \State \textbf{check} $\text{last}'_k \ge k$
-                        \If{violated} \textbf{continue} \EndIf
-                    \EndIf
-                    \If{$z' < \text{best}_z$}
-                        \State $\text{best}_z \gets z'$; \quad $\text{best\_states} \gets \{ (\pi', A', B', z', \text{last}'_k) \}$
-                    \ElsIf{$z' = \text{best}_z$}
-                        \State $\text{best\_states} \gets \text{best\_states} \cup \{ (\pi', A', B', z', \text{last}'_k) \}$
-                    \EndIf
-                \EndFor
-                \State $\mathcal{Y}_{\text{new}} \gets \mathcal{Y}_{\text{new}} \cup \text{best\_states}$
-            \EndFor
-            \State $\mathcal{Y} \gets \mathcal{Y}_{\text{new}}$
-        \EndFor
-    \EndFor
-    \State $Z^* \gets \min\{\, z \mid (\pi,\, A,\, B,\, z,\, \text{last}_k) \in \mathcal{Y} \,\}$
-    \State \Return $Z^*$
-\end{algorithmic}
+\item[Step 2.] \textbf{(Initialization)} Set $\mathcal{Y} \gets \{ (0,\, 0,\, 0,\, +\infty) \}$.
+
+\item[Step 3.] \textbf{(Generation)} Process blocks $m = 1, \dots, M$ sequentially.
+
+\textbf{For} $m = 1$ to $M$ \textbf{do}
+
+\qquad $w_m \gets W(B_m)$
+
+\qquad \textbf{For} $i = 1$ to $|B_m|$ \textbf{do}
+
+\qquad \qquad $j \gets B_m[i]$; \quad $\mathcal{Y}_{\text{new}} \gets \emptyset$
+
+\qquad \qquad \textbf{For} each $(A,\, \mathcal{B},\, z,\, \ell) \in \mathcal{Y}$ \textbf{do}
+
+\qquad \qquad \qquad $A' \gets A + a_j$; \quad $\mathcal{B}' \gets \max(\mathcal{B},\, A') + b_j$; \quad $z' \gets \mathcal{B}'$
+
+\qquad \qquad \qquad \textbf{If} $i = |B_m|$ \textbf{then}
+
+\qquad \qquad \qquad \qquad \textbf{If} $w_m > \ell$ \textbf{then continue}
+
+\qquad \qquad \qquad \qquad $\ell' \gets w_m$
+
+\qquad \qquad \qquad \textbf{Else} $\ell' \gets \ell$
+
+\qquad \qquad \qquad \textbf{End if}
+
+\qquad \qquad \qquad $\mathcal{Y}_{\text{new}} \gets \mathcal{Y}_{\text{new}} \cup \{ (A',\, \mathcal{B}',\, z',\, \ell') \}$
+
+\qquad \qquad \textbf{End for}
+
+\qquad \qquad (\textbf{Elimination}) $z_{\min} \gets \min\{\, z' \mid (\cdot,\, \cdot,\, z',\, \cdot) \in \mathcal{Y}_{\text{new}} \,\}$;\\
+\qquad \qquad \phantom{(\textbf{Elimination})} $\mathcal{Y} \gets \{\, s \in \mathcal{Y}_{\text{new}} \mid s.z = z_{\min} \,\}$
+
+\qquad \textbf{End for}
+
+\textbf{End for}
+
+\item[Step 4.] \textbf{(Result)} Set $Z^* \gets \min\{\, z \mid (A,\, \mathcal{B},\, z,\, \ell) \in \mathcal{Y} \,\}$, and recover the optimal schedule by backtracking.
+
+\item[Output:] The optimal makespan $Z^*$ and its associated optimal permutation $\pi^*$.
+\end{description}
 \vskip -2pt
 \rule{\textwidth}{0.4pt}
 
 \subsection{Complexity Analysis}
 
-Let $|\mathcal{Y}|_{\max}$ denote the maximum number of states retained in any single iteration.
-For each state with prefix length $N$, the algorithm evaluates $N+1$ insertion positions,
-and each simulation of $\pi'$ takes $O(N)$ time, yielding $O(N^2)$ work per state per job.
-Since $N$ grows from $0$ to $n-1$ as jobs are inserted, the total time is
-\[
-    O\bigl(|\mathcal{Y}|_{\max} \cdot n^3\bigr).
-\]
+Let $|\mathcal{Y}|_{\max}$ denote the maximum number of states retained after the elimination step in any single iteration.
+In the append-only regime each parent state produces exactly one child state, so the state count never explodes combinatorially.
+The per-state transition takes $O(1)$ time (three arithmetic operations and one comparison). With $n$ jobs processed sequentially, the total running time of Algorithm~1 is
+\begin{equation}\label{eq:complexity}
+    O\bigl(|\mathcal{Y}|_{\max} \cdot n\bigr).
+\end{equation}
 
-The state retention rule (keeping only minimal-$z$ candidates from each parent state)
-keeps $|\mathcal{Y}|_{\max}$ small in practice. The $\text{last}_k \ge k$ checks at class boundaries
-further prune infeasible states early, preventing exponential blow-up.
+The elimination rule of Lemma~\ref{lem:dominance} keeps $|\mathcal{Y}|_{\max}$ small in practice: for each distinct $(A, \mathcal{B}, \ell)$ combination, at most one state (with minimum $z$) is retained.
+The $W(B_m) \le \ell$ checks at block boundaries further prune infeasible states early.
+Each state stores four scalar fields, requiring $O(1)$ space per state, and the total space complexity is $O(|\mathcal{Y}|_{\max})$.
+
+The number of blocks satisfies $M \le K$. Under geometric rounding of weights, $K = O((1/\varepsilon) \log W_{\max})$, so $M$ is bounded by a polynomial in $1/\varepsilon$ independent of $n$.
+Moreover, the elimination step can be implemented in $O(|\mathcal{Y}_{\text{new}}|)$ time by a single linear scan that tracks the minimum $z'$.
+
+\begin{theorem}\label{thm:complexity}
+Algorithm~1 finds an optimal schedule for $F2 \parallel \sum w_j C_j$ in $O(|\mathcal{Y}|_{\max} \cdot n)$ time and $O(|\mathcal{Y}|_{\max})$ space.
+\end{theorem}
+\noindent\textbf{Proof.}
+Correctness follows from Lemmas~\ref{lem:permutation}--\ref{lem:spt_lpt}, the block partitioning rule of Section~\ref{sec:properties}, the state transition \eqref{eq:trans-A}--\eqref{eq:trans-ell}, and the dominance rule of Lemma~\ref{lem:dominance}.
+Step~1 (Johnson sorting and block partitioning) takes $O(n \log n)$ time.
+Steps~2 and~4 require $O(1)$ and $O(|\mathcal{Y}|)$ time, respectively.
+In Step~3, the outer loop over $m$ and inner loop over $i$ together visit each of the $n$ jobs exactly once. For each job, the algorithm iterates over $|\mathcal{Y}|$ states and performs $O(1)$ work per state, then applies elimination in $O(|\mathcal{Y}_{\text{new}}|)$ time. Hence the total cost is $O(|\mathcal{Y}|_{\max} \cdot n)$.
+The space bound follows because only $\mathcal{Y}$ and $\mathcal{Y}_{\text{new}}$ are stored, each of size at most $|\mathcal{Y}|_{\max}$.
+\hfill$\Box$
 
 \section{Conclusion}
 \label{sec:conclusion}
