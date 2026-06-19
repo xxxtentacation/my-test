@@ -182,53 +182,49 @@ The complete DP procedure is presented as Algorithm~1.
 \vskip -2pt
 \noindent\rule{\textwidth}{0.4pt}
 \vskip 1pt
-\begin{description}
-\item[Input:] Jobs $J$ with processing times $(a_j, b_j)$ and weights $w_j$, $j = 1, \dots, n$.
+\begin{algorithmic}[1]
+    \State \textbf{Input:} Jobs $J$ with processing times $(a_j, b_j)$ and weights $w_j$, $j = 1, \dots, n$.
+    \State \textbf{Output:} The optimal makespan $Z^*$ and its associated optimal permutation $\pi^*$.
 
-\item[Step 1.] \textbf{(Preprocessing)} Sort all jobs by Johnson's rule to obtain $S = (j_1, \dots, j_n)$.
-Partition $S$ into blocks $B_1, \dots, B_M$ ($M \le K$) by the first occurrence of new weights.
+    \State $S \gets \textsc{JohnsonSort}(J)$
+    \State $\textit{seen} \gets \{w_{S[1]}\}$; \quad $\textit{start} \gets 1$; \quad $M \gets 0$
+    \For{$i = 2$ to $n$}
+        \If{$w_{S[i]} \notin \textit{seen}$}
+            \State $M \gets M + 1$; \quad $B_M \gets S[\textit{start} \dots i]$
+            \State $\textit{seen} \gets \textit{seen} \cup \{w_{S[i]}\}$; \quad $\textit{start} \gets i + 1$
+        \EndIf
+    \EndFor
+    \If{$\textit{start} \le n$}
+        \State $M \gets M + 1$; \quad $B_M \gets S[\textit{start} \dots n]$
+    \EndIf
 
-\item[Step 2.] \textbf{(Initialization)} Set $\mathcal{Y} \gets \{ (0,\, 0,\, 0,\, +\infty) \}$.
+    \State $\mathcal{Y} \gets \{ (0,\, 0,\, 0,\, +\infty) \}$
 
-\item[Step 3.] \textbf{(Generation)} Process blocks $m = 1, \dots, M$ sequentially.
+    \For{$m = 1$ to $M$}
+        \State $w_m \gets W(B_m)$
+        \For{$i = 1$ to $|B_m|$}
+            \State $j \gets B_m[i]$; \quad $\mathcal{Y}_{\text{new}} \gets \emptyset$
+            \For{each $(A,\, \mathcal{B},\, z,\, \ell) \in \mathcal{Y}$}
+                \State $A' \gets A + a_j$
+                \State $\mathcal{B}' \gets \max(\mathcal{B},\, A') + b_j$
+                \State $z' \gets \mathcal{B}'$
+                \If{$i = |B_m|$}
+                    \If{$w_m > \ell$} \textbf{continue} \EndIf
+                    \State $\ell' \gets w_m$
+                \Else
+                    \State $\ell' \gets \ell$
+                \EndIf
+                \State $\mathcal{Y}_{\text{new}} \gets \mathcal{Y}_{\text{new}} \cup \{ (A',\, \mathcal{B}',\, z',\, \ell') \}$
+            \EndFor
+            \State $z_{\min} \gets \min\{\, z' \mid (\cdot,\, \cdot,\, z',\, \cdot) \in \mathcal{Y}_{\text{new}} \,\}$
+            \State $\mathcal{Y} \gets \{\, s \in \mathcal{Y}_{\text{new}} \mid s.z = z_{\min} \,\}$
+        \EndFor
+    \EndFor
 
-\textbf{For} $m = 1$ to $M$ \textbf{do}
-
-\qquad $w_m \gets W(B_m)$
-
-\qquad \textbf{For} $i = 1$ to $|B_m|$ \textbf{do}
-
-\qquad \qquad $j \gets B_m[i]$; \quad $\mathcal{Y}_{\text{new}} \gets \emptyset$
-
-\qquad \qquad \textbf{For} each $(A,\, \mathcal{B},\, z,\, \ell) \in \mathcal{Y}$ \textbf{do}
-
-\qquad \qquad \qquad $A' \gets A + a_j$; \quad $\mathcal{B}' \gets \max(\mathcal{B},\, A') + b_j$; \quad $z' \gets \mathcal{B}'$
-
-\qquad \qquad \qquad \textbf{If} $i = |B_m|$ \textbf{then}
-
-\qquad \qquad \qquad \qquad \textbf{If} $w_m > \ell$ \textbf{then continue}
-
-\qquad \qquad \qquad \qquad $\ell' \gets w_m$
-
-\qquad \qquad \qquad \textbf{Else} $\ell' \gets \ell$
-
-\qquad \qquad \qquad \textbf{End if}
-
-\qquad \qquad \qquad $\mathcal{Y}_{\text{new}} \gets \mathcal{Y}_{\text{new}} \cup \{ (A',\, \mathcal{B}',\, z',\, \ell') \}$
-
-\qquad \qquad \textbf{End for}
-
-\qquad \qquad (\textbf{Elimination}) $z_{\min} \gets \min\{\, z' \mid (\cdot,\, \cdot,\, z',\, \cdot) \in \mathcal{Y}_{\text{new}} \,\}$;\\
-\qquad \qquad \phantom{(\textbf{Elimination})} $\mathcal{Y} \gets \{\, s \in \mathcal{Y}_{\text{new}} \mid s.z = z_{\min} \,\}$
-
-\qquad \textbf{End for}
-
-\textbf{End for}
-
-\item[Step 4.] \textbf{(Result)} Set $Z^* \gets \min\{\, z \mid (A,\, \mathcal{B},\, z,\, \ell) \in \mathcal{Y} \,\}$, and recover the optimal schedule by backtracking.
-
-\item[Output:] The optimal makespan $Z^*$ and its associated optimal permutation $\pi^*$.
-\end{description}
+    \State $Z^* \gets \min\{\, z \mid (A,\, \mathcal{B},\, z,\, \ell) \in \mathcal{Y} \,\}$
+    \State Recover the optimal permutation $\pi^*$ by backtracking
+    \State \Return $Z^*$, $\pi^*$
+\end{algorithmic}
 \vskip -2pt
 \rule{\textwidth}{0.4pt}
 
