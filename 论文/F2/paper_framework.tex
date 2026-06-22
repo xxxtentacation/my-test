@@ -117,10 +117,6 @@ Scanning $S$ from left to right and cutting whenever a weight not seen before ap
 The resulting blocks are $\mathcal{G}_1=\{J_1,J_2\}$, $\mathcal{G}_2=\{J_3,J_4,J_5\}$, $\mathcal{G}_3=\{J_6\}$, with block weights $W(\mathcal{G}_1)=1$, $W(\mathcal{G}_2)=4$, $W(\mathcal{G}_3)=2$, where each $W(\mathcal{G}_k)$ is the new weight that triggered the cut.
 \end{exam}
 
-Taken together, the permutation property, the positional constraint, and the block-end condition determine the structure of any optimal schedule:
-all jobs are first sequenced globally by Johnson's rule and partitioned into $K$ blocks by the first occurrence of each new weight;
-the final schedule respects the block order;
-and the last job of each block carries the weight $W(\mathcal{G}_k)$.
 
 
 
