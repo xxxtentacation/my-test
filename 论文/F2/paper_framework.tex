@@ -46,7 +46,7 @@
 
 \begin{abstract}
     Minimizing $w_j C_{\max}$ on a two-machine flow shop,
-    denoted $F2 \parallel w_j C_{\max}$, is a classical NP-hard scheduling problem with applications in manufacturing, computing, and logistics.
+    denoted $F2 \parallel w_j C_{\max}$, is a classical NP-hard scheduling problem.
     Existing exact methods rely on enumerative techniques that scale poorly with instance size,
     while approximation algorithms often impose restrictive assumptions on processing times.
     We first sequence all jobs globally by Johnson's rule, obtaining an initial permutation $S$.
@@ -54,7 +54,7 @@
     We establish structural properties of optimal schedules: the permutation property, the positional constraint that block $\mathcal{G}_k$ jobs cannot appear beyond the first $k$ blocks,
     and the block-end condition requiring the final job of each block to carry that block's weight (automatically satisfied by construction).
     The intra-block Johnson ordering inherited from $S$ is further formalized within the DP framework.
-    Building on these properties and the interval-based dynamic programming framework developed for $F2|r_j|C_{\max}$,
+    Building on these properties and the interval-based dynamic programming framework \cite{hall1998} developed for $F2|r_j|C_{\max}$,
     we design a polynomial-time dynamic programming algorithm with $O(|Y|_{\max}\cdot n)$ complexity that appends jobs block by block.
     We further show that geometric rounding of weights and processing times converts this algorithm into a polynomial-time approximation scheme.
 \end{abstract}
@@ -91,8 +91,8 @@ The objective is to find a permutation $S$ that minimizes $w_j C_{\max}$.
 \noindent \textbf{Proof.}  \hfill$\Box$\\
 
 
-In a permutation schedule, the job order on M1 and M2 is identical; for $F2 \parallel w_j C_{\max}$ there always exists an optimal schedule of this form \cite{baker1974introduction}.
-All $n$ jobs are sequenced by Johnson's rule to obtain a global sequence $S = (\pi(1), \pi(2), \dots, \pi(n))$ \cite{hall1998}.
+In a permutation schedule, the job order on M1 and M2 is identical for $F2 \parallel w_j C_{\max}$ there always exists an optimal schedule of this form \cite{baker1974introduction}.
+It is known from $ \cite{johnson1954optimal}$ that when the number of machines is less than or equal to 3, we have all $n$ jobs are sequenced by Johnson's rule to obtain a global sequence $S = (\pi(1), \pi(2), \dots, \pi(n))$.
 Scanning $S$ from left to right, we partition it into $K$ blocks by the first occurrence of each new weight: whenever a weight not seen before appears, it serves as the final job of the current block, and the next job starts a new block.
 Let $W(\mathcal{G}_k)$ denote the weight carried by the final job of block $\mathcal{G}_k$.
 
@@ -102,11 +102,6 @@ Consequently, once the $k$-th block of the final schedule has been processed, al
 and the $k$-th final block may contain only jobs from $\mathcal{G}_k, \mathcal{G}_{k+1}, \dots, \mathcal{G}_K$.
 We further establish a block-end condition: in any optimal schedule, the final job of the $k$-th final block must carry weight $W(\mathcal{G}_k)$.
 By construction, $W(\mathcal{G}_k)$ is precisely the weight that first appears at the end of $\mathcal{G}_k$ in $S$, so this condition is automatically satisfied.
-
-Taken together, the permutation property, the positional constraint, and the block-end condition determine the structure of any optimal schedule:
-all jobs are first sequenced globally by Johnson's rule and partitioned into $K$ blocks by the first occurrence of each new weight;
-the final schedule respects the block order;
-and the last job of each block carries the weight $W(\mathcal{G}_k)$.
 
 \begin{exam}\label{ex:blocking}
 Consider a 6-job instance with Johnson sequence $S = (J_1, \dots, J_6)$ and weights
@@ -120,6 +115,13 @@ Scanning $S$ from left to right and cutting whenever a weight not seen before ap
 \]
 The resulting blocks are $\mathcal{G}_1=\{J_1,J_2\}$, $\mathcal{G}_2=\{J_3,J_4,J_5\}$, $\mathcal{G}_3=\{J_6\}$, with block weights $W(\mathcal{G}_1)=1$, $W(\mathcal{G}_2)=4$, $W(\mathcal{G}_3)=2$, where each $W(\mathcal{G}_k)$ is the new weight that triggered the cut.
 \end{exam}
+
+Taken together, the permutation property, the positional constraint, and the block-end condition determine the structure of any optimal schedule:
+all jobs are first sequenced globally by Johnson's rule and partitioned into $K$ blocks by the first occurrence of each new weight;
+the final schedule respects the block order;
+and the last job of each block carries the weight $W(\mathcal{G}_k)$.
+
+
 
 \section{Dynamic Programming Algorithm}
 \label{sec:dp_algorithm}
@@ -135,7 +137,7 @@ If violated, no subsequent appending from $\mathcal{G}_{k+1}, \dots, \mathcal{G}
 If the check passes, $\ell$ is updated to $W(\mathcal{G}_k)$ for comparison with the next block.
 
 \begin{lemma}\label{lem:spt_lpt}
-Within each block $\mathcal{G}_k$, all jobs are sequenced according to the Johnson's rule:
+Within each block $\mathcal{G}_k$, all jobs are sequenced according to Johnson's rule \cite{johnson1954optimal}:
 for any two jobs $x, y \in \mathcal{G}_k$, job $x$ precedes job $y$ if and only if
 \[
     \min\{a_x, b_y\} \le \min\{a_y, b_x\},
