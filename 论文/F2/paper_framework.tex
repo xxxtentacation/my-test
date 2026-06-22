@@ -72,8 +72,9 @@
 
 
 We consider the problem $F2 \parallel w_j C_{\max}$.
-Let $\mathcal{J} = \{J_1, J_2, \dots, J_n\}$ be the set of $n$ jobs to be processed on two machines M1 and M2 in series: each job $J_j$ must be processed first on M1 for $a_j$ time units and then on M2 for $b_j$ time units, with no preemption allowed.
-M1 can process at most one job at a time, and M2 can process at most one job at a time.
+Let $\mathcal{J} = \{J_1, J_2, \dots, J_n\}$ be the set of $n$ jobs to be processed on two machines M1 and M2 in series:
+ each job $J_j$ must be processed first on M1 for $a_j$ time units and then on M2 for $b_j$ time units, with no preemption allowed.
+M1 and M2 can process at most one job at a time.
 Each job $J_j$ has a weight $w_j > 0$.
 A permutation schedule $S = (\pi(1), \pi(2), \dots, \pi(n))$ specifies the processing order on both machines.
 For a permutation $S$, let $A_i = \sum_{h=1}^{i} a_{\pi(h)}$ be the cumulative M1 completion time after the first $i$ jobs.
@@ -82,7 +83,7 @@ The makespan $C_{\max}(S)$ is the M2 completion time of the last job, defined re
     \qquad
     C_i = \max\{\, C_{i-1},\; A_i \,\} + b_i,\;\; i = 1,\dots,n,
 \end{equation}
-and$C_0 = 0$ , $C_{\max}(S) = C_n$ .
+and $C_0 = 0$, $C_{\max}(S) = C_n$.
 The objective is to find a permutation $S$ that minimizes $w_j C_{\max}$.
 
 \begin{theorem}\label{thm:nphard}
@@ -99,7 +100,7 @@ Let $W(\mathcal{G}_k)$ denote the weight carried by the final job of block $\mat
 We first establish a positional constraint: in any optimal schedule, for each $k = 1, \dots, K$, the jobs belonging to block $\mathcal{G}_k$
 can only appear within the first $k$ blocks of the final schedule.
 Consequently, once the $k$-th block of the final schedule has been processed, all jobs from the first $k$ blocks of $S$ are fully scheduled,
-and the $k$-th final block may contain only jobs from $\mathcal{G}_k, \mathcal{G}_{k+1}, \dots, \mathcal{G}_K$.
+and the $k$-th final block may contain only jobs from $\mathcal{G}_1, \mathcal{G}_2, \dots, \mathcal{G}_K$.
 We further establish a block-end condition: in any optimal schedule, the final job of the $k$-th final block must carry weight $W(\mathcal{G}_k)$.
 By construction, $W(\mathcal{G}_k)$ is precisely the weight that first appears at the end of $\mathcal{G}_k$ in $S$, so this condition is automatically satisfied.
 
