@@ -4,7 +4,6 @@
 .obsidian
 
 #论文
-*.aux
 *.log
 *.bbl
 *.blg
@@ -14,7 +13,7 @@
 *.fdb_latexmk
 *.js
 *.cfg
-*.bib
+
 
 # Python
 __pycache__/
