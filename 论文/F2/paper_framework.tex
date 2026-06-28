@@ -78,11 +78,11 @@ Let $\mathcal{J} = \{J_1, J_2, \dots, J_n\}$ be the set of $n$ jobs to be proces
 $M_1$ and $M_2$ can process at most one job at a time.
 Each job $J_j$ has a weight $w_j > 0$.
 A schedule $\pi = (\pi(1), \pi(2), \dots, \pi(n))$ specifies the processing order on both machines.
-For a schedule $\pi$, let $A_i = \sum_{h=1}^{i} a_{\pi(h)}$ be the cumulative $M_1$ completion time after the first $i$ jobs.
+For a schedule $\pi$, let $A_j = \sum_{h=1}^{j} a_{\pi(h)}$ be the cumulative $M_1$ completion time after the first $j$ jobs.
 The makespan $C_{\max}(\pi)$ is the $M_2$ completion time of the last job, defined recursively by
 \begin{equation}\label{eq:makespan}
     \qquad
-    C_i = \max\{\, C_{i-1},\; A_i \,\} + b_i,\;\; i = 1,\dots,n,
+    C_j = \max\{\, C_{j-1},\; A_j \,\} + b_j,\;\; j = 1,\dots,n,
 \end{equation}
 and $C_0 = 0$, $C_{\max}(\pi) = C_n$.
 The objective is to find a schedule $\pi$ that minimizes $w C_{\max}$.
@@ -168,7 +168,7 @@ We append the next block $\mathcal{B}_k$ and $J_j$ is next job.
     B_{j} &= B_{j-1} + b_j, \\
     C_{j} &= \max(C_{j-1},\; A_{j-1}) + b_j. 
 \end{align}
-After all jobs in $\mathcal{B}_k$ have been processed, and $L_{(k)}$ is determined by enumeration, the block 4-tuple is finalized as
+After all jobs in $\mathcal{B}_k$ have been processed, $L_{(k)}$ is set to $W(\mathcal{B}_k)$, the weight of the final job in block $k$, and the block 4-tuple is finalized as
 \begin{equation}
     \mathcal{B}_k = (A,\; B,\; C,\; L_{(k)})
 \end{equation}
@@ -198,26 +198,38 @@ The complete DP procedure is presented as three algorithms below.
 \smallskip
 \noindent\rule{\textwidth}{0.4pt}
 \vskip -2pt
-{\noindent\textbf{Block Partitioning and Weight Grouping}}
+{\noindent\textbf{Block Partitioning}}
 \vskip -2pt
 \noindent\rule{\textwidth}{0.4pt}
 \vskip 1pt
 \begin{algorithmic}[1]
     \State \textbf{Input:} The Johnson sequence $\pi$ of $\mathcal{J}$; weights $w_j$, $j = 1,\dots,n$.
     \State \textbf{Output:} Blocks $\mathcal{B}_1,\dots,\mathcal{B}_K$ and their weights $W(\mathcal{B}_k)$.
-    \State Let $w_{(1)} > w_{(2)} > \cdots > w_{(K)}$ be the $K$ distinct weights sorted in descending order.
-    \For{$k = 1$ to $K$}
-        \State $\mathcal{B}_k \gets \langle\, j \in \{1,\dots,n\} \mid w_j = w_{(k)} \,\rangle$ \quad (ordered as they appear in $\pi$)
-        \State $W(\mathcal{B}_k) \gets w_{(k)}$
+    \State $S \gets \{w_{\pi(1)}\}$ 
+    \State $k \gets 1$; $\mathcal{B}_k \gets \emptyset$
+    \For{$i = 1$ to $n$} 
+        \State $j \gets \pi(i)$
+        \State $\mathcal{B}_k \gets \mathcal{B}_k \cup \{j\}$
+        \If{$w_j \notin S$}
+            \State $S \gets S \cup \{w_j\}$
+            \State $W(\mathcal{B}_k) \gets w_j$
+            \State $k \gets k + 1$; $\mathcal{B}_k \gets \emptyset$
+        \EndIf
     \EndFor
-    \State \Return $\{\mathcal{B}_k\}_{k=1}^{K}$
+    \If{$\mathcal{B}_k = \emptyset$}
+        \State $K \gets k - 1$
+    \Else
+        \State $W(\mathcal{B}_k) \gets w_{\pi(n)}$
+        \State $K \gets k$
+    \EndIf
+    \State \Return $\{\mathcal{B}_1, \mathcal{B}_2, \dots, \mathcal{B}_K\}$
 \end{algorithmic}
 
 
 \vskip -2pt
 \rule{\textwidth}{0.4pt}
 \vskip 4pt
-{\noindent\textbf{Block completion-time computation}}
+{\noindent\textbf{Completion-time}}
 \vskip -2pt
 \noindent\rule{\textwidth}{0.4pt}
 \vskip 1pt
@@ -244,14 +256,16 @@ The complete DP procedure is presented as three algorithms below.
 \noindent\rule{\textwidth}{0.4pt}
 \vskip 1pt
 \begin{algorithmic}[1]
-    \State \textbf{Input:} Jobs $\mathcal{J}$ with $(a_j, b_j)$ and weights $w_j$, $j = 1,\dots,n$.
+    \State \textbf{Input:} Jobs $\mathcal{J}$ with $(a_j, b_j, w_j)$, $j = 1,\dots,n$.
     \State \textbf{Output:} The optimal makespan $C_{\max}$.
-    \State
     \State $\pi \gets \textsc{JohnsonSort}(\mathcal{J})$
-    \State $\{\mathcal{B}_k\}_{k=1}^{K} \gets$ Algorithm~1($\pi$, $\{w_j\}$)
+    \State $\{\mathcal{B}_1, \mathcal{B}_2, \dots, \mathcal{B}_K\} \gets$ \textbf{Block Partitioning}($\pi$)
     \State $\mathscr{H} \gets \{ (0,\, 0,\, 0,\, 0) \}$
     \For{$k = 1$ to $K$}
-        \State $\mathscr{H} \gets \textsc{ProcessBlock}(k,\, \mathscr{H})$ \quad (Algorithm~2)
+        \State $\mathscr{H} \gets \textsc{Completion-time}(k,\, \mathscr{H})$
+        \For{each state $s \in \mathscr{H}$}
+            \State $L_{(k)} \gets W(\mathcal{B}_k)$
+        \EndFor
     \EndFor
     \State $C_{\max} \gets \min\{\, C \mid (A,\, B,\, C,\, L) \in \mathscr{H} \,\}$
     \State \Return $C_{\max}$
