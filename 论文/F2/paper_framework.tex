@@ -140,7 +140,6 @@ Therefore, the completion time of $J_n$ is determined by the following formula:
     C_n \geqslant 1 + r ( T + \xi ) + 1
 \end{equation}
 
-For sufficiency:
 If $\xi = 0$, then $\sum_{j\epsilon A_1}b_j = \sum_{j\epsilon A_2}b_j$, which means the partition problem has a feasible solution. 
 In this case, the completion time of job \(J_n\) is determined by \eqref{eq:completetime1}, we have:
 \[
@@ -155,7 +154,7 @@ C_{\max} = C_n + rT = r(2T+1)
 \[
 wC_{\max} = r(T+1)(2T+1) = Y
 \]
-so $w_jC_{\max} \leqslant wC_{\max} = Y$
+so $w_jC_j \leqslant wC_{\max} = Y$
 
 Therefore, the Partition instance admits a solution if and only if the constructed $F2 \parallel w C_{\max}$ instance admits a schedule with $w C_{\max} \le Y$.
 Since Partition is NP-complete, $F2 \parallel w C_{\max}$ is NP-hard.
