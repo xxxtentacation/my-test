@@ -24,6 +24,8 @@
 \usepackage{float}
 \usepackage{indentfirst}
 \usepackage{CJKutf8}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, decorations.pathreplacing}
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{cor}{Corollary}[section]
@@ -102,7 +104,63 @@ Consider an optimal schedule $\pi$ in which two adjacent jobs $J_i$ and $J_j$ vi
 \begin{theorem}\label{thm:nphard}
     $F2 \parallel w C_{\max}$ is strongly NP-hard.
 \end{theorem}
-\noindent \textbf{Proof.}  \hfill$\Box$\\
+\noindent \textbf{Proof.}
+We reduce from the Partition problem: given $n$ positive integers $x_1, x_2, \dots, x_r$ with $\sum_{i=1}^{r} x_i = 2T$, does there exist subset $Z_1$ and $Z_2 \subseteq \{1,\dots,r\}$ such that $\sum_{i \in Z_1} x_i$ = $\sum_{i \in Z_2} x_i$ = $T$?
+
+Construct an instance of $F2 \parallel w C_{\max}$ with $n$ jobs and $n=r+1$.
+For each $j = 1,\dots,n-1$, create jobs:
+\[
+a_j = 1,\; b_j = rx_j,\; w_j = T+1; 
+\]
+For $j = n$, create job:
+\[
+a_n = rT,\; b_n = 1,\; w_n = 2T+1; 
+\]
+Does there exist a threshold Y such that:
+\[
+w C_{\max} \le Y = r(T+1)(2T+1)
+\]
+holds?
+
+We proceed to prove via sufficiency and necessity
+that there exists a threshold Y such that the inequality holds, 
+if and only if the partition problem has a feasible solution.
+
+We partition jobs $j_1$ to $j_{n-1}$ into two subsets via $j_n$, 
+the distribution of jobs on the machine is($\mathcal{J}_{j\epsilon A_1}, J_n, \mathcal{J}_{j\epsilon A_2}$). 
+Since the specific processing times of $A_1$ and $A_2$ are unknown, while their total processing time is known, 
+we may assume that the processing time of $A_1$ on $M_2$ is $r(T+\xi)$, so $A_2$ is $r(T-\xi)$, where $-T\le\xi\le T$.
+Therefore, the completion time of $J_n$ is determined by the following formula:
+\begin{equation}\label{eq:completetime1}
+    \qquad
+    C_n \geqslant  |A_1| + rT + 1
+\end{equation}
+\begin{equation}\label{eq:completetime2}
+    \qquad
+    C_n \geqslant 1 + r ( T + \xi ) + 1
+\end{equation}
+
+For sufficiency:
+If $\xi = 0$, then $\sum_{j\epsilon A_1}b_j = \sum_{j\epsilon A_2}b_j$, which means the partition problem has a feasible solution. 
+In this case, the completion time of job \(J_n\) is determined by \eqref{eq:completetime1}, we have:
+\[
+C_n = |A_1| + rT + 1 \leqslant rT + r
+\]
+\[
+wC_n = r(T+1)(2T+1) = Y
+\]
+\[
+C_{\max} = C_n + rT = r(2T+1)
+\]
+\[
+wC_{\max} = r(T+1)(2T+1) = Y
+\]
+so $w_jC_{\max} \leqslant wC_{\max} = Y$
+
+Therefore, the Partition instance admits a solution if and only if the constructed $F2 \parallel w C_{\max}$ instance admits a schedule with $w C_{\max} \le Y$.
+Since Partition is NP-complete, $F2 \parallel w C_{\max}$ is NP-hard.
+The reduction uses only numbers polynomially bounded in the input size, so the problem is strongly NP-hard.
+\hfill$\Box$
 
 
 
