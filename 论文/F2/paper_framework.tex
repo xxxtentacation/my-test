@@ -107,58 +107,60 @@ Consider an optimal schedule $\pi$ in which two adjacent jobs $J_i$ and $J_j$ vi
 \noindent \textbf{Proof.}
 We reduce from the Partition problem: given $n$ positive integers $x_1, x_2, \dots, x_r$ with $\sum_{i=1}^{r} x_i = 2T$, does there exist subset $Z_1$ and $Z_2 \subseteq \{1,\dots,r\}$ such that $\sum_{i \in Z_1} x_i$ = $\sum_{i \in Z_2} x_i$ = $T$?
 
-Construct an instance of $F2 \parallel w C_{\max}$ with $n$ jobs and $n=r+1$.
-For each $j = 1,\dots,n-1$, create jobs:
-\[
-a_j = 1,\; b_j = rx_j,\; w_j = T+1; 
-\]
-For $j = n$, create job:
-\[
-a_n = rT,\; b_n = 1,\; w_n = 2T+1; 
-\]
+Construct an instance of $F2 \parallel w C_{\max}$,  Let the number of jobs $n = r + 1$.
+Let $a_j = 1$, $b_j = rx_j$, $w_j = T+1$ for jobs $j = 1,\dots,n-1$.
+Put $a_n = rT$, $b_n = 1$, $w_n = 2T+1$ for job $J_n$.
 Does there exist a threshold Y such that:
 \[
 w C_{\max} \le Y = r(T+1)(2T+1)
 \]
 holds?
 
-We proceed to prove via sufficiency and necessity
-that there exists a threshold Y such that the inequality holds, 
-if and only if the partition problem has a feasible solution.
-
 We partition jobs $j_1$ to $j_{n-1}$ into two subsets via $j_n$, 
 the distribution of jobs on the machine is($\mathcal{J}_{j\epsilon A_1}, J_n, \mathcal{J}_{j\epsilon A_2}$). 
-Since the specific processing times of $A_1$ and $A_2$ are unknown, while their total processing time is known, 
-we may assume that the processing time of $A_1$ on $M_2$ is $r(T+\xi)$, so $A_2$ is $r(T-\xi)$, where $-T\le\xi\le T$.
+Since the processing times of $A_1$ and $A_2$ are unknown, while their total processing time is 2T. 
+We may assume that the processing time of $A_1$ on $M_2$ is $r(T+\xi)$, $A_2$ is $r(T-\xi)$, where $-T\le\xi\le T$.
 Therefore, the completion time of $J_n$ is determined by the following formula:
 \begin{equation}\label{eq:completetime1}
     \qquad
-    C_n \geqslant  |A_1| + rT + 1
+    C_n^1 = |A_1| + rT + 1
 \end{equation}
 \begin{equation}\label{eq:completetime2}
     \qquad
-    C_n \geqslant 1 + r ( T + \xi ) + 1
+    C_n^2 = 1 + r ( T + \xi ) + 1
 \end{equation}
+and $C_n = \max (C_n^1, C_n^2)$
 
-If $\xi = 0$, then $\sum_{j\epsilon A_1}b_j = \sum_{j\epsilon A_2}b_j$, which means the partition problem has a feasible solution. 
+If $\xi = 0$, then $\sum_{j\epsilon A_1}b_j =\sum_{j\epsilon A_2}b_j $, which means the partition problem has a feasible solution. 
 In this case, the completion time of job \(J_n\) is determined by \eqref{eq:completetime1}, we have:
-\[
-C_n = |A_1| + rT + 1 \leqslant rT + r
-\]
-\[
-wC_n = r(T+1)(2T+1) = Y
-\]
-\[
-C_{\max} = C_n + rT = r(2T+1)
-\]
-\[
-wC_{\max} = r(T+1)(2T+1) = Y
-\]
+\begin{align*}
+w_nC_n &= (2T+1)(|A_1| + rT + 1) \\
+       &\leqslant (2T+1)(rT + r) \\
+       &= r(T+1)(2T+1) \\
+       &= Y\\
+wC_{\max} &= r(T+1)(C_n + rT) = Y
+\end{align*}
 so $w_jC_j \leqslant wC_{\max} = Y$
+
+If the scheduling problem exists a threshold y such that \(wC_{\text{max}} \le y\).
+When $ \xi > 0 $, $C_n$is determined by \eqref{eq:completetime2}, we have:
+\begin{align*}
+w_nC_n &= (1 + r ( T + \xi ) + 1)(2T + 1) \\
+        &\geqslant (1 + r ( T + 1 ) + 1)(2T + 1) \\
+        &> Y
+\end{align*}
+When $ \xi < 0 $, $C_n$is determined by \eqref{eq:completetime1}, we have:
+\begin{align*}
+wC_{\max} &= (C_n +  \sum_{j\epsilon A_2}b_j)(T+1)  \\
+         &= (1 + rT + |A_1|  + r ( T - \xi ))(T+1) \\
+         &\geqslant (rT + r + rT)(T+1)  \\
+         &= r(T+1)(2T+1) = Y
+\end{align*}
+so $wC_{\max} > Y$, there exists a contradiction.
+
 
 Therefore, the Partition instance admits a solution if and only if the constructed $F2 \parallel w C_{\max}$ instance admits a schedule with $w C_{\max} \le Y$.
 Since Partition is NP-complete, $F2 \parallel w C_{\max}$ is NP-hard.
-The reduction uses only numbers polynomially bounded in the input size, so the problem is strongly NP-hard.
 \hfill$\Box$
 
 
@@ -223,7 +225,7 @@ We append the next block $\mathcal{B}_k$ and $J_j$ is next job.
 \begin{align}
     A_{j} &= A_{j-1} + a_j, \\
     B_{j} &= B_{j-1} + b_j, \\
-    C_{j} &= \max(C_{j-1},\; A_{j-1}) + b_j. 
+    C_{j} &= \max(C_{j-1},\; A_{j}) + b_j. 
 \end{align}
 After all jobs in $\mathcal{B}_k$ have been processed, $L_{(k)}$ is set to $W(\mathcal{B}_k)$, the weight of the final job in block $k$, and the block 4-tuple is finalized as
 \begin{equation}
@@ -298,7 +300,7 @@ The complete DP procedure is presented as three algorithms below.
         \For{each job $j \in  \mathcal{J}_k$}
             \State $A_j = A_{j-1} + a_j$
             \State $B_j = B_{j-1} + b_j$
-            \State $C_j = \max(C_{j-1},\, A_{j-1}) + b_j$
+            \State $C_j = \max(C_{j-1},\, A_{j}) + b_j$
         \EndFor
     \EndFor
     \State \Return $(A, B, C)$
@@ -315,11 +317,10 @@ The complete DP procedure is presented as three algorithms below.
 \begin{algorithmic}[1]
     \State \textbf{Input:} Jobs $\mathcal{J}$ with $(a_j, b_j, w_j)$, $j = 1,\dots,n$.
     \State \textbf{Output:} The optimal makespan $C_{\max}$.
-    \State $\pi \gets \textsc{JohnsonSort}(\mathcal{J})$
     \State $\{\mathcal{B}_1, \mathcal{B}_2, \dots, \mathcal{B}_K\} \gets$ \textbf{Block Partitioning}($\pi$)
     \State $\mathscr{H} \gets \{ (0,\, 0,\, 0,\, 0) \}$
     \For{$k = 1$ to $K$}
-        \State $\mathscr{H} \gets \textsc{Completion-time}(k,\, \mathscr{H})$
+        \State $\mathscr{H} \gets \textbf{Completion-time}(k,\, \mathscr{H})$
         \For{each state $s \in \mathscr{H}$}
             \State $L_{(k)} \gets W(\mathcal{B}_k)$
         \EndFor
