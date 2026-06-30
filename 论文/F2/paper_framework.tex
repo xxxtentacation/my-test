@@ -72,7 +72,7 @@
 
 \section{Preliminaries}
 \label{sec:preliminaries}
-
+%画图，第二章引理同排序，整数规划/分支定界，块内johnson引理（4.1第一段），4.1例子详细，动态规划参考F2|r_j|C_{\max}
 
 We consider the problem $F2 \parallel w C_{\max}$.
 Let $\mathcal{J} = \{J_1, J_2, \dots, J_n\}$ be the set of $n$ jobs to be processed on two machines $M_1$ and $M_2$ in series:
@@ -86,26 +86,29 @@ The makespan $C_{\max}(\pi)$ is the $M_2$ completion time of the last job, defin
     \qquad
     C_j = \max\{\, C_{j-1},\; A_j \,\} + b_j,\;\; j = 1,\dots,n,
 \end{equation}
+
 and $C_0 = 0$, $C_{\max}(\pi) = C_n$.
 The objective is to find a schedule $\pi$ that minimizes $w C_{\max}$.
 
 
 
-For $F2 \parallel w C_{\max}$, a permutation schedule in which the job order on $M_1$ and $M_2$ coincides is always optimal (\citealp{baker1974introduction}).
-Johnson's rule (\citealp{johnson1954optimal}) sequences all $n$ jobs to minimize the makespan, yielding a global order $\pi = (\pi(1), \pi(2), \dots, \pi(n))$.
+For $F2 \parallel w C_{\max}$, a permutation schedule in which the job order on $M_1$ and $M_2$ ........ is optimal (\citealp{baker1974introduction}).
+Johnson's rule (\citealp{johnson1954optimal}) sequences all $n$ jobs to minimize the makespan, .........
 
 \begin{lemma}\label{lem:johnson}
 For $F2 \parallel w C_{\max}$, there exists an optimal schedule in which all jobs are sequenced according to Johnson's rule.
 \end{lemma}
 \noindent\textbf{Proof.}
-Consider an optimal schedule $\pi$ in which two adjacent jobs $J_i$ and $J_j$ violate Johnson's rule, i.e., $J_i$ immediately precedes $J_j$ but $\min\{a_i, b_j\} > \min\{a_j, b_i\}$. Swapping them yields a schedule $\pi'$. By exchange, the completion times of the two jobs do not increase under $\pi'$, and $M_2$ becomes free for the next job no later than before. Hence no job's completion time increases. Consequently $\max_j w_j C_j(\pi') \le \max_j w_j C_j(\pi)$. Repeated adjacent swaps therefore transform any optimal schedule into one that follows Johnson's rule without degrading the objective.
 \hfill$\Box$
+ 
 
+\section{NP-hard}
 \begin{theorem}\label{thm:nphard}
-    $F2 \parallel w C_{\max}$ is strongly NP-hard.
+    $F2 \parallel w C_{\max}$ is NP-hard.
 \end{theorem}
 \noindent \textbf{Proof.}
-We reduce from the Partition problem: given $n$ positive integers $x_1, x_2, \dots, x_r$ with $\sum_{i=1}^{r} x_i = 2T$, does there exist subset $Z_1$ and $Z_2 \subseteq \{1,\dots,r\}$ such that $\sum_{i \in Z_1} x_i$ = $\sum_{i \in Z_2} x_i$ = $T$?
+We reduce from the Partition problem: given $n$ positive integers $x_1, x_2, \dots, x_r$ with $\sum_{i=1}^{r} x_i = 2T$, does there exist subset $Z_1$ and $Z_2 \subseteq \{1,\dots,r\}$ such that:
+ $\sum_{i \in Z_1} x_i$ = $\sum_{i \in Z_2} x_i$ = $T$?
 
 Construct an instance of $F2 \parallel w C_{\max}$,  Let the number of jobs $n = r + 1$.
 Let $a_j = 1$, $b_j = rx_j$, $w_j = T+1$ for jobs $j = 1,\dots,n-1$.
@@ -129,7 +132,7 @@ Therefore, the completion time of $J_n$ is determined by the following formula:
     \qquad
     C_n^2 = 1 + r ( T + \xi ) + 1
 \end{equation}
-and $C_n = \max (C_n^1, C_n^2)$
+and $C_n = \max \{C_n^1, C_n^2\}$
 
 If $\xi = 0$, then $\sum_{j\epsilon A_1}b_j =\sum_{j\epsilon A_2}b_j $, which means the partition problem has a feasible solution. 
 In this case, the completion time of job \(J_n\) is determined by \eqref{eq:completetime1}, we have:
@@ -160,7 +163,6 @@ so $wC_{\max} > Y$, there exists a contradiction.
 
 
 Therefore, the Partition instance admits a solution if and only if the constructed $F2 \parallel w C_{\max}$ instance admits a schedule with $w C_{\max} \le Y$.
-Since Partition is NP-complete, $F2 \parallel w C_{\max}$ is NP-hard.
 \hfill$\Box$
 
 
@@ -247,8 +249,6 @@ Moreover, $L_{(k)} \le L'_{(k)}$ guarantees that the maximum weighted completion
 Hence $\pi$ dominates $\pi'$ under the $w C_{\max}$ objective.
 \hfill$\Box$
 
-The dominance rule of Lemma~\ref{lem:dominance} justifies retaining only Pareto-optimal states with respect to $(C_{(k)}, L_{(k)})$ after processing each block.
-This pruning is applied at the job level within each block, as each job is appended, to minimize the number of active states.
 
 \subsubsection{Algorithm 1}
 
@@ -339,7 +339,7 @@ Algorithm~1 computes an schedule for $F2 \parallel w C_{\max}$ in $O()$ time.
 \noindent\textbf{Proof.}
 \hfill$\Box$
 
-\subsection{FPTAS via Geometric Rounding}
+\subsection{FPTAS}
 
 \section{Conclusion}
 \label{sec:conclusion}
