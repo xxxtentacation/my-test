@@ -103,7 +103,7 @@ For $F2 \parallel w C_{\max}$, there exists an optimal schedule in which all job
 \begin{theorem}\label{thm:nphard}
     $F2 \parallel w C_{\max}$ is NP-hard.
 \end{theorem}
-\noindent \textbf{Proof.}
+\begin{proof}
 We reduce from the Partition problem: given $n$ positive integers $x_1, x_2, \dots, x_r$ with $\sum_{i=1}^{r} x_i = 2T$, 
 does there exist subset $Z_1$ and $Z_2 \subseteq \{1,\dots,r\}$ such that:
  $\sum_{i \in Z_1} x_i$ = $\sum_{i \in Z_2} x_i$ = $T$?
@@ -162,7 +162,8 @@ so $wC_{\max} > Y$, there exists a contradiction.
 
 Therefore, the Partition instance admits a solution if and only if 
 the constructed $F2 \parallel w C_{\max}$ instance admits a schedule with $w C_{\max} \le Y$.
-\hfill$\Box$
+    
+\end{proof}
 
 
 
@@ -186,13 +187,10 @@ denoted $\mathcal{B}_1, \mathcal{B}_2, \dots, \mathcal{B}_K$. By construction,
 the final job of each block carries the weight that triggered the cut.
 By construction, block weights are non-increasing, 
 i.e., $W(\mathcal{B}_1) \ge W(\mathcal{B}_2) \ge \cdots \ge W(\mathcal{B}_K)$. 
-Moreover, in any optimal schedule, jobs belonging to $\mathcal{B}_1 \cup \cdots \cup \mathcal{B}_k$ 
-must be scheduled before any job from $\mathcal{B}_{k+1} \cup \cdots \cup \mathcal{B}_K$.
 
 Jobs of the same weight form a natural group, denoted $\mathcal{G}_1, \mathcal{G}_2, \dots, \mathcal{G}_K$. 
 Scheduling heavier groups before lighter ones automatically enforces the non-increasing block-weight condition, 
 and scanning groups in descending weight order directly yields the block partition.
-
 
 \begin{exam}\label{ex:blocking}
 Consider a 6-job instance with Johnson sequence $\pi = (J_1, \dots, J_6)$ and weights
@@ -209,146 +207,156 @@ And $\mathcal{G}_1=\{J_1,J_2,J_4,J_6\}$, $\mathcal{G}_2=\{J_5\}$, $\mathcal{G}_3
 \end{exam}
 
 \begin{lemma}\label{lem:block-johnson}
-For any schedule $\pi$ partitioned into blocks $\mathcal{B}_1, \mathcal{B}_2, \dots, \mathcal{B}_K$
-as constructed by the scanning procedure, if the jobs within each block $\mathcal{B}_k$ are sequenced
-according to Johnson's rule, then $\pi$ minimizes the makespan of each block and consequently
-yields the minimum $w C_{\max}$ among all schedules respecting the same block partition.
+For a given schedule  $\pi$, rescheduling each blocks for $\mathcal{B}_1, \mathcal{B}_2, \dots, \mathcal{B}_K$
+to Johnson's algorithm and concatenating blocks schedules delivers a schedule of length at most $C(\pi)$
 \end{lemma}
-\noindent\textbf{Proof.}
-Consider any block $\mathcal{B}_k$. Its internal job sequence determines the block makespan $C_{(k)}$,
-which feeds into the CON concatenation to compute the overall completion times.
-By Johnson's rule~\citep{johnson1954optimal}, sequencing the jobs within $\mathcal{B}_k$ in Johnson order
-minimizes $C_{(k)}$. Since the objective $w C_{\max}$ is non-decreasing in each block's makespan,
-minimizing every $C_{(k)}$ yields the minimum $w C_{\max}$ for the given partition.
-\hfill$\Box$
+\begin{proof}
+    
+\end{proof}
 
-\subsubsection{Dynamic Programming Formulation}
 
-We now develop a dynamic programming algorithm that processes jobs sequentially in Johnson order and assigns each job to one of the $K$ blocks.
-The state representation follows the interval-based dynamic programming framework of (\citealp{hall1998}) for $F2|r_j|C_{\max}$, 
-and the concatenation logic follows the CON algorithm of (\citealp{kovalyov1997}).
-We denote by $\mathscr{H}$ the set of states maintained during the computation.
+\label{sec:dp_formulation}
+
+We now develop a dynamic programming algorithm that processes jobs sequentially in Johnson order
+and assigns each job to one of the $K$ blocks $\mathcal{B}_1,\dots,\mathcal{B}_K$.
+Lemma~\ref{lem:block-johnson} provides the structural basis:
+it guarantees that, given any assignment of jobs to the $K$ blocks,
+sequencing the jobs within each block $\mathcal{B}_i$ according to Johnson's rule
+and concatenating the blocks in non-increasing weight order yields a schedule
+whose makespan is no larger than that of any other schedule respecting the same assignment.
+We denote by $\mathscr{H}$ the set of states maintained during the computation;
+each state summarizes the aggregate parameters of all $K$ blocks after a prefix of jobs has been processed.
 
 \paragraph{State Definition.}
 
-A state encodes the aggregate parameters of all $K$ blocks after a prefix of jobs has been processed. 
-It is represented as a $4K$-tuple
+A state is a $4K$-tuple
 \[
-    \mathscr{H} = (\; C_1,\dots,C_K,\; A_1,\dots,A_K,\; B_1,\dots,B_K,\; L_1,\dots,L_K \;),
+    (C_1,\dots,C_K; \; A_1,\dots,A_K; \; B_1,\dots,B_K; \; L_1,\dots,L_K) \in \mathscr{H}
 \]
-where for each block $i = 1,\dots,K$:
+where for each block $\mathcal{B}_i$, $i = 1,\dots,K$:
 \begin{itemize}
-    \item $A_i$ --- total processing time on machine $M_1$ of jobs assigned to block $i$;
-    \item $B_i$ --- total processing time on machine $M_2$ of jobs assigned to block $i$;
-    \item $C_i$ --- makespan of block $i$ when the jobs assigned to it are scheduled in isolation from time zero, 
-    computed via the recurrence of equation~\eqref{eq:makespan};
-    \item $L_i$ --- weight of the last job in block $i$ (or $0$ if block $i$ is empty).
+    \item $A_i$ --- total processing time on machine $M_1$ of jobs assigned to $\mathcal{B}_i$;
+    \item $B_i$ --- total processing time on machine $M_2$ of jobs assigned to $\mathcal{B}_i$;
+    \item $C_i$ --- makespan of $\mathcal{B}_i$ when the jobs assigned to it are scheduled in isolation;
+    \item $L_i$ --- weight of the last job in $\mathcal{B}_i$ (or $0$ if $\mathcal{B}_i$ is empty).
 \end{itemize}
 
 The initial state set contains a single state with all components set to zero:
-$\mathscr{H} = \{ (0,\dots,0) \}$.
-
-\paragraph{State Transition.}
-
-Suppose that the jobs are indexed in Johnson order as $J_1, J_2, \dots, J_n$.
-Let $k \in \{1,\dots,K\}$ be the block to which job $J_j$ belongs, as determined by the block partition.
-Given a state $(C_1,\dots,C_K,\; A_1,\dots,A_K,\; B_1,\dots,B_K,\; L_1,\dots,L_K) \in \mathscr{H}$, 
-adding job $J_j$ to block $k$ updates the block's parameters as follows (see equation~(2) in~\citealp{kovalyov1997}):
-\begin{align}
-    A_k' &= A_k + a_j, \\
-    B_k' &= B_k + b_j, \\
-    C_k' &= \max\{\, C_k + b_j,\; A_k + a_j + b_j \,\}.
-\end{align}
-All other components remain unchanged. If $J_j$ is the last job of block $k$ 
-(i.e., the job whose weight triggered the block cut), then $L_k' \gets w_j$; 
-otherwise $L_k' \gets L_k$.
-The updated state is added to the new state set $\mathscr{H}'$.
-
-
-After processing each job, the state set may contain multiple states representing different assignments of jobs to blocks.
-To keep the state set small, we apply the following dominance rule, which is analogous to the tuple-merging step in Algorithm~H of~\citealp{kovalyov1997}.
+$\mathscr{H}^{(0)} = \{ (0,\dots,0) \}$.
 
 \begin{lemma}\label{lem:dominance}
 Let $S$ and $S'$ be two states in $\mathscr{H}$ after processing the same prefix of jobs.
-If $A_i \le A_i'$, $B_i \le B_i'$, $C_i \le C_i'$, and $L_i \le L_i'$ for all $i = 1,\dots,K$, then $S'$ is dominated by $S$ and can be removed from further consideration.
+If $A_i \le A_i'$, $B_i \le B_i'$, $C_i \le C_i'$, and $L_i \le L_i'$ for all $i = 1,\dots,K$, 
+then $S'$ is dominated by $S$ and can be removed from further consideration.
 \end{lemma}
-\noindent\textbf{Proof.}
-Let the remaining jobs be processed identically from both states. 
-By the monotonicity of the recurrence in~\eqref{eq:makespan} and the CON concatenation formula, 
-smaller $A_i$, $B_i$, $C_i$ values lead to no larger final makespan. 
-Smaller $L_i$ ensures the weighted completion time objective is not increased. 
+\begin{proof}
+Let the remaining jobs be processed identically from both states.
+By the monotonicity of the recurrence in~\eqref{eq:trans_C} and the concatenation formula,
+smaller $A_i$, $B_i$, $C_i$ values lead to no larger final makespan.
+Smaller $L_i$ ensures the weighted completion time objective is not increased.
 Hence $S$ yields a schedule no worse than $S'$ under $w C_{\max}$.
-\hfill$\Box$
+\end{proof}
+
+\paragraph{State Transition.}
+
+For $j = 1,\dots,n$, we generate $\mathscr{H}^{(k)}$ from $\mathscr{H}^{(k-1)}$ as follows.
+Set $\mathcal{B}_i = \emptyset$ for $i = 1,\dots,K$.
+For each state $(C_1,\dots,C_K; \; A_1,\dots,A_K; \; B_1,\dots,B_K; \; L_1,\dots,L_K) \in \mathscr{H}^{(k-1)}$
+and each block index $i = 1,\dots,K$.
+Job $J_j$ may be assigned to the first i blocks whose index does not exceed the rank of its weight,
+then add a new state to $\mathcal{B}_i$ with the $i$-th block updated as follows:
+\begin{align}
+    A_i' &= A_i + a_j, \label{eq:trans_A}\\
+    B_i' &= B_i + b_j, \label{eq:trans_B}\\
+    C_i' &= \max\{\, C_i + b_j,\; A_i + a_j + b_j \,\}, \label{eq:trans_C}\\
+    L_i' &= w_j. \label{eq:trans_L}
+\end{align}
+All other components remain unchanged.
+Merge $\mathcal{B}_1, \dots, \mathcal{B}_K$ and apply the dominance rule
+(Lemma~\ref{lem:dominance}) to obtain $\mathscr{H}^{(k)}$.
 
 
-\vskip -2pt
-\noindent\rule{\textwidth}{0.4pt}
-\vskip 1pt
-{\noindent\textbf{CON}}
-\vskip -2pt
-\noindent\rule{\textwidth}{0.4pt}
-\vskip 1pt
+
+Once all jobs are assigned and each block $\mathcal{B}_i$ is summarized by its parameters $(A_i, B_i, C_i)$,
+the overall makespan $C_{\max}$ is obtained by concatenating the blocks in order of increasing index.
+The procedure is given below:
+
+In the update of $T_B$,
+the term $T_A - A_i$ is the start time of $\mathcal{B}_i$ on $M_1$, so $T_A - A_i + C_i$
+is the completion time of $\mathcal{B}_i$ on $M_2$ when $M_2$ is free,
+while $T_B + B_i$ accounts for the case where $M_2$ is the bottleneck.
+
+\begin{algorithm}[H]
+\caption{}
 \begin{algorithmic}[1]
-    \State \textbf{Input:} Current completion times $(T_A,\, T_B)$; block parameters $(A_{(i)},\, B_{(i)},\, C_{(i)})$ for block $\mathcal{B}_i$.
-    \State \textbf{Output:} Updated completion times after concatenating $\mathcal{B}_i$.
-    \State $T_A^{\text{old}} \gets T_A$, \quad $T_B^{\text{old}} \gets T_B$
-    \State $T_A \gets T_A^{\text{old}} + A_{(i)}$
-    \State $T_B \gets \max\{\, T_A^{\text{old}} + C_{(i)},\; T_B^{\text{old}} + B_{(i)} \,\}$
+    \Require Block parameters $(A_i,\, B_i,\, C_i)$ for $i = 1,\dots,K$.
+    \Ensure Completion times $(T_A,\, T_B)$ after concatenating all $K$ blocks, where $T_B = C_{\max}$.
+    \State $T_A \gets 0$, \quad $T_B \gets 0$
+    \For{$i = 1$ to $K$}
+        \State $T_A \gets T_A + A_i$
+        \State $T_B \gets \max\{\, T_A - A_i + C_i,\; T_B + B_i \,\}$
+    \EndFor
     \State \Return $(T_A,\; T_B)$
 \end{algorithmic}
+\end{algorithm}
 
 
-\vskip -2pt
-\noindent\rule{\textwidth}{0.4pt}
-\vskip 1pt
-{\noindent\textbf{Dynamic Programming}}
-\vskip -2pt
-\noindent\rule{\textwidth}{0.4pt}
-\vskip 1pt
+\begin{algorithm}[H]
+\caption{}
+\label{alg:dp}
 \begin{algorithmic}[1]
-    \State \textbf{Input:} Jobs $\mathcal{J}$ with $(a_j, b_j, w_j)$, numbered $1,\dots,n$ in Johnson order.
-    \State \textbf{Output:} The optimal objective value $w C_{\max}$.
-    \State \textbf{Step 1 (Initialization):}
-    \State $\mathscr{H} \gets \{ (0,\dots,0) \}$ 
-    \State \textbf{Step 2 (Generation):}
+    \Require Jobs $\mathcal{J}$ with $(a_j, b_j, w_j)$, numbered $1,\dots,n$ in Johnson order.
+    \Ensure The optimal makespan $C_{\max}$.
+    \State $\mathscr{H} \gets \{ (0,\dots,0) \}$
     \For{$j = 1$ to $n$}
-        \State $k \gets \text{blk}(j)$
-        \State $\mathscr{H}_{\text{new}} \gets \emptyset$
-        \For{each $(C_1,\dots,C_K,\; A_1,\dots,A_K,\; B_1,\dots,B_K,\; L_1,\dots,L_K) \in \mathscr{H}$}
-            \State $A_k' \gets A_k + a_j$
-            \State $B_k' \gets B_k + b_j$
-            \State $C_k' \gets \max\{\, C_k + b_j,\; A_k + a_j + b_j \,\}$
-            \If{$j$ is the last job of $\mathcal{B}_k$}
-                \State $L_k' \gets w_j$
-            \Else
-                \State $L_k' \gets L_k$
-            \EndIf
-            \State Add $(\dots,C_k',\dots,\; \dots,A_k',\dots,\; \dots,B_k',\dots,\; \dots,L_k',\dots)$ to $\mathscr{H}_{\text{new}}$
+        \State $\mathscr{Y}_i \gets \emptyset$ for $i = 1,\dots,K$
+        \For{each $(C_1,\dots,C_K; \; A_1,\dots,A_K; \; B_1,\dots,B_K; \; L_1,\dots,L_K) \in \mathscr{H}$}
+            \For{$i = 1$ to $\ell(j)$}
+                \State $A_i' \gets A_i + a_j$
+                \State $B_i' \gets B_i + b_j$
+                \State $C_i' \gets \max\{\, C_i + b_j,\; A_i + a_j + b_j \,\}$
+                \State $L_i' \gets w_j$
+                \State Add $(\dots,C_i',\dots; \; \dots,A_i',\dots; \; \dots,B_i',\dots; \; \dots,L_i',\dots)$ to $\mathscr{Y}_i$
+            \EndFor
         \EndFor
-        \State $\mathscr{H} \gets \textsc{MergeAndPrune}(\mathscr{H}_{\text{new}})$ 
+        \State $\mathscr{H} \gets \textsc{Merge}(\mathscr{Y}_1,\dots,\mathscr{Y}_K)$
     \EndFor
-    \State \textbf{Step 3 (Evaluation):}
-    \State $w C_{\max} \gets +\infty$
+    \State $C_{\max} \gets +\infty$
     \For{each state $S \in \mathscr{H}$}
-        \State $T_A \gets 0$, $T_B \gets 0$, $\text{obj} \gets 0$
-        \For{$i = 1$ to $K$}
-            \State $(T_A,\, T_B) \gets \textbf{CON}\bigl( (T_A,\, T_B),\; (A_i,\, B_i,\, C_i) \bigr)$
-            \State $\text{obj} \gets \max\{\, \text{obj},\; L_i \cdot T_B \,\}$
-        \EndFor
-        \State $w C_{\max} \gets \min\{\, w C_{\max},\; \text{obj} \,\}$
+        \State $(T_A,\, T_B) \gets \textbf{Algorithm 1}\bigl( (A_1,\, B_1,\, C_1),\;\dots,\;(A_K,\, B_K,\, C_K) \bigr)$
+        \State $C_{\max} \gets \min\{\, C_{\max},\; T_B \,\}$
     \EndFor
-    \State \Return $w C_{\max}$
+    \State \Return $C_{\max}$
 \end{algorithmic}
-\vskip -2pt
-\rule{\textwidth}{0.4pt}
+\end{algorithm}
+\vskip 4pt
 
-\subsubsection{Complexity Analysis}
+The algorithm above computes the optimal makespan $C_{\max}$.
+To obtain the weighted objective $wC_{\max}$ from a state $S \in \mathscr{H}$,
+let $T_A^{(i)}$ and $T_B^{(i)}$ be the completion times on $M_1$ and $M_2$ after concatenating blocks
+$\mathcal{B}_1$ through $\mathcal{B}_i$ via the Algorithmic~1.
+Since blocks are concatenated in non-increasing weight order, $T_B^{(i)}$ is precisely the completion time
+of the last job in $\mathcal{B}_i$.
+The weighted completion time of the schedule corresponding to $S$ is therefore
+\[
+wC_{\max}(S) = \max_{i=1,\dots,K}\; L_i \cdot T_B^{(i)},
+\]
+where $L_i$ is the weight recorded for $\mathcal{B}_i$ (the weight of its last job).
+Taking the minimum over all states in $\mathscr{H}$ yields the optimal objective value:
+\[
+wC_{\max}^* = \min_{S \in \mathscr{H}}\; \max_{i=1,\dots,K}\; L_i \cdot T_B^{(i)}.
+\]
+Equivalently, this computation can be folded into Step~3 of Algorithm~$\mathscr{H}$
+by updating $\text{obj} \gets \max\{\,\text{obj},\; L_i \cdot T_B\,\}$ after each Algorithmic~1 iteration
+and returning $\min_{S} \text{obj}$ instead of $C_{\max}$.
+
 
 \begin{theorem}\label{thm:complexity}
 Algorithm~1 computes an schedule for $F2 \parallel w C_{\max}$ in $O()$ time.
 \end{theorem}
-\noindent\textbf{Proof.}
-\hfill$\Box$
+\begin{proof}
+    
+\end{proof}
 
 \subsection{FPTAS}
 
