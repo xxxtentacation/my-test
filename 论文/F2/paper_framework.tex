@@ -206,6 +206,32 @@ The resulting blocks are $\mathcal{B}_1=\{J_1,J_2,J_3\}$, $\mathcal{B}_2=\{J_4,J
 And $\mathcal{G}_1=\{J_1,J_2,J_4,J_6\}$, $\mathcal{G}_2=\{J_5\}$, $\mathcal{G}_3=\{J_3\}$.
 \end{exam}
 
+\begin{center}
+\begin{tikzpicture}[x=0.1in, y=0.2in]  \label{Figure-A.1}
+	% machine index
+	\node[anchor=east] at (-0.5,5.5) {$M_1$};
+	\node[anchor=east] at (-0.5,4) {$M_2$};
+	
+	
+	% job on M_1
+	\draw[fill=gray!20] (9,5) rectangle (18,6) node[midway] {$J_1$};
+	
+	% job on M_2
+	\draw[fill=gray!70] (12,3.5) rectangle (24,4.5) node[midway] {$J_2$};
+	\draw[fill=gray!80] (24,3.5) rectangle (36,4.5) node[midway] {$J_5$};
+	
+	% x-axis
+	\draw[thick] (0,2.2) -- (40,2.2);
+	\foreach \x/\label in {0/0, 6/2, 9/3, 12/4, 18/6, 24/8, 36/12} {
+		\draw (\x,2.2) -- (\x,2.4);
+		\node[below, font=\small] at (\x,2.0) {\label};
+	}
+	
+	% caption
+	\node[below] at (20,0.5) {Figure 1. A feasible schedule of Example \ref{EX-2.1}};
+\end{tikzpicture}
+\end{center}
+
 \begin{lemma}\label{lem:block-johnson}
 For a given schedule  $\pi$, rescheduling each blocks for $\mathcal{B}_1, \mathcal{B}_2, \dots, \mathcal{B}_K$
 to Johnson's algorithm and concatenating blocks schedules delivers a schedule of length at most $C(\pi)$
