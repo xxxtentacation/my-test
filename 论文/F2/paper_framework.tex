@@ -344,11 +344,13 @@ while $T_B + B_i$ accounts for the case where $M_2$ is the bottleneck.
         \State $Y_i \gets \emptyset$ for $i = 1,\dots,K$
         \For{each $(C_1,\dots,C_K; \; A_1,\dots,A_K; \; B_1,\dots,B_K; \; L_1,\dots,L_K) \in \mathscr{H}^{(j-1)}$}
             \For{$i = 1$ to $K$}
-               \State $C_i' \gets \max\{\, C_i + b_j,\; A_i + a_j + b_j \,\}$
+                \If{$w_j \le L_i$}
+                   \State $C_i' \gets \max\{\, C_i + b_j,\; A_i + a_j + b_j \,\}$
                     \State $A_i' \gets A_i + a_j$
                     \State $B_i' \gets B_i + b_j$
-                    \State Add $(\dots,C_i',\dots; \; \dots,A_i',\dots; \; \dots,B_i',\dots \;)$ to $Y_i$
-            \EndFor
+                    \State Add $(\dots,C_i',\dots; \; \dots,A_i',\dots; \; \dots,B_i',\dots; \; )$ to $Y_i$
+                \EndIf
+               \EndFor
         \EndFor
         \State $\mathscr{H}^{(j)} \gets \textsc{Merge}(Y_1,\dots,Y_K)$ by Lemma~\ref{lem:block-johnson}
     \EndFor
