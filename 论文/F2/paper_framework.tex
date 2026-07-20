@@ -115,10 +115,48 @@ any schedule can be transformed into a Johnson-ordered schedule
 without increasing the objective value.
 Thus, there exists an optimal schedule in which all jobs are sequenced according to Johnson's rule.
 \hfill$\Box$
- 
+
+
+\subsection{Mixed Integer Linear Programming Formulation}
+
+The problem $F2 \parallel W C_{\max}$ can be formulated as a mixed integer linear program (MILP).
+For a permutation schedule, let the positions be indexed by $k = 1,\dots,n$.
+We introduce the following decision variables:
+\begin{itemize}
+	\item $x_{jk} \in \{0,1\}$ --- equals $1$ if job $J_j$ occupies position $k$, and $0$ otherwise;
+	\item $C_k^1 \ge 0$ --- completion time of the job at position $k$ on $M_1$;
+	\item $C_k^2 \ge 0$ --- completion time of the job at position $k$ on $M_2$;
+	\item $C_j \ge 0$ --- completion time of job $J_j$ on $M_2$;
+	\item $Z \ge 0$ --- the maximum weighted completion time $W C_{\max}$.
+\end{itemize}
+
+Let $M = \sum_{j=1}^{n}(a_j + b_j)$ be a sufficiently large constant.
+The MILP model is:
+
+\begin{align}
+	\min \quad & Z \label{milp:obj} \\[4pt]
+	\text{s.t.} \quad & \sum_{k=1}^{n} x_{jk} = 1, \quad \forall\, j \in \mathcal{J} \label{milp:assign1} \\[4pt]
+	& \sum_{j=1}^{n} x_{jk} = 1, \quad \forall\, k = 1,\dots,n \label{milp:assign2} \\[4pt]
+	& C_1^1 = \sum_{j=1}^{n} a_j x_{j1} \label{milp:m1_start} \\[4pt]
+	& C_k^1 = C_{k-1}^1 + \sum_{j=1}^{n} a_j x_{jk}, \quad \forall\, k = 2,\dots,n \label{milp:m1_rec} \\[4pt]
+	& C_1^2 = C_1^1 + \sum_{j=1}^{n} b_j x_{j1} \label{milp:m2_start} \\[4pt]
+	& C_k^2 \ge C_k^1 + \sum_{j=1}^{n} b_j x_{jk}, \quad \forall\, k = 2,\dots,n \label{milp:m2_a} \\[4pt]
+	& C_k^2 \ge C_{k-1}^2 + \sum_{j=1}^{n} b_j x_{jk}, \quad \forall\, k = 2,\dots,n \label{milp:m2_b} \\[4pt]
+	& C_j \ge C_k^2 - M(1 - x_{jk}), \quad \forall\, j \in \mathcal{J},\; k = 1,\dots,n \label{milp:link} \\[4pt]
+	& Z \ge w_j C_j, \quad \forall\, j \in \mathcal{J} \label{milp:wcmax} \\[4pt]
+	& x_{jk} \in \{0,1\},\quad C_k^1, C_k^2, C_j, Z \ge 0 \label{milp:dom}
+\end{align}
+
+Constraint (\ref{milp:assign1})--(\ref{milp:assign2}) ensure a one-to-one assignment between jobs and positions.
+Constraints (\ref{milp:m1_start})--(\ref{milp:m1_rec}) compute the completion time of each position on $M_1$.
+Constraints (\ref{milp:m2_start})--(\ref{milp:m2_b}) compute the completion time of each position on $M_2$:
+for $k \ge 2$, the job at position $k$ starts on $M_2$ only after it completes $M_1$ and the preceding job releases $M_2$.
+Constraint (\ref{milp:link}) links the position-based completion times to the job-based completion times via a big-$M$ formulation:
+when $x_{jk} = 1$, job $J_j$ is at position $k$ and $C_j \ge C_k^2$;
+when $x_{jk} = 0$, the right-hand side becomes $C_k^2 - M \le 0$, which is non-binding.
+Constraint (\ref{milp:wcmax}) enforces $Z \ge w_j C_j$ for every job, so that minimizing $Z$ yields the optimal $W C_{\max}$.
 
 \section{Problem formulation}
-
 
 
 \begin{theorem}\label{thm:nphard}
@@ -137,6 +175,36 @@ Does there exist a threshold Y such that:
 W C_{\max} \le Y = r(T+1)(2T+1)
 \]
 holds?
+
+
+\begin{center}
+\begin{tikzpicture}[x=0.15in, y=0.3in]  \label{Figure-4.1}
+	% machine index
+	\node[anchor=east] at (-0.5,5.5) {$M_1$};
+	\node[anchor=east] at (-0.5,4) {$M_2$};
+
+	% job on M_1 (all 6 jobs in Johnson order)
+	\draw[fill=gray!20] (0,5)   rectangle (2,6)   node[midway] {$J_1$};
+	\draw[fill=gray!20] (2,5)   rectangle (7,6)   node[midway] {$J_2$};
+	\draw[fill=gray!20] (7,5)   rectangle (13,6)  node[midway] {$J_3$};
+
+	% job on M_2 (all 6 jobs, start when M1 finishes and M2 is free)
+	\draw[fill=gray!70] (2,3.5)  rectangle (7,4.5)  node[midway] {$J_1$};
+	\draw[fill=gray!70] (7,3.5)  rectangle (14,4.5) node[midway] {$J_2$};
+	\draw[fill=gray!70] (14,3.5) rectangle (23,4.5) node[midway] {$J_3$};
+
+
+	% x-axis
+	\draw[thick] (0,2.2) -- (35,2.2);
+	\foreach \x/\label in {0/0, 2/2, 7/7, 13/13, 14/14, 21/21, 23/23, 25/25, 27/27, 28/28, 30/30, 32/32} {
+		\draw (\x,2.2) -- (\x,2.4);
+		\node[below, font=\footnotesize] at (\x,2.0) {\label};
+	}
+
+	% caption
+	\node[below] at (17,0.5) {Figure 3.1};
+\end{tikzpicture}
+\end{center}
 
 We partition jobs $j_1$ to $j_{n-1}$ into two subsets via $j_n$, 
 the distribution of jobs on the machine is($\mathcal{J}_{j\epsilon A_1}, J_n, \mathcal{J}_{j\epsilon A_2}$). 
