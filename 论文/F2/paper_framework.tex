@@ -92,17 +92,27 @@ Johnson's rule (\citealp{johnson1954optimal}) sequences all $n$ jobs to minimize
 jobs with $a_j \le b_j$ go first in non-decreasing order of $a_j$, and the remaining jobs follow
 in non-increasing order of $b_j$.
 
-Jobs sharing the same weight form a group $\mathcal{G}_1, \mathcal{G}_2, \dots, \mathcal{G}_K$, ordered by their first appearance in the Johnson sequence.
-Scanning the sequence left to right, we cut it into blocks $\mathcal{B}_1, \mathcal{B}_2, \dots, \mathcal{B}_K$:
-whenever a weight not seen before appears, that job closes the current block and the next job opens a new block.
-Thus each block ends with the job that first introduces its weight, and block weights are non-increasing:
-$W(\mathcal{B}_1) \ge W(\mathcal{B}_2) \ge \cdots \ge W(\mathcal{B}_K)$.
+For any scheduling $\pi$. Let $w_{(1)}, w_{(2)}, \dots, w_{(K)}$ be the $K$ distinct weights among all jobs, and $w_{(1)} > w_{(2)} > \dots > w_{(K)}$
+and define $\mathcal{G}_k = \{ J_j \in \mathcal{J} \mid w_j = w^{(k)} \}$, $k = 1,\dots,K$.
+For each group $\mathcal{G}_k$, let $\ell_k$ be the index of the last job of $\mathcal{G}_k$ appearing in $\pi$, 
+and set $\ell_0 = 0$. The blocks are defined as $\mathcal{B}_k = \{\pi(\ell_{k-1}+1), \dots, \pi(\ell_k)\}$, $k = 1,\dots,K$.
+Thus each block $\mathcal{B}_k$ ends with the last job of $\mathcal{G}_k$, and block weights are non-increasing:
+$w(\mathcal{B}_1) \ge w(\mathcal{B}_2) \ge \cdots \ge w(\mathcal{B}_K)$.
+
+For ease of explanation, we construct an illustrative schedule; all subsequent examples refer to this same instance.
 
 \begin{exam}\label{ex:blocking}
-Consider a 6-job instance with Johnson sequence $\pi = (J_1, \dots, J_6)$ and jobs with (aj, bj, wj) values: 
-$(J_1,\dots,J_6) = {(2, 5, 2); (5, 7, 2); (6, 9, 5); (8, 4, 2); (4, 3, 4); (3, 2 ,2);}$.
+Consider a 6-job instance with sequence $\pi = (J_1, \dots, J_6)$ and the following $(a_j, b_j, w_j)$ values:
+\[
+\begin{array}{c|cccccc}
+      & J_1 & J_2 & J_3 & J_4 & J_5 & J_6 \\
+\hline
+a_j &  2  &  5  &  6  &  8  &  4  &  3  \\
+b_j &  5  &  7  &  9  &  4  &  3  &  2  \\
+w_j &  2  &  2  &  5  &  2  &  4  &  2
+\end{array}
+\]
 
-Scanning $\pi$ from left to right and cutting whenever a weight not seen before appears yields the following partition:
 The resulting are $\mathcal{G}_1=\{J_3\}$, $\mathcal{G}_2=\{J_5\}$, $\mathcal{G}_3=\{J_1,J_2,J_4,J_6\}$. 
 And $\mathcal{B}_1=\{J_1,J_2,J_3\}$, $\mathcal{B}_2=\{J_4,J_5\}$, $\mathcal{B}_3=\{J_6\}$.
 \end{exam}
@@ -140,6 +150,8 @@ And $\mathcal{B}_1=\{J_1,J_2,J_3\}$, $\mathcal{B}_2=\{J_4,J_5\}$, $\mathcal{B}_3
 	\node[below] at (17,0.5) {Figure 4.1};
 \end{tikzpicture}
 \end{center}
+
+
 
 \begin{lemma}\label{lem:block-johnson}
 For a given schedule  $\pi$, rescheduling each blocks to Johnson's ruler(\citealp{johnson1954optimal}) and 
@@ -317,71 +329,117 @@ the constructed $F2 \parallel W C_{\max}$ instance admits a schedule with $W C_{
     $F2 \parallel W C_{\max}$ is strongly NP-hard.
 \end{theorem}
 \begin{proof}
-We reduce from the 3-Partition problem: given $3m$ positive integers $x_1,\dots,x_{3m}$ and bound $B$,
-$B/4 < x_i < B/2$, $\sum_{i=1}^{3m} x_i = mB$, can the integers be partitioned into $m$ triples each summing to $B$?
-Construct an instance of $F2 \parallel W C_{\max}$ with $n = 4m$ jobs:
+We reduce from the 3-Partition problem: given $3m$ positive integers $x_1,\dots,x_{3m}$ and a bound $B$ with
+$B/4 < x_i < B/2$ and $\sum_{i=1}^{3m} x_i = mB$, can the integers be partitioned into $m$ triples each summing to $B$?
+Construct an instance of $F2 \parallel W C_{\max}$ with $n = 4m + 1$ jobs as follows (see Figure~\ref{fig:3-2}).
+Let $M = n$.
 \begin{itemize}
-  \item Element jobs $J_1,\dots,J_{3m}$: $a_j = 1$, $b_j = x_j$, $w_j = 1$;
-  \item Separator jobs $S_1,\dots,S_{m-1}$: $a_{s_k} = B$, $b_{s_k} = 0$, $w_{s_k} = 2$;
-  \item Terminal job $T$: $a_T = 1$, $b_T = 0$, $w_T = 3$.
+  \item $3m$ element jobs $J_1,\dots,J_{3m}$: $a_j = 0$, $b_j = x_j$, $w_j = 1$;
+  \item $m$ separator jobs $S_1,\dots,S_{m}$: $a_{s_k} = B$, $b_{s_k} = 0$, $w_{s_k} = M \cdot m / k$;
+  \item one terminal job $T$: $a_T = 0$, $b_T = 0$, $w_T = M$.
 \end{itemize}
-On $M_1$, schedule the $3m$ element jobs partitioned into $m$ groups $G_1,\dots,G_m$ interleaved with separators
-as shown in Figure~\ref{fig:3-2}, where $|G_k| = 3$. All jobs process on $M_2$ in the same order.
-Define the threshold $Y = 3\bigl((m-1)B + 3m + 1\bigr)$.
+Element jobs and $T$ have $a_j = 0$, so they occupy no processing time on $M_1$;
+symmetrically, separators and $T$ have $b_j = 0$, occupying no time on $M_2$.
+Thus the total $M_1$ work is $\sum a_j = mB$ (solely from the $m$ separators),
+and the total $M_2$ work is $\sum b_j = mB$ (solely from the $3m$ element jobs).
+Define the threshold $Y = M \cdot mB$.
 
-If a 3-Partition exists, each $G_k$ has total $M_2$ work $B$, which completes exactly during $S_k$'s $M_1$ processing.
-No idle time accumulates on $M_2$; the terminal $T$ completes at $C_T = (m-1)B + 3m + 1$,
-and $W C_{\max} = 3 \cdot C_T = Y$.
+\medskip\noindent\textbf{($\Rightarrow$)} Suppose a 3-Partition exists, i.e., there is a partition of the $3m$ elements into
+$m$ triples $G_1,\dots,G_m$ with $\sum_{J_j \in G_k} x_j = B$ for each $k$.
+Arrange the jobs in the order $G_1, S_1, G_2, S_2, \dots, G_m, S_m, T$.
+Since $a_j = 0$ for element jobs and $T$, on $M_1$ the separators occupy
+$[0,B], [B,2B], \dots, [(m-1)B, mB]$ without interruption;
+$C_{s_k}^1 = kB$ for each $k$, and $C_T^1 = mB$.
+On $M_2$, element jobs in $G_1$ start at time~$0$ and, by the partition property,
+each $G_k$ finishes at time $kB$, which equals the $M_1$ completion of $S_k$.
+Hence $M_2$ has no idle time.
+The separator $S_k$ passes through $M_2$ instantly at time $kB$, so $C_{s_k} = kB$,
+and the terminal job starts on $M_2$ at $\max\{mB,\, mB\} = mB$, yielding $C_T = mB$.
+Consequently
+\[
+w_T C_T = M \cdot mB = Y,\qquad
+w_{s_k} C_{s_k} = \frac{M m}{k} \cdot kB = M mB = Y,\qquad
+w_j C_j \le 1 \cdot mB < Y\;(M>1).
+\]
+Thus $W C_{\max} = Y$.
 
-If $W C_{\max} \le Y$, then $C_T$ cannot exceed $(m-1)B + 3m + 1$.
-Since each separator $S_k$ occupies $M_1$ for $B$ time and the corresponding group $G_k$ must finish $M_2$ within that window,
-every $G_k$ satisfies $\sum_{j \in G_k} x_j \le B$. Combined with $\sum_{i=1}^{3m} x_i = mB$,
-this forces $\sum_{j \in G_k} x_j = B$ for all $k$, yielding a valid 3-Partition.
+\medskip\noindent\textbf{($\Leftarrow$)} Suppose there exists a schedule $\pi$ with $W C_{\max} \le Y = M \cdot mB$.
+
+\smallskip\noindent\textit{Ordering of separators.}\quad
+For any separator $S_j$ (with weight $M m / j$), its weighted completion satisfies
+$w_{s_j} C_{s_j} \le M mB$, hence $C_{s_j} \le jB$.
+On $M_1$, each separator requires $B$ time units; if $S_j$ were the $k$-th separator on $M_1$ (with $k > j$),
+its $M_1$ completion would be at least $k B > jB$, contradicting $C_{s_j} \le jB$.
+Thus each $S_j$ must occupy position $j$ among the separators on $M_1$, forcing the order
+$S_1, S_2, \dots, S_m$ and the $M_1$ timeline $[0,B], [B,2B], \dots, [(m-1)B, mB]$.
+
+\smallskip\noindent\textit{Bounding $C_T$.}\quad
+Since $w_T = M$, we have $M \cdot C_T \le M mB$, i.e., $C_T \le mB$.
+The total $M_2$ work of all element jobs is $mB$, and every separator and $T$ has $b_j = 0$,
+so $C_T \ge mB$. Hence $C_T = mB$ and $M_2$ has zero idle time before $T$.
+
+\smallskip\noindent\textit{Partition structure.}\quad
+Define $G_k$ as the set of element jobs scheduled between $S_{k-1}$ and $S_k$ in $\pi$
+(with $S_0$ denoting the start), and let $G_{m+1}$ be those after $S_m$ and before $T$.
+Set $s_k = \sum_{J_j \in G_k} x_j$; then $\sum_{k=1}^{m+1} s_k = mB$.
+All jobs in $G_k$ finish $M_1$ at time $(k-1)B$ (after $S_{k-1}$).
+
+On $M_2$, let $E_k = \sum_{i=1}^{k} s_i$ be the cumulative work of the first $k$ groups.
+Because $M_2$ has zero idle time, after processing $G_k$ and the (instantaneous) $S_k$,
+the $M_2$ clock reads $\max\{k B,\; E_k\}$.
+For $M_2$ to remain continuously busy, we must have $E_k \ge k B$ for every $k=1,\dots,m$;
+otherwise $M_2$ would finish the first $k$ groups before time $k B$ and wait for
+$G_{k+1}$ to become $M_1$-ready (at time $k B$).
+
+On the other hand, $C_{s_k} = \max\{k B,\; E_k\} \le k B$ (from $w_{s_k} C_{s_k} \le Y$),
+forcing $E_k \le k B$.
+Together we obtain $E_k = k B$ for all $k = 1,\dots,m$.
+In particular $s_{m+1} = mB - E_m = mB - mB = 0$, so $G_{m+1} = \emptyset$
+and all element jobs are placed before $S_m$.
+Moreover $s_k = E_k - E_{k-1} = k B - (k-1) B = B$ for every $k = 1,\dots,m$.
+
+\smallskip\noindent\textit{Group sizes.}\quad
+The 3-Partition bounds $B/4 < x_i < B/2$ imply that each $G_k$ contains exactly three elements:
+with fewer than three elements the sum would be at most $2 \cdot (B/2 - \varepsilon) < B$,
+while four or more elements would sum to at least $4 \cdot (B/4 + \varepsilon) > B$.
+Thus $\{G_1,\dots,G_m\}$ is a partition of the $3m$ elements into $m$ triples each summing to $B$,
+yielding a valid 3-Partition.
+
 
 \begin{center}
-\begin{tikzpicture}[x=0.16in, y=0.3in]
+\begin{tikzpicture}[x=0.25in, y=0.3in]
 	% machine index
 	\node[anchor=east] at (-0.5,5.5) {$M_1$};
 	\node[anchor=east] at (-0.5,4) {$M_2$};
 
-	% M_1: J_{j in G_1} -> S_1 -> J_{j in G_2} -> S_2 -> ... -> S_{m-1} -> J_{j in G_m} -> T
-	\draw[fill=gray!20] (0,5)   rectangle (3,6)   node[midway] {$J_{j\in G_1}$};
-	\draw[fill=gray!50] (3,5)   rectangle (10,6)  node[midway] {$S_1$};
-	\draw[fill=gray!20] (10,5)  rectangle (13,6)  node[midway] {$J_{j\in G_2}$};
-	\draw[fill=gray!50] (13,5)  rectangle (20,6)  node[midway] {$S_2$};
-	\node at (24,5.5) {$\cdots$};
-	\draw[fill=gray!50] (27,5)  rectangle (34,6)  node[midway] {$S_{m-1}$};
-	\draw[fill=gray!20] (34,5)  rectangle (37,6)  node[midway] {$J_{j\in G_m}$};
-	\draw[fill=gray!80] (37,5)  rectangle (38,6)  node[midway] {$T$};
+	% M_1: only separators occupy time (element jobs and T have a_j = 0)
+	\draw[fill=gray!50] (0,5)   rectangle (7,6)   node[midway] {$S_1$};
+	\draw[fill=gray!50] (7,5)   rectangle (14,6)  node[midway] {$S_2$};
+	\node at (17,5.5) {$\cdots$};
+	\draw[fill=gray!50] (20,5)  rectangle (27,6)  node[midway] {$S_{m}$};
 
-	% M_2: J_{j in G_1} -> J_{j in G_2} -> ... -> J_{j in G_m} -> T
-	\draw[fill=gray!20] (1,3.5)  rectangle (10,4.5)   node[midway] {$J_{j\in G_1}$};
-	\draw[fill=gray!20] (10,3.5) rectangle (20,4.5)   node[midway] {$J_{j\in G_2}$};
-	\node at (24,4) {$\cdots$};
-	\draw[fill=gray!20] (27,3.5) rectangle (37,4.5)   node[midway] {$J_{j\in G_m}$};
-	\draw[gray!80, line width=1.2pt] (37,3.5) -- (37,4.5);
+	% M_2: only element jobs occupy time (separators and T have b_j = 0)
+	\draw[fill=gray!20] (0,3.5)  rectangle (7,4.5)   node[midway] {$J_{j\in G_1}$};
+	\draw[fill=gray!20] (7,3.5)  rectangle (14,4.5)  node[midway] {$J_{j\in G_2}$};
+	\node at (17,4) {$\cdots$};
+	\draw[fill=gray!20] (20,3.5) rectangle (27,4.5)  node[midway] {$J_{j\in G_{m}}$};
 
 	% x-axis
-	\draw[thick] (0,2.2) -- (38,2.2);
-	\foreach \x/\label in {0/0, 3/$|G_1|$, 10/$|G_1|{+}B$, 20/$|G_1|{+}|G_2|{+}2B$, 38/$(m{-}1)B{+}3m{+}1$}
+	\draw[thick] (0,2.2) -- (30,2.2);
+	\foreach \x/\label in {0/0, 7/$B$, 14/$2B$, 20/$(m{-}1)B$, 27/$mB$}
 	{
 		\draw (\x,2.2) -- (\x,2.4);
 		\node[below, font=\footnotesize] at (\x,2.0) {\label};
 	}
 
 	% caption
-	\node[below] at (19,0.5) {Figure 3-2: 3-Partition reduction schedule.};
+	\node[below] at (15,0.5) {Figure 3-2: 3-Partition reduction schedule. $T$ completes at $mB$ (zero processing time).};
 \end{tikzpicture}
 \label{fig:3-2}
 \end{center}
 
 Thus $F2 \parallel W C_{\max}$ is strongly NP-hard.
-\end{proof} 
-
-
-
-
-
+\end{proof}
 \section{\texorpdfstring{$F2 \parallel W C_{\max}$}{F2 || W C\_max} for the number of weights is constant} 
 \label{sec:dp_algorithm}
 In this chapter, we will propose an idea to guide the dynamic programming algorithm for solving this problem, 
