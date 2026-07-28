@@ -329,117 +329,71 @@ the constructed $F2 \parallel W C_{\max}$ instance admits a schedule with $W C_{
     $F2 \parallel W C_{\max}$ is strongly NP-hard.
 \end{theorem}
 \begin{proof}
-We reduce from the 3-Partition problem: given $3m$ positive integers $x_1,\dots,x_{3m}$ and a bound $B$ with
-$B/4 < x_i < B/2$ and $\sum_{i=1}^{3m} x_i = mB$, can the integers be partitioned into $m$ triples each summing to $B$?
-Construct an instance of $F2 \parallel W C_{\max}$ with $n = 4m + 1$ jobs as follows (see Figure~\ref{fig:3-2}).
-Let $M = n$.
+We reduce from the 3-Partition problem: given $3m$ positive integers $x_1,\dots,x_{3m}$ and bound $B$,
+$B/4 < x_i < B/2$, $\sum_{i=1}^{3m} x_i = mB$, can the integers be partitioned into $m$ triples each summing to $B$?
+Construct an instance of $F2 \parallel W C_{\max}$ with $n = 4m$ jobs:
 \begin{itemize}
-  \item $3m$ element jobs $J_1,\dots,J_{3m}$: $a_j = 0$, $b_j = x_j$, $w_j = 1$;
-  \item $m$ separator jobs $S_1,\dots,S_{m}$: $a_{s_k} = B$, $b_{s_k} = 0$, $w_{s_k} = M \cdot m / k$;
-  \item one terminal job $T$: $a_T = 0$, $b_T = 0$, $w_T = M$.
+  \item Element jobs $J_1,\dots,J_{3m}$: $a_j = 1$, $b_j = x_j$, $w_j = 1$;
+  \item Separator jobs $S_1,\dots,S_{m}$: $a_{s_k} = B$, $b_{s_k} = 0$, $w_{s_k} = 2$;
+  \item Terminal job $T$: $a_T = 1$, $b_T = 0$, $w_T = 3$.
 \end{itemize}
-Element jobs and $T$ have $a_j = 0$, so they occupy no processing time on $M_1$;
-symmetrically, separators and $T$ have $b_j = 0$, occupying no time on $M_2$.
-Thus the total $M_1$ work is $\sum a_j = mB$ (solely from the $m$ separators),
-and the total $M_2$ work is $\sum b_j = mB$ (solely from the $3m$ element jobs).
-Define the threshold $Y = M \cdot mB$.
+On $M_1$, schedule the $3m$ element jobs partitioned into $m$ groups $G_1,\dots,G_m$ interleaved with separators
+as shown in Figure~\ref{fig:3-2}, where $|G_k| = 3$. All jobs process on $M_2$ in the same order.
+Define the threshold $Y = 3\bigl(mB + 3m + 1\bigr)$.
 
-\medskip\noindent\textbf{($\Rightarrow$)} Suppose a 3-Partition exists, i.e., there is a partition of the $3m$ elements into
-$m$ triples $G_1,\dots,G_m$ with $\sum_{J_j \in G_k} x_j = B$ for each $k$.
-Arrange the jobs in the order $G_1, S_1, G_2, S_2, \dots, G_m, S_m, T$.
-Since $a_j = 0$ for element jobs and $T$, on $M_1$ the separators occupy
-$[0,B], [B,2B], \dots, [(m-1)B, mB]$ without interruption;
-$C_{s_k}^1 = kB$ for each $k$, and $C_T^1 = mB$.
-On $M_2$, element jobs in $G_1$ start at time~$0$ and, by the partition property,
-each $G_k$ finishes at time $kB$, which equals the $M_1$ completion of $S_k$.
-Hence $M_2$ has no idle time.
-The separator $S_k$ passes through $M_2$ instantly at time $kB$, so $C_{s_k} = kB$,
-and the terminal job starts on $M_2$ at $\max\{mB,\, mB\} = mB$, yielding $C_T = mB$.
-Consequently
-\[
-w_T C_T = M \cdot mB = Y,\qquad
-w_{s_k} C_{s_k} = \frac{M m}{k} \cdot kB = M mB = Y,\qquad
-w_j C_j \le 1 \cdot mB < Y\;(M>1).
-\]
-Thus $W C_{\max} = Y$.
+If a 3-Partition exists, each $G_k$ has total $M_2$ work $B$, which completes exactly during $S_k$'s $M_1$ processing.
+No idle time accumulates on $M_2$; the terminal $T$ completes at $C_T = mB + 3m + 1$,
+and $W C_{\max} = 3 \cdot C_T = Y$.
 
-\medskip\noindent\textbf{($\Leftarrow$)} Suppose there exists a schedule $\pi$ with $W C_{\max} \le Y = M \cdot mB$.
-
-\smallskip\noindent\textit{Ordering of separators.}\quad
-For any separator $S_j$ (with weight $M m / j$), its weighted completion satisfies
-$w_{s_j} C_{s_j} \le M mB$, hence $C_{s_j} \le jB$.
-On $M_1$, each separator requires $B$ time units; if $S_j$ were the $k$-th separator on $M_1$ (with $k > j$),
-its $M_1$ completion would be at least $k B > jB$, contradicting $C_{s_j} \le jB$.
-Thus each $S_j$ must occupy position $j$ among the separators on $M_1$, forcing the order
-$S_1, S_2, \dots, S_m$ and the $M_1$ timeline $[0,B], [B,2B], \dots, [(m-1)B, mB]$.
-
-\smallskip\noindent\textit{Bounding $C_T$.}\quad
-Since $w_T = M$, we have $M \cdot C_T \le M mB$, i.e., $C_T \le mB$.
-The total $M_2$ work of all element jobs is $mB$, and every separator and $T$ has $b_j = 0$,
-so $C_T \ge mB$. Hence $C_T = mB$ and $M_2$ has zero idle time before $T$.
-
-\smallskip\noindent\textit{Partition structure.}\quad
-Define $G_k$ as the set of element jobs scheduled between $S_{k-1}$ and $S_k$ in $\pi$
-(with $S_0$ denoting the start), and let $G_{m+1}$ be those after $S_m$ and before $T$.
-Set $s_k = \sum_{J_j \in G_k} x_j$; then $\sum_{k=1}^{m+1} s_k = mB$.
-All jobs in $G_k$ finish $M_1$ at time $(k-1)B$ (after $S_{k-1}$).
-
-On $M_2$, let $E_k = \sum_{i=1}^{k} s_i$ be the cumulative work of the first $k$ groups.
-Because $M_2$ has zero idle time, after processing $G_k$ and the (instantaneous) $S_k$,
-the $M_2$ clock reads $\max\{k B,\; E_k\}$.
-For $M_2$ to remain continuously busy, we must have $E_k \ge k B$ for every $k=1,\dots,m$;
-otherwise $M_2$ would finish the first $k$ groups before time $k B$ and wait for
-$G_{k+1}$ to become $M_1$-ready (at time $k B$).
-
-On the other hand, $C_{s_k} = \max\{k B,\; E_k\} \le k B$ (from $w_{s_k} C_{s_k} \le Y$),
-forcing $E_k \le k B$.
-Together we obtain $E_k = k B$ for all $k = 1,\dots,m$.
-In particular $s_{m+1} = mB - E_m = mB - mB = 0$, so $G_{m+1} = \emptyset$
-and all element jobs are placed before $S_m$.
-Moreover $s_k = E_k - E_{k-1} = k B - (k-1) B = B$ for every $k = 1,\dots,m$.
-
-\smallskip\noindent\textit{Group sizes.}\quad
-The 3-Partition bounds $B/4 < x_i < B/2$ imply that each $G_k$ contains exactly three elements:
-with fewer than three elements the sum would be at most $2 \cdot (B/2 - \varepsilon) < B$,
-while four or more elements would sum to at least $4 \cdot (B/4 + \varepsilon) > B$.
-Thus $\{G_1,\dots,G_m\}$ is a partition of the $3m$ elements into $m$ triples each summing to $B$,
-yielding a valid 3-Partition.
-
+If $W C_{\max} \le Y$, then $C_T$ cannot exceed $mB + 3m + 1$.
+Since each separator $S_k$ occupies $M_1$ for $B$ time and the corresponding group $G_k$ must finish $M_2$ within that window,
+every $G_k$ satisfies $\sum_{j \in G_k} x_j \le B$. Combined with $\sum_{i=1}^{3m} x_i = mB$,
+this forces $\sum_{j \in G_k} x_j = B$ for all $k$, yielding a valid 3-Partition.
 
 \begin{center}
-\begin{tikzpicture}[x=0.25in, y=0.3in]
+\begin{tikzpicture}[x=0.16in, y=0.3in]
 	% machine index
 	\node[anchor=east] at (-0.5,5.5) {$M_1$};
 	\node[anchor=east] at (-0.5,4) {$M_2$};
 
-	% M_1: only separators occupy time (element jobs and T have a_j = 0)
-	\draw[fill=gray!50] (0,5)   rectangle (7,6)   node[midway] {$S_1$};
-	\draw[fill=gray!50] (7,5)   rectangle (14,6)  node[midway] {$S_2$};
-	\node at (17,5.5) {$\cdots$};
-	\draw[fill=gray!50] (20,5)  rectangle (27,6)  node[midway] {$S_{m}$};
+	% M_1
+	\draw[fill=gray!20] (0,5)   rectangle (3,6)   node[midway] {$J_{j\in G_1}$};
+	\draw[fill=gray!50] (3,5)   rectangle (10,6)  node[midway] {$S_1$};
+	\draw[fill=gray!20] (10,5)  rectangle (13,6)  node[midway] {$J_{j\in G_2}$};
+	\draw[fill=gray!50] (13,5)  rectangle (20,6)  node[midway] {$S_2$};
+	\node at (23,5.5) {$\cdots$};
+	\draw[fill=gray!20] (25,5)   rectangle (28,6)   node[midway] {$J_{j\in G_m}$};
+	\draw[fill=gray!50] (28,5)  rectangle (35,6)  node[midway] {$S_{m}$};
+	\draw[fill=gray!80] (35,5)  rectangle (36,6)  node[midway] {$T$};
 
-	% M_2: only element jobs occupy time (separators and T have b_j = 0)
-	\draw[fill=gray!20] (0,3.5)  rectangle (7,4.5)   node[midway] {$J_{j\in G_1}$};
-	\draw[fill=gray!20] (7,3.5)  rectangle (14,4.5)  node[midway] {$J_{j\in G_2}$};
-	\node at (17,4) {$\cdots$};
-	\draw[fill=gray!20] (20,3.5) rectangle (27,4.5)  node[midway] {$J_{j\in G_{m}}$};
+    
+	% M_2
+	\draw[fill=gray!20] (1,3.5)  rectangle (11,4.5)   node[midway] {$J_{j\in G_1}$};
+	\draw[fill=gray!20] (11,3.5) rectangle (21,4.5)   node[midway] {$J_{j\in G_2}$};
+	\node at (24,4) {$\cdots$};
+	\draw[fill=gray!20] (26,3.5) rectangle (36,4.5)   node[midway] {$J_{j\in G_{m}}$};
 
 	% x-axis
-	\draw[thick] (0,2.2) -- (30,2.2);
-	\foreach \x/\label in {0/0, 7/$B$, 14/$2B$, 20/$(m{-}1)B$, 27/$mB$}
+	\draw[thick] (0,2.2) -- (38,2.2);
+	\foreach \x/\label in {0/0 ,1/1 , 3/$|G_1|$ ,10/$|G_1|{+}B$, 20/$|G_1|{+}|G_2|{+}2B$, 36/$mB{+}3m{+}1$}
 	{
 		\draw (\x,2.2) -- (\x,2.4);
 		\node[below, font=\footnotesize] at (\x,2.0) {\label};
 	}
 
 	% caption
-	\node[below] at (15,0.5) {Figure 3-2: 3-Partition reduction schedule. $T$ completes at $mB$ (zero processing time).};
+	\node[below] at (19,0.5) {Figure 3-2: 3-Partition reduction schedule.};
 \end{tikzpicture}
 \label{fig:3-2}
 \end{center}
 
 Thus $F2 \parallel W C_{\max}$ is strongly NP-hard.
-\end{proof}
+\end{proof} 
+
+
+
+
+
 \section{\texorpdfstring{$F2 \parallel W C_{\max}$}{F2 || W C\_max} for the number of weights is constant} 
 \label{sec:dp_algorithm}
 In this chapter, we will propose an idea to guide the dynamic programming algorithm for solving this problem, 
