@@ -27,6 +27,8 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, positioning, decorations.pathreplacing}
 
+\allowdisplaybreaks
+
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{cor}{Corollary}[section]
 \newtheorem{lemma}{Lemma}[section]
@@ -74,6 +76,7 @@
 \section{Preliminaries}
 \label{sec:preliminaries}
 
+\subsection{Problem Description}
 We consider the problem $F2 \parallel W C_{\max}$.
 Let $\mathcal{J} = \{J_1, J_2, \dots, J_n\}$ be the set of $n$ jobs to be processed on two machines $M_1$ and $M_2$ in series:
  each job $J_j$ must be processed first on $M_1$ for $a_j$ time units and then on $M_2$ for $b_j$ time units, with no preemption allowed.
@@ -81,10 +84,7 @@ $M_1$ and $M_2$ can process at most one job at a time.
 Each job $J_j$ has a weight $w_j > 0$.
 A schedule $\pi = (\pi(1), \pi(2), \dots, \pi(n))$ specifies the processing order on both machines.
 For a schedule $\pi$, let $A_j = \sum_{h=1}^{j} a_{\pi(h)}$ and $B_j = \sum_{h=1}^{j} b_{\pi(h)}$  be the cumulative $M_1$ and $M_2$ completion times after the first $j$ jobs.
-
 The objective is to find a schedule $\pi$ that minimizes $W C_{\max}$.
-
-
 
 For $F2 \parallel W C_{\max}$, a permutation schedule in which the job order on $M_1$ and $M_2$, 
 Possess an identical processing order for jobs (\citealp{baker1974introduction}).
@@ -92,207 +92,23 @@ Johnson's rule (\citealp{johnson1954optimal}) sequences all $n$ jobs to minimize
 jobs with $a_j \le b_j$ go first in non-decreasing order of $a_j$, and the remaining jobs follow
 in non-increasing order of $b_j$.
 
-\begin{lemma}\label{lem:johnson}
-For $F2 \parallel W C_{\max}$, there exists an optimal schedule in which all jobs are sequenced according to Johnson's rule.
-\end{lemma}
-\noindent\textbf{Proof.}
-Consider any optimal schedule $\pi^*$ for $F2 \parallel W C_{\max}$.
-If the jobs in $\pi^*$ are already in Johnson order, we are done.
-Otherwise, there exist two adjacent jobs $J_u$ and $J_v$ (with $J_u$ immediately preceding $J_v$)
-that violate Johnson's rule, i.e., $\min\{a_u, b_v\} > \min\{a_v, b_u\}$.
-
-Let $\pi'$ be the schedule obtained by swapping $J_u$ and $J_v$.
-For any permutation schedule $\sigma$, its makespan can be expressed as
-\[
-C(\sigma)=\max_{1\le r\le n}\Bigl\{\sum_{h=1}^{r} a_{\sigma(h)} + \sum_{h=r}^{n} b_{\sigma(h)}\Bigr\}.
-\]
-A standard exchange argument shows that when $\min\{a_u, b_v\} > \min\{a_v, b_u\}$, swapping $J_u$ and $J_v$ does not increase
-the makespan, i.e., $C(\pi') \le C(\pi^*)$.
-Moreover, since the two jobs are adjacent on both machines and the swap only affects these two positions,
-all other jobs finish no later in $\pi'$ than in $\pi^*$.
-Hence for every job $J_j$, its completion time $C_j(\pi') \le C_j(\pi^*)$,
-which implies $w_j C_j(\pi') \le w_j C_j(\pi^*)$ for all $j$.
-Therefore $W C_{\max}(\pi') \le W C_{\max}(\pi^*)$.
-By repeatedly applying this exchange argument to adjacent inversions,
-any schedule can be transformed into a Johnson-ordered schedule
-without increasing the objective value.
-Thus, there exists an optimal schedule in which all jobs are sequenced according to Johnson's rule.
-\hfill$\Box$
-
-
-\subsection{Mixed Integer Linear Programming Formulation}
-
-The problem $F2 \parallel W C_{\max}$ can be formulated as a mixed integer linear program (MILP).
-For a permutation schedule, let the positions be indexed by $k = 1,\dots,n$.
-We introduce the following decision variables:
-\begin{itemize}
-	\item $x_{jk} \in \{0,1\}$ --- equals $1$ if job $J_j$ occupies position $k$, and $0$ otherwise;
-	\item $C_k^1 \ge 0$ --- completion time of the job at position $k$ on $M_1$;
-	\item $C_k^2 \ge 0$ --- completion time of the job at position $k$ on $M_2$;
-	\item $C_j \ge 0$ --- completion time of job $J_j$ on $M_2$;
-	\item $Z \ge 0$ --- the maximum weighted completion time $W C_{\max}$.
-\end{itemize}
-
-Let $M = \sum_{j=1}^{n}(a_j + b_j)$ be a sufficiently large constant.
-The MILP model is:
-
-\begin{align}
-	\min \quad & Z \label{milp:obj} \\[4pt]
-	\text{s.t.} \quad & \sum_{k=1}^{n} x_{jk} = 1, \quad \forall\, j \in \mathcal{J} \label{milp:assign1} \\[4pt]
-	& \sum_{j=1}^{n} x_{jk} = 1, \quad \forall\, k = 1,\dots,n \label{milp:assign2} \\[4pt]
-	& C_1^1 = \sum_{j=1}^{n} a_j x_{j1} \label{milp:m1_start} \\[4pt]
-	& C_k^1 = C_{k-1}^1 + \sum_{j=1}^{n} a_j x_{jk}, \quad \forall\, k = 2,\dots,n \label{milp:m1_rec} \\[4pt]
-	& C_1^2 = C_1^1 + \sum_{j=1}^{n} b_j x_{j1} \label{milp:m2_start} \\[4pt]
-	& C_k^2 \ge C_k^1 + \sum_{j=1}^{n} b_j x_{jk}, \quad \forall\, k = 2,\dots,n \label{milp:m2_a} \\[4pt]
-	& C_k^2 \ge C_{k-1}^2 + \sum_{j=1}^{n} b_j x_{jk}, \quad \forall\, k = 2,\dots,n \label{milp:m2_b} \\[4pt]
-	& C_j \ge C_k^2 - M(1 - x_{jk}), \quad \forall\, j \in \mathcal{J},\; k = 1,\dots,n \label{milp:link} \\[4pt]
-	& Z \ge w_j C_j, \quad \forall\, j \in \mathcal{J} \label{milp:wcmax} \\[4pt]
-	& x_{jk} \in \{0,1\},\quad C_k^1, C_k^2, C_j, Z \ge 0 \label{milp:dom}
-\end{align}
-
-Constraint (\ref{milp:assign1})--(\ref{milp:assign2}) ensure a one-to-one assignment between jobs and positions.
-Constraints (\ref{milp:m1_start})--(\ref{milp:m1_rec}) compute the completion time of each position on $M_1$.
-Constraints (\ref{milp:m2_start})--(\ref{milp:m2_b}) compute the completion time of each position on $M_2$:
-for $k \ge 2$, the job at position $k$ starts on $M_2$ only after it completes $M_1$ and the preceding job releases $M_2$.
-Constraint (\ref{milp:link}) links the position-based completion times to the job-based completion times via a big-$M$ formulation:
-when $x_{jk} = 1$, job $J_j$ is at position $k$ and $C_j \ge C_k^2$;
-when $x_{jk} = 0$, the right-hand side becomes $C_k^2 - M \le 0$, which is non-binding.
-Constraint (\ref{milp:wcmax}) enforces $Z \ge w_j C_j$ for every job, so that minimizing $Z$ yields the optimal $W C_{\max}$.
-
-\section{Problem formulation}
-
-
-\begin{theorem}\label{thm:nphard}
-    $F2 \parallel W C_{\max}$ is NP-hard.
-\end{theorem}
-\begin{proof}
-We reduce from the Partition problem: given $n$ positive integers $x_1, x_2, \dots, x_r$ with $\sum_{i=1}^{r} x_i = 2T$, 
-does there exist subset $Z_1$ and $Z_2 \subseteq \{1,\dots,r\}$ such that:
- $\sum_{i \in Z_1} x_i$ = $\sum_{i \in Z_2} x_i$ = $T$?
-
-Construct an instance of $F2 \parallel W C_{\max}$,  Let the number of jobs $n = r + 1$.
-Let $a_j = 1$, $b_j = rx_j$, $w_j = T+1$ for jobs $j = 1,\dots,n-1$.
-Put $a_n = rT$, $b_n = 1$, $w_n = 2T+1$ for job $J_n$.
-Does there exist a threshold Y such that:
-\[
-W C_{\max} \le Y = r(T+1)(2T+1)
-\]
-holds?
-
-
-\begin{center}
-\begin{tikzpicture}[x=0.15in, y=0.3in]  \label{Figure-4.1}
-	% machine index
-	\node[anchor=east] at (-0.5,5.5) {$M_1$};
-	\node[anchor=east] at (-0.5,4) {$M_2$};
-
-	% job on M_1 (all 6 jobs in Johnson order)
-	\draw[fill=gray!20] (0,5)   rectangle (2,6)   node[midway] {$J_1$};
-	\draw[fill=gray!20] (2,5)   rectangle (7,6)   node[midway] {$J_2$};
-	\draw[fill=gray!20] (7,5)   rectangle (13,6)  node[midway] {$J_3$};
-
-	% job on M_2 (all 6 jobs, start when M1 finishes and M2 is free)
-	\draw[fill=gray!70] (2,3.5)  rectangle (7,4.5)  node[midway] {$J_1$};
-	\draw[fill=gray!70] (7,3.5)  rectangle (14,4.5) node[midway] {$J_2$};
-	\draw[fill=gray!70] (14,3.5) rectangle (23,4.5) node[midway] {$J_3$};
-
-
-	% x-axis
-	\draw[thick] (0,2.2) -- (35,2.2);
-	\foreach \x/\label in {0/0, 2/2, 7/7, 13/13, 14/14, 21/21, 23/23, 25/25, 27/27, 28/28, 30/30, 32/32} {
-		\draw (\x,2.2) -- (\x,2.4);
-		\node[below, font=\footnotesize] at (\x,2.0) {\label};
-	}
-
-	% caption
-	\node[below] at (17,0.5) {Figure 3.1};
-\end{tikzpicture}
-\end{center}
-
-We partition jobs $j_1$ to $j_{n-1}$ into two subsets via $j_n$, 
-the distribution of jobs on the machine is($\mathcal{J}_{j\epsilon A_1}, J_n, \mathcal{J}_{j\epsilon A_2}$). 
-Since the processing times of $A_1$ and $A_2$ are unknown, while their total processing time is 2T. 
-We may assume that the processing time of $A_1$ on $M_2$ is $r(T+\xi)$, $A_2$ is $r(T-\xi)$, where $-T\le\xi\le T$.
-Therefore, the completion time of $J_n$ is determined by the following formula:
-\begin{equation}\label{eq:completetime1}
-    \qquad
-    C_n^1 = |A_1| + rT + 1
-\end{equation}
-\begin{equation}\label{eq:completetime2}
-    \qquad
-    C_n^2 = 1 + r ( T + \xi ) + 1
-\end{equation}
-and $C_n = \max \{C_n^1, C_n^2\}$
-
-If $\xi = 0$, then $\sum_{j\epsilon A_1}b_j =\sum_{j\epsilon A_2}b_j $, which means the partition problem has a feasible solution. 
-In this case, the completion time of job \(J_n\) is determined by \eqref{eq:completetime1}, we have:
-\begin{align*}
-w_nC_n &= (2T+1)(|A_1| + rT + 1) \\
-       &\leqslant (2T+1)(rT + r) \\
-       &= r(T+1)(2T+1) \\
-       &= Y\\
-W C_{\max} &= r(T+1)(C_n + rT) = Y
-\end{align*}
-so $w_jC_j \leqslant W C_{\max} = Y$
-
-If the scheduling problem exists a threshold y such that \(W C_{\text{max}} \le y\).
-When $ \xi > 0 $, $C_n$is determined by \eqref{eq:completetime2}, we have:
-\begin{align*}
-w_nC_n &= (1 + r ( T + \xi ) + 1)(2T + 1) \\
-        &\geqslant (1 + r ( T + 1 ) + 1)(2T + 1) \\
-        &> Y
-\end{align*}
-When $ \xi < 0 $, $C_n$is determined by \eqref{eq:completetime1}, we have:
-\begin{align*}
-W C_{\max} &= (C_n +  \sum_{j\epsilon A_2}b_j)(T+1)  \\
-         &= (1 + rT + |A_1|  + r ( T - \xi ))(T+1) \\
-         &\geqslant (rT + r + rT)(T+1)  \\
-         &= r(T+1)(2T+1) = Y
-\end{align*}
-so $W C_{\max} > Y$, there exists a contradiction.
-
-
-Therefore, the Partition instance admits a solution if and only if 
-the constructed $F2 \parallel W C_{\max}$ instance admits a schedule with $W C_{\max} \le Y$.
-    
-\end{proof}
-
-
-
-\section{\texorpdfstring{$F2 \parallel W C_{\max}$}{F2 || W C\_max} for the number of weights is constant} 
-\label{sec:dp_algorithm}
-
-When the number of distinct weights $K$ is bounded by a constant, 
-the structural properties established in Section~\ref{sec:preliminaries} enable a polynomial-time dynamic programming algorithm.
-By Lemma~\ref{lem:johnson}, the initial job sequence follows Johnson's rule; 
-the block partition and all subsequent steps are defined with respect to this Johnson order.
-We first describe the block partition and group logic underlying our approach, 
-then present the DP formulation, and finally give the complete algorithm and its complexity analysis.
-
-\subsection{Algorithm Properties and Dynamic Programming}
-
-Starting from the first job, a new block is created whenever a weight value not encountered before appears, 
-that job becomes the final job of the current block, and the next job starts a new block. 
-Jobs of the same weight form a natural group, denoted $\mathcal{G}_1, \mathcal{G}_2, \dots, \mathcal{G}_K$. 
-Since each block introduces at least one previously unseen weight, the procedure yields at most $K$ blocks, 
-denoted $\mathcal{B}_1, \mathcal{B}_2, \dots, \mathcal{B}_K$. By construction, 
-the final job of each block carries the weight that triggered the cut.
-By construction, block weights are non-increasing, 
-i.e., $W(\mathcal{B}_1) \ge W(\mathcal{B}_2) \ge \cdots \ge W(\mathcal{B}_K)$. 
-
+Jobs sharing the same weight form a group $\mathcal{G}_1, \mathcal{G}_2, \dots, \mathcal{G}_K$, ordered by their first appearance in the Johnson sequence.
+Scanning the sequence left to right, we cut it into blocks $\mathcal{B}_1, \mathcal{B}_2, \dots, \mathcal{B}_K$:
+whenever a weight not seen before appears, that job closes the current block and the next job opens a new block.
+Thus each block ends with the job that first introduces its weight, and block weights are non-increasing:
+$W(\mathcal{B}_1) \ge W(\mathcal{B}_2) \ge \cdots \ge W(\mathcal{B}_K)$.
 
 \begin{exam}\label{ex:blocking}
 Consider a 6-job instance with Johnson sequence $\pi = (J_1, \dots, J_6)$ and jobs with (aj, bj, wj) values: 
 $(J_1,\dots,J_6) = {(2, 5, 2); (5, 7, 2); (6, 9, 5); (8, 4, 2); (4, 3, 4); (3, 2 ,2);}$.
 
 Scanning $\pi$ from left to right and cutting whenever a weight not seen before appears yields the following partition:
-The resulting blocks are $\mathcal{B}_1=\{J_1,J_2,J_3\}$, $\mathcal{B}_2=\{J_4,J_5\}$, $\mathcal{B}_3=\{J_6\}$. 
-And $\mathcal{G}_1=\{J_3\}$, $\mathcal{G}_2=\{J_5\}$, $\mathcal{G}_3=\{J_1,J_2,J_4,J_6\}$.
+The resulting are $\mathcal{G}_1=\{J_3\}$, $\mathcal{G}_2=\{J_5\}$, $\mathcal{G}_3=\{J_1,J_2,J_4,J_6\}$. 
+And $\mathcal{B}_1=\{J_1,J_2,J_3\}$, $\mathcal{B}_2=\{J_4,J_5\}$, $\mathcal{B}_3=\{J_6\}$.
 \end{exam}
 
-
 \begin{center}
-\begin{tikzpicture}[x=0.15in, y=0.3in]  \label{Figure-4.1}
+\begin{tikzpicture}[x=0.15in, y=0.3in]
 	% machine index
 	\node[anchor=east] at (-0.5,5.5) {$M_1$};
 	\node[anchor=east] at (-0.5,4) {$M_2$};
@@ -325,17 +141,261 @@ And $\mathcal{G}_1=\{J_3\}$, $\mathcal{G}_2=\{J_5\}$, $\mathcal{G}_3=\{J_1,J_2,J
 \end{tikzpicture}
 \end{center}
 
-
 \begin{lemma}\label{lem:block-johnson}
-For a given schedule  $\pi$, rescheduling each blocks for $\mathcal{B}_1, \mathcal{B}_2, \dots, \mathcal{B}_K$
-to Johnson's algorithm and concatenating blocks schedules delivers a schedule of length at most $WC(\pi)$
+For a given schedule  $\pi$, rescheduling each blocks to Johnson's ruler(\citealp{johnson1954optimal}) and 
+concatenating blocks schedules delivers a schedule of length at most $WC(\pi)$
 \end{lemma}
 \begin{proof}
-    
+By construction, the last job of block $\mathcal{B}_k$ carries weight $W(\mathcal{B}_k)$,
+and every job in $\mathcal{B}_k$ has weight at most $W(\mathcal{B}_k)$,
+since any weight appearing in $\mathcal{B}_k$ either equals $W(\mathcal{B}_k)$ or has already appeared in an earlier block with larger weight.
+Let $C_{\max}^{(k)}(\sigma)$ be the completion time of the last job in $\mathcal{B}_k$ under schedule $\sigma$.
+For any job $J_j \in \mathcal{B}_k$, its completion time satisfies $C_j(\sigma) \le C_{\max}^{(k)}(\sigma)$
+and $w_j \le W(\mathcal{B}_k)$, hence
+$w_j C_j(\sigma) \le W(\mathcal{B}_k) \cdot C_{\max}^{(k)}(\sigma)$.
+
+Johnson's rule minimizes the makespan for $F2 \parallel C_{\max}$~\citep{johnson1954optimal}.
+Let $\pi'$ be the schedule obtained by reordering each $\mathcal{B}_k$ internally by Johnson's rule
+while preserving the block sequence.
+We prove $C_{\max}^{(k)}(\pi') \le C_{\max}^{(k)}(\pi)$ for all $k$ by induction on $k$.
+
+For $k=1$, block $\mathcal{B}_1$ starts at time zero on both machines under either schedule,
+so internal Johnson ordering directly gives $C_{\max}^{(1)}(\pi') \le C_{\max}^{(1)}(\pi)$.
+Assume $C_{\max}^{(k-1)}(\pi') \le C_{\max}^{(k-1)}(\pi)$.
+On $M_1$, the start time of $\mathcal{B}_k$ equals the total $M_1$ work of $\mathcal{B}_1,\dots,\mathcal{B}_{k-1}$,
+which is unchanged by internal reordering, so $\mathcal{B}_k$ starts at the same time on $M_1$ under both schedules.
+On $M_2$, $\mathcal{B}_k$ starts at $\max\{\text{its own $M_1$ completion},\; C_{\max}^{(k-1)}\}$;
+the first term is identical and the second is no larger under $\pi'$ by the induction hypothesis.
+Thus $\mathcal{B}_k$ starts no later on $M_2$ under $\pi'$, and with the same $M_1$ start and internal Johnson ordering,
+$C_{\max}^{(k)}(\pi') \le C_{\max}^{(k)}(\pi)$.
+
+Therefore
+$WC_{\max}(\pi') = \max_{j} w_j C_j(\pi')
+\le \max_{k} W(\mathcal{B}_k) \cdot C_{\max}^{(k)}(\pi')
+\le \max_{k} W(\mathcal{B}_k) \cdot C_{\max}^{(k)}(\pi)
+\le WC_{\max}(\pi)$,
+where the last inequality holds because for the job $J^*$ achieving $WC_{\max}(\pi)$,
+letting $\mathcal{B}_{k^*}$ be its block, $WC_{\max}(\pi) = w_{J^*} C_{J^*}(\pi) = W(\mathcal{B}_{k^*}) \cdot C_{\max}^{(k^*)}(\pi)$.
+\end{proof} 
+
+
+\subsection{Mixed Integer Linear Programming Formulation}
+The problem $F2 \parallel W C_{\max}$ can be formulated as a mixed integer linear program (MILP).
+For a permutation schedule, let the positions be indexed by $k = 1,\dots,n$.
+We introduce the following decision variables:
+\begin{itemize}
+	\item $x_{jk} \in \{0,1\}$ --- equals $1$ if job $J_j$ occupies position $k$, and $0$ otherwise;
+	\item $C_k^1 \ge 0$ --- completion time of the job at position $k$ on $M_1$;
+	\item $C_k^2 \ge 0$ --- completion time of the job at position $k$ on $M_2$;
+	\item $C_j \ge 0$ --- completion time of job $J_j$ on $M_2$;
+	\item $Z \ge 0$ --- the maximum weighted completion time $W C_{\max}$.
+	\item $M = \sum_{j=1}^{n}(a_j + b_j)$ be a sufficiently large constant.
+\end{itemize}
+The MILP model is:
+\begin{align}
+	\min \quad & Z \label{milp:obj} \\[4pt]
+	\text{s.t.} \quad & \sum_{k=1}^{n} x_{jk} = 1, \quad \forall\, j \in \mathcal{J} \label{milp:assign1} \\[4pt]
+	& \sum_{j=1}^{n} x_{jk} = 1, \quad \forall\, k = 1,\dots,n \label{milp:assign2} \\[4pt]
+	& C_1^1 = \sum_{j=1}^{n} a_j x_{j1} \label{milp:m1_start} \\[4pt]
+	& C_k^1 = C_{k-1}^1 + \sum_{j=1}^{n} a_j x_{jk}, \quad \forall\, k = 2,\dots,n \label{milp:m1_rec} \\[4pt]
+	& C_1^2 = C_1^1 + \sum_{j=1}^{n} b_j x_{j1} \label{milp:m2_start} \\[4pt]
+	& C_k^2 \ge C_k^1 + \sum_{j=1}^{n} b_j x_{jk}, \quad \forall\, k = 2,\dots,n \label{milp:m2_a} \\[4pt]
+	& C_k^2 \ge C_{k-1}^2 + \sum_{j=1}^{n} b_j x_{jk}, \quad \forall\, k = 2,\dots,n \label{milp:m2_b} \\[4pt]
+	& C_j \ge C_k^2 - M(1 - x_{jk}), \quad \forall\, j \in \mathcal{J},\; k = 1,\dots,n \label{milp:link} \\[4pt]
+	& Z \ge w_j C_j, \quad \forall\, j \in \mathcal{J} \label{milp:wcmax} \\[4pt]
+	& x_{jk} \in \{0,1\},\quad C_k^1, C_k^2, C_j, Z \ge 0 \label{milp:dom}
+\end{align}
+
+Constraint (\ref{milp:assign1})--(\ref{milp:assign2}) ensure a one-to-one assignment between jobs and positions.
+Constraints (\ref{milp:m1_start})--(\ref{milp:m1_rec}) compute the completion time of each position on $M_1$.
+Constraints (\ref{milp:m2_start})--(\ref{milp:m2_b}) compute the completion time of each position on $M_2$:
+for $k \ge 2$, the job at position $k$ starts on $M_2$ only after it completes $M_1$ and the preceding job releases $M_2$.
+Constraint (\ref{milp:link}) links the position-based completion times to the job-based completion times via a big-$M$ formulation:
+when $x_{jk} = 1$, job $J_j$ is at position $k$ and $C_j \ge C_k^2$;
+when $x_{jk} = 0$, the right-hand side becomes $C_k^2 - M \le 0$, which is non-binding.
+Constraint (\ref{milp:wcmax}) enforces $Z \ge w_j C_j$ for every job, so that minimizing $Z$ yields the optimal $W C_{\max}$.
+
+
+
+
+\section{Problem formulation}
+
+\begin{theorem}\label{thm:nphard}
+    $F2 \parallel W C_{\max}$ is NP-hard.
+\end{theorem}
+\begin{proof}
+We reduce from the Partition problem: given $n$ positive integers $x_1, x_2, \dots, x_r$ with $\sum_{i=1}^{r} x_i = 2T$, 
+does there exist subset $Z_1$ and $Z_2 \subseteq \{1,\dots,r\}$ such that:
+ $\sum_{i \in Z_1} x_i$ = $\sum_{i \in Z_2} x_i$ = $T$?
+
+Construct an instance of $F2 \parallel W C_{\max}$,  Let the number of jobs $n = r + 1$.
+Let $a_j = 1$, $b_j = rx_j$, $w_j = T+1$ for jobs $j = 1,\dots,n-1$.
+Put $a_n = rT$, $b_n = 1$, $w_n = 2T+1$ for job $J_n$.
+Does there exist a threshold Y such that:
+\[
+W C_{\max} \le Y = r(T+1)(2T+1)
+\]
+holds?
+\begin{center}
+\begin{tikzpicture}[x=0.15in, y=0.3in] 
+	% machine index
+	\node[anchor=east] at (-0.5,5.5) {$M_1$};
+	\node[anchor=east] at (-0.5,4) {$M_2$};
+
+	% job on M_1 (all 6 jobs in Johnson order)
+	\draw[fill=gray!20] (0,5)   rectangle (5,6)   node[midway] {$J_{j\in Z_1}$};
+	\draw[fill=gray!50] (5,5)   rectangle (20,6)   node[midway] {$J_n$};
+	\draw[fill=gray!80] (20,5)   rectangle (25,6)  node[midway] {$J_{j\in Z_2}$};
+
+	% job on M_2 (all 6 jobs, start when M1 finishes and M2 is free)
+	\draw[fill=gray!20] (1,3.5)  rectangle (16,4.5)  node[midway] {$J_{j\in Z_1}$};
+	\draw[fill=gray!50] (20,3.5)  rectangle (22,4.5) node[midway] {$J_n$};
+	\draw[fill=gray!80] (22,3.5) rectangle (37,4.5) node[midway] {$J_{j\in Z_2}$};
+
+
+	% x-axis
+	\draw[thick] (0,2.2) -- (35,2.2);
+	\foreach \x/\label in {0/0 ,1/1 ,5/$|Z_1|$ ,20/$T{+}|Z_1|$ ,25/2T ,} 
+    {
+		\draw (\x,2.2) -- (\x,2.4);
+		\node[below, font=\footnotesize] at (\x,2.0) {\label};
+	}
+
+	% caption
+	\node[below] at (17,0.5) {Figure 3-1};
+\end{tikzpicture}
+\label{fig:3-1}
+\end{center}
+
+We partition jobs $j_1$ to $j_{n-1}$ into two subsets via $j_n$, 
+the distribution of jobs on the machine is shown in Figure~\ref{fig:3-1}.
+Since the processing times of $A_1$ and $A_2$ are unknown, while their total processing time is 2T. 
+We may assume that the processing time of $A_1$ on $M_2$ is $r(T+\xi)$, $A_2$ is $r(T-\xi)$, where $-T\le\xi\le T$.
+Therefore, the completion time of $J_n$ is determined by the following formula:
+\begin{equation}\label{eq:completetime1}
+    \qquad
+    C_n^1 = |A_1| + rT + 1
+\end{equation}
+\begin{equation}\label{eq:completetime2}
+    \qquad
+    C_n^2 = 1 + r ( T + \xi ) + 1
+\end{equation}
+and $C_n = \max \{C_n^1, C_n^2\}$
+
+If $\xi = 0$, then $\sum_{j\epsilon A_1}b_j =\sum_{j\epsilon A_2}b_j $, which means the partition problem has a feasible solution. 
+In this case, the completion time of job \(J_n\) is determined by \eqref{eq:completetime1}, we have:
+\begin{align*}
+C_n &= |A_1| + rT + 1 \leqslant (rT + r) = r(T+1) \\
+w_nC_n &= (2T + 1)(r(T+1)) = Y\\
+W C_{\max} &= r(T+1)(C_n + rT) = Y\\
+\end{align*}
+so $w_jC_j \leqslant W C_{\max} = Y$
+
+If the scheduling problem exists a threshold y such that \(W C_{\text{max}} \le y\).
+When $ \xi > 0 $, $C_n$is determined by \eqref{eq:completetime2}, we have:
+\begin{align*}
+C_n &= (1 + r ( T + \xi ) + 1) \geqslant (1 + r ( T + 1 ) + 1) \\
+w_nC_n  &\geqslant (2T + 1)(1 + r ( T + 1 ) + 1) = Y
+\end{align*}
+When $ \xi < 0 $, $C_n$is determined by \eqref{eq:completetime1}, we have:
+\begin{align*}
+C_{\max} &= (C_n +  \sum_{j\epsilon A_2}b_j)  \\
+         &= (1 + rT + |A_1|  + r ( T - \xi )) \\
+         &\geqslant (rT + r + rT)  \\
+         &= r(2T+1) = Y \\
+WC_{\max} &\geqslant r(T+1)(r(2T+1)) = Y\\
+\end{align*}
+so $W C_{\max} > Y$, there exists a contradiction.
+
+Therefore, the Partition instance admits a solution if and only if 
+the constructed $F2 \parallel W C_{\max}$ instance admits a schedule with $W C_{\max} \le Y$.
 \end{proof}
 
 
-\label{sec:dp_formulation}
+
+\begin{theorem}\label{thm:snphard}
+    $F2 \parallel W C_{\max}$ is strongly NP-hard.
+\end{theorem}
+\begin{proof}
+We reduce from the 3-Partition problem: given $3m$ positive integers $x_1,\dots,x_{3m}$ and bound $B$,
+$B/4 < x_i < B/2$, $\sum_{i=1}^{3m} x_i = mB$, can the integers be partitioned into $m$ triples each summing to $B$?
+Construct an instance of $F2 \parallel W C_{\max}$ with $n = 4m$ jobs:
+\begin{itemize}
+  \item Element jobs $J_1,\dots,J_{3m}$: $a_j = 1$, $b_j = x_j$, $w_j = 1$;
+  \item Separator jobs $S_1,\dots,S_{m-1}$: $a_{s_k} = B$, $b_{s_k} = 0$, $w_{s_k} = 2$;
+  \item Terminal job $T$: $a_T = 1$, $b_T = 0$, $w_T = 3$.
+\end{itemize}
+On $M_1$, schedule the $3m$ element jobs partitioned into $m$ groups $G_1,\dots,G_m$ interleaved with separators
+as shown in Figure~\ref{fig:3-2}, where $|G_k| = 3$. All jobs process on $M_2$ in the same order.
+Define the threshold $Y = 3\bigl((m-1)B + 3m + 1\bigr)$.
+
+If a 3-Partition exists, each $G_k$ has total $M_2$ work $B$, which completes exactly during $S_k$'s $M_1$ processing.
+No idle time accumulates on $M_2$; the terminal $T$ completes at $C_T = (m-1)B + 3m + 1$,
+and $W C_{\max} = 3 \cdot C_T = Y$.
+
+If $W C_{\max} \le Y$, then $C_T$ cannot exceed $(m-1)B + 3m + 1$.
+Since each separator $S_k$ occupies $M_1$ for $B$ time and the corresponding group $G_k$ must finish $M_2$ within that window,
+every $G_k$ satisfies $\sum_{j \in G_k} x_j \le B$. Combined with $\sum_{i=1}^{3m} x_i = mB$,
+this forces $\sum_{j \in G_k} x_j = B$ for all $k$, yielding a valid 3-Partition.
+
+\begin{center}
+\begin{tikzpicture}[x=0.16in, y=0.3in]
+	% machine index
+	\node[anchor=east] at (-0.5,5.5) {$M_1$};
+	\node[anchor=east] at (-0.5,4) {$M_2$};
+
+	% M_1: J_{j in G_1} -> S_1 -> J_{j in G_2} -> S_2 -> ... -> S_{m-1} -> J_{j in G_m} -> T
+	\draw[fill=gray!20] (0,5)   rectangle (3,6)   node[midway] {$J_{j\in G_1}$};
+	\draw[fill=gray!50] (3,5)   rectangle (10,6)  node[midway] {$S_1$};
+	\draw[fill=gray!20] (10,5)  rectangle (13,6)  node[midway] {$J_{j\in G_2}$};
+	\draw[fill=gray!50] (13,5)  rectangle (20,6)  node[midway] {$S_2$};
+	\node at (24,5.5) {$\cdots$};
+	\draw[fill=gray!50] (27,5)  rectangle (34,6)  node[midway] {$S_{m-1}$};
+	\draw[fill=gray!20] (34,5)  rectangle (37,6)  node[midway] {$J_{j\in G_m}$};
+	\draw[fill=gray!80] (37,5)  rectangle (38,6)  node[midway] {$T$};
+
+	% M_2: J_{j in G_1} -> J_{j in G_2} -> ... -> J_{j in G_m} -> T
+	\draw[fill=gray!20] (1,3.5)  rectangle (10,4.5)   node[midway] {$J_{j\in G_1}$};
+	\draw[fill=gray!20] (10,3.5) rectangle (20,4.5)   node[midway] {$J_{j\in G_2}$};
+	\node at (24,4) {$\cdots$};
+	\draw[fill=gray!20] (27,3.5) rectangle (37,4.5)   node[midway] {$J_{j\in G_m}$};
+	\draw[gray!80, line width=1.2pt] (37,3.5) -- (37,4.5);
+
+	% x-axis
+	\draw[thick] (0,2.2) -- (38,2.2);
+	\foreach \x/\label in {0/0, 3/$|G_1|$, 10/$|G_1|{+}B$, 20/$|G_1|{+}|G_2|{+}2B$, 38/$(m{-}1)B{+}3m{+}1$}
+	{
+		\draw (\x,2.2) -- (\x,2.4);
+		\node[below, font=\footnotesize] at (\x,2.0) {\label};
+	}
+
+	% caption
+	\node[below] at (19,0.5) {Figure 3-2: 3-Partition reduction schedule.};
+\end{tikzpicture}
+\label{fig:3-2}
+\end{center}
+
+Thus $F2 \parallel W C_{\max}$ is strongly NP-hard.
+\end{proof} 
+
+
+
+
+
+\section{\texorpdfstring{$F2 \parallel W C_{\max}$}{F2 || W C\_max} for the number of weights is constant} 
+\label{sec:dp_algorithm}
+In this chapter, we will propose an idea to guide the dynamic programming algorithm for solving this problem, 
+and present the time complexity analysis of the algorithm.
+
+When the number of distinct weights $K$ is bounded by a constant, 
+the structural properties established in Section~\ref{sec:preliminaries} enable a polynomial-time dynamic programming algorithm.
+The initial job sequence follows Johnson's rule; 
+the block partition and all subsequent steps are defined with respect to this Johnson order.
+We first describe the block partition and group logic underlying our approach, 
+then present the DP formulation, and finally give the complete algorithm and its complexity analysis.
+
+\subsection{Algorithm Properties and Dynamic Programming}
+
 
 We now develop a dynamic programming algorithm that processes jobs sequentially in Johnson order
 and assigns each job to one of the $K$ blocks $\mathcal{B}_1,\dots,\mathcal{B}_K$.
@@ -347,9 +407,6 @@ and concatenating the blocks in non-increasing weight order yields a schedule
 whose makespan is no larger than that of any other schedule respecting the same assignment.
 We denote by $\mathscr{H}$ the set of states maintained during the computation;
 each state summarizes the aggregate parameters of all $K$ blocks after a prefix of jobs has been processed.
-
-\paragraph{State Definition.}
-
 A state is a $4K$-tuple
 \[
     (C_1,\dots,C_K; \; A_1,\dots,A_K; \; B_1,\dots,B_K; \; L_1,\dots,L_K) \in \mathscr{H}
@@ -389,67 +446,57 @@ the term $T_A - A_i$ is the start time of $\mathcal{B}_i$ on $M_1$, so $T_A - A_
 is the completion time of $\mathcal{B}_i$ on $M_2$ when $M_2$ is free,
 while $T_B + B_i$ accounts for the case where $M_2$ is the bottleneck.
 
+
+\setlength{\intextsep}{4pt}
 \begin{algorithm}[H]
-\caption{}
+\caption{Block concatenation}
+\label{alg:Block-concat}
 \begin{algorithmic}[1]
-    \Require Block parameters $(A_i,\, B_i\,)$ for $i = 1,\dots,K$.
-    \Ensure Completion times $C_{\max}$.
-    \State $T_A \gets 0$, \quad $T_B \gets 0$
+    \State \textbf{Input:} Block parameters $(A_i, B_i, C_i)$ for $i = 1,\dots,K$.
+    \State \textbf{Output:} Completion time $C$ on $M_2$.
+    \State $T_{A_0} \gets 0$, \enspace $T_{B_0} \gets 0$
     \For{$i = 1$ to $K$}
-        \State $T_A^{new} \gets T_A^{old} + A_i$
-        \State $T_B^{new} \gets \max\{\, T_A^{new} - A_i + C_i,\; T_B^{old} + B_i \,\}$
+        \State $T_{A_i} \gets T_{A_{i-1}} + A_i$
+        \State $T_{B_i} \gets \max\{\, T_{A_{i-1}} + C_i,\; T_{B_{i-1}} + B_i \,\}$
     \EndFor
-    \State \Return $T_B$
+    \State $C \gets T_{B_K}$
+    \State \Return $C$
 \end{algorithmic}
 \end{algorithm}
 
-
 \begin{algorithm}[H]
-\caption{}
+\caption{DP for $F2 \parallel W C_{\max}$}
 \label{alg:dp}
 \begin{algorithmic}[1]
-    \Require Jobs $\mathcal{J}$ with $(a_j, b_j, w_j)$, numbered $1,\dots,n$ in Johnson order;
-    \Ensure The optimal objective value $W C_{\max}^*$.
+    \State \textbf{Input:} Jobs $\mathcal{J}$ with $(a_j, b_j, w_j)$ in Johnson order; block count $K$.
+    \State \textbf{Output:} The optimal value $Z^* = \min_S \max_i\,L_i\cdot T_B^{(i)}$.
     \State $\mathscr{H}^{(0)} \gets \{ (0,\dots,0) \}$
     \For{$j = 1$ to $n$}
         \State $Y_i \gets \emptyset$ for $i = 1,\dots,K$
-        \For{each $(C_1,\dots,C_K; \; A_1,\dots,A_K; \; B_1,\dots,B_K; \; L_1,\dots,L_K) \in \mathscr{H}^{(j-1)}$}
+        \For{each $(\{C_i,A_i,B_i,L_i\}_{i=1}^K) \in \mathscr{H}^{(j-1)}$}
             \For{$i = 1$ to $K$}
                 \If{$w_j \le L_i$}
-                   \State $C_i' \gets \max\{\, C_i + b_j,\; A_i + a_j + b_j \,\}$
-                    \State $A_i' \gets A_i + a_j$
-                    \State $B_i' \gets B_i + b_j$
-                    \State Add $(\dots,C_i',\dots; \; \dots,A_i',\dots; \; \dots,B_i',\dots; \; )$ to $Y_i$
+                    \State $C_i' \gets \max\{\, C_i + b_j,\; A_i + a_j + b_j \,\}$
+                    \State $A_i' \gets A_i + a_j$, \enspace $B_i' \gets B_i + b_j$
+                    \State Add $(\dots,C_i',\dots; \dots,A_i',\dots; \dots,B_i',\dots; \dots,L_i,\dots)$ to $Y_i$
                 \EndIf
-               \EndFor
+            \EndFor
         \EndFor
-        \State $\mathscr{H}^{(j)} \gets \textsc{Merge}(Y_1,\dots,Y_K)$ by Lemma~\ref{lem:block-johnson}
+        \State $\mathscr{H}^{(j)} \gets \textsc{Merge}(Y_1,\dots,Y_K)$
     \EndFor
-    \State $C_{\max} \gets +\infty$
-    \For{each state $S \in \mathscr{H}$}
-        \State $T_B \gets \textbf{Algorithm 1}\bigl( (A_1,\, B_1,\, C_1),\;\dots,\;(A_K,\, B_K,\, C_K) \bigr)$
-        \State $C_{\max} \gets \min\{\, C_{\max},\; T_B \,\}$
+    \State $Z^* \gets +\infty$
+    \For{each state $S = \{C_i, A_i, B_i, L_i\}_{i=1}^K \in \mathscr{H}^{(n)}$}
+        \For{$i = 1$ to $K$}
+            \State $C{(S)} \gets \textsc{Algorithm~\ref{alg:Block-concat}}\bigl((A_1,B_1,C_1),\dots,(A_i,B_i,C_i)\bigr)$
+        \EndFor
+        \State $W C_{\max} \gets \max_{i=1,\dots,K}\; L_i \cdot C{(S)}$,
+        \State $Z^* \gets \min\{\, Z^*,\; W C_{\max} \,\}$
     \EndFor
-    \State \Return $C_{\max}$
+    \State \Return $Z^*$
 \end{algorithmic}
 \end{algorithm}
-\vskip 4pt
 
-The algorithm above computes the optimal makespan $C_{\max}$.
-To obtain the weighted objective $W C_{\max}$ from a state $S \in \mathscr{H}$,
-let $T_A^{(i)}$ and $T_B^{(i)}$ be the completion times on $M_1$ and $M_2$ after concatenating blocks
-$\mathcal{B}_1$ through $\mathcal{B}_i$ via the Algorithmic~1.
-Since blocks are concatenated in non-increasing weight order, $T_B^{(i)}$ is precisely the completion time
-of the last job in $\mathcal{B}_i$.
-The weighted completion time of the schedule corresponding to $S$ is therefore
-\[
-W C_{\max}(S) = \max_{i=1,\dots,K}\; L_i \cdot T_B^{(i)},
-\]
-where $L_i$ is the weight recorded for $\mathcal{B}_i$ (the weight of its last job).
-Taking the minimum over all states in $\mathscr{H}$ yields the optimal objective value:
-\[
-W C_{\max}^* = \min_{S \in \mathscr{H}}\; \max_{i=1,\dots,K}\; L_i \cdot T_B^{(i)}.
-\]
+
 
 
 \begin{theorem}\label{thm:complexity}
@@ -464,35 +511,35 @@ For constant $K$, this is $O(n \cdot V^{\,3K-2})$.
 Each state in $\mathscr{H}^{(j)}$ is a $4K$-tuple
 $(C_1,\dots,C_K;\, A_1,\dots,A_K;\, B_1,\dots,B_K;\, L_1,\dots,L_K)$.
 We bound the number of distinct values each component can attain.
-\begin{enumerate}
-  \item $A_i$ is the total $M_1$ processing time of jobs assigned to block $\mathcal{B}_i$,
-        so $A_i \in [0,\,V]$. Since the job sequence is fixed and the $j$ jobs under
-        consideration form a prefix, $\sum_{i=1}^K A_i$ equals the sum of $a_j$ over
-        that prefix; consequently at most $K-1$ of the $A_i$ are independent,
-        contributing $\le V^{\,K-1}$ distinct $A$-vectors.
-  \item Symmetrically, $\sum_{i=1}^K B_i$ is the prefix sum of the $b_j$'s,
-        so the $B$-vectors contribute $\le V^{\,K-1}$ distinct combinations.
-  \item $C_i$ is the makespan of $\mathcal{B}_i$ scheduled in isolation
-        according to Johnson's rule.  Since $C_i \le A_i + B_i \le 2V$,
-        the $C$-vector contributes $\le (2V)^K$ distinct combinations.
-  \item $L_i$ is the weight of the last job in $\mathcal{B}_i$ and takes values
-        from $\{w^{(1)},\dots,w^{(K)}\}$, contributing $\le K^K$ distinct
-        $L$-vectors.
-\end{enumerate}
+
+The quantity $A_i$ is the total $M_1$ processing time of jobs assigned to block $\mathcal{B}_i$,
+hence $A_i \in [0,\,V]$.
+Since the job sequence is fixed and the $j$ jobs under consideration form a prefix of the Johnson order,
+$\sum_{i=1}^K A_i$ equals the sum of $a_j$ over that prefix.
+Consequently at most $K-1$ of the $A_i$ are independent, contributing at most $V^{\,K-1}$ distinct $A$-vectors.
+Symmetrically, $\sum_{i=1}^K B_i$ is the prefix sum of the $b_j$'s,
+so the $B_i$ components likewise contribute at most $V^{\,K-1}$ distinct combinations.
+
+The quantity $C_i$ is the makespan of $\mathcal{B}_i$ when scheduled in isolation by Johnson's rule.
+Since $C_i \le A_i + B_i \le 2V$, the $C$-vector contributes at most $(2V)^K$ distinct values.
+The weight $L_i$ is the weight of the last job in $\mathcal{B}_i$ and takes values from $\{w^{(1)},\dots,w^{(K)}\}$,
+yielding at most $K^K$ distinct $L$-vectors.
+
 Multiplying these bounds yields
 \[
 |\mathscr{H}^{(j)}| \le K^K \cdot (2V)^K \cdot V^{\,2K-2}
                       = O\bigl(K^K \cdot 2^K \cdot V^{\,3K-2}\bigr).
 \]
 
-In iteration $j$, the algorithm takes each state in $\mathscr{H}^{(j-1)}$ and each
+In iteration $j$, the algorithm takes each state in $\mathscr{H}^{(j-1)}$, tries every
 block $i \in \{1,\dots,K\}$, computes the updated tuple in $O(1)$ time,
-and inserts it into $Y_i$.  The merge step collects the $K$ sets $Y_1,\dots,Y_K$
-and removes duplicates, which can be done in time proportional to the total number
-of generated tuples.  Hence iteration $j$ costs $O(K \cdot |\mathscr{H}^{(j-1)}|)$,
-and the $n$ iterations together cost $O(n \cdot K \cdot |\mathscr{H}|_{\max})$.
+and inserts it into $Y_i$.
+The merge step collects the $K$ sets $Y_1,\dots,Y_K$ and removes duplicates in time
+proportional to the total number of generated tuples.
+Hence iteration $j$ costs $O(K \cdot |\mathscr{H}^{(j-1)}|)$,
+and summing over all $n$ iterations gives $O(n \cdot K \cdot |\mathscr{H}|_{\max})$.
 
-The final concatenation (Algorithm~1) evaluates each state in $\mathscr{H}^{(n)}$
+The final concatenation via Algorithm~1 evaluates each state in $\mathscr{H}^{(n)}$
 in $O(K)$ time, which is dominated by the DP phase.
 When $K$ is fixed, $K^K \cdot 2^K$ is constant, giving $O(n \cdot V^{\,3K-2})$.
 \end{proof}
