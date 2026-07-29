@@ -161,33 +161,33 @@ concatenating blocks schedules delivers a schedule of length at most $WC(\pi)$
 By construction, the last job of block $\mathcal{B}_k$ carries weight $W(\mathcal{B}_k)$,
 and every job in $\mathcal{B}_k$ has weight at most $W(\mathcal{B}_k)$,
 since any weight appearing in $\mathcal{B}_k$ either equals $W(\mathcal{B}_k)$ or has already appeared in an earlier block with larger weight.
-Let $C_{\max}^{(k)}(\sigma)$ be the completion time of the last job in $\mathcal{B}_k$ under schedule $\sigma$.
-For any job $J_j \in \mathcal{B}_k$, its completion time satisfies $C_j(\sigma) \le C_{\max}^{(k)}(\sigma)$
+Let $C_{k}(\sigma)$ be the completion time of the last job in $\mathcal{B}_k$ under schedule $\sigma$.
+For any job $J_j \in \mathcal{B}_k$, its completion time satisfies $C_j(\sigma) \le C_{k}(\sigma)$
 and $w_j \le W(\mathcal{B}_k)$, hence
-$w_j C_j(\sigma) \le W(\mathcal{B}_k) \cdot C_{\max}^{(k)}(\sigma)$.
+$w_j C_j(\sigma) \le W(\mathcal{B}_k) \cdot C_{k}(\sigma)$.
 
-Johnson's rule minimizes the makespan for $F2 \parallel C_{\max}$~\citep{johnson1954optimal}.
 Let $\pi'$ be the schedule obtained by reordering each $\mathcal{B}_k$ internally by Johnson's rule
 while preserving the block sequence.
-We prove $C_{\max}^{(k)}(\pi') \le C_{\max}^{(k)}(\pi)$ for all $k$ by induction on $k$.
+We prove $C_{k}(\pi') \le C_{k}(\pi)$ for all $k$ by induction on $k$.
 
 For $k=1$, block $\mathcal{B}_1$ starts at time zero on both machines under either schedule,
-so internal Johnson ordering directly gives $C_{\max}^{(1)}(\pi') \le C_{\max}^{(1)}(\pi)$.
-Assume $C_{\max}^{(k-1)}(\pi') \le C_{\max}^{(k-1)}(\pi)$.
+so internal Johnson ordering directly gives $C_1(\pi') \le C_1(\pi)$.
+Assume $C_{k-1}(\pi') \le C_{k-1}(\pi)$.
 On $M_1$, the start time of $\mathcal{B}_k$ equals the total $M_1$ work of $\mathcal{B}_1,\dots,\mathcal{B}_{k-1}$,
 which is unchanged by internal reordering, so $\mathcal{B}_k$ starts at the same time on $M_1$ under both schedules.
-On $M_2$, $\mathcal{B}_k$ starts at $\max\{\text{its own $M_1$ completion},\; C_{\max}^{(k-1)}\}$;
+On $M_2$, $\mathcal{B}_k$ starts at $\max\{\; C_{M_1},\; C_{k-1}\}$, 
+$C_{M_1}$ being the completion time of the last job on $M_1$; 
 the first term is identical and the second is no larger under $\pi'$ by the induction hypothesis.
 Thus $\mathcal{B}_k$ starts no later on $M_2$ under $\pi'$, and with the same $M_1$ start and internal Johnson ordering,
-$C_{\max}^{(k)}(\pi') \le C_{\max}^{(k)}(\pi)$.
-
-Therefore
-$WC_{\max}(\pi') = \max_{j} w_j C_j(\pi')
-\le \max_{k} W(\mathcal{B}_k) \cdot C_{\max}^{(k)}(\pi')
-\le \max_{k} W(\mathcal{B}_k) \cdot C_{\max}^{(k)}(\pi)
-\le WC_{\max}(\pi)$,
+$C_{k}(\pi') \le C_{k}(\pi)$. Therefore
+\begin{align*}
+WC_{\max}(\pi') &= \max w_j C_j(\pi')
+   \le \max W(\mathcal{B}_k) \cdot C_{\max}^{(k)}(\pi') \\
+   &\le \max W(\mathcal{B}_k) \cdot C_{\max}^{(k)}(\pi)
+   \le WC_{\max}(\pi),
+\end{align*}
 where the last inequality holds because for the job $J^*$ achieving $WC_{\max}(\pi)$,
-letting $\mathcal{B}_{k^*}$ be its block, $WC_{\max}(\pi) = w_{J^*} C_{J^*}(\pi) = W(\mathcal{B}_{k^*}) \cdot C_{\max}^{(k^*)}(\pi)$.
+letting $\mathcal{B}_{k^*}$ be its block, $WC_{\max}(\pi) = w_{J^*} C_{J^*}(\pi) = W(\mathcal{B}_{k^*}) \cdot C_{k^*}(\pi)$.
 \end{proof} 
 
 
