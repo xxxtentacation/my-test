@@ -360,46 +360,14 @@ w_{s_k} C_{s_k} = \frac{3m}{k} \cdot kB = 3mB = Y, \qquad
 so $W C_{\max} = Y$.
 
 Conversely, suppose there exists a schedule $\pi$ with $W C_{\max} \le Y = 3mB$.
-For each separator $S_j$, $w_{s_j} C_{s_j} \le Y$ implies $C_{s_j} \le jB$.
-Each $S_j$ requires $B$ time on $M_1$; if $S_j$ occupied position $p$ among
-the separators on $M_1$ with $p > j$, its $M_1$ completion would be at least $pB > jB$,
-contradicting $C_{s_j} \le jB$.
-Hence $S_1,\dots,S_m$ appear in this order on $M_1$,
-and their $M_1$ completion times are $B, 2B, \dots, mB$.
-
-Define $G_k$ as the set of element jobs placed between $S_{k-1}$ and $S_k$ in $\pi$
-(with $S_0$ denoting the schedule start), and let $G_{m+1}$ be those after $S_m$.
-Set $s_k = \sum_{J_j \in G_k} x_j$, so $\sum_{k=1}^{m+1} s_k = \sum_{i=1}^{3m} x_i = mB$.
-Jobs in $G_k$ have $a_j = 0$ and complete $M_1$ at time $(k-1)B$.
-Let $F_k$ be the $M_2$ completion time of the last job of $G_k$ (with $F_0 = 0$).
-Since $S_{k-1}$ passes $M_2$ instantly at $F_{k-1}$ and all jobs of $G_k$ become
-$M_1$-ready at time $(k-1)B$, the first job of $G_k$ starts $M_2$ at
-$\max\{(k-1)B,\; F_{k-1}\}$, yielding
-\[
-F_k = \max\{\, (k-1)B,\; F_{k-1} \,\} + s_k, \qquad k = 1,\dots,m.
-\]
-The separator $S_k$ finishes $M_2$ at
-$C_{s_k} = \max\{\, kB,\; F_k \,\}$.
-From $C_{s_k} \le kB$ we obtain $F_k \le kB$ for all $k$.
-
-We show $s_k \le B$ for all $k$ by induction.
-For $k=1$, $F_1 = s_1$ and $F_1 \le B$ imply $s_1 \le B$.
-Assume $F_{k-1} \le (k-1)B$. Then $F_k = \max\{(k-1)B,\; F_{k-1}\} + s_k \le kB$.
-If $F_{k-1} \ge (k-1)B$, then $F_k = F_{k-1} + s_k \le kB$,
-which together with $F_{k-1} \ge (k-1)B$ gives $s_k \le B$.
-If $F_{k-1} < (k-1)B$, then $F_k = (k-1)B + s_k \le kB$, again yielding $s_k \le B$.
-
-Since $\sum_{k=1}^{m+1} s_k = mB$ and $s_k \le B$ for $k = 1,\dots,m$,
-we must have $s_k = B$ for every $k = 1,\dots,m$ and $s_{m+1} = 0$;
-all element jobs therefore precede $S_m$.
-
 Each $G_k$ satisfies $\sum_{J_j \in G_k} x_j = B$ with $B/4 < x_i < B/2$.
 Fewer than three elements sum to at most $2 \cdot (B/2 - \varepsilon) < B$,
 while four or more sum to at least $4 \cdot (B/4 + \varepsilon) > B$.
 Hence $|G_k| = 3$ for every $k$, and $\{G_1,\dots,G_m\}$ is a partition
-of the $3m$ elements into $m$ triples each summing to $B$, a valid 3-Partition.
+of the $3m$ elements into $m$ triples each summing to $B$.
 
-
+Thus $F2 \parallel W C_{\max}$ is strongly NP-hard.
+\end{proof} 
 \begin{center}
 \begin{tikzpicture}[x=0.20in, y=0.3in]
 	% machine index
@@ -431,9 +399,6 @@ of the $3m$ elements into $m$ triples each summing to $B$, a valid 3-Partition.
 \end{tikzpicture}
 \label{fig:3-2}
 \end{center}
-
-Thus $F2 \parallel W C_{\max}$ is strongly NP-hard.
-\end{proof} 
 
 
 
