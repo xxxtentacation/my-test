@@ -227,37 +227,67 @@ $B/4 < x_i < B/2$ and $\sum_{i=1}^{3m} x_i = mB$, can the integers be partitione
 Construct an instance of $F2 \parallel W C_{\max}$ with $n = 4m$ jobs as follows
 (see Figure~\ref{fig:3-2}):
 \begin{itemize}
-  \item $3m$ element jobs $J_1,\dots,J_{3m}$: $a_j = 0$, $b_j = x_j$, $w_j = 1$;
-  \item $m$ separator jobs $S_1,\dots,S_{m}$: $a_{s_k} = B$, $b_{s_k} = 0$, $w_{s_k} = 3m / k$.
+  \item $3m$ element jobs $J_1,\dots,J_{3m}$: $a_j = 1$, $b_j = x_j + \frac{2}{3} $, $w_j = 1$;
+  \item $m$ separator jobs $S_1,\dots,S_{m}$: $a_{s_k} = B$, $b_{s_k} = 0$, $w_{s_k} = 3m/k$.
 \end{itemize}
-Element jobs have $a_j = 0$, occupying no processing time on $M_1$;
-symmetrically, separators have $b_{s_k} = 0$, occupying no time on $M_2$.
-The total $M_1$ work is $\sum a_j = mB$ ,
-the total $M_2$ work is $\sum b_j = mB$ ,
-and the threshold is $Y = 3mB$.
+The total $M_1$ work is $\sum a_j = 3m + mB = m(B+3)$,
+the total $M_2$ work is $\sum b_j = \sum_{j=1}^{3m}(x_j + \frac{2}{3}) = mB + 2m = m(B+2)$,
+and the threshold is set to $Y = 3m(B+3)$.
 
-Suppose a 3-Partition exists: There is a partition of the $3m$ elements into
+Suppose 3-Partition exists. There is a partition of the $3m$ elements into
 $m$ triples $G_1,\dots,G_m$ with $\sum_{J_j \in G_k} x_j = B$ for each $k$.
 Arrange the jobs in the order $G_1, S_1, G_2, S_2, \dots, G_m, S_m$.
-Since $a_j = 0$, element jobs placed before $S_k$ complete $M_1$ at time $(k-1)B$;
-each $S_k$ occupies $M_1$ during $[(k-1)B,\, kB]$, so the $M_1$ timeline is
-$S_1[0,B], S_2[B,2B], \dots, S_m[(m-1)B, mB]$.
-On $M_2$, $G_1$ finishes at $B$, $S_1$ passes instantly at $B$,
-$G_2$ starts at $B$ and finishes at $2B$, and inductively
-$S_k$ finishes $M_2$ at $kB$ with $C_{s_k} = kB$.
+On $M_1$, the three elements of $G_k$ each consume $1$ unit ($3$ in total), after which $S_k$ occupies $B$ units;
+thus $S_k$ completes $M_1$ at time $k(B+3)$.
+On $M_2$, the three elements of $G_k$ have total processing time $\sum (x_j+\frac{2}{3}) = B+2$.
+The first element of $G_1$ finishes $M_1$ at time $1$ and starts $M_2$ immediately,
+finishing $M_2$ at $1 + (x_1+\frac{2}{3})$.
+Since each $x_j > B/4$ is large relative to the unit $M_1$ times,
+the $M_2$ pipeline is the bottleneck, and the last element of $G_1$ completes $M_2$ at $B+3$.
+$S_1$ has $b = 0$ and passes $M_2$ instantly at $B+3$.
+Inductively, $S_k$ completes $M_2$ at $C_{s_k} = k(B+3)$.
 Consequently
 \[
-w_{s_k} C_{s_k} = \frac{3m}{k} \cdot kB = 3mB = Y, \qquad
-\max{w_j C_j} \le \max\{\,3mB,\; mB\,\} = Y,
+w_{s_k} C_{s_k} = \frac{3m}{k} \cdot k(B+3) = 3m(B+3) = Y,
 \]
-so $W C_{\max} = Y$.
+while each element job has $w_j = 1$ and completion time at most $m(B+3)$, giving
+$w_j C_j \le m(B+3) \le Y$ for all $m \ge 3$.
+Hence $W C_{\max} = Y$.
 
-Conversely, suppose there exists a schedule $\pi$ with $W C_{\max} \le Y = 3mB$.
-Each $G_k$ satisfies $\sum_{J_j \in G_k} x_j = B$ with $B/4 < x_i < B/2$.
-Fewer than three elements sum to at most $2 \cdot (B/2 - \varepsilon) < B$,
-while four or more sum to at least $4 \cdot (B/4 + \varepsilon) > B$.
-Hence $|G_k| = 3$ for every $k$, and $\{G_1,\dots,G_m\}$ is a partition
-of the $3m$ elements into $m$ triples each summing to $B$.
+Conversely, suppose there exists a schedule $\pi$ with $W C_{\max} \le Y = 3m(B+3)$.
+For separator $S_k$ we have $w_{s_k} C_{s_k} = \frac{3m}{k} C_{s_k} \le 3m(B+3)$, i.e.,
+$C_{s_k} \le k(B+3)$.
+Because each separator requires $B$ time on $M_1$, the $k$-th separator in schedule order
+cannot finish $M_2$ before $M_1$ has processed at least $k$ separators
+plus all element jobs preceding them.
+Let $E_k$ be the number of element jobs preceding $S_k$, and let $e_k = E_k - E_{k-1}$ (with $E_0 = 0$)
+be the number of element jobs between $S_{k-1}$ and $S_k$.
+From $C_{s_k} \ge kB + E_k$ and $C_{s_k} \le k(B+3)$, we obtain $E_k \le 3k$.
+Since $E_m = 3m$, each inequality must hold with equality: $E_k = 3k$ for all $k$,
+hence $e_k = 3$ for every block.
+Denote the three elements between $S_{k-1}$ and $S_k$ by $G_k$, with
+$\sum_{J_j \in G_k} x_j = B_k$.
+
+Now analyze the $M_2$ pipeline of block $k$. The three elements of $G_k$ have total $M_2$ work
+$B_k + 2$ and unit $M_1$ time each.
+From the flow-shop critical-path formula applied to $G_k$ followed by $S_k$,
+the span satisfies $C_{s_k} \ge C_{s_{k-1}} + \max\{B_k+3,\; B+3\}$
+(the $B_k+3$ term arises from the first element starting $M_2$ one unit after the block begins,
+followed by $B_k+2$ total $M_2$ work on the three elements of $G_k$,
+while $B+3$ is the pure $M_1$ path through $S_k$).
+Since $C_{s_k} \le C_{s_{k-1}} + B + 3$ (otherwise $C_{s_k}$ exceeds $k(B+3)$
+given $C_{s_{k-1}} \le (k-1)(B+3)$), we obtain
+\[
+B_k + 3 \;\le\; C_{s_k} - C_{s_{k-1}} \;\le\; B + 3
+\quad\Longrightarrow\quad
+B_k \;\le\; B.
+\]
+Summing over all $m$ groups yields $\sum_{k=1}^m B_k \le mB$,
+but the total of all $x_j$ equals $mB$ by construction; therefore each inequality holds with equality:
+$\sum_{J_j \in G_k} x_j = B$ for every $k$.
+With $B/4 < x_j < B/2$, three elements can sum to exactly $B$ only if
+each group is a valid triple; fewer than three would sum to ${}<B$, more than three to ${}>B$.
+Hence $\{G_1,\dots,G_m\}$ is a partition of the $3m$ elements into $m$ triples each summing to $B$.
 
 Thus $F2 \parallel W C_{\max}$ is strongly NP-hard.
 \end{proof} 
@@ -267,28 +297,31 @@ Thus $F2 \parallel W C_{\max}$ is strongly NP-hard.
 	\node[anchor=east] at (-0.5,5.5) {$M_1$};
 	\node[anchor=east] at (-0.5,4) {$M_2$};
 
-	% M_1: only separators occupy time (element jobs have a_j = 0)
-	\draw[fill=gray!50] (0,5)   rectangle (7,6)   node[midway] {$S_1$};
-	\draw[fill=gray!50] (7,5)   rectangle (14,6)  node[midway] {$S_2$};
-	\node at (17,5.5) {$\cdots$};
-	\draw[fill=gray!50] (20,5)  rectangle (27,6)  node[midway] {$S_{m}$};
+	% M_1: element jobs (narrow strips, 3 per block) + separators
+	\draw[fill=gray!20] (0,5)    rectangle (1.5,6) node[midway] {$G_1$};
+	\draw[fill=gray!50] (1.5,5)  rectangle (6.5,6)  node[midway] {$S_1$};
+	\draw[fill=gray!20] (6.5,5)  rectangle (8,6) node[midway] {$G_2$};
+	\draw[fill=gray!50] (8,5)  rectangle (13,6) node[midway] {$S_2$};
+	\node at (15,5.5) {$\cdots$};
+	\draw[fill=gray!20] (17,5) rectangle (18.5,6) node[midway] {$G_m$};
+	\draw[fill=gray!50] (18.5,5)   rectangle (23.5,6)   node[midway] {$S_{m}$};
 
 	% M_2: only element jobs occupy time (separators have b_{s_k} = 0)
-	\draw[fill=gray!20] (0,3.5)  rectangle (7,4.5)   node[midway] {$J_{j\in G_1}$};
-	\draw[fill=gray!20] (7,3.5)  rectangle (14,4.5)  node[midway] {$J_{j\in G_2}$};
-	\node at (17,4) {$\cdots$};
-	\draw[fill=gray!20] (20,3.5) rectangle (27,4.5)  node[midway] {$J_{j\in G_{m}}$};
+	\draw[fill=gray!20] (0.5,3.5)  rectangle (6.5,4.5)   node[midway] {$J_{j\in G_1}$};
+	\draw[fill=gray!20] (7,3.5)  rectangle (13,4.5)  node[midway] {$J_{j\in G_2}$};
+	\node at (15.5,4) {$\cdots$};
+	\draw[fill=gray!20] (17.5,3.5) rectangle (23.5,4.5)  node[midway] {$J_{j\in G_{m}}$};
 
-	% x-axis
-	\draw[thick] (0,2.2) -- (30,2.2);
-	\foreach \x/\label in {0/0, 7/$B$, 14/$2B$, 20/$(m{-}1)B$, 27/$mB$}
+	% x-axis (marks at separator M_2 completion times)
+	\draw[thick] (0,2.2) -- (25,2.2);
+	\foreach \x/\label in {0/0, 6.5/$B{+}3$, 13/$2B{+}6$,  23.5/$m(B{+}3)$}
 	{
 		\draw (\x,2.2) -- (\x,2.4);
 		\node[below, font=\footnotesize] at (\x,2.0) {\label};
 	}
 
 	% caption
-	\node[below] at (15,0.5) {Figure 3-2: 3-Partition reduction schedule.};
+	\node[below] at (15,0.5) {Figure 3-2: 3-Partition reduction;};
 \end{tikzpicture}
 \label{fig:3-2}
 \end{center}
