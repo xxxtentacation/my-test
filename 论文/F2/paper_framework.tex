@@ -76,7 +76,6 @@
 \section{Preliminaries}
 \label{sec:preliminaries}
 
-\subsection{Problem Description}
 We consider the problem $F2 \parallel W C_{\max}$.
 Let $\mathcal{J} = \{J_1, J_2, \dots, J_n\}$ be the set of $n$ jobs to be processed on two machines $M_1$ and $M_2$ in series:
  each job $J_j$ must be processed first on $M_1$ for $a_j$ time units and then on $M_2$ for $b_j$ time units, with no preemption allowed.
@@ -87,7 +86,6 @@ For a schedule $\pi$, let $A_j = \sum_{h=1}^{j} a_{\pi(h)}$ and $B_j = \sum_{h=1
 The objective is to find a schedule $\pi$ that minimizes $W C_{\max}$.
 
 
-\subsection{Mixed Integer Linear Programming Formulation}
 The problem $F2 \parallel W C_{\max}$ can be formulated as a mixed integer linear program (MILP).
 For a permutation schedule, let the positions be indexed by $k = 1,\dots,n$.
 We introduce the following decision variables:
@@ -402,41 +400,53 @@ And $\mathcal{B}_1=\{J_1,J_2,J_3\}$, $\mathcal{B}_2=\{J_4,J_5\}$, $\mathcal{B}_3
 \end{center}
 
 \begin{lemma}\label{lem:block-johnson}
-For a given schedule  $\pi$, rescheduling each blocks to Johnson's ruler(\citealp{johnson1954optimal}) and 
-concatenating blocks schedules delivers a schedule of length at most $WC(\pi)$
+For any schedule $\pi$, reordering the jobs within each block according to Johnson's rule~\citealp{johnson1954optimal}
+and concatenating the resulting block schedules yields a schedule $\pi'$ with $W C_{\max}(\pi') \le W C_{\max}(\pi)$.
 \end{lemma}
 \begin{proof}
-By construction, the last job of block $\mathcal{B}_k$ carries weight $W(\mathcal{B}_k)$,
-and every job in $\mathcal{B}_k$ has weight at most $W(\mathcal{B}_k)$,
-since any weight appearing in $\mathcal{B}_k$ either equals $W(\mathcal{B}_k)$ or has already appeared in an earlier block with larger weight.
-Let $C_{k}(\sigma)$ be the completion time of the last job in $\mathcal{B}_k$ under schedule $\sigma$.
-For any job $J_j \in \mathcal{B}_k$, its completion time satisfies $C_j(\sigma) \le C_{k}(\sigma)$
-and $w_j \le W(\mathcal{B}_k)$, hence
-$w_j C_j(\sigma) \le W(\mathcal{B}_k) \cdot C_{k}(\sigma)$.
+By construction, the final job of block $\mathcal{B}_k$ carries weight $W(\mathcal{B}_k)$,
+and every job in $\mathcal{B}_k$ has weight at most $W(\mathcal{B}_k)$:
+a weight occurring in $\mathcal{B}_k$ either equals $W(\mathcal{B}_k)$ or has already appeared in an earlier block with larger weight.
+Let $C_k(\sigma)$ denote the completion time of the last job of $\mathcal{B}_k$ under schedule $\sigma$.
 
-Let $\pi'$ be the schedule obtained by reordering each $\mathcal{B}_k$ internally by Johnson's rule
-while preserving the block sequence.
-We prove $C_{k}(\pi') \le C_{k}(\pi)$ for all $k$ by induction on $k$.
+We first argue that within each block, the maximum weighted completion time is attained at its last job.
+For any $J_j \in \mathcal{B}_k$, we have $C_j(\sigma) \le C_k(\sigma)$ because the last job finishes no earlier than any other job in the block,
+and $w_j \le W(\mathcal{B}_k)$ by the block construction.
+Hence $w_j C_j(\sigma) \le W(\mathcal{B}_k) \cdot C_k(\sigma)$.
+Taking the maximum over $j \in \mathcal{B}_k$ yields
+$\max_{J_j \in \mathcal{B}_k} w_j C_j(\sigma) = W(\mathcal{B}_k) \cdot C_k(\sigma)$,
+and therefore
+\[
+W C_{\max}(\sigma) = \max_{k=1,\dots,K}\{W(\mathcal{B}_k) \cdot C_k(\sigma)\}.
+\]
+Thus the overall objective depends only on the last job of each block.
 
-For $k=1$, block $\mathcal{B}_1$ starts at time zero on both machines under either schedule,
-so internal Johnson ordering directly gives $C_1(\pi') \le C_1(\pi)$.
+Now let $\pi'$ be the schedule obtained by reordering each $\mathcal{B}_k$ internally via Johnson's rule,
+preserving the block order. We prove $C_k(\pi') \le C_k(\pi)$ for all $k$ by induction.
+
+\textbf{Base case $k=1$.}
+Block $\mathcal{B}_1$ starts at time zero on both machines regardless of internal ordering,
+so Johnson's rule directly gives $C_1(\pi') \le C_1(\pi)$.
+
+\textbf{Inductive step.}
 Assume $C_{k-1}(\pi') \le C_{k-1}(\pi)$.
 On $M_1$, the start time of $\mathcal{B}_k$ equals the total $M_1$ work of $\mathcal{B}_1,\dots,\mathcal{B}_{k-1}$,
-which is unchanged by internal reordering, so $\mathcal{B}_k$ starts at the same time on $M_1$ under both schedules.
-On $M_2$, $\mathcal{B}_k$ starts at $\max\{\; C_{M_1},\; C_{k-1}\}$, 
-$C_{M_1}$ being the completion time of the last job on $M_1$; 
-the first term is identical and the second is no larger under $\pi'$ by the induction hypothesis.
-Thus $\mathcal{B}_k$ starts no later on $M_2$ under $\pi'$, and with the same $M_1$ start and internal Johnson ordering,
-$C_{k}(\pi') \le C_{k}(\pi)$. Therefore
-\begin{align*}
-WC_{\max}(\pi') &= \max w_j C_j(\pi')
-   \le \max W(\mathcal{B}_k) \cdot C_{\max}^{(k)}(\pi') \\
-   &\le \max W(\mathcal{B}_k) \cdot C_{\max}^{(k)}(\pi)
-   \le WC_{\max}(\pi),
-\end{align*}
-where the last inequality holds because for the job $J^*$ achieving $WC_{\max}(\pi)$,
-letting $\mathcal{B}_{k^*}$ be its block, $WC_{\max}(\pi) = w_{J^*} C_{J^*}(\pi) = W(\mathcal{B}_{k^*}) \cdot C_{k^*}(\pi)$.
-\end{proof} 
+which is invariant under internal reordering; thus $\mathcal{B}_k$ begins at the same instant on $M_1$ under both schedules.
+On $M_2$, $\mathcal{B}_k$ starts at $\max\{\, C^{M_1},\; C_{k-1}\,\}$,
+where $C^{M_1}$ is the $M_1$ completion time of the jobs preceding $\mathcal{B}_k$.
+The first term is identical under $\pi$ and $\pi'$, and the second is no larger under $\pi'$ by the induction hypothesis.
+Hence $\mathcal{B}_k$ starts no later on $M_2$ under $\pi'$ than under $\pi$.
+With the same $M_1$ start and an internally optimal Johnson ordering,
+we obtain $C_k(\pi') \le C_k(\pi)$, completing the induction.
+
+Finally,
+\[
+W C_{\max}(\pi') = \max_{k} \; W(\mathcal{B}_k) \cdot C_k(\pi')
+   \le \max_{k} \; W(\mathcal{B}_k) \cdot C_k(\pi)
+   = W C_{\max}(\pi),
+\]
+which establishes the lemma.
+\end{proof}
 
 
 \subsection{Algorithm Properties and Dynamic Programming}
@@ -454,7 +464,7 @@ A state is a $4K$-tuple
 \[
     (C_1,\dots,C_K; \; A_1,\dots,A_K; \; B_1,\dots,B_K; \; L_1,\dots,L_K) \in \mathscr{H}
 \]
-for each job $J_j \in \mathcal{J}$ and block $\mathcal{B}_i$,$j = 1,\dots,n$ $i = 1,\dots,K$:
+for each job $J_j \in \mathcal{J}$ and block $\mathcal{B}_i$,$j = 1,\dots,n$, $i = 1,\dots,K$:
 \begin{itemize}
     \item $A_i$ --- total processing time on machine $M_1$ of jobs in block $\mathcal{B}_i$;
     \item $B_i$ --- total processing time on machine $M_2$ of jobs in block $\mathcal{B}_i$;
@@ -465,6 +475,26 @@ for each job $J_j \in \mathcal{J}$ and block $\mathcal{B}_i$,$j = 1,\dots,n$ $i 
 The initial state set contains a single state with all components set to zero:
 $\mathscr{H}_{0} = \{ (0,\dots,0; \; 0,\dots,0; \; 0,\dots,0; \; 0,\dots,0) \}$.
 
+\begin{lemma}\label{lem:merge-dominance}
+Let $H = (C_1,\dots,C_K; A_1,\dots,A_K; B_1,\dots,B_K; L_1,\dots,L_K)$ and
+$H' = (C'_1,\dots,C'_K; A'_1,\dots,A'_K; B'_1,\dots,B'_K; L'_1,\dots,L'_K)$
+be two states in $\mathscr{H}_j$ for some $j$.
+If $A_i = A'_i$, $B_i = B'_i$, $L_i = L'_i$ for all $i$, and $C_i \le C'_i$ for all $i$,
+then $H'$ can be discarded without affecting the optimal solution.
+\end{lemma}
+\begin{proof}
+Consider any continuation of a schedule extending state $H'$ to a complete schedule $\Pi'$.
+Replacing the prefix represented by $H'$ with the prefix represented by $H$ yields a schedule $\Pi$
+that uses the same assignment of the remaining jobs.
+For every subsequent block $\mathcal{B}_k$ ($k \ge 2$), the $M_2$ start time is
+$\max\{C_{M_1},\, C_{k-1}\}$, where $C_{M_1}$ depends only on $\{A_i\}$ and is identical under both prefixes,
+while $C_{k-1}$ under $H$ is no larger than under $H'$.
+By induction, the $M_2$ completion time of every subsequent block is no larger under $H$,
+and since $A_i$, $B_i$, $L_i$ are identical, the objective value $W C_{\max}$ of $\Pi$ does not exceed that of $\Pi'$.
+\end{proof}
+
+During the merge step, the algorithm applies this dominance rule:
+among states with identical $(A_i, B_i, L_i)_{i=1}^K$, only those with component-wise minimal $(C_i)_{i=1}^K$ are retained.
 
 For $j = 1, \dots, n$, the algorithm extends $\mathscr{H}_{j-1}$ to $\mathscr{H}_j$ through the following procedure.
 Initialize $Y_i \gets \emptyset$ for each block index $i = 1, \dots, K$.
@@ -472,17 +502,15 @@ Then, for each existing state
 $(C_1,\dots,C_K; \; A_1,\dots,A_K; \; B_1,\dots,B_K; \; L_1,\dots,L_K) \in \mathscr{H}_{j-1}$ and each block index $i = 1, \dots, K$, 
 if job $j$ satisfies the weight constraint $w_j \leqslant L_i$, assign it to block $\mathcal{B}_i$. 
 This produces a new state in which only the $i$-th block's parameters are updated while all other blocks remain unchanged:
-Specifically, the new state $(C'_1,\dots,C'_K;\,A'_1,\dots,A'_K;\,B'_1,\dots,B'_K;\,L_1,\dots,L_K)$ is formed as follows: 
-for the chosen block $\mathcal{B}_i$,
-
+Specifically, the new state $(C'_1,\dots,C'_K;\,A'_1,\dots,A'_K;\,B'_1,\dots,B'_K;\,L_1,\dots,L_K)$ is formed as follows 
+for the chosen block $\mathcal{B}_i$: 
 \[
 C'_i = \max\{C_i + b_j,\; A_i + a_j + b_j\},\quad
 A'_i = A_i + a_j,\quad
 B'_i = B_i + b_j;
 \]
+Via Lemma~\ref{lem:merge-dominance} Merge the sets $Y_i$ for $i = 1,...,K$, to obtain $\mathscr{H}_{j}$. 
 
-Merge $i = 1,...,K$, to obtain $\mathscr{H}_{j}$. 
-If we get the same tuples during the merge, store only one of them.
 
 Once all jobs are assigned and each block $\mathcal{B}_i$ is summarized by its parameters $(A_i, B_i, C_i)$,
 the overall makespan $C_{\max}$ is obtained by concatenating the blocks in order of increasing index.
@@ -498,7 +526,7 @@ while $T_B + B_i$ accounts for the case where $M_2$ is the bottleneck.
 \caption{Block concatenation and evaluation}
 \label{alg:Block-concat}
 \begin{algorithmic}[1]
-    \State \textbf{Input:} Block parameters $(A_i, B_i, C_i)$ and weights $L_i$ for $i = 1,\dots,K$.
+    \State \textbf{Input:} States $\mathscr{H}$.
     \State \textbf{Output:} $W C_{\max} = \max_i\, L_i \cdot T_B^{(i)}$.
     \State $T_{A_0} \gets 0$, \enspace $T_{B_0} \gets 0$, \enspace $W C_{\max} \gets 0$
     \For{$i = 1$ to $K$}
@@ -514,7 +542,7 @@ while $T_B + B_i$ accounts for the case where $M_2$ is the bottleneck.
 \caption{DP for $F2 \parallel W C_{\max}$}
 \label{alg:dp}
 \begin{algorithmic}[1]
-    \State \textbf{Input:} Jobs $\mathcal{J}$ with $(a_j, b_j, w_j)$ in Johnson order; block count $K$.
+    \State \textbf{Input:} Jobs $\mathcal{J}$ with $(a_j, b_j, w_j)$ and block count $K$.
     \State \textbf{Output:} The optimal value $Z^* = \min_S \max_i\,L_i\cdot T_B^{(i)}$.
     \State $\mathscr{H}_{0} \gets \{ (0,\dots,0; \; 0,\dots,0; \; 0,\dots,0; \; 0,\dots,0) \}$
     \For{$j = 1$ to $n$}
