@@ -342,18 +342,25 @@ Johnson's rule (\citealp{johnson1954optimal}) sequences all $n$ jobs to minimize
 jobs with $a_j \le b_j$ go first in non-decreasing order of $a_j$, and the remaining jobs follow
 in non-increasing order of $b_j$.
 
-For any scheduling $\pi$. Let $w_{(1)}, w_{(2)}, \dots, w_{(K)}$ be the $K$ distinct weights among all jobs, 
-and $w_{(1)} > w_{(2)} > \dots > w_{(K)}$ and define $\mathcal{G}_k = \{ J_j \in \mathcal{J} \mid w_j = w^{(k)} \}$, $k = 1,\dots,K$.
-For each group $\mathcal{G}_k$, let $\ell_k$ be the index of the last job of $\mathcal{G}_k$ appearing in $\pi$, and set $\ell_0 = 0$; 
+For any scheduling $\pi$. Let $W_{1}, W_{2}, \dots, W_{K}$ be the $K$ distinct weights among all jobs, 
+and $W_{1} > W_{2} > \dots > W_{K}$ and define $\mathcal{G}_k = \{ J_j \in \mathcal{J} \mid w_j = W_{k} \}$, $k = 1,\dots,K$.
+For each group $\mathcal{G}_k$, let $\ell_k = \arg\max \{\, p : \pi(p) \in \mathcal{G}_k \,\}, {p \in \{1,\dots,n\}}$, and set $\ell_0 = 0$;
 The blocks are defined as: 
-For $J_j \in \mathcal{J}$, $\mathcal{B}_1 = \{J_1, \dots, J_{(\ell_1)}\}$, $\mathcal{J} = \{\mathcal{J} \setminus \mathcal{B}_1 \}$; 
-$\mathcal{B}_2 = \{J_{(\ell_1)}, \dots, J_{(\ell_2)}\}$, $\mathcal{J} = \{\mathcal{J} \setminus \mathcal{B}_2\}$; 
-$\mathcal{B}_k = \{J_{(\ell_{k-1})}, \dots, J_{(\ell_k)}\}$.
+For $J_j \in \mathcal{J}$, $\mathcal{B}_1 = \{J_1, \dots, J_{\ell_1}\}$, $\mathcal{J} = \{\mathcal{J} \setminus \mathcal{B}_1 \}$; 
+$\mathcal{B}_2 = \{J_{\ell_1}, \dots, J_{\ell_2}\}$, $\mathcal{J} = \{\mathcal{J} \setminus \mathcal{B}_2\}$; 
+$\mathcal{B}_k = \{J_{\ell_{k-1}}, \dots, J_{\ell_k}\}$.
+
+Note a block is allowed empty and accepts any job. In particular, if $\ell_k = \ell_{k-1}$, then
+$\mathcal{B}_k = \{J_{\ell_{k-1}}, \dots, J_{\ell_k}\}$ contains no job and is called an empty block;
+an empty block $\mathcal{B}_i$ has $A_i = B_i = C_i = 0$.
+
+
+
 $A_i$ total processing time on machine $M_1$ of jobs in block $\mathcal{B}_i$;
 $B_i$ total processing time on machine $M_2$ of jobs in block $\mathcal{B}_i$;
 $C_i$ completion time of block $\mathcal{B}_i$ on machine $M_2$;
 $L_i$ weight of the last job in block $\mathcal{B}_i$.
-Thus each block weights are non-increasing: $w(\mathcal{B}_1) \ge w(\mathcal{B}_2) \ge \cdots \ge w(\mathcal{B}_K)$.
+Thus each block weights are non-increasing: $W_{\mathcal{B}_1} \ge W_{\mathcal{B}_2} \ge \cdots \ge W_{\mathcal{B}_K}$.
 
 For ease of explanation, we construct an illustrative schedule.
 
@@ -470,27 +477,27 @@ For each job $J_j \in \mathcal{J}$ ($j = 1,\dots,n$), let
     \mathcal{H}_j = \{\, A_i; \; B_i, C_i; \; L_i \,\}
 \]
 denote the state associated with $J_j$, where the index $i$ ranges over the blocks eligible for $J_j$,
-i.e., $J_j$ may be placed in its own block and in every block preceding it:
+and in every block preceding it:
 \begin{itemize}
     \item $A_i$ --- total processing time on machine $M_1$ of jobs in block $\mathcal{B}_i$;
     \item $B_i$ --- total processing time on machine $M_2$ of jobs in block $\mathcal{B}_i$;
     \item $C_i$ --- completion time of the last job of block $\mathcal{B}_i$ on machine $M_2$;
     \item $L_i$ --- weight of block $\mathcal{B}_i$.
 \end{itemize}
-Since the block weights are non-increasing, $w^{(1)} > \cdots > w^{(K)}$, the blocks eligible for $J_j$
+Since the block weights are non-increasing, $W_{1} > \cdots > W_{K}$, the blocks eligible for $J_j$
 form a prefix:
 \[
-    \mathcal{E}(J_j) = \{\, i : w_j \le L_i \,\} = \{\, 1, \dots, i^* \,\}, \qquad
-    i^* = \max\{\, i : w^{(i)} \ge w_j \,\}.
+    \mathcal{E}(J_j) = \{\, i : w_j \le W_i \,\}, \qquad
+    i^* = \arg\max_{i \in \{1,\dots,K\}} \{\, i : W_i \ge w_j \,\},
 \]
-Because the DP transitions and the final block concatenation require the parameters of every block,
-a state is in fact the aggregate $K$-block tuple, described by $4K-2$ parameters: $A_K$ and $B_K$ need not be stored,
+so that $\mathcal{E}(J_j) = \{\, 1, \dots, i^* \,\}$.
+A state is in fact the aggregate $K$-block tuple, described by $4K-2$ parameters: $A_K$ and $B_K$ need not be stored,
 since after the first $j$ jobs have been processed, every job belongs to exactly one block and the total
-processing times $\sum_{i=1}^{K} A_i = \sum_{h=1}^{j} a_{\pi(h)}$ and $\sum_{i=1}^{K} B_i = \sum_{h=1}^{j} b_{\pi(h)}$ are known,
+processing times $\sum_{i=1}^{K} A_i = \sum_{j=1}^{n} a_{\pi(j)}$ and $\sum_{i=1}^{K} B_i = \sum_{j=1}^{n} b_{\pi(j)}$ are known,
 so $A_K$ and $B_K$ are recovered by
 \[
-    A_K = \sum_{h=1}^{j} a_{\pi(h)} - \sum_{i=1}^{K-1} A_i, \qquad
-    B_K = \sum_{h=1}^{j} b_{\pi(h)} - \sum_{i=1}^{K-1} B_i.
+    A_K = \sum_{j=1}^{n} a_{\pi(j)} - \sum_{i=1}^{K-1} A_i, \qquad
+    B_K = \sum_{j=1}^{n} b_{\pi(j)} - \sum_{i=1}^{K-1} B_i.
 \]
 Hence a state is represented as
 \[
@@ -563,9 +570,9 @@ while $T_B + B_i$ accounts for the case where $M_2$ is the bottleneck.
 \caption{DP for $F2 \parallel W C_{\max}$}
 \label{alg:dp}
 \begin{algorithmic}[1]
-    \State \textbf{Input:} Jobs $\mathcal{J}$ with $(a_j, b_j, w_j)$ in Johnson order; block count $K$; distinct weights $w^{(1)}>\cdots>w^{(K)}$.
-    \State \textbf{Output:} The optimal value $Z^* = \min_S \max_i\,w^{(i)}\cdot T_B^{(i)}$.
-    \State Set $L_i \gets w^{(i)}$ for $i=1,\dots,K$
+    \State \textbf{Input:} Jobs $\mathcal{J}$ with $(a_j, b_j, w_j)$ in Johnson order; block count $K$; distinct weights $W_{1}>\cdots>W_{K}$.
+    \State \textbf{Output:} The optimal value $Z^* = \min_S \max_i\,W_{i}\cdot T_B^{(i)}$.
+    \State Set $L_i \gets W_{i}$ for $i=1,\dots,K$
     \State $\mathscr{H}_{0} \gets \{ (\; 0,\dots,0; \; 0,\dots,0; \; 0,\dots,0; \; 0,\dots,0) \}$
     \For{$j = 1$ to $n$}
         \State $\mathcal{Y}_i \gets \emptyset$ for $i = 1,\dots,K$
@@ -588,9 +595,6 @@ while $T_B + B_i$ accounts for the case where $M_2$ is the bottleneck.
     \State \Return $Z^*$
 \end{algorithmic}
 \end{algorithm}
-
-
-
 
 \begin{theorem}\label{thm:complexity}
 Algorithm~2 solves $F2 \parallel W C_{\max}$ optimally in
@@ -667,7 +671,7 @@ property; it is the only fact about the rounding used below.
 A \emph{box} is the set of states whose time coordinates fall in a fixed tuple
 of intervals and whose weight labels are fixed. For
 $\mathbf r^{A},\mathbf r^{B},\mathbf r^{C}\in\{0,\dots,v\}^{K}$ and
-$\mathbf L=(L_1,\dots,L_K)\in\big(\{0\}\cup\{w^{(1)},\dots,w^{(K)}\}\big)^K$,
+$\mathbf L=(L_1,\dots,L_K)\in\big(\{0\}\cup\{W_1,\dots,W_K\}\}\big)^K$,
 where $L_i=0$ marks an empty block $\mathcal{B}_i$, the box is
 \[
 \mathscr{B}(\mathbf r^{A};\mathbf r^{B};\mathbf r^{C};\mathbf L)
@@ -675,13 +679,6 @@ where $L_i=0$ marks an empty block $\mathcal{B}_i$, the box is
 A_i\in I_{r_i^{A}},\ B_i\in I_{r_i^{B}},\ C_i\in I_{r_i^{C}}\Big\}.
 \]
 There are $(v+1)^{3K}(K+1)^K$ boxes, a number independent of the job sizes.
-
-\begin{rem}\label{rem:empty-block}
-A block with $L_i=0$ is empty and accepts any job; its first job becomes the
-last job of the block and sets $L_i=w_j$, in line with the block-end condition
-of Section~\ref{sec:dp_algorithm}. An empty block contributes $L_i\cdot
-T_{B,i}=0$ in Algorithm~\ref{alg:Block-concat}.
-\end{rem}
 
 \begin{algorithm}[H]
 \caption{Boxed FPTAS for $F2 \parallel W C_{\max}$}
