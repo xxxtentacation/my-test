@@ -507,11 +507,12 @@ Hence a state is represented as
 
 The initial state set contains a single state with all components set to zero:
 $\mathscr{H}_{0} = \{ (0,\dots,0; \; 0,\dots,0; \; 0,\dots,0; \; 0,\dots,0) \}$.
+For ease of calculation, we use $T_A$ and $T_B$ to denote the accumulated processing times on machine 1 and machine 2, respectively.
 
 \begin{lemma}\label{lem:merge-dominance}
 Let $H = (C_1,\dots,C_K; A_1,\dots,A_{K-1}; B_1,\dots,B_{K-1}; L_1,\dots,L_K)$ and
 $H' = (C'_1,\dots,C'_K; A'_1,\dots,A'_K; B'_1,\dots,B'_K; L'_1,\dots,L'_K)$
-be two states in $\mathscr{H}_j$ for some $j$.
+be two states in $\mathscr{H}_j$ for job $J_j$.
 If $A_i = A'_i$, $B_i = B'_i$, $L_i = L'_i$ for all $i$, and $C_i \le C'_i$ for all $i$,
 then $H'$ can be discarded without affecting the optimal solution.
 \end{lemma}
@@ -525,29 +526,19 @@ By induction, the $M_2$ completion time of every subsequent block is no larger u
 and since $A_i$, $B_i$, $L_i$ are identical, the objective value $W C_{\max}$ of $\Pi$ does not exceed that of $\Pi'$.
 \end{proof}
 
-During the merge step, the algorithm applies this dominance rule:
-among states with identical $(A_i, B_i, L_i)_{i=1}^K$, only those with component-wise minimal $(C_i)_{i=1}^K$ are retained.
-
-For $j = 1, \dots, n$, the algorithm extends $\mathscr{H}_{j-1}$ to $\mathscr{H}_j$ as follows.
-For each state in $\mathscr{H}_{j-1}$ and each block $i \in \mathcal{E}(J_j)$ (every block that precedes the block of $J_j$, i.e., every $i$ with $w_j \leqslant L_i$),
-the algorithm places $J_j$ at the end of $\mathcal{B}_i$. Only the $i$-th slice of the state is updated, while all other blocks remain unchanged:
+For $j = 1, \dots, n$, the algorithm extends $\mathscr{H}_{j-1}$ to $\mathscr{H}_j$ follows: 
+For each state in $\mathscr{H}_{j-1}$ and each block $i \in \mathcal{E}(J_j)$,
+the algorithm places $J_j$ at the end of $\mathcal{B}_i$. 
+Only the $i$-th slice of the state is updated, while all other blocks remain unchanged:
 \[
 C'_i = \max\{C_i + b_j,\; A_i + a_j + b_j\},\quad
 A'_i = A_i + a_j,\quad
 B'_i = B_i + b_j.
 \]
-The resulting candidate states are collected in a temporary set $\mathcal{Y}$ (the sub-states).
+The resulting candidate states are collected in a temporary set $\mathcal{Y}$.
 Via Lemma~\ref{lem:merge-dominance}, merging the candidates removes dominated and duplicate states and yields $\mathscr{H}_{j}$.
 
 
-Once all jobs are assigned and each block $\mathcal{B}_i$ is summarized by its parameters $(A_i, B_i, C_i)$,
-the overall makespan $C_{\max}$ is obtained by concatenating the blocks in order of increasing index.
-The procedure is given below:
-
-In the update of $T_B$,
-the term $T_A - A_i$ is the start time of $\mathcal{B}_i$ on $M_1$, so $T_A - A_i + C_i$
-is the completion time of $\mathcal{B}_i$ on $M_2$ when $M_2$ is free,
-while $T_B + B_i$ accounts for the case where $M_2$ is the bottleneck.
 
 \setlength{\intextsep}{4pt}
 \begin{algorithm}[H]
@@ -573,7 +564,7 @@ while $T_B + B_i$ accounts for the case where $M_2$ is the bottleneck.
     \State \textbf{Input:} Jobs $\mathcal{J}$ with $(a_j, b_j, w_j)$ in Johnson order; block count $K$; distinct weights $W_{1}>\cdots>W_{K}$.
     \State \textbf{Output:} The optimal value $Z^* = \min_S \max_i\,W_{i}\cdot T_B^{(i)}$.
     \State Set $L_i \gets W_{i}$ for $i=1,\dots,K$
-    \State $\mathscr{H}_{0} \gets \{ (\; 0,\dots,0; \; 0,\dots,0; \; 0,\dots,0; \; 0,\dots,0) \}$
+    \State $\mathscr{H}_{0} \gets \{0, 0, 0, 0\}_{i=1}^K$
     \For{$j = 1$ to $n$}
         \State $\mathcal{Y}_i \gets \emptyset$ for $i = 1,\dots,K$
         \For{each $(\{C_i,A_i,B_i,L_i\}_{i=1}^K) \in \mathscr{H}_{j-1}$}
@@ -596,11 +587,21 @@ while $T_B + B_i$ accounts for the case where $M_2$ is the bottleneck.
 \end{algorithmic}
 \end{algorithm}
 
+Algorithm~2 returns the optimal objective value $Z^*$; the optimal schedule itself is obtained by a standard backtracking procedure.
+To this end, each state in $\mathscr{H}_j$ stores a pointer to the state in $\mathscr{H}_{j-1}$ from which it was derived, 
+together with the block $i \in \mathcal{E}(J_j)$ into which $J_j$ was placed.
+After the final evaluation, starting from the state in $\mathscr{H}_n$ attaining $Z^*$, 
+backtracking along these pointers recovers, for every job $J_j$, the block $\mathcal{B}_i$ it belongs to.
+Sequencing the jobs of each block according to Johnson's rule (Lemma~\ref{lem:block-johnson}) and 
+concatenating the blocks then yields an optimal schedule $\pi^*$ with $W C_{\max}(\pi^*) = Z^*$.
+
+
+
 \begin{theorem}\label{thm:complexity}
 Algorithm~2 solves $F2 \parallel W C_{\max}$ optimally in
-$O\bigl(n \cdot K^2 \cdot |\mathscr{H}|_{\max}\bigr)$ time, where
+$O\bigl(n \cdot K \cdot |\mathscr{H}|_{\max}\bigr)$ time, where
 $|\mathscr{H}|_{\max} \le K^K \cdot V^{\,3K-3}$,
-$V = \max\bigl\{\sum_{j=1}^n a_j,\;\sum_{j=1}^n b_j\bigr\}$.
+$V = \sum_{j=1}^{n}a_j + \sum_{j=1}^{n}b_j$.
 For constant $K$, this is $O(n \cdot V^{\,3K-3})$.
 \end{theorem}
 
@@ -612,20 +613,21 @@ We bound the number of distinct values each component can attain.
 The quantity $A_i$ is the total $M_1$ processing time of jobs assigned to block $\mathcal{B}_i$,
 hence $A_i \in [0,\,V]$.
 Since the job sequence is fixed and the $j$ jobs under consideration form a prefix of the Johnson order,
-$\sum_{i=1}^K A_i$ equals the sum of $a_j$ over that prefix.
+$\sum_{i=1}^{K-1} A_i$ equals the sum of $a_j$ over that prefix.
 Consequently at most $K-1$ of the $A_i$ are independent, contributing at most $V^{\,K-1}$ distinct $A$-vectors.
-Symmetrically, $\sum_{i=1}^K B_i$ is the prefix sum of the $b_j$'s,
+Symmetrically, $\sum_{i=1}^{K-1} B_i$ is the prefix sum of the $b_j$'s,
 so the $B_i$ components likewise contribute at most $V^{\,K-1}$ distinct combinations.
 
 The quantity $C_i$ is the makespan of $\mathcal{B}_i$ when scheduled in isolation by Johnson's rule.
-Since $C_i \le A_i + B_i \le 2V$, the $C$-vector contributes at most $(2V)^K$ distinct values.
-The weight $L_i$ is the weight of the last job in $\mathcal{B}_i$ and takes values from $\{w^{(1)},\dots,w^{(K)}\}$,
+Since $C_i \le A_i + B_i \le V$ (each block's total $M_1$ and $M_2$ work is bounded by $V$),
+the $C$-vector contributes at most $V^{K-1}$ distinct values.
+The weight $L_i$ is the weight of the last job in $\mathcal{B}_i$ and takes values from $\{W_1,\dots,W_K\}$,
 yielding at most $K^K$ distinct $L$-vectors.
 
 Multiplying these bounds yields
 \[
-|\mathscr{H}_{j}| \le K^K \cdot (2V)^{K-1} \cdot V^{\,2K-2}
-                      = O\bigl(K^K \cdot 2^K \cdot V^{\,3K-3}\bigr).
+|\mathscr{H}_{j}| \le K^K \cdot V^{\,K-1} \cdot V^{\,2K-2}
+                      = K^K \cdot V^{\,3K-3}.
 \]
 
 In iteration $j$, the algorithm takes each state in $\mathscr{H}_{j-1}$, tries every
@@ -638,7 +640,7 @@ and summing over all $n$ iterations gives $O(n \cdot K \cdot |\mathscr{H}|_{\max
 
 The final concatenation via Algorithm~1 evaluates each state in $\mathscr{H}_{n}$
 in $O(K)$ time, which is dominated by the DP phase.
-When $K$ is fixed, $K^K \cdot 2^K$ is constant, giving $O(n \cdot V^{\,3K-3})$.
+When $K$ is fixed, $K^K$ is constant, giving $O(n \cdot V^{\,3K-3})$.
 \end{proof}
 
 
@@ -650,35 +652,58 @@ When $K$ is fixed, $K^K \cdot 2^K$ is constant, giving $O(n \cdot V^{\,3K-3})$.
 \label{sub:fptas}
 
 We turn the exact dynamic program of Algorithm~\ref{alg:dp} into a fully
-polynomial-time approximation scheme by geometric rounding of its state space.
-Only the completion-time coordinates $A_i,B_i,C_i$ are rounded. 
+polynomial-time approximation scheme by geometric rounding of its
+completion-time coordinates, following the rounding of the completion time
+$\hat C^{b}$ used in the FPTAS of Ren et al.~\citealp{ren2025rescheduling}.
+Only the numerical coordinates $C_i,A_i,B_i$ are rounded; the block weights
+$W_1,\dots,W_K$ (i.e.\ the labels $L_i=W_i$) are fixed constants of the block
+indices and are not rounded.
 
 Fix $0<\varepsilon<1$ and let
 \[
-\delta=1+\frac{\varepsilon}{2n},\qquad U=2V,\qquad v=\Big\lceil\log_\delta U\Big\rceil,
+\delta=1+\frac{\varepsilon}{2n},\qquad
+v=\Big\lceil\log_\delta V\Big\rceil,
 \]
-where $V=\max\bigl\{\sum_{j=1}^n a_j,\ \sum_{j=1}^n b_j\bigr\}$.
-Partition $[0,U]$ into the $v+1$ intervals
-\begin{equation}\label{eq:fptas-intervals}
-I_0=[0,1),\qquad I_r=[\delta^{r-1},\delta^{r})\ \ (1\le r\le v-1),\qquad
-I_v=[\delta^{v-1},U].
-\end{equation}
-All processing times are assumed integral, so every value taken by a coordinate
-$A_i,B_i,C_i$ is a nonnegative integer; hence any two values lying in a common
-interval satisfy $x\le \delta\,y$. We call this the \emph{interval-dominance}
-property; it is the only fact about the rounding used below.
+where $V=\sum_{j=1}^{n}a_j+\sum_{j=1}^{n}b_j$.
+For every block $\mathcal{B}_i$, the recurrence
+\[
+C'_i=\max\{C_i+b_j,\ A_i+a_j+b_j\},\qquad
+A'_i=A_i+a_j,\qquad B'_i=B_i+b_j
+\]
+preserves $A_i,B_i\le V$ and $C_i\le A_i+B_i\le V$; hence the $A$-, $B$- and
+$C$-dimensions all range over $[0,V]$.
+We split the range $[0,V]$ of each of the three dimensions into $v+1$ intervals
+\[
+I_0=[0,1),\qquad
+I_r=[\delta^{r-1},\delta^{r})\ \ (1\le r\le v-1),\qquad
+I_v=[\delta^{v-1},V],
+\]
+where the same family of intervals $I_r$ is used for the $A$-, $B$- and $C$-dimensions.
+All processing times are integral, so every value taken by a coordinate
+$C_i,A_i,B_i$ is a nonnegative integer; hence any two values lying in a common
+interval satisfy $x\le\delta\,y$. We call this the \emph{interval-dominance}
+property; it is the only fact about the rounding used in the analysis below.
 
 A \emph{box} is the set of states whose time coordinates fall in a fixed tuple
-of intervals and whose weight labels are fixed. For
-$\mathbf r^{A},\mathbf r^{B},\mathbf r^{C}\in\{0,\dots,v\}^{K}$ and
-$\mathbf L=(L_1,\dots,L_K)\in\big(\{0\}\cup\{W_1,\dots,W_K\}\}\big)^K$,
-where $L_i=0$ marks an empty block $\mathcal{B}_i$, the box is
+of intervals. For $\mathbf r^{A},\mathbf r^{B},\mathbf r^{C}\in\{0,\dots,v\}^{K}$,
+the box is
 \[
-\mathscr{B}(\mathbf r^{A};\mathbf r^{B};\mathbf r^{C};\mathbf L)
-=\Big\{\,(C_i,A_i,B_i,L_i)_{i=1}^K\;:\;
-A_i\in I_{r_i^{A}},\ B_i\in I_{r_i^{B}},\ C_i\in I_{r_i^{C}}\Big\}.
+\mathscr{B}(\mathbf r^{C};\mathbf r^{A};\mathbf r^{B})
+=\Big\{\,(C_i,A_i,B_i,L_i)_{i=1}^K:\;
+C_i\in I_{r^{C}_i},\ A_i\in I_{r^{A}_i},\ B_i\in I_{r^{B}_i}\Big\}.
 \]
-There are $(v+1)^{3K}(K+1)^K$ boxes, a number independent of the job sizes.
+There are $(v+1)^{3K}$ boxes, a number independent of the job sizes.
+The approximation scheme stores at most one \emph{representative} state per box;
+the weight labels $L_i=W_i$ are fixed and common to all states of a box.
+
+\begin{rem}\label{rem:fptas-empty}
+A block $\mathcal{B}_i$ is empty precisely when $A_i=B_i=C_i=0$, i.e.\ when all
+three coordinates lie in the interval $I_0=[0,1)$. In
+Algorithm~\ref{alg:Block-concat}, an empty block contributes
+$W_iT_{B,i}=W_iT_{B,m}$, where $m<i$ is the last nonempty block; since
+$W_i<W_m$, this contribution is dominated and never affects the maximum, so the
+evaluation of empty blocks is immaterial.
+\end{rem}
 
 \begin{algorithm}[H]
 \caption{Boxed FPTAS for $F2 \parallel W C_{\max}$}
@@ -686,14 +711,16 @@ There are $(v+1)^{3K}(K+1)^K$ boxes, a number independent of the job sizes.
 \begin{algorithmic}[1]
     \State \textbf{Input:} Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$ in Johnson order; block count $K$; accuracy $\varepsilon$.
     \State \textbf{Output:} A schedule with $W C_{\max}\le(1+\varepsilon)\,W C_{\max}^{*}$.
-    \State Set $\delta=1+\varepsilon/(2n)$, $U=2V$, $v=\lceil\log_\delta U\rceil$, and the intervals of \eqref{eq:fptas-intervals}
-    \State Store the zero state as the representative of $\mathscr{B}(\mathbf 0;\mathbf 0;\mathbf 0;\mathbf 0)$
+    \State Set $\delta=1+\varepsilon/(2n)$, $v=\lceil\log_\delta V\rceil$, and the intervals $I_r$;
+    set $L_i\gets W_i$ for $i=1,\dots,K$
+    \State Store the zero state as the representative of $\mathscr{B}(\mathbf 0;\mathbf 0;\mathbf 0)$
     \For{$j=0$ to $n-1$}
         \For{each box $\mathscr{B}$ with representative $s=(C_i,A_i,B_i,L_i)_{i=1}^K$}
             \For{$i=1$ to $K$}
-                \If{block $i$ is empty \textbf{or} $w_{j+1}\le L_i$}
-                    \State Compute the candidate $\tilde s$ by the recurrences of Algorithm~\ref{alg:dp} (append $J_{j+1}$ to block $i$; 
-                            if block $i$ was empty, set $L_i\gets w_{j+1}$)
+                \If{$w_{j+1}\le L_i$}
+                    \State Compute the candidate $\tilde s$ by the exact recurrences
+                            $\tilde C_i=\max\{C_i+b_{j+1},\ A_i+a_{j+1}+b_{j+1}\}$,
+                            $\tilde A_i=A_i+a_{j+1}$, $\tilde B_i=B_i+b_{j+1}$
                     \State Map $\tilde s$ to its box $\mathscr{B}'$
                     \If{$\mathscr{B}'$ has no representative} Store $\tilde s$ and record $s$ as its predecessor
                     \Else\ Keep either one of the two representatives of $\mathscr{B}'$ \EndIf
@@ -716,25 +743,21 @@ where $W C_{\max}^{*}$ is the optimal value of $F2 \parallel W C_{\max}$.
 
 \begin{proof}
 Let $s_0^{*}\to s_1^{*}\to\cdots\to s_n^{*}$ be a trajectory of
-Algorithm~\ref{alg:dp} that ends in an optimal schedule, and write
-$s_j^{*}=(C_i^{j*},A_i^{j*},B_i^{j*},L_i^{j*})_{i=1}^K$.
-We show by induction on $j$ that, after processing $j$ jobs,
-Algorithm~\ref{alg:fptas} stores a representative
-$\hat s_j=(\hat C_i,\hat A_i,\hat B_i,\hat L_i)_{i=1}^K$ with
-$\hat L_i=L_i^{j*}$ for all $i$ and
+Algorithm~\ref{alg:dp} whose value equals $W C_{\max}^{*}$, and write
+$s_j^{*}=(C_i^{j*},A_i^{j*},B_i^{j*},W_i)_{i=1}^K$. We show by induction on $j$
+that, after processing $j$ jobs, Algorithm~\ref{alg:fptas} stores a
+representative $\hat s_j=(\hat C_i,\hat A_i,\hat B_i,W_i)_{i=1}^K$ with
 \[
 \hat A_i\le A_i^{j*}\delta^{j},\qquad
 \hat B_i\le B_i^{j*}\delta^{j},\qquad
 \hat C_i\le C_i^{j*}\delta^{j}\qquad(1\le i\le K). \tag{$\star$}
 \]
 The base case $j=0$ is the stored zero state. Assume $(\star)$ holds for $j$,
-and let $i^{*}$ be the block to which $s_j^{*}$ appends $J_{j+1}$. Because the
-weight labels are stored exactly, block $i^{*}$ is empty in $\hat s_j$ whenever
-it is empty in $s_j^{*}$, and otherwise
-$w_{j+1}\le L_{i^{*}}^{j*}=\hat L_{i^{*}}$; hence the same transition is
-applicable from $\hat s_j$. Applying it yields a candidate $\tilde s_{j+1}$
-with $\tilde L_i=L_i^{j+1,*}$ for all $i$ and, by the recurrences of
-Algorithm~\ref{alg:dp} and $\delta^{j}\ge 1$,
+and let $i^{*}$ be the block to which $s_j^{*}$ appends $J_{j+1}$. By the
+positional constraint, $w_{j+1}\le W_{i^{*}}=L_{i^{*}}$; this constraint
+depends only on $J_{j+1}$ and the block index, so the same transition is
+applicable from $\hat s_j$. Applying the exact recurrences to $\hat s_j$ and
+using $\delta^{j}\ge 1$ gives a candidate $\tilde s_{j+1}$ with
 \begin{align*}
 \tilde A_{i^{*}} &= \hat A_{i^{*}}+a_{j+1}
    \le \big(A_{i^{*}}^{j,*}+a_{j+1}\big)\delta^{j}=A_{i^{*}}^{j+1,*}\delta^{j},\\
@@ -747,18 +770,19 @@ Algorithm~\ref{alg:dp} and $\delta^{j}\ge 1$,
 while all other coordinates are unchanged and satisfy the bound at $j+1$.
 The candidate $\tilde s_{j+1}$ is mapped to some box $\mathscr{B}'$. By
 interval dominance, the representative $\hat s_{j+1}$ ultimately stored in
-$\mathscr{B}'$ satisfies $\hat x_i\le \delta\,\tilde x_i$ for every
-$x\in\{A,B,C\}$ and every $i$, which yields $(\star)$ at $j+1$.
+$\mathscr{B}'$ satisfies $\hat x_i\le\delta\,\tilde x_i$ for every
+$x\in\{A,B,C\}$ and every $i$, which yields $(\star)$ at $j+1$, completing the
+induction.
 
 It remains to compare the objective values. In the block-concatenation
 evaluation of Algorithm~\ref{alg:Block-concat}, the quantity $T_{B,i}$ is
 nondecreasing in every coordinate and positively homogeneous, so
-$T_{B,i}(\hat s_n)\le \delta^{n}\,T_{B,i}(s_n^{*})$. With
-$\hat L_i=L_i^{n,*}$,
+$T_{B,i}(\hat s_n)\le\delta^{n}\,T_{B,i}(s_n^{*})$. Since the block weights
+$W_i$ are fixed,
 \[
 W C_{\max}(\hat s_n)
-=\max_{1\le i\le K}\hat L_i\,T_{B,i}(\hat s_n)
-\le \delta^{n}\max_{1\le i\le K}L_i^{n,*}\,T_{B,i}(s_n^{*})
+=\max_{1\le i\le K}W_i\,T_{B,i}(\hat s_n)
+\le \delta^{n}\max_{1\le i\le K}W_i\,T_{B,i}(s_n^{*})
 =\delta^{n}\,W C_{\max}^{*}.
 \]
 Finally, $\delta^{n}=(1+\varepsilon/(2n))^{n}\le 1+\varepsilon$ for
@@ -770,7 +794,7 @@ $(1+\varepsilon)\,W C_{\max}^{*}$.
 \begin{theorem}\label{thm:fptas-complex}
 For fixed $K$, Algorithm~\ref{alg:fptas} runs in
 \[
-O\!\left(n^{3K+1}\,\frac{(\log V)^{3K}}{\varepsilon^{3K}}\right)
+O\!\left(n^{3K+1}\cdot K\cdot\frac{(\log V)^{3K}}{\varepsilon^{3K}}\right)
 \]
 time and is therefore a fully polynomial-time approximation scheme for
 $F2 \parallel W C_{\max}$.
@@ -778,24 +802,21 @@ $F2 \parallel W C_{\max}$.
 
 \begin{proof}
 At each level $j$, Algorithm~\ref{alg:fptas} stores at most one representative
-per box, and there are $(v+1)^{3K}(K+1)^{K}$ boxes. Each representative
+per box, and there are $(v+1)^{3K}$ boxes. Each representative
 generates $K$ candidates in $O(1)$ time, and the final evaluation of the
 representatives at level $n$ costs $O(K)$ per box. Hence the running time is
 \[
-O\big(nK\,(v+1)^{3K}(K+1)^{K}\big).
+O\bigl(nK\,(v+1)^{3K}\bigr).
 \]
 Since $\ln(1+\varepsilon/(2n))\ge\varepsilon/(4n)$ for $0<\varepsilon<1$,
 \[
-v=\left\lceil\frac{\ln U}{\ln\delta}\right\rceil
+v=\Big\lceil\frac{\ln V}{\ln\delta}\Big\rceil
 =O\!\left(\frac{n\log V}{\varepsilon}\right),
 \]
 and for constant $K$ the bound reduces to
-$O(n^{3K+1}(\log V)^{3K}/\varepsilon^{3K})$, polynomial in $n$, $\log V$,
+$O(n^{3K+1}K(\log V)^{3K}/\varepsilon^{3K})$, polynomial in $n$, $\log V$,
 and $1/\varepsilon$.
 \end{proof}
-
-
-
 
 \section{Conclusion}
 \label{sec:conclusion}
