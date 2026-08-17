@@ -704,6 +704,7 @@ There are $(v+1)^{3K}$ boxes, a number independent of the job sizes.
 The approximation scheme stores at most one \emph{representative} state per box;
 the weight labels $L_i=W_i$ are fixed and common to all states of a box.
 
+
 \begin{algorithm}[H]
 \caption{Boxed FPTAS for $F2 \parallel W C_{\max}$}
 \label{alg:fptas}
@@ -741,7 +742,7 @@ where $W C_{\max}^{*}$ is the optimal value of $F2 \parallel W C_{\max}$.
 \end{theorem}
 
 \begin{proof}
-Let $s_0^{*}\to s_1^{*}\to\cdots\to s_n^{*}$ be a trajectory of
+Let $s_0^{*}\to s_1^{*}\to\cdots\to s_n^{*}$ be a schedule of
 Algorithm~\ref{alg:dp} whose value equals $W C_{\max}^{*}$, and write
 $s_j^{*}=(C_i^{j*},A_i^{j*},B_i^{j*},W_i)_{i=1}^K$. We show by induction on $j$
 that, after processing $j$ jobs, Algorithm~\ref{alg:fptas} stores a
@@ -815,6 +816,63 @@ v=\Big\lceil\frac{\ln V}{\ln\delta}\Big\rceil
 and for constant $K$ the bound reduces to
 $O(n^{3K+1}K(\log V)^{3K}/\varepsilon^{3K})$, polynomial in $n$, $\log V$,
 and $1/\varepsilon$.
+\end{proof}
+
+\subsection{A 2-Approximation Algorithm}
+\label{sub:approx2}
+
+The exact dynamic program of Section~\ref{sec:dp_algorithm} runs in pseudo-polynomial
+time, and the FPTAS of Section~\ref{sub:fptas} trades accuracy against a factor that
+grows with $K$. When only a constant-factor guarantee is needed, the following elementary
+rule suffices.
+
+\begin{algorithm}[H]
+\caption{2-Approximation for $F2 \parallel W C_{\max}$}
+\label{alg:approx2}
+\begin{algorithmic}[1]
+    \State \textbf{Input:} Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$.
+    \State \textbf{Output:} A schedule with $W C_{\max}\le 2\,W C_{\max}^{*}$.
+    \State Sort the jobs by non-increasing weight $w_j$ (ties broken arbitrarily)
+    \State Schedule the jobs in this order on both machines
+    \State \Return the resulting permutation schedule
+\end{algorithmic}
+\end{algorithm}
+
+\begin{theorem}\label{thm:approx2}
+Algorithm~\ref{alg:approx2} runs in $O(n\log n)$ time and returns a schedule with
+$W C_{\max}\le 2\,W C_{\max}^{*}$.
+\end{theorem}
+
+\begin{proof}
+Let $\sigma$ be the schedule returned by Algorithm~\ref{alg:approx2}, let $j_k$ be the job
+in position $k$ of $\sigma$, and let $S_k=\{j_1,\dots,j_k\}$. Since the jobs are sorted by
+non-increasing weight, every job of $S_k$ has weight at least $w_{j_k}$.
+
+We first bound the completion times in $\sigma$. Job $j_k$ completes on $M_1$ at time
+$\sum_{h\in S_k}a_h$; on $M_2$ it starts no later than
+$\max\bigl\{\sum_{h\in S_k}a_h,\ \sum_{h\in S_k\setminus\{j_k\}}b_h\bigr\}$, so
+\[
+C_{j_k}(\sigma)\le \sum_{h\in S_k}\bigl(a_h+b_h\bigr),
+\]
+and therefore
+\[
+W C_{\max}(\sigma)\le \max_{1\le k\le n}\,w_{j_k}\sum_{h\in S_k}\bigl(a_h+b_h\bigr).
+\]
+
+It remains to bound the right-hand side by $2W C_{\max}^{*}$. Fix a prefix $S_k$ and let
+$\pi^{*}$ be an optimal schedule. Let $u$ be the job of $S_k$ that finishes last on $M_1$
+in $\pi^{*}$, and $v$ the job of $S_k$ that finishes last on $M_2$. All jobs of $S_k$ must
+be processed on $M_1$ before $u$ finishes $M_1$, and $u$ still requires $b_u$ on $M_2$, so
+$C^{*}_u\ge\sum_{h\in S_k}a_h+b_u$. Similarly, the $M_2$ processing of all jobs of $S_k$
+totals $\sum_{h\in S_k}b_h$ and $v$ must first complete its own $a_v$ on $M_1$, so
+$C^{*}_v\ge\sum_{h\in S_k}b_h+a_v$. As $u,v\in S_k$, we have $w_u,w_v\ge w_{j_k}$, and
+\[
+W C_{\max}^{*}\ge w_{j_k}\max\Bigl\{\sum_{h\in S_k}a_h+b_u,\ \sum_{h\in S_k}b_h+a_v\Bigr\}
+\ge \frac{w_{j_k}}{2}\Bigl(\sum_{h\in S_k}a_h+\sum_{h\in S_k}b_h\Bigr),
+\]
+where the last inequality uses $\max\{x,y\}\ge(x+y)/2$ and $a_u,b_v\ge 0$. Hence
+$w_{j_k}\sum_{h\in S_k}(a_h+b_h)\le 2W C_{\max}^{*}$ for every $k$, and the claim follows
+from the upper bound above.
 \end{proof}
 
 \section{Conclusion}
