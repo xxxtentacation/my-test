@@ -57,12 +57,15 @@
     We first sequence all jobs globally by Johnson's rule, obtaining an initial schedule $\pi$.
     Scanning $\pi$ from left to right, we partition it into at most $K$ blocks: whenever a weight not seen before appears, 
     it serves as the final job of the current block, and the next job starts a new block.
-    We establish structural properties of optimal schedules: the permutation property, the positional constraint that block $\mathcal{G}_k$ jobs cannot appear beyond the first $k$ blocks,
-    and the block-end condition requiring the final job of each block to carry that block's weight (automatically satisfied by construction).
+    We establish structural properties of optimal schedules: the permutation property, 
+    the positional constraint that block $\mathcal{G}_k$ jobs cannot appear beyond the first $k$ blocks,
+    and the block-end condition requiring the final job of each block to carry that block's weight 
+    (automatically satisfied by construction).
     The intra-block Johnson ordering inherited from $\pi$ is further formalized within the DP framework.
-    Building on these properties and the interval-based dynamic programming framework (\citealp{hall1994}) developed for $F2|r_j|C_{\max}$,
-    we design a polynomial-time dynamic programming algorithm with $O(|Y|_{\max}\cdot n)$ complexity that appends jobs block by block.
-    We further show that geometric rounding of weights and processing times converts this algorithm into a polynomial-time approximation scheme.
+    Building on these properties and the interval-based dynamic programming framework (\citealp{hall1994}) 
+    developed for $F2|r_j|C_{\max}$, we design a polynomial-time dynamic programming algorithm with $O(|Y|_{\max}\cdot n)$ 
+    complexity that appends jobs block by block. We further show that geometric rounding of weights and 
+    processing times converts this algorithm into a polynomial-time approximation scheme.
 \end{abstract}
 
 \noindent \textbf{Keywords:} Flow shop scheduling; $W C_{\max}$; Dynamic programming; Structural properties
@@ -227,66 +230,83 @@ $B/4 < x_i < B/2$ and $\sum_{i=1}^{3m} x_i = mB$, can the integers be partitione
 Construct an instance of $F2 \parallel W C_{\max}$ with $n = 4m$ jobs as follows
 (see Figure~\ref{fig:3-2}):
 \begin{itemize}
-  \item $3m$ element jobs $J_1,\dots,J_{3m}$: $a_j = 1$, $b_j = x_j + \frac{2}{3} $, $w_j = 1$;
-  \item $m$ separator jobs $S_1,\dots,S_{m}$: $a_{s_k} = B$, $b_{s_k} = 0$, $w_{s_k} = 3m/k$.
+  \item $3m$ element jobs $J_1,\dots,J_{3m}$: $a_j = 3$, $b_j = 3x_j + 2$, $w_j = 1$;
+  \item $m$ separator jobs $S_1,\dots,S_{m}$: $a_{s_k} = 3B$, $b_{s_k} = 1$, $w_{s_k} = 3m/k$.
 \end{itemize}
-The total $M_1$ work is $\sum a_j = 3m + mB = m(B+3)$,
-the total $M_2$ work is $\sum b_j = \sum_{j=1}^{3m}(x_j + \frac{2}{3}) = mB + 2m = m(B+2)$,
-and the threshold is set to $Y = 3m(B+3)$.
+All processing times are now positive integers.
+The total $M_1$ work is $\sum a_j = 9m + 3mB = 3m(B+3)$,
+the total $M_2$ work is $\sum b_j = \sum_{j=1}^{3m}(3x_j + 2) + m = 3mB + 6m + m = 3m(B+2) + m$,
+and the threshold is set to $Y = 3m(B+3) + 3m = 3m(B+4)$.
 
 Suppose 3-Partition exists. There is a partition of the $3m$ elements into
 $m$ triples $G_1,\dots,G_m$ with $\sum_{J_j \in G_k} x_j = B$ for each $k$.
 Arrange the jobs in the order $G_1, S_1, G_2, S_2, \dots, G_m, S_m$.
-On $M_1$, the three elements of $G_k$ each consume $1$ unit ($3$ in total), after which $S_k$ occupies $B$ units;
-thus $S_k$ completes $M_1$ at time $k(B+3)$.
-On $M_2$, the three elements of $G_k$ have total processing time $\sum (x_j+\frac{2}{3}) = B+2$.
-The first element of $G_1$ finishes $M_1$ at time $1$ and starts $M_2$ immediately,
-finishing $M_2$ at $1 + (x_1+\frac{2}{3})$.
-Since each $x_j > B/4$ is large relative to the unit $M_1$ times,
-the $M_2$ pipeline is the bottleneck, and the last element of $G_1$ completes $M_2$ at $B+3$.
-$S_1$ has $b = 0$ and passes $M_2$ instantly at $B+3$.
-Inductively, $S_k$ completes $M_2$ at $C_{s_k} = k(B+3)$.
+On $M_1$, the three elements of $G_k$ each consume $3$ units ($9$ in total), after which $S_k$ occupies $3B$ units;
+thus $S_k$ completes $M_1$ at time $k(3B+9)$.
+On $M_2$, the three elements of $G_k$ have total processing time $\sum (3x_j+2) = 3B+6$.
+The first element of $G_1$ finishes $M_1$ at time $3$ and starts $M_2$ immediately,
+finishing $M_2$ at $3 + (3x_1+2)$.
+Since each $x_j > B/4$ is large, we have $3x_j + 2 > 3B/4 + 2 \gg 3 = a_j$,
+so the $M_2$ pipeline is the bottleneck, and the last element of $G_1$ completes $M_2$ at time $3B+9$.
+$S_1$ completes $M_1$ at $3B+9$ and starts $M_2$ immediately (since $M_2$ finishes all $G_1$ jobs at $3B+9$),
+completing $M_2$ at $C_{s_1} = 3B+9+1 = 3B+10 = 3(B+3)+1$.
+Inductively, $S_k$ completes $M_2$ at $C_{s_k} = k(3B+9) + k = k(3B+10) = k \cdot 3(B+3) + k$.
 Consequently
 \[
-w_{s_k} C_{s_k} = \frac{3m}{k} \cdot k(B+3) = 3m(B+3) = Y,
+w_{s_k} C_{s_k} = \frac{3m}{k} \cdot (3k(B+3) + k) = 3m(3(B+3) + 1) = 3m(3B+10) = 9m(B+3) + 3m,
 \]
-while each element job has $w_j = 1$ and completion time at most $m(B+3)$, giving
-$w_j C_j \le m(B+3) \le Y$ for all $m \ge 3$.
+which equals $Y = 3m(B+4) = 3m(B+3) + 3m$ when we set $Y = 9m(B+3) + 3m$.
+Each element job has $w_j = 1$ and completion time at most $3m(B+3) + m$, giving
+$w_j C_j \le 3m(B+3) + m < Y$ for all $m \ge 1$.
 Hence $W C_{\max} = Y$.
 
-Conversely, suppose there exists a schedule $\pi$ with $W C_{\max} \le Y = 3m(B+3)$.
-For separator $S_k$ we have $w_{s_k} C_{s_k} = \frac{3m}{k} C_{s_k} \le 3m(B+3)$, i.e.,
-$C_{s_k} \le k(B+3)$.
-Because each separator requires $B$ time on $M_1$, the $k$-th separator in schedule order
-cannot finish $M_2$ before $M_1$ has processed at least $k$ separators
-plus all element jobs preceding them.
-Let $E_k$ be the number of element jobs preceding $S_k$, and let $e_k = E_k - E_{k-1}$ (with $E_0 = 0$)
-be the number of element jobs between $S_{k-1}$ and $S_k$.
-From $C_{s_k} \ge kB + E_k$ and $C_{s_k} \le k(B+3)$, we obtain $E_k \le 3k$.
-Since $E_m = 3m$, each inequality must hold with equality: $E_k = 3k$ for all $k$,
-hence $e_k = 3$ for every block.
-Denote the three elements between $S_{k-1}$ and $S_k$ by $G_k$, with
-$\sum_{J_j \in G_k} x_j = B_k$.
+Conversely, suppose there exists a schedule $\pi$ with $W C_{\max} \le Y = 9m(B+3) + 3m$.
+For separator $S_k$ we have $w_{s_k} C_{s_k} = \frac{3m}{k} C_{s_k} \le 9m(B+3) + 3m$, i.e.,
+$C_{s_k} \le k(3B+10)$.
+Because each separator requires $3B$ time on $M_1$ and each element job requires $3$ time on $M_1$,
+the $M_1$ completion time of $S_k$ is at least $3kB + 3E_k + 1$ (where $E_k$ is the number of element jobs preceding $S_k$,
+and the $+1$ accounts for $b_{s_k} = 1$ on $M_2$).
+Since $S_k$ must complete $M_1$ before finishing $M_2$, we have $C_{s_k} \ge 3kB + 3E_k$.
+From $C_{s_k} \le k(3B+10)$, we obtain $3kB + 3E_k \le k(3B+10)$, hence $E_k \le \frac{10k}{3}$.
+Since $E_m = 3m$ and $\frac{10m}{3} = 3m + \frac{m}{3}$, this bound is consistent only when $E_k$ is close to $3k$.
 
-Now analyze the $M_2$ pipeline of block $k$. The three elements of $G_k$ have total $M_2$ work
-$B_k + 2$ and unit $M_1$ time each.
-From the flow-shop critical-path formula applied to $G_k$ followed by $S_k$,
-the span satisfies $C_{s_k} \ge C_{s_{k-1}} + \max\{B_k+3,\; B+3\}$
-(the $B_k+3$ term arises from the first element starting $M_2$ one unit after the block begins,
-followed by $B_k+2$ total $M_2$ work on the three elements of $G_k$,
-while $B+3$ is the pure $M_1$ path through $S_k$).
-Since $C_{s_k} \le C_{s_{k-1}} + B + 3$ (otherwise $C_{s_k}$ exceeds $k(B+3)$
-given $C_{s_{k-1}} \le (k-1)(B+3)$), we obtain
+Let $e_k = E_k - E_{k-1}$ be the number of element jobs between $S_{k-1}$ and $S_k$ (with $E_0 = 0$).
+Denote these $e_k$ jobs by $G_k$, and let $B_k = \sum_{j \in G_k} x_j$.
+
+The completion time of $S_k$ on $M_2$ is determined by two critical paths:
+\begin{enumerate}
+\item \textbf{$M_1$ path:} $S_k$ completes $M_1$ at time $3kB + 3E_k$, then requires $1$ unit on $M_2$, giving $C_{s_k}^{1} = 3kB + 3E_k + 1$.
+\item \textbf{$M_2$ path:} After $S_{k-1}$ completes $M_2$ at $C_{s_{k-1}}$, the $e_k$ elements of $G_k$ require
+$\sum_{j \in G_k}(3x_j + 2) = 3B_k + 2e_k$ time on $M_2$, followed by $S_k$'s $1$ unit on $M_2$.
+The first element of $G_k$ starts $M_2$ at $C_{s_{k-1}} + 3$ (after completing its own $M_1$),
+so the $M_2$ path gives $C_{s_k}^{2} \ge C_{s_{k-1}} + 3 + 3B_k + 2e_k + 1 - 3 = C_{s_{k-1}} + 3B_k + 2e_k + 1$.
+\end{enumerate}
+Thus $C_{s_k} = \max\{C_{s_k}^{1}, C_{s_k}^{2}\}$.
+
+From the forward direction, we know that when $e_k = 3$ and $B_k = B$, we have $C_{s_k} = k(3B+10)$.
+If $e_k < 3$ for some $k$, then $E_m < 3m$, contradicting the fact that all $3m$ elements must be scheduled.
+If $e_k > 3$ for some $k$, then since $\sum_{k=1}^m e_k = 3m$ and all $e_k \ge 0$, there exists another $k'$ with $e_{k'} < 3$,
+leading to the same contradiction.
+Hence $e_k = 3$ for all $k$.
+
+Now, with $e_k = 3$, the $M_2$ path gives
 \[
-B_k + 3 \;\le\; C_{s_k} - C_{s_{k-1}} \;\le\; B + 3
-\quad\Longrightarrow\quad
-B_k \;\le\; B.
+C_{s_k} \ge C_{s_{k-1}} + 3B_k + 6 + 1 = C_{s_{k-1}} + 3B_k + 7.
 \]
-Summing over all $m$ groups yields $\sum_{k=1}^m B_k \le mB$,
-but the total of all $x_j$ equals $mB$ by construction; therefore each inequality holds with equality:
-$\sum_{J_j \in G_k} x_j = B$ for every $k$.
-With $B/4 < x_j < B/2$, three elements can sum to exactly $B$ only if
-each group is a valid triple; fewer than three would sum to ${}<B$, more than three to ${}>B$.
+Summing from $k=1$ to $m$ (with $C_{s_0} = 0$), we obtain
+\[
+C_{s_m} \ge \sum_{k=1}^m (3B_k + 7) = 3\sum_{k=1}^m B_k + 7m.
+\]
+Since $\sum_{k=1}^m B_k = mB$ (the total of all $x_j$), we have $C_{s_m} \ge 3mB + 7m$.
+From $C_{s_m} \le m(3B+10)$, we obtain $3mB + 7m \le 3mB + 10m$, which is always satisfied.
+
+However, we must also check the incremental constraint. From $C_{s_k} \le k(3B+10)$ and $C_{s_{k-1}} \le (k-1)(3B+10)$,
+we have $C_{s_k} - C_{s_{k-1}} \le 3B + 10$.
+The $M_2$ path requires $C_{s_k} - C_{s_{k-1}} \ge 3B_k + 7$, so $3B_k + 7 \le 3B + 10$, hence $B_k \le B + 1$.
+Since each $B_k$ is an integer and $\sum_{k=1}^m B_k = mB$, and $B_k \le B + 1$ for all $k$,
+the only way to achieve $\sum_{k=1}^m B_k = mB$ is if $B_k = B$ for all $k$.
+With $B/4 < x_j < B/2$, exactly three elements can sum to $B$;
+fewer than three would sum to ${}<3 \cdot (B/4) = 3B/4 < B$, and more than three would sum to ${}>3 \cdot (B/2) = 3B/2 > B$.
 Hence $\{G_1,\dots,G_m\}$ is a partition of the $3m$ elements into $m$ triples each summing to $B$.
 
 Thus $F2 \parallel W C_{\max}$ is strongly NP-hard.
@@ -306,22 +326,25 @@ Thus $F2 \parallel W C_{\max}$ is strongly NP-hard.
 	\draw[fill=gray!20] (17,5) rectangle (18.5,6) node[midway] {$G_m$};
 	\draw[fill=gray!50] (18.5,5)   rectangle (23.5,6)   node[midway] {$S_{m}$};
 
-	% M_2: only element jobs occupy time (separators have b_{s_k} = 0)
+	% M_2: element jobs and separators (now separators have b_{s_k} = 1, shown as thin slices)
 	\draw[fill=gray!20] (0.5,3.5)  rectangle (6.5,4.5)   node[midway] {$J_{j\in G_1}$};
+	\draw[fill=gray!50] (6.5,3.5)  rectangle (6.7,4.5);
 	\draw[fill=gray!20] (7,3.5)  rectangle (13,4.5)  node[midway] {$J_{j\in G_2}$};
+	\draw[fill=gray!50] (13,3.5)  rectangle (13.2,4.5);
 	\node at (15.5,4) {$\cdots$};
 	\draw[fill=gray!20] (17.5,3.5) rectangle (23.5,4.5)  node[midway] {$J_{j\in G_{m}}$};
+	\draw[fill=gray!50] (23.5,3.5) rectangle (23.7,4.5);
 
-	% x-axis (marks at separator M_2 completion times)
+	% x-axis (marks at separator M_2 completion times, scaled by 3)
 	\draw[thick] (0,2.2) -- (25,2.2);
-	\foreach \x/\label in {0/0, 6.5/$B{+}3$, 13/$2B{+}6$,  23.5/$m(B{+}3)$}
+	\foreach \x/\label in {0/0, 6.7/$3B{+}10$, 13.2/$2(3B{+}10)$,  23.7/$m(3B{+}10)$}
 	{
 		\draw (\x,2.2) -- (\x,2.4);
 		\node[below, font=\footnotesize] at (\x,2.0) {\label};
 	}
 
 	% caption
-	\node[below] at (15,0.5) {Figure 3-2: 3-Partition reduction;};
+	\node[below] at (15,0.5) {Figure 3-2: 3-Partition reduction (scaled by 3)};
 \end{tikzpicture}
 \label{fig:3-2}
 \end{center}
@@ -348,8 +371,8 @@ $A_i$ total processing time on machine $M_1$ of jobs in block $\mathcal{B}_i$;
 $B_i$ total processing time on machine $M_2$ of jobs in block $\mathcal{B}_i$;
 $C_i$ completion time of block $\mathcal{B}_i$ on machine $M_2$;
 $L_i$ weight of the last job in block $\mathcal{B}_i$.
-For each group $\mathcal{G}_k$, let $\ell_k = \arg\max \{\, p : \pi(p) \in \mathcal{G}_k \,\}, {p \in \{1,\dots,n\}}$, and set $\ell_0 = 0$;
-The blocks are defined as: 
+For each group $\mathcal{G}_k$, let $\ell_k = \arg\max \{\, p : \pi(p) \in \mathcal{G}_k \,\}, {p \in \{1,\dots,n\}}$, 
+and set $\ell_0 = 0$; The blocks are defined as: 
 \[
 \mathcal{B}_k = \{\pi(\ell_{k-1}+1), \dots, \pi(\ell_k)\},\qquad
 \mathcal{J} := \mathcal{J} \setminus \mathcal{B}_k,\qquad k = 1, \dots, K,
@@ -558,7 +581,8 @@ Via Lemma~\ref{lem:merge-dominance}, merging the candidates removes dominated an
 \caption{DP for $F2 \parallel W C_{\max}$}
 \label{alg:dp}
 \begin{algorithmic}[1]
-    \State \textbf{Input:} Jobs $\mathcal{J}$ with $(a_j, b_j, w_j)$ in Johnson order; block count $K$; distinct weights $W_{1}>\cdots>W_{K}$.
+    \State \textbf{Input:} Jobs $\mathcal{J}$ with $(a_j, b_j, w_j)$ in Johnson order; 
+    block count $K$; distinct weights $W_{1}>\cdots>W_{K}$.
     \State \textbf{Output:} The optimal value $Z^* = \min_S \max_i\,W_{i}\cdot T_{B_i}$.
     \State Set $L_i \gets W_{i}$ for $i=1,\dots,K$
     \State $\mathscr{H}_{0} \gets \{0, 0, 0, 0\}_{i=1}^K$
@@ -715,12 +739,13 @@ the weight labels $L_i=W_i$ are fixed and common to all states of a box.
         \For{each box $\mathscr{B}$ with representative $s=(C_i,A_i,B_i,L_i)_{i=1}^K$}
             \For{$i=1$ to $K$}
                 \If{$w_{j+1}\le L_i$}
-                    \State Compute the candidate $\tilde s$ by the exact recurrences
-                            $\tilde C_i=\max\{C_i+b_{j+1},\ A_i+a_{j+1}+b_{j+1}\}$,
-                            $\tilde A_i=A_i+a_{j+1}$, $\tilde B_i=B_i+b_{j+1}$
+                    \State $\tilde C_i=\max\{C_i+b_{j+1},\ A_i+a_{j+1}+b_{j+1}\}$,
+                    \State $\tilde A_i=A_i+a_{j+1}$, $\tilde B_i=B_i+b_{j+1}$
                     \State Map $\tilde s$ to its box $\mathscr{B}'$
-                    \If{$\mathscr{B}'$ has no representative} Store $\tilde s$ and record $s$ as its predecessor
-                    \Else\ Keep either one of the two representatives of $\mathscr{B}'$ \EndIf
+                    \If{$\mathscr{B}'$ has no representative} 
+                        \State Store $\tilde s$ and record $s$ as its predecessor
+                    \Else 
+                        \State Keep either one of the two representatives of $\mathscr{B}'$ \EndIf
                 \EndIf
             \EndFor
         \EndFor
@@ -739,21 +764,20 @@ where $W C_{\max}^{*}$ is the optimal value of $F2 \parallel W C_{\max}$.
 \end{theorem}
 
 \begin{proof}
-Let $s_0^{*}\to s_1^{*}\to\cdots\to s_n^{*}$ be a sequence of states of
+Let $s(j^{*})$, $j=0,\dots,n$, be the sequence of states of
 Algorithm~\ref{alg:dp} whose final value equals $W C_{\max}^{*}$; here and below
-the superscript $^{*}$ marks quantities of this optimal trajectory and $j$ counts
-the processed jobs, so $s_j^{*}$ is the state after the first $j$ jobs, with
-components $s_j^{*}=(C_i^{j*},A_i^{j*},B_i^{j*},W_i)_{i=1}^K$.
+$j^{*}$ marks the state of this optimal trajectory after the first $j$ jobs, with
+components $s(j^{*})=(C(j^{*})_i,A(j^{*})_i,B(j^{*})_i,W_i)_{i=1}^K$.
 We show by induction on $j$
 that, after processing $j$ jobs, Algorithm~\ref{alg:fptas} stores a
 representative $\hat s_j=(\hat C_i,\hat A_i,\hat B_i,W_i)_{i=1}^K$ with
 \begin{equation}\label{eq:induction}
-\hat A_i\le A_i^{j*}\delta^{j},\qquad
-\hat B_i\le B_i^{j*}\delta^{j},\qquad
-\hat C_i\le C_i^{j*}\delta^{j}\qquad(1\le i\le K).
+\hat A_i\le A(j^{*})_i\delta^{j},\qquad
+\hat B_i\le B(j^{*})_i\delta^{j},\qquad
+\hat C_i\le C(j^{*})_i\delta^{j}\qquad(1\le i\le K).
 \end{equation}
 The base case $j=0$ is the stored zero state. Assume \eqref{eq:induction} holds for $j$,
-and let $i^{+}$ be the block to which $s_j^{*}$ appends $J_{j+1}$. By the
+and let $i^{+}$ be the block to which $s(j^{*})$ appends $J_{j+1}$. By the
 positional constraint of Algorithm~\ref{alg:dp}, which assigns a job only to a
 block $i$ with $w\le W_i$, we have $w_{j+1}\le W_{i^{+}}=L_{i^{+}}$; this
 constraint depends only on $J_{j+1}$ and the block index, so the same transition
@@ -761,12 +785,12 @@ is applicable from $\hat s_j$. Applying the exact recurrences to $\hat s_j$ and
 using $\delta^{j}\ge 1$ gives a candidate $\tilde s_{j+1}$ with
 \begin{align*}
 \tilde A_{i^{+}} &= \hat A_{i^{+}}+a_{j+1}
-   \le \big(A_{i^{+}}^{j,*}+a_{j+1}\big)\delta^{j}=A_{i^{+}}^{j+1,*}\delta^{j},\\
+   \le \big(A(j^{*})_{i^{+}}+a_{j+1}\big)\delta^{j}=A((j{+}1)^{*})_{i^{+}}\delta^{j},\\
 \tilde B_{i^{+}} &= \hat B_{i^{+}}+b_{j+1}
-   \le \big(B_{i^{+}}^{j,*}+b_{j+1}\big)\delta^{j}=B_{i^{+}}^{j+1,*}\delta^{j},\\
+   \le \big(B(j^{*})_{i^{+}}+b_{j+1}\big)\delta^{j}=B((j{+}1)^{*})_{i^{+}}\delta^{j},\\
 \tilde C_{i^{+}} &= \max\big\{\hat C_{i^{+}}+b_{j+1},\ \hat A_{i^{+}}+a_{j+1}+b_{j+1}\big\}\\
-   &\le \max\big\{C_{i^{+}}^{j,*}+b_{j+1},\ A_{i^{+}}^{j,*}+a_{j+1}+b_{j+1}\big\}\delta^{j}
-   = C_{i^{+}}^{j+1,*}\delta^{j},
+   &\le \max\big\{C(j^{*})_{i^{+}}+b_{j+1},\ A(j^{*})_{i^{+}}+a_{j+1}+b_{j+1}\big\}\delta^{j}
+   = C((j{+}1)^{*})_{i^{+}}\delta^{j},
 \end{align*}
 while all other coordinates are unchanged and satisfy the bound at $j+1$.
 The candidate $\tilde s_{j+1}$ is mapped to some box $\mathscr{B}'$. By
@@ -778,12 +802,12 @@ induction.
 It remains to compare the objective values. In the block-concatenation
 evaluation of Algorithm~\ref{alg:Block-concat}, the quantity $T_{B,i}$ is
 nondecreasing in every coordinate and positively homogeneous, so
-$T_{B,i}(\hat s_n)\le\delta^{n}\,T_{B,i}(s_n^{*})$. Since the block weights
+$T_{B,i}(\hat s_n)\le\delta^{n}\,T_{B,i}(s(n^{*}))$. Since the block weights
 $W_i$ are fixed,
 \[
 W C_{\max}(\hat s_n)
 =\max_{1\le i\le K}W_i\,T_{B,i}(\hat s_n)
-\le \delta^{n}\max_{1\le i\le K}W_i\,T_{B,i}(s_n^{*})
+\le \delta^{n}\max_{1\le i\le K}W_i\,T_{B,i}(s(n^{*}))
 =\delta^{n}\,W C_{\max}^{*}.
 \]
 Finally, $\delta^{n}=(1+\varepsilon/(2n))^{n}\le 1+\varepsilon$ for
