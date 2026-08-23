@@ -745,61 +745,6 @@ W C_{\max}\ \le\ (1+\varepsilon)\,W C_{\max}^{*},
 where $W C_{\max}^{*}$ is the optimal value of $F2 \parallel W C_{\max}$.
 \end{theorem}
 
-\begin{proof}
-Let $s(j^{*})$, $j=0,\dots,n$, be the states along an optimal trajectory of
-Algorithm~\ref{alg:dp}, so that the final value of the trajectory equals
-$W C_{\max}^{*}$; the components of $s(j^{*})$ are
-$s(j^{*})=(C(j^{*})_i,A(j^{*})_i,B(j^{*})_i,W_i)_{i=1}^K$.
-We show by induction on $j$
-that, after processing $j$ jobs, Algorithm~\ref{alg:fptas} stores a
-representative $\hat s_j=(\hat C_i,\hat A_i,\hat B_i,W_i)_{i=1}^K$ with
-\begin{equation}\label{eq:induction}
-\hat A_i\le A(j^{*})_i\delta^{j},\qquad
-\hat B_i\le B(j^{*})_i\delta^{j},\qquad
-\hat C_i\le C(j^{*})_i\delta^{j}\qquad(1\le i\le K).
-\end{equation}
-The base case $j=0$ is the stored zero state. Assume \eqref{eq:induction} holds for $j$,
-and let $i^{+}$ be the block to which $s(j^{*})$ appends $J_{j+1}$. By the
-positional constraint of Algorithm~\ref{alg:dp}, which assigns a job only to a
-block $i$ with $w\le W_i$, we have $w_{j+1}\le W_{i^{+}}=L_{i^{+}}$; this
-constraint depends only on $J_{j+1}$ and the block index, so the same transition
-is applicable from $\hat s_j$. Applying the exact recurrences to $\hat s_j$ and
-using $\delta^{j}\ge 1$ gives a candidate $\tilde s_{j+1}$ with
-\begin{align*}
-\tilde A_{i^{+}} &= \hat A_{i^{+}}+a_{j+1}
-   \le \big(A(j^{*})_{i^{+}}+a_{j+1}\big)\delta^{j}=A((j{+}1)^{*})_{i^{+}}\delta^{j},\\
-\tilde B_{i^{+}} &= \hat B_{i^{+}}+b_{j+1}
-   \le \big(B(j^{*})_{i^{+}}+b_{j+1}\big)\delta^{j}=B((j{+}1)^{*})_{i^{+}}\delta^{j},\\
-\tilde C_{i^{+}} &= \max\big\{\hat C_{i^{+}}+b_{j+1},\ \hat A_{i^{+}}+a_{j+1}+b_{j+1}\big\}\\
-   &\le \max\big\{C(j^{*})_{i^{+}}+b_{j+1},\ A(j^{*})_{i^{+}}+a_{j+1}+b_{j+1}\big\}\delta^{j}
-   = C((j{+}1)^{*})_{i^{+}}\delta^{j},
-\end{align*}
-while the coordinates of the remaining blocks are unchanged and satisfy the
-bound at $j+1$.
-The candidate $\tilde s_{j+1}$ is mapped to some box $\mathscr{B}'$. By
-interval dominance, whichever representative $\hat s_{j+1}$ is ultimately
-stored in $\mathscr{B}'$, it satisfies $\hat x_i\le\delta\,\tilde x_i$ for
-every $x\in\{A,B,C\}$ and every $i$; this yields \eqref{eq:induction} at
-$j+1$ and completes the induction.
-
-It remains to compare the objective values. In the block-concatenation
-evaluation of Algorithm~\ref{alg:Block-concat}, the quantity $T_{B,i}$ is
-nondecreasing in every coordinate and positively homogeneous, so
-$T_{B,i}(\hat s_n)\le\delta^{n}\,T_{B,i}(s(n^{*}))$. Since the block weights
-$W_i$ are fixed,
-\[
-W C_{\max}(\hat s_n)
-=\max_{1\le i\le K}W_i\,T_{B,i}(\hat s_n)
-\le \delta^{n}\max_{1\le i\le K}W_i\,T_{B,i}(s(n^{*}))
-=\delta^{n}\,W C_{\max}^{*}.
-\]
-Finally, $\delta^{n}=(1+\varepsilon/(2n))^{n}\le 1+\varepsilon$ for
-$0<\varepsilon<1$. The schedule returned by Algorithm~\ref{alg:fptas} is no
-worse than the schedule obtained by concatenating the blocks of the
-representative $\hat s_n$, so its value is at most
-$(1+\varepsilon)\,W C_{\max}^{*}$.
-\end{proof}
-
 \begin{theorem}\label{thm:fptas-complex}
 For fixed $K$, Algorithm~\ref{alg:fptas} runs in
 \[
@@ -887,6 +832,11 @@ where the last inequality uses $\max\{x,y\}\ge(x+y)/2$. Hence
 $w_{j_k}\sum_{h\in S_k}(a_h+b_h)\le 2W C_{\max}^{*}$ for every $k$, and the claim follows
 from the upper bound above.
 \end{proof}
+
+
+
+
+
 
 \section{Conclusion}
 \label{sec:conclusion}
