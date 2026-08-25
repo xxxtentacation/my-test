@@ -105,16 +105,17 @@ We introduce the following decision variables:
 The MILP model is:
 \begin{align}
 	\min \quad & Z \label{milp:obj} \\[4pt]
-	\text{s.t.} \quad & \sum_{k=1}^{n} x_{jk} = 1, \quad \forall\, j \in \mathcal{J} \label{milp:assign1} \\[4pt]
-	& \sum_{j=1}^{n} x_{jk} = 1, \quad \forall\, k = 1,\dots,n \label{milp:assign2} \\[4pt]
+	\text{s.t.} \quad & \sum_{k=1}^{n} x_{jk} = 1, \quad \, j = 1,\dots,n \label{milp:assign1} \\[4pt]
+	& \sum_{j=1}^{n} x_{jk} = 1, \quad \, k = 1,\dots,n \label{milp:assign2} \\[4pt]
 	& C_1^1 = \sum_{j=1}^{n} a_j x_{j1} \label{milp:m1_start} \\[4pt]
-	& C_k^1 = C_{k-1}^1 + \sum_{j=1}^{n} a_j x_{jk}, \quad \forall\, k = 2,\dots,n \label{milp:m1_rec} \\[4pt]
+	& C_k^1 = C_{k-1}^1 + \sum_{j=1}^{n} a_j x_{jk}, \quad \, k = 2,\dots,n \label{milp:m1_rec} \\[4pt]
 	& C_1^2 = C_1^1 + \sum_{j=1}^{n} b_j x_{j1} \label{milp:m2_start} \\[4pt]
-	& C_k^2 \ge C_k^1 + \sum_{j=1}^{n} b_j x_{jk}, \quad \forall\, k = 2,\dots,n \label{milp:m2_a} \\[4pt]
-	& C_k^2 \ge C_{k-1}^2 + \sum_{j=1}^{n} b_j x_{jk}, \quad \forall\, k = 2,\dots,n \label{milp:m2_b} \\[4pt]
-	& C_j \ge C_k^2 - M(1 - x_{jk}), \quad \forall\, j \in \mathcal{J},\; k = 1,\dots,n \label{milp:link} \\[4pt]
-	& Z \ge w_j C_j, \quad \forall\, j \in \mathcal{J} \label{milp:wcmax} \\[4pt]
-	& x_{jk} \in \{0,1\},\quad C_k^1, C_k^2, C_j, Z \ge 0 \label{milp:dom}
+	& C_k^2 \ge C_k^1 + \sum_{j=1}^{n} b_j x_{jk}, \quad \, k = 2,\dots,n \label{milp:m2_a} \\[4pt]
+	& C_k^2 \ge C_{k-1}^2 + \sum_{j=1}^{n} b_j x_{jk}, \quad \, k = 2,\dots,n \label{milp:m2_b} \\[4pt]
+	& C_j \ge C_k^2 - M(1 - x_{jk}), \quad \, j = 1,\dots,n,\; k = 1,\dots,n \label{milp:link} \\[4pt]
+	& Z \ge w_j C_j, \quad \, j = 1,\dots,n \label{milp:wcmax} \\[4pt]
+	& x_{jk} \in \{0,1\},\quad \label{milp:x}\\[4pt]
+	& C_k^1, C_k^2, C_j \ge 0 \quad \label{milp:dom}
 \end{align}
 
 Constraint (\ref{milp:assign1})--(\ref{milp:assign2}) ensure a one-to-one assignment between jobs and positions.
@@ -125,6 +126,7 @@ Constraint (\ref{milp:link}) links the position-based completion times to the jo
 when $x_{jk} = 1$, job $J_j$ is at position $k$ and $C_j \ge C_k^2$;
 when $x_{jk} = 0$, the right-hand side becomes $C_k^2 - M \le 0$, which is non-binding.
 Constraint (\ref{milp:wcmax}) enforces $Z \ge w_j C_j$ for every job, so that minimizing $Z$ yields the optimal $W C_{\max}$.
+Constraint (\ref{milp:x}) requires the assignment variables $x_{jk}$ to be binary. Constraint (\ref{milp:dom}) imposes the nonnegativity of the completion times $C_k^1$, $C_k^2$ and $C_j$.
 
 
 
