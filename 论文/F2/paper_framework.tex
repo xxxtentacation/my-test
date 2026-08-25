@@ -17,9 +17,7 @@
 \usepackage{xcolor}
 \usepackage{array}
 \usepackage{colortbl}
-\usepackage{algorithmicx}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
+\usepackage[ruled, linesnumbered]{algorithm2e}
 \usepackage{enumerate}
 \usepackage{float}
 \usepackage{indentfirst}
@@ -551,51 +549,56 @@ By Lemma~\ref{lem:merge-dominance}, merging the candidates removes dominated and
 states and yields $\mathscr{H}_{j}$.
 
 \setlength{\intextsep}{4pt}
-\begin{algorithm}[H]
-\caption{Block concatenation and evaluation}
-\label{alg:Block-concat}
-\begin{algorithmic}[1]
-    \State \textbf{Input:} States $\mathscr{H}$.
-    \State \textbf{Output:} $W C_{\max} = \max_i\, L_i \cdot T_B^{(i)}$.
-    \State $T_{A_0} \gets 0$, \enspace $T_{B_0} \gets 0$, \enspace $W C_{\max} \gets 0$
-    \For{$i = 1$ to $K$}
-        \State $T_{A_i} \gets T_{A_{i-1}} + A_i$
-        \State $T_{B_i} \gets \max\{\, T_{A_{i-1}} + C_i,\; T_{B_{i-1}} + B_i \,\}$
-        \State $W C_{\max} \gets \max\{\, W C_{\max},\; L_i \cdot T_{B_i} \,\}$
-    \EndFor
-    \State \Return $W C_{\max}$
-\end{algorithmic}
+\begin{algorithm}[tbp]
+\small
+\linespread{1.2}\selectfont
+\SetAlgoLined
+\DontPrintSemicolon
+\caption{Block concatenation and evaluation}\label{alg:Block-concat}
+\KwIn{State $\mathscr{H}=\{C_i,A_i,B_i,L_i\}$.}
+\BlankLine
+\textbf{Step 1.} [Initialization] Set $T_{A_0}\gets 0$, $T_{B_0}\gets 0$, $W C_{\max}\gets 0$. \;
+\textbf{Step 2.} [Evaluation] \For{$i=1$ \KwTo $K$}{
+    $T_{A_i}\gets T_{A_{i-1}}+A_i$ \;
+    $T_{B_i}\gets \max\{\,T_{A_{i-1}}+C_i,\ T_{B_{i-1}}+B_i\,\}$ \;
+    \If{$\mathcal{B}_i\neq\emptyset$, i.e., $A_i+B_i>0$}{$W C_{\max}\gets \max\{\,W C_{\max},\ L_i\cdot T_{B_i}\,\}$ \;}
+}
+\KwOut{$W C_{\max}=\max_{i} L_i\cdot T_{B_i}$.}
 \end{algorithm}
 
-\begin{algorithm}[H]
-\caption{DP for $F2 \parallel W C_{\max}$}
-\label{alg:dp}
-\begin{algorithmic}[1]
-    \State \textbf{Input:} Jobs $\mathcal{J}$ with $(a_j, b_j, w_j)$ in Johnson order; 
-    block count $K$; distinct weights $W_{1}>\cdots>W_{K}$.
-    \State \textbf{Output:} The optimal value $Z^* = \min_S \max_i\,W_{i}\cdot T_{B_i}$.
-    \State Set $L_i \gets W_{i}$ for $i=1,\dots,K$
-    \State $\mathscr{H}_{0} \gets \{0, 0, 0, 0\}_{i=1}^K$
-    \For{$j = 1$ to $n$}
-        \State $\mathcal{Y}_i \gets \emptyset$ for $i = 1,\dots,K$
-        \For{each $(\{C_i,A_i,B_i,L_i\}_{i=1}^K) \in \mathscr{H}_{j-1}$}
-            \For{$i = 1$ to $K$}
-                \If{$w_j \le L_i$}
-                    \State $C_i' \gets \max\{\, C_i + b_j,\; A_i + a_j + b_j \,\}$
-                    \State $A_i' \gets A_i + a_j$, \enspace $B_i' \gets B_i + b_j$
-                    \State Add the updated state to $\mathcal{Y}_i$
-                \EndIf
-            \EndFor
-        \EndFor
-        \State $\mathscr{H}_{j} \gets \textsc{Merge}(\mathcal{Y}_1,\dots,\mathcal{Y}_K)$
-    \EndFor
-    \State $Z^* \gets +\infty$
-    \For{each state $S = \{C_i, A_i, B_i, L_i\}_{i=1}^K \in \mathscr{H}_{n}$}
-        \State $W C_{\max} \gets \textsc{Algorithm~\ref{alg:Block-concat}}\bigl((A_i,B_i,C_i,L_i)_{i=1}^K\bigr)$
-        \State $Z^* \gets \min\{\, Z^*,\; W C_{\max} \,\}$
-    \EndFor
-    \State \Return $Z^*$
-\end{algorithmic}
+\begin{algorithm}[tbp]
+\small
+\linespread{1.2}\selectfont
+\SetAlgoLined
+\DontPrintSemicolon
+\caption{DP for $F2 \parallel W C_{\max}$}\label{alg:dp}
+\KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$; block count $K$; distinct weights $W_1>\cdots>W_K$.}
+\BlankLine
+\textbf{Step 1.} [Preprocessing] Set $L_i\gets W_i$ for $i=1,\dots,K$. \;
+\textbf{Step 2.} [Initialization] Set $\mathscr{H}_0\gets\{(0,0,0,0)_{i=1}^{K}\}$. \;
+\textbf{Step 3.} [Generation] \For{$j=1$ \KwTo $n$}{
+    $\mathcal{Y}_i\gets\emptyset$ for $i=1,\dots,K$ \;
+    \For{each $(\{C_i,A_i,B_i,L_i\}_{i=1}^{K})\in\mathscr{H}_{j-1}$}{
+        \For{$i=1$ \KwTo $K$}{
+            \If{$w_j\le L_i$}{
+                \eIf{$\mathcal{B}_i$ is empty, i.e., $A_i=B_i=C_i=0$}{
+                    $C_i'\gets a_j+b_j$ \;
+                }{
+                    $C_i'\gets \max\{\,C_i+b_j,\ A_i+a_j+b_j\,\}$ \;
+                }
+                $A_i'\gets A_i+a_j$, $B_i'\gets B_i+b_j$ \;
+                Add the updated state to $\mathcal{Y}_i$ \;
+            }
+        }
+    }
+    [Merging] $\mathscr{H}_j\gets\textsc{Merge}(\mathcal{Y}_1,\dots,\mathcal{Y}_K)$ \;
+}
+\textbf{Step 4.} [Result] Set $Z^{*}\gets+\infty$ \;
+\For{each state $S=\{C_i,A_i,B_i,L_i\}_{i=1}^{K}\in\mathscr{H}_n$}{
+    $W C_{\max}\gets$ Algorithm~\ref{alg:Block-concat}$\bigl((A_i,B_i,C_i,L_i)_{i=1}^{K}\bigr)$ \;
+    $Z^{*}\gets\min\{\,Z^{*},\ W C_{\max}\,\}$ \;
+}
+\KwOut{The optimal value $Z^{*}$; the optimal schedule is recovered by backtracking.}
 \end{algorithm}
 
 Algorithm~2 returns the optimal objective value $Z^*$; the optimal schedule itself is recovered
@@ -710,33 +713,29 @@ There are $(v+1)^{3K}$ boxes, a number independent of the job sizes.
 The scheme stores at most one \emph{representative} state per box; since the
 weight labels $L_i=W_i$ are fixed, they are common to all states of a box.
 
-\begin{algorithm}[H]
-\caption{Boxed FPTAS for $F2 \parallel W C_{\max}$}
-\label{alg:fptas}
-\begin{algorithmic}[1]
-    \State \textbf{Input:} Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$ in Johnson order; block count $K$; accuracy $\varepsilon$.
-    \State \textbf{Output:} A schedule with $W C_{\max}\le(1+\varepsilon)\,W C_{\max}^{*}$.
-    \State Set $\delta=1+\varepsilon/(2n)$, $v=\lceil\log_\delta V\rceil$, and the intervals $I_r$;
-    \State Set $L_i\gets W_i$ for $i=1,\dots,K$
-    \State Store the zero state as the representative of $\mathscr{B}(\mathbf 0;\mathbf 0;\mathbf 0)$
-    \For{$j=0$ to $n-1$}
-        \For{each box $\mathscr{B}$ with representative $s=(C_i,A_i,B_i,L_i)_{i=1}^K$}
-            \For{$i=1$ to $K$}
-                \If{$w_{j+1}\le L_i$}
-                    \State $\tilde C_i=\max\{C_i+b_{j+1},\ A_i+a_{j+1}+b_{j+1}\}$,
-                    \State $\tilde A_i=A_i+a_{j+1}$, $\tilde B_i=B_i+b_{j+1}$
-                    \State Map $\tilde s$ to its box $\mathscr{B}'$
-                    \If{$\mathscr{B}'$ has no representative} 
-                        \State Store $\tilde s$ and record $s$ as its predecessor
-                    \Else 
-                        \State Keep either one of the two representatives of $\mathscr{B}'$ \EndIf
-                \EndIf
-            \EndFor
-        \EndFor
-    \EndFor
-    \State Evaluate every representative at level $n$ with Algorithm~\ref{alg:Block-concat}
-    \State \Return the schedule attaining the minimum $W C_{\max}$
-\end{algorithmic}
+\begin{algorithm}[tbp]
+\small
+\linespread{1.2}\selectfont
+\SetAlgoLined
+\DontPrintSemicolon
+\caption{Boxed FPTAS for $F2 \parallel W C_{\max}$}\label{alg:fptas}
+\KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$ in Johnson order; block count $K$; accuracy $\varepsilon$.}
+\BlankLine
+\textbf{Step 1.} [Preprocessing] Set $\delta=1+\varepsilon/(2n)$, $v=\lceil\log_\delta V\rceil$, and the intervals $I_r$; set $L_i\gets W_i$ for $i=1,\dots,K$. \;
+\textbf{Step 2.} [Initialization] Store the zero state as the representative of $\mathscr{B}(\mathbf 0;\mathbf 0;\mathbf 0)$. \;
+\textbf{Step 3.} [Generation] \For{$j=0$ \KwTo $n-1$}{
+    \For{each box $\mathscr{B}$ with representative $s=(C_i,A_i,B_i,L_i)_{i=1}^{K}$}{
+        \For{$i=1$ \KwTo $K$}{
+            \If{$w_{j+1}\le L_i$}{
+                $\tilde C_i=\max\{C_i+b_{j+1},\ A_i+a_{j+1}+b_{j+1}\}$, $\tilde A_i=A_i+a_{j+1}$, $\tilde B_i=B_i+b_{j+1}$ \;
+                Map $\tilde s$ to its box $\mathscr{B}'$ \;
+                \eIf{$\mathscr{B}'$ has no representative}{Store $\tilde s$ and record $s$ as its predecessor}{Keep either one of the two representatives of $\mathscr{B}'$}
+            }
+        }
+    }
+}
+\textbf{Step 4.} [Result] Evaluate every representative at level $n$ with Algorithm~\ref{alg:Block-concat} \;
+\KwOut{The schedule attaining the minimum $W C_{\max}$, with $W C_{\max}\le(1+\varepsilon)\,W C_{\max}^{*}$.}
 \end{algorithm}
 
 \begin{theorem}\label{thm:fptas-ratio}
@@ -786,16 +785,17 @@ time, and the FPTAS of Section~\ref{sub:fptas} has running time exponential in t
 number $K$ of distinct weights. When only a constant-factor guarantee is needed, the
 following elementary rule suffices.
 
-\begin{algorithm}[H]
-\caption{2-Approximation for $F2 \parallel W C_{\max}$}
-\label{alg:approx2}
-\begin{algorithmic}[1]
-    \State \textbf{Input:} Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$.
-    \State \textbf{Output:} A schedule with $W C_{\max}\le 2\,W C_{\max}^{*}$.
-    \State Sort the jobs by non-increasing weight $w_j$ (ties broken arbitrarily)
-    \State Schedule the jobs in this order on both machines
-    \State \Return the resulting permutation schedule
-\end{algorithmic}
+\begin{algorithm}[tbp]
+\small
+\linespread{1.2}\selectfont
+\SetAlgoLined
+\DontPrintSemicolon
+\caption{2-Approximation for $F2 \parallel W C_{\max}$}\label{alg:approx2}
+\KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$.}
+\BlankLine
+\textbf{Step 1.} Sort the jobs by non-increasing weight $w_j$ (ties broken arbitrarily). \;
+\textbf{Step 2.} Schedule the jobs in this order on both machines. \;
+\KwOut{The resulting permutation schedule, with $W C_{\max}\le 2\,W C_{\max}^{*}$.}
 \end{algorithm}
 
 \begin{theorem}\label{thm:approx2}
