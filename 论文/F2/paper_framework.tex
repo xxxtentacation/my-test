@@ -124,7 +124,8 @@ Constraint (\ref{milp:link}) links the position-based completion times to the jo
 when $x_{jk} = 1$, job $J_j$ is at position $k$ and $C_j \ge C_k^2$;
 when $x_{jk} = 0$, the right-hand side becomes $C_k^2 - M \le 0$, which is non-binding.
 Constraint (\ref{milp:wcmax}) enforces $Z \ge w_j C_j$ for every job, so that minimizing $Z$ yields the optimal $W C_{\max}$.
-Constraint (\ref{milp:x}) requires the assignment variables $x_{jk}$ to be binary. Constraint (\ref{milp:dom}) imposes the nonnegativity of the completion times $C_k^1$, $C_k^2$ and $C_j$.
+Constraint (\ref{milp:x}) requires the assignment variables $x_{jk}$ to be binary. 
+Constraint (\ref{milp:dom}) imposes the nonnegativity of the completion times $C_k^1$, $C_k^2$ and $C_j$.
 
 
 
@@ -225,10 +226,11 @@ the constructed $F2 \parallel W C_{\max}$ instance admits a schedule with $W C_{
     $F2 \parallel W C_{\max}$ is strongly NP-hard.
 \end{theorem}
 \begin{proof}
-We reduce from the strongly NP-complete 3-Partition problem: given $3m$ positive integers $x_1,\dots,x_{3m}$ and an integer $B$ satisfying
-$B/4 < x_i < B/2$ and $\sum_{i=1}^{3m}x_i=mB$, can the integers be partitioned into $m$ triples, each of sum $B$?
+We reduce from the strongly NP-complete 3-Partition problem: given $3m$ positive integers $x_1,\dots,x_{3m}$ and an integer $B$ 
+satisfying $B/4 < x_i < B/2$ and $\sum_{i=1}^{3m}x_i=mB$, can the integers be partitioned into $m$ triples, each of sum $B$?
 
-Let $R=3m+5$, $D=RB+4$, and $T=mD$. We construct an instance with $3m$ element jobs $J_1,\dots,J_{3m}$ and $m$ separator jobs $S_1,\dots,S_m$:
+Let $R=3m+5$, $D=RB+4$, and $T=mD$. We construct an instance with $3m$ element jobs $J_1,\dots,J_{3m}$ 
+and $m$ separator jobs $S_1,\dots,S_m$:
 \begin{itemize}
   \item for every element job $J_j$, set $a_j=1$, $b_j=Rx_j+1$;
   \item for every separator job $S_k$, set $a_{s_k}=RB+1$, $b_{s_k}=1$.
@@ -239,7 +241,8 @@ All processing times are positive integers. For $k=1,\dots,m$, define $d_k=kD+1$
  \qquad
  w_j=\left\lfloor\frac{Q}{T}\right\rfloor\quad(j=1,\dots,3m),
 \]
-and use the decision threshold $Y=Q$. Since $d_k\le T+1$ and $Q\ge d_k(d_k+1)$, we have $\lfloor Q/d_k\rfloor>d_k$. Thus, for every $d\in\{d_1,\dots,d_m,T\}$ and every integer completion time $C$,
+and use the decision threshold $Y=Q$. Since $d_k\le T+1$ and $Q\ge d_k(d_k+1)$, we have $\lfloor Q/d_k\rfloor>d_k$. 
+Thus, for every $d\in\{d_1,\dots,d_m,T\}$ and every integer completion time $C$,
 \begin{equation}\label{eq:deadline-encoding}
  \left\lfloor\frac{Q}{d}\right\rfloor C\le Q
  \quad\Longrightarrow\quad C\le d.
@@ -250,13 +253,19 @@ $\sum_{J_j\in G_k}x_j=B$ for every $k$, and schedule
 \[
 G_1,S_1,G_2,S_2,\dots,G_m,S_m.
 \]
-The three element jobs in $G_k$ use $3$ units on $M_1$, and $S_k$ uses $RB+1$ units. Hence $S_k$ completes on $M_1$ at time $kD$. The three element jobs in $G_k$ use $RB+3$ units on $M_2$; since the preceding separator completes on $M_2$ at time $(k-1)D+1$, the last element of $G_k$ completes at time $kD$. Therefore
+The three element jobs in $G_k$ use $3$ units on $M_1$, and $S_k$ uses $RB+1$ units. Hence $S_k$ completes on $M_1$ 
+at time $kD$. The three element jobs in $G_k$ use $RB+3$ units on $M_2$; since the preceding separator completes on $M_2$ 
+at time $(k-1)D+1$, the last element of $G_k$ completes at time $kD$. Therefore
 \[
  C_{s_k}=kD+1=d_k.
 \]
-Every element job completes on $M_2$ no later than $T=mD$. By the definition of the weights, all weighted completion times are at most $Q$, so $W C_{\max}\le Y$.
+Every element job completes on $M_2$ no later than $T=mD$. By the definition of the weights, all weighted completion times 
+are at most $Q$, so $W C_{\max}\le Y$.
 
-Conversely, suppose that a schedule $\pi$ satisfies $W C_{\max}\le Q$. By the standard permutation-schedule property for two-machine flow shops with a regular objective, it suffices to consider permutation schedules. The separator jobs have identical processing times. Therefore, if their positions are fixed, exchanging the labels of two separators that occur in the wrong order can only decrease the maximum weighted completion time, because
+Conversely, suppose that a schedule $\pi$ satisfies $W C_{\max}\le Q$. By the standard permutation-schedule property for 
+two-machine flow shops with a regular objective, it suffices to consider permutation schedules. The separator jobs have 
+identical processing times. Therefore, if their positions are fixed, exchanging the labels of two separators that occur 
+in the wrong order can only decrease the maximum weighted completion time, because
 $w_{s_1}\ge w_{s_2}\ge\cdots\ge w_{s_m}$. We may consequently assume that the separators occur in the order
 $S_1,S_2,\dots,S_m$.
 By \eqref{eq:deadline-encoding},
@@ -264,12 +273,17 @@ By \eqref{eq:deadline-encoding},
  C_{s_k}\le kD+1\quad(k=1,\dots,m),
  \qquad C_j\le T\quad(j=1,\dots,3m).
 \]
-No element job can occur after $S_m$. Indeed, if at least one element job did so, consider the last such element job. By the permutation-schedule property invoked above, the processing order on $M_1$ and $M_2$ coincides, so this job is also the last job on $M_1$; hence all $m$ separators and all $3m$ element jobs have completed on $M_1$ no later than this job, and its completion on $M_1$ is at least the total $M_1$ processing time
+No element job can occur after $S_m$. Indeed, if at least one element job did so, consider the last such element job. 
+By the permutation-schedule property invoked above, the processing order on $M_1$ and $M_2$ coincides, so this job is 
+also the last job on $M_1$; hence all $m$ separators and all $3m$ element jobs have completed on $M_1$ no later than this job, 
+and its completion on $M_1$ is at least the total $M_1$ processing time
 \[
  m(RB+1)+3m=m(RB+4)=T.
 \]
 Its completion on $M_2$ would consequently be strictly greater than $T$, contradicting $C_j\le T$.
-Thus the element jobs are partitioned into the $m$ groups $G_k$ lying between $S_{k-1}$ and $S_k$, where $S_0$ denotes the beginning of the schedule. Put
+Thus the element jobs are partitioned into the $m$ groups $G_k$ lying between $S_{k-1}$ and $S_k$, where $S_0$ 
+denotes the beginning of the schedule. 
+Put
 \[
  B_k=\sum_{J_j\in G_k}x_j,
  \qquad E_k=\sum_{h=1}^{k}|G_h|,
@@ -291,11 +305,15 @@ For $k=1$, the $M_2$ path and $C_{s_1}\le D+1$ similarly give
 \[
  R(B_1-B)+E_1\le4.
 \]
-Because $R=3m+5$, these inequalities imply $B_k\le B$ for every $k$: otherwise $B_k\ge B+1$ and the respective left-hand side is greater than $3k$ (or greater than $4$ when $k=1$). All element jobs belong to one of the groups, so
+Because $R=3m+5$, these inequalities imply $B_k\le B$ for every $k$: otherwise $B_k\ge B+1$ and the respective left-hand 
+side is greater than $3k$ (or greater than $4$ when $k=1$). All element jobs belong to one of the groups, so
 $\sum_{k=1}^{m}B_k=mB$. Hence $B_k=B$ for every $k$.
-Finally, $B/4<x_j<B/2$ implies that a group with sum $B$ contains exactly three elements: at most two elements have sum strictly less than $B$, while at least four elements have sum strictly greater than $B$. Thus $G_1,\dots,G_m$ is a valid 3-partition.
+Finally, $B/4<x_j<B/2$ implies that a group with sum $B$ contains exactly three elements: at most two elements have sum strictly 
+less than $B$, while at least four elements have sum strictly greater than $B$. Thus $G_1,\dots,G_m$ is a valid 3-partition.
 
-The construction has $4m$ jobs, and all processing times, weights, and the threshold are bounded by a polynomial in $m$ and $B$. Since 3-Partition remains NP-complete when $B$ is polynomially bounded in $m$, this is a strong polynomial reduction. Therefore $F2 \parallel W C_{\max}$ is strongly NP-hard.
+The construction has $4m$ jobs, and all processing times, weights, and the threshold are bounded by a polynomial in $m$ 
+and $B$. Since 3-Partition remains NP-complete when $B$ is polynomially bounded in $m$, this is a strong polynomial reduction. 
+Therefore $F2 \parallel W C_{\max}$ is strongly NP-hard.
 \end{proof}
 \begin{center}
 \begin{tikzpicture}[x=0.20in, y=0.3in]
@@ -790,7 +808,9 @@ weight labels $L_i=W_i$ are fixed, they are common to all states of a box.
 \caption{Boxed FPTAS for $F2 \parallel W C_{\max}$}\label{alg:fptas}
 \KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$ in Johnson order; block count $K$; accuracy $\varepsilon$.}
 \BlankLine
-\textbf{Step 1.} [Preprocessing] Set $\delta=1+\varepsilon/(2n)$, $V_A=\sum_{j}a_j$, $V_B=\sum_{j}b_j$, $V=V_A+V_B$, $v^{x}=\lceil\log_\delta V_x\rceil$ for $x\in\{C,A,B\}$ with $V_C=V$, and the interval families $I^{x}_r$; set $L_i\gets W_i$ for $i=1,\dots,K$. \;
+\textbf{Step 1.} [Preprocessing] Set $\delta=1+\varepsilon/(2n)$, $V_A=\sum_{j}a_j$, $V_B=\sum_{j}b_j$, $V=V_A+V_B$, 
+			$v^{x}=\lceil\log_\delta V_x\rceil$ for $x\in\{C,A,B\}$ with $V_C=V$, and the interval families $I^{x}_r$; 
+			set $L_i\gets W_i$ for $i=1,\dots,K$. \;
 \textbf{Step 2.} [Initialization] Store the zero state as the representative of $\mathscr{B}(\mathbf 0;\mathbf 0;\mathbf 0)$. \;
 \textbf{Step 3.} [Generation] \For{$j=0$ \KwTo $n-1$}{
     \For{each box $\mathscr{B}$ with representative $s=(C_i,A_i,B_i,L_i)_{i=1}^{K}$}{
@@ -798,7 +818,8 @@ weight labels $L_i=W_i$ are fixed, they are common to all states of a box.
             \If{$w_{j+1}\le L_i$}{
                 $\tilde C_i=\max\{C_i+b_{j+1},\ A_i+a_{j+1}+b_{j+1}\}$, $\tilde A_i=A_i+a_{j+1}$, $\tilde B_i=B_i+b_{j+1}$ \;
                 Map $\tilde s$ to its box $\mathscr{B}'$ \;
-                \eIf{$\mathscr{B}'$ has no representative}{Store $\tilde s$ and record $s$ as its predecessor}{Keep either one of the two representatives of $\mathscr{B}'$}
+                \eIf{$\mathscr{B}'$ has no representative}{Store $\tilde s$ and record $s$ as its predecessor}
+				{Keep either one of the two representatives of $\mathscr{B}'$}
             }
         }
     }
@@ -949,7 +970,8 @@ smallest $W C_{\max}$ is kept.
 \caption{NEH heuristic for $F2 \parallel W C_{\max}$}\label{alg:neh}
 \KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$.}
 \BlankLine
-\textbf{Step 1.} [Ordering] Sort the jobs by non-increasing weight $w_j$, breaking ties by non-increasing $a_j+b_j$; let $J_{[1]},\dots,J_{[n]}$ be the resulting order. \;
+\textbf{Step 1.} [Ordering] Sort the jobs by non-increasing weight $w_j$, breaking ties by non-increasing $a_j+b_j$; 
+let $J_{[1]},\dots,J_{[n]}$ be the resulting order. \;
 \textbf{Step 2.} [Initialization] $\sigma\gets(J_{[1]})$. \;
 \textbf{Step 3.} [Insertion] \For{$k=2$ \KwTo $n$}{
     $\sigma\gets$ the sequence obtained by inserting $J_{[k]}$ into $\sigma$ at a position minimizing $W C_{\max}$. \;
@@ -1017,9 +1039,12 @@ $\sigma^{\mathrm{ib}}$ deposits pheromone on the assignments it uses,
 \SetAlgoLined
 \DontPrintSemicolon
 \caption{Ant colony optimization for $F2 \parallel W C_{\max}$}\label{alg:aco}
-\KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$; parameters $\alpha,\beta\ge0$, $0<\rho<1$, the number of ants $m$, and the number of iterations $T$.}
+\KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$; parameters $\alpha,\beta\ge0$, $0<\rho<1$, the number of ants $m$, 
+		the number of iterations $T$.}
 \BlankLine
-\textbf{Step 1.} [Initialization] Compute $\sigma^{\mathrm{NEH}}$ by Algorithm~\ref{alg:neh}; set $\sigma^*\gets\sigma^{\mathrm{NEH}}$ and $\tau_{ij}\gets 1/\bigl(n\cdot W C_{\max}(\sigma^{\mathrm{NEH}})\bigr)$ for all $i,j$. \;
+\textbf{Step 1.} [Initialization] Compute $\sigma^{\mathrm{NEH}}$ by Algorithm~\ref{alg:neh}; 
+			set $\sigma^*\gets\sigma^{\mathrm{NEH}}$ and $\tau_{ij}\gets 1/\bigl(n\cdot W C_{\max}(\sigma^{\mathrm{NEH}})\bigr)$ 
+			for all $i,j$. \;
 \textbf{Step 2.} [Iteration] \For{$t=1$ \KwTo $T$}{
     \For{each ant $q=1$ \KwTo $m$}{
         Build a permutation $\sigma_q$ by the probabilistic rule with probabilities $p_{ij}$ \;
