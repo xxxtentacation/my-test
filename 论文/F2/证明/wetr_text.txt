@@ -1,0 +1,2887 @@
+=== PAGE 1 ===
+Parallel-machine scheduling with weighted
+earliness-tardiness and optional job rejection
+Ren-Xia Chena,
+Shi-Sheng Lia,*,
+Cheng-Wen Jiaoa
+aSchool of Mathematics and Information Science, Zhongyuan University of Technology,
+Zhengzhou 450007, People’s Republic of China
+Abstract: We address the problem of scheduling n jobs on m identical parallel machines
+with an unrestricted common due date, while permitting job rejection. The objective is
+to minimize the integrated cost, comprising the total weighted earliness and tardiness of
+accepted jobs along with the total rejection penalty. We show that when each job’s weight
+is equal to its processing time, the single-machine case is binary NP-hard, whereas the
+parallel-machine variant is strongly NP-hard for arbitrary m even without rejection. For
+fixed m, we first design two pseudo-polynomial dynamic programming algorithms, and
+then convert them into two fully polynomial-time approximation schemes.
+Their time
+complexities are O(n2m+1
+ϵ2m (log Psum)2m) and O(n2m+1
+ϵ2m (log Wsum)2m), where Psum and Wsum
+denote the total processing time and the total weight of all jobs, respectively. Moreover,
+we propose O(n2)-time algorithms for two special cases, one where all jobs share identical
+processing times and another where all jobs have equal weights.
+Keywords: Scheduling; Parallel-machine; Earliness and tardiness; Rejection
+1
+Introduction
+In modern manufacturing, just-in-time (JIT) production systems face the critical challenge
+of balancing operational efficiency with customer satisfaction. A fundamental aspect of this
+balance involves addressing earliness and tardiness (ET) costs, which occur when jobs are
+completed either before or after their due dates (Rolim and Nagano, 2020). Unlike traditional
+scheduling methods that focus on minimizing maximum lateness or total (weighted) comple-
+*Corresponding author. E-mail address: liss@zut.edu.cn (S.S. Li)
+1
+=== PAGE 2 ===
+tion times, ET optimization presents a JIT paradox, as both early and late job completions
+incur significant penalties. Earliness can lead to unnecessary expenses, including spoilage of
+perishable materials, inefficient labor utilization, and capital being tied up in excess inven-
+tory. Conversely, tardiness can result in customer dissatisfaction, contractual penalties, and
+damage to firm’s reputation (Hall and Posner, 1991). For instance, an automotive supplier
+that completes engine assemblies too early may incur storage costs and quality risks, while
+late deliveries can disrupt assembly lines and lead to financial penalties. Similarly, a clothing
+factory overwhelmed by seasonal orders faces two interrelated challenges: retaining excess
+inventory consumes working capital and increases the risk of material degradation, while
+delayed deliveries threaten long-term client trust.
+Due to its significant theoretical and practical implications, ET scheduling has attracted
+considerable interest from both scheduling theory researchers and industry practitioners.
+An important aspect of ET scheduling concerns scenarios where all jobs share a common
+due date (CON). Hall and Posner (1991) first showed that minimizing the total weighted
+earliness and tardiness (TWET) with an unrestricted CON on a single machine is binary
+NP-hard, and then presented a pseudo-polynomial dynamic programming (DP) algorithm.
+Hall et al. (1991) and Hoogeveen and van de Velde (1991) demonstrated independently that
+the problem of minimizing the total earliness and tardiness (TET) with a restricted CON
+on a single machine is binary NP-hard, and further provided pseudo-polynomial algorithms
+for the TET and TWET minimization problems, respectively. Li and Cheng (1994) studied
+the problem of minimizing the maximum weighted ET with an unrestricted CON on a
+set of m identical parallel machines. They showed that this problem is binary NP-hard
+even for m = 1, and it is strongly NP-hard for arbitrary m. Since then, a broad range
+of extensions and variations on ET scheduling have been investigated in the literature. For
+more comprehensive insights into this area, we refer the readers to the surveys by Kramer and
+Subramanian (2019) and Rolim and Nagano (2020). Recent research on ET scheduling with
+the CON model has explored various objective functions, solution methods, and machine
+settings. For instance, Kellerer et al. (2020) developed a fully polynomial-time approximation
+scheme (FPTAS) for the minimization of TWET with an unrestricted CON on a single
+machine. Li and Chen (2020) considered a single-machine scheduling with CON assignment
+to minimize generalized weighted ET penalties, which include variable costs dependent on
+job-specific earliness or tardiness and fixed costs incurred for each early or tardy job. Arik
+et al. (2022) proposed several heuristics and local search algorithms to minimize the TET for
+unrelated parallel machines with a restricted CON. Nasrollahi et al. (2022) considered a CON
+scheduling problem with two agents in a two-machine flow shop environment. Arik (2023)
+developed a heuristic algorithm to tackle the single-machine scheduling problem where the
+ET weights are job-dependent and the CON is assignable. Atsmony and Mosheiov (2024a)
+2
+=== PAGE 3 ===
+studied a CON assignment scheduling problem with fixed-plus-linear ET costs on a single
+machine.
+On the other hand, contemporary large-scale production systems often require decision-
+makers to balance inventory costs and service quality by rejecting certain orders or out-
+sourcing some tasks to external partners. This process is known as order acceptance and
+scheduling (OAS) or machine scheduling with rejection (MSR). A practical example is found
+in the printing industry, where companies must manage diverse products with tight due dates
+and limited capacity, making coordinated job rejection and scheduling essential (O˘guz et al.,
+2010). Similarly, logistics systems that require specialized services within strict time win-
+dows compel providers to choose jobs based on profitability and the availability of time slots
+(Cesaret et al., 2012). The OAS/MSR framework significantly enhances scheduling flexibility
+for decision-makers by allowing job selection or order acceptance, in contrast to traditional
+models that require processing every job without exception. Slotnick (2011) examined trade-
+offs between revenue and cost in selective order processing, providing a literature review and
+classification framework for research in OAS. Shabtay et al. (2013) presented a compre-
+hensive survey of offline MSR, highlighting the need in make-to-order systems to balance
+production costs and job rejection. The OAS/MSR model is applicable across various do-
+mains, as evidenced by the range of models in the literature. Recent studies on this aspect
+have explored several themes, including job shop scheduling (Safarzadeh and Kianfar, 2019;
+Chen and Li, 2024), flow shop scheduling (Kim and Lee, 2022; Shabtay and Gerstl, 2024),
+due date assignment scheduling (Mor and Shapira, 2022; Atsmony and Mosheiov, 2024b;
+Mosheiov and Sarig, 2024), prize-collecting scheduling (Hou et al., 2024; Hu et al., 2024),
+and scheduling with release dates (Kacem and Kellerer, 2024; Geng and Lu, 2025).
+While ET scheduling and MSR are well-established research domains individually, their
+integration remains relatively unexplored. Atsmony and Mosheiov (2024b) addressed a CON
+assignment scheduling problem with job rejection on a single machine, aiming to minimize
+the maximum earliness and tardiness of accepted jobs subject to a given budget on total
+penalties of rejected jobs. They showed that this problem is NP-hard and provided a pseudo-
+polynomial algorithm. Mosheiov and Sarig (2024) examined a CON assignment problem
+with equal processing times and optional job rejection on two uniform parallel machines.
+The objective is to minimize a combined cost that includes ET cost, due date assignment
+cost, and rejection penalties. They provided a polynomial algorithm to solve it.
+In this paper, we investigate a generalized ET scheduling problem with four key features:
+(i) an unrestricted CON for all jobs; (ii) job-specific ET weights; (iii) optional job rejection;
+and (iv) m identical parallel machines. The objective is to minimize the sum of TWET
+of accepted jobs and total penalty of rejected ones. For the single-machine case without
+3
+=== PAGE 4 ===
+rejection, Hall and Posner (1991) gave a linear-time algorithm under proportional weights.
+In contrast, we prove that adding rejection makes this case binary NP-hard. We further
+prove that the parallel-machine variant is strongly NP-hard for arbitrary m, even without
+rejection. For fixed m, we propose pseudo-polynomial DP algorithms and FPTASs. Unlike
+the single-machine scenario, these algorithms need to track early and tardy variables on each
+machine separately, which causes the state space to grow multiplicatively with m.
+The rest is structured as follows. Section 2 gives a detailed description of the problem
+under study. Section 3 analyzes structural properties that characterize optimal solutions.
+Section 4 demonstrates two NP-hardness results. Section 5 develops pseudo-polynomial DP
+algorithms and FPTASs for fixed number of identical machines. Section 6 designs polynomial
+algorithms to solve two special cases. Section 7 concludes the paper and points out directions
+for future research.
+2
+Problem description
+Consider a set J = {J1, J2, . . . , Jn} of n independent jobs, all of which arrive simultaneously
+at time zero. The processing system comprises a set M = {M1, M2, . . . , Mm} of m identical
+parallel machines. Each job Jj (j = 1, 2, . . . , n) is characterized by a triple (pj, wj, rj), where
+pj > 0 denotes the processing time, wj > 0 represents the weight, and rj > 0 indicates
+the rejection cost.
+All parameters pj, wj, and rj are assumed to be integers.
+For each
+job Jj, the decision-maker faces two options: either processes the job nonpreemptively on
+one of the m machines in M, or rejects it, incurring a penalty cost of rj. For any given
+subset X ⊆J , let Psum(X) = P
+Jj∈X pj denote the sum of processing times of all jobs in
+X, and let Wsum(X) = P
+Jj∈X wj represent the total weight of these jobs. Moreover, define
+pmax(X) = maxJj∈X{pj} as the largest processing time and wmax(X) = maxJj∈X{wj} as the
+largest weight among the jobs in X. For convenience, we use the simplified notations Psum,
+Wsum, pmax, and wmax to denote Psum(J ), Wsum(J ), pmax(J ), and wmax(J ), respectively. All
+jobs in J share an unrestricted CON d (e.g., Psum ≤d).
+A solution π to this problem requires making three sequential decisions. First, one decides
+whether to accept or reject each job, partitioning the set J into an accepted set A and a
+rejected set R. The accepted jobs are then assigned to the m machines, resulting in m
+disjoint subsets A1, A2, . . . , Am, where Ai denotes the set of jobs on Mi. Finally, for each
+machine Mi, the processing sequence and starting times of the jobs in Ai should be specified.
+Given a solution π for J , let Cj(π) denote the completion time of job Jj ∈A. Jj is
+classified as early if Jj ∈A and Cj(π) ≤d, with its earliness given by Ej(π) = d −Cj(π).
+Conversely, Jj is classified as tardy if Jj ∈A and Cj(π) > d, with its tardiness given by
+4
+=== PAGE 5 ===
+Tj(π) = Cj(π) −d. When the context is clear, we use the simplified notations Cj, Ej, and
+Tj to denote Cj(π), Ej(π), and Tj(π), respectively.
+The objective is to seek a solution that minimizes the integrated cost:
+Zwr =
+X
+Jj∈A
+wj(Ej + Tj) +
+X
+Jj∈R
+rj,
+(1)
+where the first term in (1) represents the TWET of accepted jobs in A, and the second term
+in (1) denotes the total penalty incurred from rejected jobs in R. Following the extended 3-
+field scheduling notation (Shabtay et al., 2013; Kellerer et al., 2020), we denote the problem
+under study by Pm|rej, dj = d, Psum ≤d|Zwr.
+Throughout this paper, the n jobs in J are assumed to be indexed such that
+p1
+w1
+≤p2
+w2
+≤· · · ≤pn
+wn
+.
+(2)
+3
+Preliminaries
+In this section, we analyze several structural properties that characterize optimal solutions
+for problem Pm|rej, dj = d, Psum ≤d|Zwr.
+When m = 1 and the job set J is partitioned in advance into A and R, problem
+1|rej, dj = d, Psum ≤d|Zwr reduces to problem 1|dj = d, Psum ≤d| P wj(Ej + Tj) on the
+set A. For m ≥2, if n ≤m, an optimal solution simply accepts all jobs and places one
+on each machine, scheduling each to finish at time d; hence we restrict to n > m. Under
+this condition, we may assume without loss that each machine is nonempty, because moving
+a job to an idle machine and scheduling it at time d incurs no penalty. Generalizing the
+single-machine characterizations in Hall and Posner (1991) and Kellerer et al. (2020) to
+fixed subsets A1, A2, . . . , Am yields the following lemma, which describes the structure of
+an optimal solution on each machine. The lemma follows from standard job shifting and
+interchange arguments.
+Lemma 3.1. For problem Pm|rej, dj = d, Psum ≤d|Zwr, there exists an optimal solution
+that, for each nonempty machine Mi (i.e., Ai ̸= ∅), i = 1, 2, . . . , m, satisfies the following
+four features:
+(i) jobs in Ai are processed consecutively on Mi, while some idle time may exist prior to
+the first scheduled early job;
+(ii) the completion time of some job in Ai coincides exactly with time d;
+(iii) the processing order of early jobs in Ai follows a decreasing order of job indices;
+5
+=== PAGE 6 ===
+(iv) the processing order of tardy jobs in Ai follows an increasing order of job indices.
+Let π∗be an optimal solution for problem Pm|rej, dj = d, Psum ≤d|Zwr satisfying Lemma
+3.1. To improve readability, Table 1 summarizes the notation used in Sections 3 and 5.
+Table 1: Summary of key notation
+Symbol
+Description
+Ai
+Set of accepted jobs on Mi in π∗
+AE
+i
+Set of early jobs on Mi in π∗, i.e, AE
+i = {Jj ∈Ai : Cj ≤d}
+AT
+i
+Set of tardy jobs on Mi in π∗, i.e., AT
+i = {Jj ∈Ai : Cj > d}
+Jj
+Set of the first j jobs in J , i.e., Jj = {J1, J2, . . . , Jj}
+Sj
+Set of partial solutions for Jj satisfying Lemmas 3.1, 3.2, 3.3 and 3.6
+πj
+Representation of πj ∈Sj as the (2m + 1)-tuple (e1, . . . , em, t1, . . . , tm, z)
+ei
+Total processing time of early jobs on Mi in πj
+ti
+Total processing time of tardy jobs on Mi in πj
+z
+Total integrated cost of πj
+Φj
+Set of feasible tuples generated by the partial solutions in Sj
+Nj
+Set of the last n −j + 1 jobs in J (i.e., Nj = {Jj, Jj+1, . . . , Jn})
+Uj
+Set of partial solutions for Nj satisfying Lemmas 3.1, 3.4 and 3.5
+σj
+Representation of σj ∈Uj as the (2m + 1)-tuple (f1, . . . , fm, g1, . . . , gm, u)
+fi
+Total weight of early jobs on Mi in σj
+gi
+Total weight of tardy jobs on Mi in σj
+u
+Total integrated cost of σj
+Ψj
+Set of feasible tuples generated by the partial solutions in Uj
+Although the four subsequent lemmas analyze tardy workloads, early workloads, tardy
+weights, and early weights individually, they reveal a unified balancing principle: in any op-
+timal solution, these quantities must remain tightly balanced both across different machines
+and between the early and tardy sets within each machine. Specifically, Lemmas 3.2 and
+3.3 bound the total processing time of AT
+i and AE
+i , respectively, while Lemmas 3.4 and 3.5
+bound their total weights. The proof of each lemma relies on a similar shifting argument
+in which any significant imbalance permits a job reassignment that strictly improves the
+integrated cost, thereby contradicting the assumption of optimality. The detailed proofs are
+provided in Appendix A.
+Lemma 3.2. Given π∗for problem Pm|rej, dj = d, Psum ≤d|Zwr, we have
+min
+i=1,2,...,m{Psum(AT
+i )} ≤
+1
+2mPsum(A)
+(3)
+6
+=== PAGE 7 ===
+and
+max
+i=1,2,...,m{Psum(AT
+i )} ≤
+1
+2mPsum(A) + pmax(A).
+(4)
+Lemma 3.3. Given π∗for problem Pm|rej, dj = d, Psum ≤d|Zwr, we have
+min
+i=1,2,...,m{Psum(AE
+i )} ≤
+1
+2mPsum(A) + pmax(A)
+(5)
+and
+max
+i=1,2,...,m{Psum(AE
+i )} ≤
+1
+2mPsum(A) + 2pmax(A).
+(6)
+Lemma 3.4. Given π∗for problem Pm|rej, dj = d, Psum ≤d|Zwr, we have
+min
+i=1,2,...,m{Wsum(AT
+i )} ≤
+1
+2mWsum(A)
+(7)
+and
+max
+i=1,2,...,m{Wsum(AT
+i )} ≤
+1
+2mWsum(A) + wmax(A).
+(8)
+Lemma 3.5. Given π∗for problem Pm|rej, dj = d, Psum ≤d|Zwr, we have
+min
+i=1,2,...,m{Wsum(AE
+i )} ≤
+1
+2mWsum(A) + wmax(A)
+(9)
+and
+max
+i=1,2,...,m{Wsum(AE
+i )} ≤
+1
+2mWsum(A) + 2wmax(A).
+(10)
+The bounds established in Lemmas 3.2–3.5 impose tighter constraints on the total pro-
+cessing time and total weight of early and tardy jobs on each machine. Although pseudo-
+polynomial DP algorithms can be formulated without these restrictions, the above lemmas
+are essential for pruning the state space and enabling a more compact enumeration. This
+reduction improves the efficiency of the DP algorithms in Section 5 and enables polynomial-
+time algorithms for the two special cases in Section 6.
+Observe that rejecting any job Jj ∈A adds exactly rj to the total cost and does not affect
+the cost of any other job. If wj(Ej + Tj) = rj, then accepting and rejecting give the same
+objective value; hence we may assume that such a job is rejected in some optimal solution.
+This yields the following result.
+Lemma 3.6. Given π∗for problem Pm|rej, dj = d, Psum ≤d|Zwr, we have wj(Ej +Tj) < rj
+for any job Jj ∈A.
+4
+NP-hardness proof
+Since problem 1|dj = d, Psum ≤d| P wj(Ej + Tj) is binary NP-hard (Hall and Posner,
+1991), the generalized problem Pm|rej, dj = d, P ≤d|Zwr is at least binary NP-hard,
+7
+=== PAGE 8 ===
+even for fixed m. In contrast, Hall and Posner (1991) presented an O(n)-time algorithm for
+the single-machine case with proportional weights (i.e., wj = θpj, with θ being a positive
+constant). However, Sun and Wang (2003) demonstrated that this special case becomes
+binary NP-hard on two machines. We strengthen these results by showing that problem
+Pm|dj = d, Psum ≤d, wj = pj| P wj(Ej + Tj) is strongly NP-hard for arbitrary m, and
+that the rejection variant 1|rej, dj = d, Psum ≤d, wj = pj|Zwr is binary NP-hard. These
+results are derived via reductions from the strongly NP-complete 3-Partition and binary
+NP-complete Partition problems, respectively (Garey and Johnson, 1979).
+3-Partition: Given an integer b and a set C = {c1, c2, . . . , c3k} of 3k positive integers,
+where P3k
+j=1 cj = kb and b/4 < cj < b/2 for each j = 1, 2, . . . , 3k, the problem asks whether
+the index set I = {1, 2, . . . , 3k} can be partitioned into k disjoint subsets I1, I2, . . . , Ik such
+that P
+j∈Ii cj = b and |Ii| = 3 for i = 1, 2, . . . , k?
+Partition: Given an integer b and a set C = {c1, c2, . . . , ck} of k positive integers, where
+Pk
+j=1 cj = 2b, the problem asks whether the index set I = {1, 2, . . . , k} can be partitioned
+into two disjoint subsets I1 and I2 such that P
+j∈I1 cj = P
+j∈I2 cj = b?
+To streamline the exposition of the two NP-hardness proofs, we make extensive use of
+the following result.
+Lemma 4.1. For any sequence of real numbers z1, z2, . . . , zq, we have
+q
+X
+j=1
+zj
+j
+X
+i=1
+zi = 1
+2(
+q
+X
+j=1
+z2
+j + (
+q
+X
+j=1
+zj)2).
+Theorem 4.1. When m is arbitrary, problem Pm|dj = d, Psum ≤d, wj = pj| P wj(Ej + Tj)
+is strongly NP-hard.
+Proof. Given an instance I3p = (c1, c2, . . . , c3k; b) to 3-Partition, set ∆= 1
+2(P3k
+j=1 c2
+j + kb2).
+We build an instance Isch to problem Pm|dj = d, Psum ≤d, wj = pj| P wj(Ej + Tj) with a
+set M = {M1, M2, . . . , Mm} of m = k machines and a set J = {J1, J2, . . . , Jn} of n = 4k
+jobs. The first 3k jobs are referred to as regular jobs, where pj = wj = cj for 1 ≤j ≤3k.
+The remaining k jobs are called large jobs, where p3k+j = w3k+j = ∆+ 1 for 1 ≤j ≤k. The
+common due date is d = Pn
+j=1 pj and the threshold value is Y = ∆. We next show that I3p
+admits a solution if and only if Isch admits a schedule π with Pn
+j=1 wj(Ej(π) + Tj(π)) ≤Y .
+Assume that I3p admits a solution (I1, I2, . . . , Ik) with P
+j∈Ii cj = b and |Ii| = 3 for
+i = 1, 2, . . . , k. We construct a schedule π as follows: on Mi (i = 1, 2, . . . , k), J3k+i starts
+its processing at time d −∆−1, and the jobs in Ji = {Jj : j ∈Ii} are processed during
+[d, d + b] in increasing index order. Hence, for each i = 1, 2, . . . , k, we have C3k+i(π) = d
+and Cj(π) = d + P
+l:l≤j and l∈Ii pl for each j ∈Ii. Then, by Lemma 4.1 and straightforward
+calculations, we can verify that Pn
+j=1 wj(Ej(π) + Tj(π)) = ∆= Y .
+8
+=== PAGE 9 ===
+Conversely, assume that Isch admits a schedule π with Pn
+j=1 wj(Ej(π)+Tj(π)) ≤Y . Since
+w3k+i = ∆+ 1 > Y for i = 1, 2, . . . , k, all large jobs must be completed exactly at time d in
+π. This implies that E3k+i(π) = T3k+i(π) = 0 for each i = 1, 2, . . . , k. Since all large jobs are
+identical, we can assume that J3k+i is assigned to Mi and processed during [d−∆−1, d] on Mi.
+Moreover, we claim that all regular jobs are tardy, i.e., Ej(π) = 0 for each j = 1, 2, . . . , 3k.
+To see this, suppose for contradiction that some job Jx (1 ≤x ≤3k) is scheduled early on
+a machine My. This would imply Pn
+j=1 wj(Ej(π) + Tj(π)) ≥Ex(π) ≥p3k+y = ∆+ 1 > Y ,
+contradicting the feasibility of π.
+For each i = 1, 2, . . . , k and j = 1, 2, . . . , 3k, we define xij = 1 if Jj is scheduled on Mi in
+π and xij = 0 otherwise. Since pj = wj = cj for 1 ≤j ≤3k, Lemma 3.1 allows us to assume
+that the tardy jobs on each machine are processed consecutively in increasing index order
+from time d onward in π. For each i = 1, 2, . . . , k, let Ii = {j : xij = 1, 1 ≤j ≤3k} and
+θi = P
+j∈Ii cj. By Lemma 4.1, for each i = 1, 2, . . . , k, we have
+X
+j∈Ii
+wjTj(π) =
+X
+j∈Ii
+wj
+j
+X
+l=1
+xilpl =
+X
+j∈Ii
+cj
+j
+X
+l=1
+xilcl = 1
+2(
+X
+j∈Ii
+c2
+j + (
+X
+j∈Ii
+cj)2) = 1
+2(
+X
+j∈Ii
+c2
+j + θ2
+i ).
+Based on the feasibility of π and I1 ∪I2 · · · ∪Ik = {1, 2, . . . , 3k}, we derive
+Y ≥
+n
+X
+j=1
+wj(Ej(π) + Tj(π)) =
+3k
+X
+j=1
+wjTj(π) =
+k
+X
+i=1
+X
+j∈Ii
+wjTj(π) = 1
+2(
+3k
+X
+j=1
+c2
+j +
+k
+X
+i=1
+θ2
+i ).
+(11)
+Substituting Y = ∆= 1
+2(P3k
+j=1 c2
+j + kb2) into (11), we obtain
+k
+X
+i=1
+θ2
+i ≤kb2.
+(12)
+Now, consider the following optimization problem:
+min
+F(x1, x2, . . . , xk) =
+k
+X
+i=1
+x2
+i
+(13)
+s.t.
+k
+X
+i=1
+xi = kb,
+(14)
+xi ≥0,
+i = 1, 2, . . . , k.
+(15)
+Since the objective function F in (13) is strictly convex and the constraint (14) is lin-
+ear, the global minimum is uniquely attained when x1 = x2 = · · · = xk = b, yielding
+F(x1, x2, . . . , xk) ≥kb2. Recall that Pk
+i=1 θi = Pk
+i=1
+P
+j∈Ii cj = P3k
+i=1 cj = kb. Combin-
+ing this with the upper bound in (12) and the lower bound derived above, we must have
+Pk
+i=1 θ2
+i = kb2. Note that this equality holds if and only if θ1 = θ2 = · · · = θk = b. Given
+that b/4 < cj < b/2 for all j, P
+j∈Ii cj = θi = b implies that |Ii| = 3 for each i = 1, 2, . . . , k.
+Therefore, (I1, I2, . . . , Ik) is a solution to I3p.
+9
+=== PAGE 10 ===
+Theorem 4.2. Problem 1|rej, dj = d, Psum ≤d, wj = pj|Zwr is binary NP-hard.
+Proof. Given an instance Ipar = (c1, c2, . . . , ck; b) to Partition, set ∆= 1
+2(Pk
+j=1 c2
+j + 3b2).
+We build an instance Isch to problem 1|rej, dj = d, Psum ≤d, wj = pj|Zwr with a set
+J = {J1, J2, . . . , Jn} of n = k + 1 jobs.
+For each j = 1, 2, . . . , k, pj = wj = cj and
+rj = 1
+2c2
+j + bcj; while pk+1 = wk+1 = rk+1 = ∆+ 1. The common due date is d = Pn
+j=1 pj
+and the threshold value is Y = ∆. We next show that Ipar admits a solution if and only if
+Isch admits a solution π with Zwr(π) ≤Y .
+Assume that Ipar admits a solution (I1, I2) with P
+j∈I1 cj = P
+j∈I2 cj = b. We construct
+a solution π to Isch as follows: Jk+1 is accepted and starts processing at time d −∆−1, the
+jobs in A′ = {Jj : j ∈I1} are accepted and processed during [d, d + b] in increasing index
+order, and the job in R = {Jj : j ∈I2} are rejected. Hence, we have Ck+1(π) = d and
+Cj(π) = d + P
+l:l≤j and l∈I1 pl for each Jj ∈A′. Then, by Lemma 4.1 and straightforward
+calculations, we can verify that Zwr(π) = ∆= Y .
+Conversely, assume that Isch admits a solution π with Zwr(π) ≤Y . Since rk+1 = wk+1 =
+∆+ 1, Jk+1 must be accepted and processed during [d −∆−1, d] in π. Let I1 = {j : Jj ∈
+A \ {Jk+1}} = {j1, j2, . . . , jh} and I2 = {j : Jj ∈R}, where h = |I1| and j1 < j2 < . . . < jh.
+If any job Jx with x ∈I1 were scheduled early, we would have Zwr(π) ≥Ex(π) ≥pk+1 =
+∆+ 1 > Y , a contradiction. Hence, each job Jj (j ∈I1) must be tardy in π. Given that
+pj = wj = cj for all j ∈I1, Lemma 3.1 allows us to assume that jobs in A \ {Jk+1} are
+processed consecutively in increasing index order from time d onward in π. Thus, Tjg(π) =
+Cjg(π) −d = Pg
+i=1 pji for each g = 1, 2, . . . , h. By Lemma 4.1, we obtain
+X
+Jj∈A
+wj(Ej(π) + Tj(π)) =
+X
+j∈I1
+wjTj(π) =
+h
+X
+g=1
+wjgTjg(π) =
+h
+X
+g=1
+cjg
+g
+X
+i=1
+cji
+= 1
+2(
+h
+X
+g=1
+c2
+jg + (
+h
+X
+j=1
+cjg)2) = 1
+2(
+X
+j∈I1
+c2
+j + (
+X
+j∈I1
+cj)2).
+Recall that I1 ∪I2 = {1, 2, . . . , k} and P
+j∈I1 cj +P
+j∈I2 cj = 2b. Let θ = P
+j∈I1 cj. Using
+the feasibility of π and the relation P
+Jj∈R rj = P
+j∈I2(1
+2c2
+j + bcj), we derive
+Y ≥Zwr(π) = 1
+2(
+X
+j∈I1
+c2
+j + (
+X
+j∈I1
+cj)2) + 1
+2
+X
+j∈I2
+c2
+j + b
+X
+j∈I2
+cj
+= 1
+2
+k
+X
+j=1
+c2
+j + 1
+2θ2 + b(2b −θ) = 1
+2
+k
+X
+j=1
+c2
+j + 3
+2b2 + 1
+2(θ −b)2
+(16)
+≥1
+2
+k
+X
+j=1
+c2
+j + 3
+2b2 = ∆= Y.
+10
+=== PAGE 11 ===
+The term involving θ in (16) attains its minimum if and only if θ = b. This implies that
+P
+j∈I1 cj = b and P
+j∈I2 cj = 2b −P
+j∈I1 cj = b. Therefore, (I1, I2) is a solution to Ipar.
+5
+Algorithms
+In this section, we address the problem Pm|rej, dj = d, Psum ≤d|Zwr with a fixed number of
+machines. We develop two pseudo-polynomial DP algorithms, DP1 and DP2, distinguished
+by their state representations. DP1 employs processing-time-based states, while DP2 uses
+weight-based states. The motivation for proposing two formulations lies in their complemen-
+tary efficiency profiles. DP1 performs better when the total processing time is small relative
+to the total weight, and DP2 is preferable in the opposite scenario. This dual approach
+allows us to solve instances with diverse parameter ranges efficiently. From each exact DP
+algorithm, we then construct an FPTAS. Finally, we conduct computational experiments to
+assess the performance of two DP algorithms and their corresponding FPTASs.
+To express the objective function (1) explicitly, for each i = 1, 2, . . . , m and j =
+1, 2, . . . , n, define the following binary variables:
+• xij = 1 if Jj is accepted and scheduled early on Mi, and 0 otherwise;
+• yij = 1 if Jj is accepted and scheduled tardy on Mi, and 0 otherwise;
+• zj = 1 if Jj is rejected, and 0 otherwise.
+Since each job Jj is either accepted and scheduled (early or tardy) on some machine or
+rejected, the following constraints hold:
+m
+X
+i=1
+xij +
+m
+X
+i=1
+yij + zj = 1, j = 1, 2, . . . , n.
+(17)
+Following the job indexing in (2) and applying Lemma 3.1, if Jj is accepted and scheduled
+early on Mi (i.e., xij = 1), its completion time is Cj = d −Pj−1
+k=1 pkxik, and so its earliness
+is Pj−1
+k=1 pkxik. Similarly, if Jj is accepted and scheduled tardy on Mi (i.e., yij = 1), its
+completion time is Cj = d + Pj
+k=1 pkyik, and so its tardiness is Pj
+k=1 pkyik. Moreover, if Jj
+is rejected (i.e., zj = 1), define Ej = Tj = 0. Thus, the cost of Jj is
+cj = wj(
+m
+X
+i=1
+xij
+j−1
+X
+k=1
+pkxik +
+m
+X
+i=1
+yij
+j
+X
+k=1
+pkyik) + rjzj.
+(18)
+As a consequence, the objective function (1) can be formulated as
+Zwr =
+n
+X
+j=1
+wj(
+m
+X
+i=1
+xij
+j−1
+X
+k=1
+pkxik +
+m
+X
+i=1
+yij
+j
+X
+k=1
+pkyik) +
+n
+X
+j=1
+rjzj.
+(19)
+11
+=== PAGE 12 ===
+After rearrangement (see Appendix B for details), (19) can be rewritten as
+Zwr =
+n
+X
+j=1
+pj(
+m
+X
+i=1
+xij
+n
+X
+k=j+1
+wkxik +
+m
+X
+i=1
+yij
+n
+X
+k=j
+wkyik) +
+n
+X
+j=1
+rjzj.
+(20)
+5.1
+An exact DP algorithm
+The first approach iterates over the n jobs sequentially in increasing index order, as outlined
+in (2). It employs processing-time-based states and computes the objective function (1) using
+the expression given in (19). For each j = 1, 2, . . . , n, let Sj be the set of partial solutions
+that satisfy the features established in Lemmas 3.1, 3.2, 3.3 and 3.6 for Jj. A partial solution
+πj ∈Sj is represented by the (2m+1)-tuple (e1, . . . , em, t1, . . . , tm, z), with ei and ti denoting
+the total processing time of early and tardy jobs on Mi, respectively, i = 1, 2, . . . , m, and
+z being the integrated cost (i.e., the TWET of accepted jobs plus the penalty for rejected
+ones).
+For each j = 1, 2, . . . , n, let Φj be the set of feasible tuples generated by the partial
+solutions in Sj.
+The algorithm starts by initializing Φ0 = {(0, 0, . . . , 0)}, then dynami-
+cally builds each Φj based on its prior set Φj−1. We discuss the recurrence relationship
+between Φj and Φj−1. With respect to a specific tuple (e1, . . . , em, t1, . . . , tm, z) ∈Φj, let
+πj ∈Sj be the partial solution attaining this tuple. Moreover, let πj−1 be the partial so-
+lution for Jj−1 obtained by eliminating Jj from πj.
+By Lemma 3.1, πj−1 ∈Sj−1.
+Let
+(e′
+1, . . . , e′
+m, t′
+1, . . . , t′
+m, z′) represent the tuple associated with πj−1. To derive the tuple tran-
+sition from (e′
+1, . . . , e′
+m, t′
+1, . . . , t′
+m, z′) to (e1, . . . , em, t1, . . . , tm, z), based on Lemma 3.1, the
+following 2m + 1 distinct scenarios need to be examined.
+• Scenario i (i=1, 2, . . . , m): Let Jj be accepted and scheduled early on Mi in
+πj. According to Lemma 3.1, Jj is the first processed job on Mi, and its completion time
+is Cj(πj) = d −ei + pj. As a result, Ej(πj) = ei −pj = e′
+i. Thus, we have ek = e′
+k for
+k = 1, 2, . . . , i −1, i + 1, . . . , m, ei = e′
+i + pj, tl = t′
+l for l = 1, 2, . . . , m, and z = z′ + wje′
+i. By
+Lemmas 3.3 and 3.6, it suffices to consider the scenario where e′
+i + pj ≤
+1
+2mPsum + 2pmax and
+wje′
+i < rj.
+• Scenario m+i (i=1, 2, . . . , m): Let Jj be accepted and scheduled tardy on Mi in
+πj. According to Lemma 3.1, Jj is the last processed job on Mi, and its completion time is
+Cj(πj) = d + ti. As a result, Tj(πj) = ti = t′
+i + pj. Thus, we have ek = e′
+k for k = 1, 2, . . . , m,
+tl = t′
+l for l = 1, 2, . . . , i−1, i+1, . . . , m, ti = t′
+i +pj, and z = z′ +wj(t′
+i +pj). By Lemmas 3.2
+and 3.6, it suffices to consider the scenario where t′
+i+pj ≤
+1
+2mPsum+pmax and wj(t′
+i+pj) < rj.
+• Scenario 2m+1: Let Jj be rejected in πj. Since the contribution of Jj to the objective
+value is rj, we have ek = e′
+k for k = 1, 2, . . . , m, tl = t′
+l for l = 1, 2, . . . , m, and z = z′ + rj.
+12
+=== PAGE 13 ===
+The next lemma is straightforward to prove and will be employed to remove dominated
+tuples during the tuple generation procedure.
+Lemma
+5.1. Given
+two
+partial
+solutions
+in
+Sj
+for
+Jj
+represented
+by
+tuples
+(e1, . . . , em, t1, . . . , tm, z) and (e′
+1, . . . , e′
+m, t′
+1, . . . , t′
+m, z′) in Φj.
+If ei ≤e′
+i and ti ≤t′
+i for
+each i = 1, 2, . . . , m, and z ≤z′, then the former solution dominates the latter, implying that
+the tuple (e′
+1, . . . , e′
+m, t′
+1, . . . , t′
+m, z′) can be eliminated from Φj.
+Although Lemma 5.1 gives a general condition for eliminating dominated tuples, we do
+not invoke the lemma in its full generality. Instead, we use a simpler rule: when constructing
+Φj, if multiple tuples share the same ei and ti values for all i, keeping only the one with
+the smallest z value suffices for correctness. This avoids the overhead of checking the full
+dominance relation while preserving optimality. In light of the above discussion, we formulate
+the following DP algorithm (DP1) to solve problem Pm | rej, dj = d, Psum ≤d | Zwr.
+Theorem 5.1. Algorithm DP1 solves problem Pm|rej, dj = d, Psum ≤d|Zwr with a time
+complexity of O(mn( 1
+2mPsum + 2pmax)2m). When m is fixed, it is pseudo-polynomial.
+Proof. The correctness of DP1 relies on two key aspects: (i) it enumerates all feasible tuples
+characterizing optimal solutions that satisfy the features specified in Lemmas 3.1, 3.2, 3.3
+and 3.6; and (ii) during the elimination procedure, only non-dominated tuples are preserved,
+as justified by Lemma 5.1.
+Next, the time complexity of DP1 is estimated. Step 1 requires O(n log n) time (line 2)
+and Step 2 operates in linear time (line 4). Due to the bounds on ei (0 ≤ei ≤
+1
+2mPsum+2pmax)
+and ti (0 ≤ti ≤
+1
+2mPsum + pmax), after the execution of elimination procedure (line 22), it
+leaves at most O( 1
+2mPsum + 2pmax)2m tuples in Φj−1. Moreover, each tuple in Φj−1 produces
+up to 2m+1 tuples in Φj. Hence, Φj can be generated in O(m( 1
+2mPsum+2pmax)2m) time (lines
+8-22). Since Step 3 is iterated n times (lines 6-23) and Step 4 takes O( 1
+2mPsum + 2pmax)2m
+time (lines 25-26), DP1 can be implemented in O(mn( 1
+2mPsum + 2pmax)2m) time.
+5.2
+An alternative exact DP algorithm
+The alternative DP approach iterates over the n jobs sequentially in decreasing index order,
+as outlined in (2). It uses weight-based states and computes the objective function (1) using
+the expression given in (20). For each j = 1, 2, . . . , n, let Uj be the set of partial solutions
+that satisfy the features established in Lemmas 3.1, 3.4 and 3.5 for Nj. A partial solution
+σj ∈Uj is represented by the (2m+1)-tuple (f1, . . . , fm, g1, . . . , gm, u), where fi and gi denote
+the total weight of early and tardy jobs on Mi, respectively, i = 1, 2, . . . , m, and u denotes
+the integrated cost (i.e., the TWET of accepted jobs plus the penalty for rejected ones).
+13
+=== PAGE 14 ===
+Algorithm DP1: An exact DP algorithm
+Input: n, m, d, pj, wj, rj for j = 1, 2, . . . , n
+1 [Step 1: Preprocessing]
+2 Renumber the jobs in J according to (2), i.e., p1
+w1 ≤p2
+w2 ≤· · · ≤pn
+wn
+3 [Step 2: Initialization]
+4 Φ0 ←{(0, 0, . . . , 0)}, Φj ←∅for j = 1, 2, . . . , n
+5 [Step 3: Recursion]
+6 for j = 1 to n do
+7
+[Generation procedure]
+8
+for each tuple (e1, . . . , em, t1, . . . , tm, z) ∈Φj−1 do
+9
+for i = 1 to m do
+10
+if ei + pj ≤
+1
+2mPsum + 2pmax and wjei < rj then
+11
+Add (e1, . . . , ei−1, ei + pj, ei+1, . . . , em, t1, . . . , tm, z + wjei) to Φj
+12
+end
+13
+end
+14
+for i = 1 to m do
+15
+if ti + pj ≤
+1
+2mPsum + pmax and wj(ti + pj) < rj then
+16
+Add (e1, . . . , em, t1, . . . , ti−1, ti + pj, ti+1, . . . , tm, z + wj(ti + pj)) to Φj
+17
+end
+18
+end
+19
+Add (e1, . . . , em, t1, . . . , tm, z + rj) to Φj
+20
+end
+21
+[Elimination procedure]
+22
+Among tuples in Φj with identical ei and ti values for i = 1, 2, . . . , m, keep only the
+tuple with minimal z value
+23 end
+24 [Step 4: Result]
+25 z∗←min{z : (e1, . . . , em, t1, . . . , tm, z) ∈Φn}
+26 Recover σ∗by backtracking (e∗
+1, . . . , e∗
+m, t∗
+1, . . . , t∗
+m, z∗)
+Output: Optimal solution σ∗
+14
+=== PAGE 15 ===
+For each j = 1, 2, . . . , n, let Ψj be the set of feasible tuples generated by the partial
+solutions in Uj. The algorithm starts by initializing Ψn+1 = {(0, 0, . . . , 0)}, then dynam-
+ically builds each Ψj based on its prior set Ψj+1. We discuss the recurrence relationship
+between Ψj and Ψj+1. With respect to a specific tuple (f1, . . . , fm, g1, . . . , gm, u) ∈Ψj, let
+σj ∈Uj be the partial solution attaining this tuple. Moreover, let σj+1 be the partial so-
+lution for Nj+1 obtained by eliminating Jj from σj.
+By Lemma 3.1, σj+1 ∈Uj+1.
+Let
+(f ′
+1, . . . , f ′
+m, g′
+1, . . . , g′
+m, u′) represent the tuple associated with σj+1. To derive the tuple tran-
+sition from (f ′
+1, . . . , f ′
+m, g′
+1, . . . , g′
+m, u′) to (f1, . . . , fm, g1, . . . , gm, u), based on Lemma 3.1, the
+following 2m + 1 distinct scenarios need to be examined.
+• Scenario i (i=1, 2, . . . , m): Let Jj be accepted and scheduled early on Mi in
+σj. According to Lemma 3.1, Jj is the last processed early job on Mi. As a result, the
+earliness of each early job on Mi excluding Jj increases by pj. Thus, we have fk = f ′
+k for
+k = 1, 2, . . . , i −1, i + 1, . . . , m, fi = f ′
+i + wj, gl = g′
+l for l = 1, 2, . . . , m, and u = u′ + pjf ′
+i.
+By Lemma 3.5, it suffices to consider the scenario where f ′
+i + wj ≤
+1
+2mWsum + 2wmax.
+• Scenario m+i (i=1, 2, . . . , m): Let Jj be accepted and scheduled tardy on Mi
+in σj. According to Lemma 3.1, Jj is the first processed tardy job on Mi. As a result, the
+tardiness of each tardy job on Mi increases by pj. Thus, we have fk = f ′
+k for k = 1, 2, . . . , m,
+gl = g′
+l for l = 1, 2, . . . , i −1, i + 1, . . . , m, gi = g′
+i + wj, and u = u′ + pj(g′
+i + wj). By Lemma
+3.4, it suffices to consider the scenario where g′
+i + wj ≤
+1
+2mWsum + wmax.
+• Scenario 2m+1: Let Jj be rejected in σj. Since the contribution of Jj to the objective
+value is rj, we have fk = f ′
+k for k = 1, 2, . . . , m, gl = g′
+l for l = 1, 2, . . . , m, and u = u′ + rj.
+Similar to Lemma 5.1, the following lemma is employed to remove dominated tuples
+during the tuple generation procedure.
+Lemma
+5.2. Given
+two
+partial
+solutions
+in
+Uj
+for
+Nj
+represented
+by
+tuples
+(f1, . . . , fm, g1, . . . , gm, u) and (f ′
+1, . . . , f ′
+m, g′
+1, . . . , g′
+m, u′) in Ψj. If fi ≤f ′
+i and gi ≤g′
+i for
+each i = 1, 2, . . . , m, and u ≤u′, then the former solution dominates the latter, implying
+that the tuple (f ′
+1, . . . , f ′
+m, g′
+1, . . . , g′
+m, u′) can be eliminated from Ψj.
+Although Lemma 5.2 gives a general condition for eliminating dominated tuples, we do
+not invoke the lemma in its full generality. Instead, we use a simpler rule: when constructing
+Ψj, if multiple tuples share the same fi and gi values for all i, keeping only the one with
+the smallest u value suffices for correctness. This avoids the overhead of checking the full
+dominance relation while preserving optimality. In light of the above discussion, we formulate
+the following DP algorithm (DP2) to solve problem Pm | rej, dj = d, Psum ≤d | Zwr.
+Theorem 5.2. Algorithm DP2 solves problem Pm|rej, dj = d, Psum ≤d|Zwr with a time
+complexity of O(mn( 1
+2mWsum + 2wmax)2m). When m is fixed, it is pseudo-polynomial.
+15
+=== PAGE 16 ===
+Algorithm DP2: An alternative exact DP algorithm
+Input: n, m, d, pj, wj, rj for j = 1, 2, . . . , n
+1 [Step 1: Preprocessing]
+2 Renumber the jobs in J according to (2), i.e., p1
+w1 ≤p2
+w2 ≤· · · ≤pn
+wn
+3 [Step 2: Initialization]
+4 Ψn+1 ←{(0, 0, . . . , 0)}, Ψj ←∅for j = n, n −1, . . . , 1
+5 [Step 3: Recursion]
+6 for j = n to 1 do
+7
+[Generation procedure]
+8
+for each tuple (f1, . . . , fm, g1, . . . , gm, u) ∈Ψj+1 do
+9
+for i = 1 to m do
+10
+if fi + wj ≤
+1
+2mWsum + 2wmax then
+11
+Add (f1, . . . , fi−1, fi + wj, fi+1, . . . , fm, g1, . . . , gm, u + pjfi) to Ψj
+12
+end
+13
+end
+14
+for i = 1 to m do
+15
+if gi + wj ≤
+1
+2mWsum + wmax then
+16
+Add (f1, . . . , fm, g1, . . . , gi−1, gi + wj, gi+1 . . . , gm, u + pj(gi + wj)) to Ψj
+17
+end
+18
+end
+19
+Add (f1, . . . , fm, g1, . . . , gm, u + rj) to Ψj
+20
+end
+21
+[Elimination procedure]
+22
+Among tuples in Ψj with identical fi and gi values for i = 1, 2, . . . , m, keep only the
+tuple with minimal u value
+23 end
+24 [Step 4: Result]
+25 u∗←min{u : (f1, . . . , fm, g1, . . . , gm, u) ∈Ψ1}
+26 Recover σ∗by backtracking (f∗
+1 , . . . , f∗
+m, g∗
+1, . . . , g∗
+m, u∗)
+Output: Optimal solution σ∗
+16
+=== PAGE 17 ===
+Proof. The theorem admits a proof similar to that of Theorem 5.1.
+5.3
+An FPTAS based on DP1
+Let ϵ > 0 be a rational number and set θ = (1 + ϵ)
+1
+n−1. For any x ≥1 with θk ≤x < θk+1,
+the function ∆(·) is defined by ∆(x) = k = ⌊logθ x⌋. Moreover, define ∆(0) = −1.
+In DP1, the tuple set Φj at iteration j has size O( 1
+2mPsum + 2pmax)2m, which is pseudo-
+polynomial. To keep the number of states polynomial, we selectively eliminate redundant
+states at each iteration, retaining only one among those that are sufficiently similar. This
+leads to DPϵ
+1, an FPTAS that uses approximate DP strategy in which the tuple space is
+divided into boxes and only one representative tuple is kept per box. Specifically, each tuple
+(e1, . . . , em, t1, . . . , tm, z) ∈Φϵ
+j is attached a label (∆(e1), . . . , ∆(em), ∆(t1), . . . , ∆(tm)). By
+construction, for each 1 ≤i ≤m, if ei ≥1, the value θ∆(ei) approximates the original state
+variable ei within a small multiplicative error; the same holds for θ∆(ti) with respect to ti.
+Accordingly, if two states share the same label, one of them is discarded during the tuple
+elimination procedure.
+The box elimination procedure in DPϵ
+1 (line 22) explores geometrically growing coor-
+dinate values. Multiplicative errors may arise when each label is mapped to the smallest
+objective coordinates within its box for tuple elimination, instead of utilizing the label’s exact
+value. However, the following lemma shows that the tuples remaining after the elimination
+procedure provide a good approximation to those generated by DP1.
+Lemma 5.3. For any tuple (e1, . . . , em, t1, . . . , tm, z) ∈Φj generated by Algorithm DP1,
+Algorithm DPϵ
+1 delivers a corresponding tuple (ee1, . . . , f
+em, et1, . . . , f
+tm, ez) ∈Φϵ
+j satisfying (i)
+ei ≤θj−1ei for i = 1, 2, . . . , m, (ii) eti ≤θj−1ti for i = 1, 2, . . . , m, and (iii) ez ≤θj−1z.
+Proof. The proof proceeds by induction on j from 1 to n. With respect to the base case j = 1,
+J1 can be either accepted and scheduled early or tardy on any machine Mi (i = 1, 2, . . . , m),
+or rejected at a cost of r1 in both DP1 and DPϵ
+1. Since no tuple is eliminated, we have
+Φϵ
+1 = Φ1. Thus, the statement holds trivially for j = 1.
+By the induction hypothesis, we assume that the statement holds for k = 1, 2, . . . , j −
+1, where j ≥2.
+Let (e1, . . . , em, t1, . . . , tm, z) ∈Φj be a tuple generated by DP1
+for Jj.
+DP1 adds this tuple to Φj
+by incorporating Jj
+into an existing tuple
+(e′
+1, . . . , e′
+m, t′
+1, . . . , t′
+m, z′) ∈Φj−1 for Jj−1.
+According to the induction hypothesis, there
+exists a tuple (ee′
+1, . . . , f
+e′
+m, et′
+1, . . . , f
+t′
+m, ez′) ∈Φϵ
+j−1 satisfying
+ee′
+i ≤θj−2e′
+i, et′
+i ≤θj−2t′
+i, i = 1, 2, . . . , m, and ez′ ≤θj−2z′.
+(21)
+17
+=== PAGE 18 ===
+Algorithm DPϵ
+1: An FPTAS based on DP1
+Input: n, m, d, ϵ, pj, wj, rj for j = 1, 2, . . . , n
+1 [Step 1: Preprocessing]
+2 Renumber the jobs in J according to (2), i.e., p1
+w1 ≤p2
+w2 ≤· · · ≤pn
+wn
+3 [Step 2: Initialization]
+4 Φϵ
+0 ←{(0, 0, . . . , 0)}, Φϵ
+j ←∅for j = 1, 2, . . . , n
+5 [Step 3: Recursion]
+6 for j = 1 to n do
+7
+[Generation procedure]
+8
+for each tuple (e1, . . . , em, t1, . . . , tm, z) ∈Φϵ
+j−1 do
+9
+for i = 1 to m do
+10
+if ei + pj ≤(1 + ϵ)( 1
+2mPsum + 2pmax) and wjei < rj then
+11
+Add (e1, . . . , ei−1, ei + pj, ei+1, . . . , em, t1, . . . , tm, z + wjei) to Φϵ
+j and attach
+its corresponding label
+(∆(e1), . . . , ∆(ei−1), ∆(ei + pj), ∆(ei+1), . . . , ∆(em), ∆(t1), . . . , ∆(tm))
+12
+end
+13
+end
+14
+for i = 1 to m do
+15
+if ti + pj ≤(1 + ϵ)( 1
+2mPsum + pmax) and wj(ti + pj) < rj then
+16
+Add (e1, . . . , em, t1, . . . , ti−1, ti + pj, ti+1, . . . , tm, z + wj(ti + pj)) to Φϵ
+j and
+attach its corresponding label
+(∆(e1), . . . , ∆(em), ∆(t1), . . . , ∆(ti−1), ∆(ti + pj), ∆(ti+1), . . . , ∆(tm))
+17
+end
+18
+end
+19
+Add (e1, . . . , em, t1, . . . , tm, z + rj) to Φϵ
+j and attach its corresponding label
+(∆(e1), . . . , ∆(em), ∆(t1), . . . , ∆(tm))
+20
+end
+21
+[Elimination procedure]
+22
+Among tuples in Φϵ
+j sharing identical labels, keep only the tuple with minimal z value,
+performing an arbitrary choice if the z values are identical
+23 end
+24 [Step 4: Result]
+25 z ←min{z : (e1, . . . , em, t1, . . . , tm, z) ∈Φϵ
+n}
+26 Recover σ by backtracking (e1, . . . , em, t1, . . . , tm, z)
+Output: Approximate solution σ
+18
+=== PAGE 19 ===
+We proceed to prove the statement for k = j by examining 2m + 1 distinct scenarios.
+Scenario i (i=1, 2, . . . , m): Let Jj be accepted and scheduled early on Mi in DP1.
+In this scenario, we have
+(e1, . . . , em, t1, . . . , tm, z) = (e′
+1, . . . , e′
+i−1, e′
+i + pj, e′
+i+1, . . . , e′
+m, t′
+1, . . . , t′
+m, z′ + wje′
+i).
+(22)
+Recall that (ee′
+1, . . . , f
+e′
+m, et′
+1, . . . , f
+t′
+m, ez′) ∈Φϵ
+j−1. From the execution of DP1 (lines 10-12), we
+have e′
+i + pj ≤
+1
+2mPsum + 2pmax and wje′
+i < rj. Combining θ = (1 + ϵ)
+1
+n−1 and (21),
+ee′
+i + pj ≤θj−2e′
+i + pj ≤θj−2( 1
+2mPsum + 2pmax) ≤(1 + ϵ)( 1
+2mPsum + 2pmax).
+To prove that the lemma holds in this scenario, we further distinguish two cases. First,
+consider the case where wj ee′
+i < rj. From the execution of DPϵ
+1 (lines 10-12), the tuple
+(ee′
+1, . . . , g
+e′
+i−1, ee′
+i + pj, g
+e′
+i+1, . . . , f
+e′
+m, et′
+1, . . . , f
+t′
+m, ez′ + wj ee′
+i) is added to Φϵ
+j. However, since two
+tuples can have identical labels, this tuple may be deleted in DPϵ
+1 (line 22) by another tuple
+(ee1, . . . , f
+em, et1, . . . , f
+tm, ez) ∈Φϵ
+j. For the tuple (ee1, . . . , f
+em, et1, . . . , f
+tm, ez), according to (21),
+(22) and the execution of DPϵ
+1, we have
+(i) eek ≤θ ee′
+k ≤θ(θj−2e′
+k) = θj−1ek, k = 1, 2, . . . , i −1, i + 1, . . . , m;
+(ii) ei ≤θ(ee′
+i + pj) ≤θ(θj−2e′
+i + pj) ≤θj−1(e′
+i + pj) = θj−1ei;
+(iii) etl ≤θet′
+l ≤θ(θj−2t′
+l) = θj−1tl, l = 1, 2, . . . , m;
+(iv) ez ≤ez′ + wj ee′
+i ≤θj−2z′ + wjθj−2e′
+i = θj−2(z′ + wje′
+i) ≤θj−1z.
+Second, consider the other case where wj ee′
+i ≥rj.
+From the execution of DPϵ
+1 (line
+19), the tuple (ee′
+1, . . . , f
+e′
+m, et′
+1, . . . , f
+t′
+m, ez′ + rj) is added to Φϵ
+j.
+However, since two tuples
+can have identical labels, this tuple may be deleted in DPϵ
+1 (line 22) by another tuple
+(ee1, . . . , f
+em, et1, . . . , f
+tm, ez) ∈Φϵ
+j. For the tuple (ee1, . . . , f
+em, et1, . . . , f
+tm, ez), according to (21),
+(22) and the execution of DPϵ
+1, we have
+(i) eek ≤θ ee′
+k ≤θ(θj−2e′
+k) = θj−1ek, k = 1, 2, . . . , i −1, i + 1, . . . , m;
+(ii) ei ≤θee′
+i ≤θ(θj−2e′
+i) ≤θj−1(e′
+i + pj) = θj−1ei;
+(iii) etl ≤θet′
+l ≤θ(θj−2t′
+l) = θj−1tl, l = 1, 2, . . . , m;
+(iv) ez ≤ez′ + rj ≤ez′ + wj ee′
+i ≤θj−2z′ + wjθj−2e′
+i = θj−2(z′ + wje′
+i) ≤θj−1z.
+This establishes that the statement holds for k = j when Jj is accepted and scheduled early
+on Mi in DP1.
+Scenario m+i (i=1, 2, . . . , m): Let Jj be accepted and scheduled tardy on Mi in
+DP1. In this scenario, we have
+(e1, . . . , em, t1, . . . , tm, z) = (e′
+1, . . . , e′
+m, t′
+1, . . . , t′
+i−1, t′
+i +pj, t′
+i+1, . . . , t′
+m, z′ +wj(t′
+i +pj)). (23)
+19
+=== PAGE 20 ===
+Recall that (ee′
+1, . . . , f
+e′
+m, et′
+1, . . . , f
+t′
+m, ez′) ∈Φϵ
+j−1. From the execution of DP1 (lines 15-17), we
+have t′
+i + pj ≤
+1
+2mPsum + pmax and wj(t′
+i + pj) < rj. Combining θ = (1 + ϵ)
+1
+n−1 and (21),
+et′
+i + pj ≤θj−2t′
+i + pj ≤θj−2( 1
+2mPsum + pmax) ≤(1 + ϵ)( 1
+2mPsum + pmax).
+To prove that the lemma holds in this scenario, we further distinguish two cases. First,
+consider the case where wj(et′
+i + pj) < rj. From the execution of DPϵ
+1 (lines 15-17), the tuple
+(ee′
+1, . . . , f
+e′
+m, et′
+1, . . . , g
+t′
+i−1, et′
+i + pj, g
+t′
+i+1, . . . , f
+t′
+m, ez′ + wj(et′
+i + pj)) is added to Φϵ
+j. However, since
+two tuples can have identical labels, this tuple may be deleted in DPϵ
+1 (line 22) by another
+tuple (ee1, . . . , f
+em, et1, . . . , f
+tm, ez) ∈Φϵ
+j. For the tuple (ee1, . . . , f
+em, et1, . . . , f
+tm, ez), according to
+(21), (23) and the execution of DPϵ
+1, we have
+(i) eek ≤θ ee′
+k ≤θ(θj−2e′
+k) = θj−1ek, k = 1, 2, . . . , m;
+(ii) etl ≤θet′
+l ≤θ(θj−2t′
+l) = θj−1tl, l = 1, 2, . . . , i −1, i + 1, . . . , m;
+(iii) eti ≤θ(et′
+i + pj) ≤θ(θj−2t′
+i + pj) ≤θj−1(t′
+i + pj) = θj−1ti;
+(iv) ez ≤ez′ + wj(et′
+i + pj) ≤θj−2z′ + wj(θj−2t′
+i + pj) ≤θj−2(z′ + wj(t′
+i + pj)) ≤θj−1z.
+Second, consider the other case where wj(et′
+i + pj) ≥rj. From the execution of DPϵ
+1 (line
+19), the tuple (ee′
+1, . . . , f
+e′
+m, et′
+1, . . . , f
+t′
+m, ez′ + rj) is added to Φϵ
+j.
+However, since two tuples
+can have identical labels, this tuple may be deleted in DPϵ
+1 (line 22) by another tuple
+(ee1, . . . , f
+em, et1, . . . , f
+tm, ez) ∈Φϵ
+j. For the tuple (ee1, . . . , f
+em, et1, . . . , f
+tm, ez), according to (21),
+(23) and the execution of DPϵ
+1, we have
+(i) eek ≤θ ee′
+k ≤θ(θj−2e′
+k) = θj−1ek, k = 1, 2, . . . , m;
+(ii) etl ≤θet′
+l ≤θ(θj−2t′
+l) = θj−1tl, l = 1, 2, . . . , i −1, i + 1, . . . , m;
+(iii) eti ≤θet′
+i ≤θ(θj−2t′
+i) < θj−1(t′
+i + pj) = θj−1ti;
+(iv) ez ≤ez′+rj ≤ez′+wj(et′
+i+pj) ≤θj−2z′+wj(θj−2t′
+i+pj) ≤θj−2(z′+wj(t′
+i+pj)) ≤θj−1z.
+This establishes that the statement holds for k = j when Jj is accepted and scheduled tardy
+on Mi in DP1.
+Scenario 2m+1: Let Jj be rejected in DP1. In this scenario, we have
+(e1, . . . , em, t1, . . . , tm, z) = (e′
+1, . . . , e′
+m, t′
+1, . . . , t′
+m, z′ + rj).
+(24)
+Since (ee′
+1, . . . , f
+e′
+m, et′
+1, . . . , f
+t′
+m, ez′) ∈Φϵ
+j−1, from the execution of DPϵ
+1 (line 19), the tuple
+(ee′
+1, . . . , f
+e′
+m, et′
+1, . . . , f
+t′
+m, ez′+rj) is added to Φϵ
+j. However, since two tuples can have identical la-
+bels, this tuple may be deleted in DPϵ
+1 (line 22) by another tuple (ee1, . . . , f
+em, et1, . . . , f
+tm, ez) ∈
+Φϵ
+j. For the tuple (ee1, . . . , f
+em, et1, . . . , f
+tm, ez), according to (21), (24) and the execution of DPϵ
+1,
+we have
+(i) eek ≤θ ee′
+k ≤θ(θj−2e′
+k) = θj−1ek, k = 1, 2, . . . , m;
+20
+=== PAGE 21 ===
+(ii) etl ≤θet′
+l ≤θ(θj−2t′
+l) = θj−1tl, l = 1, 2, . . . , m;
+(iii) ez ≤ez′ + rj ≤θj−2z′ + rj ≤θj−2(z′ + rj) ≤θj−1z.
+This establishes that the statement holds for k = j when Jj is rejected in DP1. Thus, the
+induction hypothesis holds for k = j in all scenarios, the lemma is proved.
+To estimate the time complexity of DPϵ
+1, we utilize the following well-known result,
+which follows from the fact that f(z) = z ln z −(z −1) is increasing and satisfies f(1) = 0.
+Lemma 5.4. For any real z ≥1, the inequality ln z ≥z−1
+z
+holds.
+Theorem 5.3. When m is fixed, Algorithm DPϵ
+1 is an FPTAS for problem Pm|rej, dj =
+d, Psum ≤d|Zwr with a time complexity of O( n2m+1
+ϵ2m (log Psum)2m).
+Proof. We begin by estimating the cost of the solution σ produced by DPϵ
+1. By Theorem
+5.1, an optimal solution σ∗can be produced by DP1.
+Let (e∗
+1, . . . , e∗
+m, t∗
+1, . . . , t∗
+m, z∗) ∈
+Φn be the tuple corresponding to σ∗.
+Based on Lemma 5.3, there exists a tuple
+(ee1, . . . , f
+em, et1, . . . , f
+tm, ez) ∈Φϵ
+n with ez ≤θn−1z∗.
+Since θ = (1 + ϵ)
+1
+n−1, we have ez ≤
+θn−1z∗= (1 + ϵ)z∗. Thus, DPϵ
+1 (lines 25-26) delivers an approximate solution σ satisfy-
+ing z ≤ez ≤(1 + ϵ)z∗.
+Next, the time complexity of DPϵ
+1 is estimated. Step 1 requires O(n log n) time (line
+2) and Step 2 operates in linear time (line 4). In Step 3, due to the elimination procedure,
+at most one tuple is preserved for each possible label (line 22). Since each tuple generates
+at most 2m + 1 new tuples, the total number of preserved tuples cannot exceed 2m + 1
+times the number of labels. With respect to each tuple (e1, . . . , em, t1, . . . , tm, z) ∈Φϵ
+j, its
+corresponding label is of the form (∆(e1), . . . , ∆(em), ∆(t1), . . . , ∆(tm)), where ei ≤min{(1+
+ϵ)( 1
+2mPsum + 2pmax), Psum} ≤Psum and ti ≤min{(1 + ϵ)( 1
+2mPsum + pmax), Psum} ≤Psum for
+each i = 1, 2, . . . , m. By Lemma 5.4 and noting that θ = (1 + ϵ)
+1
+n−1, the number of distinct
+values of ∆(ei) is bounded by 1 + ⌊logθ Psum⌋= 1 + ⌊ln Psum
+ln θ ⌋= O( n log Psum
+ϵ
+).
+Similarly,
+the number of distinct values of ∆(ti) is also bounded by O(n log Psum
+ϵ
+). Hence, after the
+elimination procedure, the number of tuples in Φϵ
+j is O(n2m
+ϵ2m (log Psum)2m). Since Step 3 is
+iterated n times (lines 6-23) and Step 4 takes O(n2m
+ϵ2m (log Psum)2m) time (lines 25-26), DPϵ
+1
+can be implemented in O( n2m+1
+ϵ2m (log Psum)2m) time.
+To illustrate the implementation of DP1 and DPϵ
+1, we provide a numerical example for
+problem 1|rej, dj = d, Psum ≤d|Zwr. The instance consists of three jobs with parameters
+(p1, w1, r1) = (6, 9, 38), (p2, w2, r2) = (7, 7, 40), and (p3, w3, r3) = (7, 5, 50).
+Using DP1, the tuple generation process is depicted in Figure 1, and the exact compu-
+tations are given in Appendix C. The optimal solution value is z∗= 70, corresponding to
+21
+=== PAGE 22 ===
+(0, 0, 0)
+(6, 0, 0)
+(0, 0, 38)
+(6, 0, 40)
+(7, 0, 38)
+(0, 0, 78)
+(13, 0, 70) (6, 7, 75) (6, 0, 90) (14, 0, 73) (7, 7, 73) (7, 0, 88) (7, 0, 78) (0, 7, 113)(0, 0, 128)
+early
+reject
+reject
+early
+reject
+early
+tardy
+reject
+early
+tardy
+reject
+early
+tardy
+reject
+Φ0
+Φ1
+Φ2
+Φ3
+Figure 1: The generation process of DP1
+the tuple (13, 0, 70) in Φ3. This solution is achieved by accepting jobs J1 and J3 (both early,
+with J3 ≺J1) and rejecting job J2. The bold lines in Figure 1 represent the optimal tuple
+transition process.
+For the same instance, we execute DPϵ
+1 with ϵ = 1. Here, θ = (1 + ϵ)
+1
+n−1 =
+√
+2 ≈1.4142,
+∆(0) = −1, and ∆(x) = ⌊logθ x⌋=
+j
+log x
+log θ
+k
+for x ≥1. Since ∆(6) = ∆(7) = 5, the two tuples
+(6, 0, 40) and (7, 0, 38) in Φ2 share the same label. Because 38 < 40, the tuple (6, 0, 40) is
+eliminated. Similarly, (7, 0, 88) and (7, 0, 78) in Φ3 have the same label, and with 78 < 88, the
+tuple (7, 0, 88) is eliminated. The resulting tuple generation process is illustrated in Figure
+2. The approximate solution value is z = 73, which corresponds to two tuples (14, 0, 73) and
+(7, 7, 73) in Φϵ
+3. The first is achieved by accepting jobs J2 and J3 (both early, with J3 ≺J2)
+and rejecting job J1; the second by accepting J2 early and J3 tardy, while rejecting job J1.
+(0, 0, 0)
+(6, 0, 0)
+(0, 0, 38)
+(6, 0, 40)
+(7, 0, 38)
+(0, 0, 78)
+(14, 0, 73) (7, 7, 73) (7, 0, 88) (7, 0, 78) (0, 7, 113)(0, 0, 128)
+early
+reject
+reject
+early
+reject
+early
+tardy
+reject
+early
+tardy
+reject
+Φϵ
+0
+Φϵ
+1
+Φϵ
+2
+Φϵ
+3
+Figure 2: The generation process of DPϵ
+1
+22
+=== PAGE 23 ===
+5.4
+An FPTAS based on DP2
+Similar to DPϵ
+1, the following optimization algorithm (referred to as DPϵ
+2) can convert DP2
+into an FPTAS.
+Lemma 5.5. For any tuple (f1, . . . , fm, g1, . . . , gm, u) ∈Ψj generated by Algorithm DP2,
+Algorithm DPϵ
+2 delivers a corresponding tuple ( ef1, . . . , f
+fm, eg1, . . . , f
+gm, eu) ∈Ψϵ
+j satisfying (i)
+efi ≤θn−jfi for i = 1, 2, . . . , m, (ii) egi ≤θn−jgi for i = 1, 2, . . . , m, and (iii) eu ≤θn−jz.
+Proof. The lemma admits a proof similar to that of Lemma 5.3.
+Theorem 5.4. When m is fixed, Algorithm DPϵ
+2 is an FPTAS for problem Pm|rej, dj =
+d, Psum ≤d|Zwr with a time complexity of O( n2m+1
+ϵ2m (log Wsum)2m).
+Proof. The theorem admits a proof similar to that of Theorem 5.3.
+5.5
+Numerical study
+To evaluate and compare the computational efficiency of the exact DP algorithms and their
+FPTAS counterparts developed in Sections 5.1-5.4, we perform a series of computational
+experiments on the single-machine problem 1|rej, dj = d, Psum ≤d|Zwr. These experiments
+are not intended as a full-scale evaluation of the parallel-machine case; rather, they serve to
+illustrate the growth of the DP state space and the practical behavior of the FPTAS. For
+this reason, we restrict our attention to the single-machine setting, where these algorithmic
+insights can be most clearly demonstrated. All codes were implemented in Matlab and run
+on a PC with 12th Gen Intel(R) i7-1260P CPU (2.10 GHz) and 16 GB of memory.
+The experiments are divided into three groups, each using controlled parameter settings
+to ensure a fair and systematic comparison. Let U{a, b} denote a discrete uniform distri-
+bution over the integers {a, a + 1, . . . , b}. For each group, problem instances are generated
+randomly according to the specified uniform distributions. Since the rejection cost does not
+affect algorithm performance, it is set to maintain a meaningful trade-off between acceptance
+and rejection. Specifically, rj ∼U{1, rmax} with rmax = nwmaxpmax/10.
+Group 1 examines the performance of DP1 and DP2 across a broad range of problem
+sizes. Here, n ∈{40, 60, 80, 100, 120, 140, 200}, pj ∼U{1, pmax}, and wj ∼U{1, wmax}, with
+pmax ∈{20, 60} and wmax ∈{20, 60}.
+Group 2 compares DP1 with its FPTAS counterpart DPϵ
+1.
+To avoid the scenario
+where the FPTAS generates more states than the exact DP (e.g., the relative error ϵ
+is small and processing times are not large), we set ϵ ∈{0.2, 0.5, 1.0}.
+In this group,
+n ∈{40, 60, 80, 100, 120}, pj ∼U{1, pmax} with pmax ∈{100, 200}, and wj ∼U{1, 50}.
+23
+=== PAGE 24 ===
+Algorithm DPϵ
+2: An FPTAS based on DP2
+Input: n, m, d, ϵ, pj, wj, rj for j = 1, 2, . . . , n
+1 [Step 1: Preprocessing]
+2 Renumber the jobs in J according to (2), i.e., p1
+w1 ≤p2
+w2 ≤· · · ≤pn
+wn
+3 [Step 2: Initialization]
+4 Ψϵ
+n+1 ←{(0, 0, . . . , 0)}, Ψϵ
+j ←∅for j = n, n −1, . . . , 1
+5 [Step 3: Recursion]
+6 for j = n to 1 do
+7
+[Generation procedure]
+8
+for each tuple (f1, . . . , fm, g1, . . . , gm, u) ∈Ψϵ
+j+1 do
+9
+for i = 1 to m do
+10
+if fi + wj ≤(1 + ϵ)(Wsum
+2m + 2wmax) then
+11
+Add (f1, . . . , fi−1, fi + wj, fi+1, . . . , fm, g1, . . . , gm, u + pjfi) to Ψϵ
+j and
+attach its corresponding label
+(∆(f1), . . . , ∆(fi−1), ∆(fi + wj), ∆(fi+1), . . . , ∆(fm), ∆(g1), . . . , ∆(gm))
+12
+end
+13
+end
+14
+for i = 1 to m do
+15
+if gi + wj ≤(1 + ϵ)(Wsum
+2m + wmax) then
+16
+Add (f1, . . . , fm, g1, . . . , gi−1, gi + wj, gi+1 . . . , gm, u + pj(gi + wj)) to Ψϵ
+j and
+attach its corresponding label
+(∆(f1), . . . , ∆(fm), ∆(g1), . . . , ∆(gi−1), ∆(gi + wj), ∆(gi+1), . . . , ∆(gm))
+17
+end
+18
+end
+19
+Add (f1, . . . , fm, g1, . . . , gm, u + rj) to Ψϵ
+j and attach its corresponding label
+(∆(f1), . . . , ∆(fm), ∆(g1), . . . , ∆(gm))
+20
+end
+21
+[Elimination procedure]
+22
+Among tuples in Ψϵ
+j sharing identical labels, keep only the tuple with minimal u value,
+performing an arbitrary choice if the u values are identical
+23 end
+24 [Step 4: Result]
+25 u ←min{u : (f1, . . . , fm, g1, . . . , gm, u) ∈Ψϵ
+1}
+26 Recover σ by backtracking (f1, . . . , fm, g1, . . . , gm, u)
+Output: Approximate solution σ
+24
+=== PAGE 25 ===
+Group 3 compares DP2 with DPϵ
+2. Following the same reason, n ∈{40, 60, 80, 100, 120},
+pj ∼U{1, 50}, wj ∼U{1, wmax} with wmax ∈{100, 200}, and ϵ ∈{0.2, 0.5, 1.0}.
+For each specific setting of n, pmax, wmax, and ϵ, we generate and solve 30 random
+instances. The average (Avg) and maximum (Max) running times (in seconds) are reported
+in Tables 2–4. Entries marked with “–” signify instances that exceeded the 5400-second
+limit.
+Table 2: Running times (in seconds) of DP1 and DP2 for 1|rej, dj = d, Psum ≤d|Zwr
+(pmax, wmax) = (20, 20)
+(pmax, wmax) = (20, 60)
+(pmax, wmax) = (60, 20)
+(pmax, wmax) = (60, 60)
+DP1
+DP2
+DP1
+DP2
+DP1
+DP2
+DP1
+DP2
+n
+Avg
+Max
+Avg
+Max
+Avg
+Max
+Avg
+Max
+Avg
+Max
+Avg
+Max
+Avg
+Max
+Avg
+Max
+40
+0.04
+0.06
+0.05
+0.07
+0.04
+0.06
+0.59
+0.88
+0.61
+0.92
+0.04
+0.06
+0.60
+0.86
+0.60
+0.99
+60
+0.17
+0.27
+0.17
+0.25
+0.18
+0.29
+2.12
+2.75
+2.13
+3.39
+0.18
+0.32
+2.07
+2.92
+2.16
+3.04
+80
+0.57
+0.80
+0.53
+0.77
+0.61
+0.82
+5.72
+7.47
+6.00
+7.92
+0.58
+0.80
+6.09
+7.81
+6.16
+7.87
+100 1.07
+1.37
+1.01
+1.38
+1.09
+1.35 10.63 14.16 10.80 14.29 1.05
+1.28 10.13 14.85 10.66 14.78
+120 1.84
+2.34
+1.81
+2.42
+1.87
+2.34 23.96 46.37 23.24 45.28 1.93
+2.46 20.95 48.18 21.97 54.32
+140 3.02
+3.92
+2.98
+3.95
+2.99
+3.79
+–
+–
+–
+–
+2.94
+3.83
+–
+–
+–
+–
+200 9.25 11.33 8.96 11.29 9.24 10.78
+–
+–
+–
+–
+9.18 11.31
+–
+–
+–
+–
+Table 3: Running times (in seconds) of DP1 and DPϵ
+1 for 1|rej, dj = d, Psum ≤d|Zwr
+pmax = 100
+pmax = 200
+DP1
+DPϵ
+1
+DP1
+DPϵ
+1
+ϵ = 0.5
+ϵ = 1.0
+ϵ = 0.2
+ϵ = 0.5
+ϵ = 1.0
+n
+Avg
+Max
+Avg
+Max
+Avg
+Max
+Avg
+Max
+Avg
+Max
+Avg
+Max
+Avg
+Max
+40
+1.84
+2.62
+0.61
+0.67
+0.21
+0.26
+7.53
+13.41
+3.63
+3.91
+0.78
+0.86
+0.26
+0.29
+60
+6.58
+8.79
+2.56
+2.91
+0.92
+1.03 1664.51
+–
+15.21
+18.39
+3.36
+3.65
+1.20
+1.31
+80
+19.84
+28.29
+7.58
+8.41
+2.69
+3.16
+–
+–
+–
+–
+9.76
+10.44
+3.34
+3.56
+100
+–
+–
+18.75
+19.31
+5.30
+5.84
+–
+–
+–
+–
+24.31
+27.25
+6.82
+7.55
+120
+–
+–
+–
+–
+9.53
+10.46
+–
+–
+–
+–
+–
+–
+12.62
+13.98
+As shown in Table 2, both DP1 and DP2 demonstrate increasing computational demand
+as n grows, with DP1 being sensitive to pmax and DP2 to wmax. For small parameter values
+(pmax = 20 and wmax = 20), both algorithms show similar efficiency, processing 200 jobs
+within 12 seconds. However, significant parameter differences reveal distinct performance
+advantages. With n = 140, pmax = 20, and wmax = 60, DP1 completes in 4 seconds, while
+DP2 fails to complete within the 5400-second limit. Conversely, when n = 140, pmax = 60,
+25
+=== PAGE 26 ===
+Table 4: Running times (in seconds) of DP2 and DPϵ
+2 for 1|rej, dj = d, Psum ≤d|Zwr
+wmax = 100
+wmax = 200
+DP2
+DPϵ
+2
+DP2
+DPϵ
+2
+ϵ = 0.5
+ϵ = 1.0
+ϵ = 0.2
+ϵ = 0.5
+ϵ = 1.0
+n
+Avg
+Max
+Avg
+Max
+Avg
+Max
+Avg
+Max
+Avg
+Max
+Avg
+Max
+Avg
+Max
+40
+1.78
+2.32
+0.64
+0.70
+0.22
+0.26
+6.89
+12.31
+3.49
+3.78
+0.83
+0.92
+0.28
+0.34
+60
+6.44
+9.18
+2.63
+2.93
+0.94
+1.05 1521.67
+–
+18.81
+20.65
+3.30
+3.64
+1.19
+1.33
+80
+19.87
+36.29
+7.33
+8.38
+2.62
+2.94
+–
+–
+–
+–
+9.91
+10.66
+3.35
+3.64
+100
+–
+–
+18.34
+19.33
+5.32
+5.81
+–
+–
+–
+–
+25.89
+30.63
+7.01
+7.52
+120
+–
+–
+–
+–
+9.41
+10.28
+–
+–
+–
+–
+–
+–
+12.83
+14.70
+and wmax = 20, DP2 remains efficient (≤4 seconds), whereas DP1 exceeds the time limit.
+For large parameter values (pmax = 60 and wmax = 60), both algorithms solve all instances
+with n ≤120 within 55 seconds, but fail to solve the 140-job case within the time limit.
+The results in Tables 3 and 4 show that the FPTAS variants are substantially faster than
+their exact counterparts. Both DPϵ
+1 and DPϵ
+2 exhibit better scalability with respect to n
+and the relevant job parameters. Even in instances where the exact DP algorithm exceeds
+the time limit, the corresponding FPTAS remains practically viable. For instance, at n = 80
+with pmax = 200 (or wmax = 200), DPϵ
+1 (or DPϵ
+2) finishes within 11 seconds. Consistent
+with expectations, increasing ϵ from 0.2 to 1.0 yields considerably shorter running times.
+Moreover, the solutions obtained by the FPTASs are either optimal or have a very small
+optimality gap. For instance, approximately 0.02% gap for n = 60, ϵ = 0.5 with pmax = 100
+for DPϵ
+1, and similarly with wmax = 100 for DPϵ
+2.
+6
+Two special cases
+In this section, we design O(n2)-time algorithms for two special cases of problem
+Pm|rej, dj = d, Psum ≤d|Zwr. Building on the result from Hardy et al. (1967), the fol-
+lowing lemma facilitates establishing the optimal job schedule for any given A.
+Lemma 6.1. Given two sequences of real numbers (x1, x2, . . . , xn) and (y1, y2, . . . , yn), the
+minimum value of the sum P xjyj is achieved when one sequence is monotonically increasing
+and the other is monotonically decreasing.
+26
+=== PAGE 27 ===
+6.1
+Pm|rej, dj = d, Psum ≤d, pj = p|Zwr
+We address the case where all jobs share identical processing times. This case can be denoted
+by Pm|rej, dj = d, Psum ≤d, pj = p|Zwr. The identical-processing-time scheduling is preva-
+lent in repetitive manufacturing settings, especially for mass production of standardized or
+similar products (Fomin and Goldengorin, 2022; Fowler and Monch, 2022).
+Utilizing the results of Lemmas 3.1, 3.2 and 3.3, for each machine Mi (i = 1, 2, . . . , m),
+the possible completion times of early jobs on Mi are d −(⌊n
+2m⌋+ 1)p, d −⌊n
+2m⌋p, . . . , d, and
+the possible completion times of tardy jobs on Mi are d + p, d + 2p, . . . , d + (⌊n
+2m⌋+ 1)p.
+Hence, the possible earliness of early jobs on Mi are (⌊n
+2m⌋+ 1)p, ⌊n
+2m⌋p, . . . , 0, and the
+possible tardiness of tardy jobs on Mi are p, 2p, . . . , (⌊n
+2m⌋+ 1)p. Hence, to minimize the
+objective function (1), we only need to select the n smallest earliness and tardiness costs from
+the m machines. Let C = {c1, c2, . . . , cn} be the set of these n smallest costs, and assume
+without loss of generality that c1 ≤c2 ≤· · · ≤cn. Then we have c1 = c2 = · · · = cm = 0,
+cm+1 = cm+2 = · · · = c3m = p, · · · , cn−v = cn−v+1 = · · · = cn = (⌊n−m
+2m ⌋+ 1)p, where
+v = n −m −2m⌊n−m
+2m ⌋. That is, cost 0 appears m times, cost p appears 2m times, cost
+2p appears 2m times, and so on. Given an accepted job set A, Lemma 6.1 enables us to
+optimally match the jobs in A to the first |A| costs in C by their weights. Note that for each
+job Jj, it can be either accepted or rejected. Next, we provide a DP algorithm (DP3) to
+solve problem Pm|rej, dj = d, Psum ≤d, pj = p|Zwr.
+Algorithm DP3: Number the n jobs in J according to the largest weight rule such that
+w1 ≥w2 ≥· · · ≥wn. Define F(j, k) as the minimum integrated cost for a partial solution
+that includes the first j jobs and accepts exactly k of them.
+The initial condition is F(0, 0) = 0.
+The recursive function for j = 1, 2, . . . , n and k = 0, 1, . . . , j is given by
+F(j, k) =
+
+
+
+
+
+
+
+
+
+F(j −1, k) + rj,
+if
+k = 0;
+min{F(j −1, k) + rj, F(j −1, k −1) + wjck},
+if
+1 ≤k ≤j −1;
+F(j −1, k −1) + wjck,
+if
+k = j.
+The minimum solution value of (1) is given by min{F(n, k) : k = 0, 1, . . . , n}.
+Theorem 6.1. Algorithm DP3 solves problem Pm|rej, dj = d, Psum ≤d, pj = p|Zwr in
+O(n2) time.
+Proof. The correctness of DP3 follows from Lemmas 3.1, 3.2, 3.3 and 6.1, along with the pre-
+ceding discussion. Since there are O(n2) different states (j, k) and each F(j, k) is computable
+in constant time, the overall running time is O(n2).
+27
+=== PAGE 28 ===
+6.2
+Pm|rej, dj = d, Psum ≤d, wj = w|Zwr
+We address the case where all jobs have equal weights.
+This case can be denoted by
+Pm|rej, dj = d, Psum ≤d, wj = w|Zwr. To solve the problem, we first examine the schedule
+πi on Mi more closely. Let πi
+e = [Ji
+(1) ≺Ji
+(2) ≺· · · ≺Ji
+(nie)] be the processing sequence of jobs
+in AE
+i on Mi, and let πi
+t = [Ji
+[ni
+t] ≺Ji
+[ni
+t−1] ≺· · · ≺Ji
+[1]] be the processing sequence of jobs in
+AT
+i on Mi. See Figure 3 for an illustration of πi = (πi
+e, πi
+t) on Mi.
+Mi
+Ji
+(1)
+Ji
+(2)
+· · ·
+Ji
+(nie)
+Ji
+[ni
+t]
+Ji
+[ni
+t−1]
+· · ·
+Ji
+[1]
+d
+Figure 3: The schedule πi = (πe, πt) on Mi
+Follows Hall (1986) and Shabtay et al. (2012), we introduce a positional penalty for each
+given scheduled position. Specifically, define χ(j) = (j −1)w for any job scheduled in the
+j-th early position (from the left), and define χ[j] = jw for any job scheduled in the j-th
+tardy position (from the right). Then the contribution of Ji
+(j) to the objective function (1)
+is χ(j)pi
+(j) = (j −1)wpi
+(j), and the contribution of Ji
+[j] to (1) is χ[j]pi
+[j] = jwpi
+[j]. Hence,
+to minimize (1), we only need to select the n smallest positional penalties from the m
+machines. Let X = {χ1, χ2, . . . , χn} be the set of these n smallest costs, and assume without
+loss of generality that χ1 ≤χ2 ≤· · · ≤χn. Then we have χ1 = χ2 = · · · = χm = 0,
+χm+1 = χm+2 = · · · = χ3m = w, · · · , χn−v = χn−v+1 = · · · = χn = (⌊n−m
+2m ⌋+ 1)w, where
+v = n −m −2m⌊n−m
+2m ⌋. That is, penalty 0 appears m times, penalty w appears 2m times,
+penalty 2w appears 2m times, and so on. Given an accepted job set A, Lemma 6.1 enables
+us to optimally match the jobs in A to the first |A| penalties in X by their processing
+times. Similar to DP3, the following DP algorithm (DP4) is provided to solve problem
+Pm|rej, dj = d, Psum ≤d, wj = w|Zwr.
+Algorithm DP4: Number the n jobs in J according to the largest processing time rule
+such that p1 ≥p2 ≥· · · ≥pn. Define G(j, k) as the minimum integrated cost for a partial
+solution that includes the first j jobs and accepts exactly k of them.
+The initial condition is G(0, 0) = 0.
+The recursive function for j = 1, 2, . . . , n and k = 0, 1, . . . , j is given by
+G(j, k) =
+
+
+
+
+
+
+
+
+
+G(j −1, k) + rj,
+if
+k = 0;
+min{G(j −1, k) + rj, G(j −1, k −1) + wjχk},
+if
+1 ≤k ≤j −1;
+G(j −1, k −1) + wjχk,
+if
+k = j.
+The minimum solution value of (1) is given by min{G(n, k) : k = 0, 1, . . . , n}.
+28
+=== PAGE 29 ===
+Similar to the proof of Theorem 6.1, the following result holds.
+Theorem 6.2. Algorithm DP4 solves problem Pm|rej, dj = d, Psum ≤d, wj = w|Zwr in
+O(n2) time.
+7
+Conclusion
+We study ET scheduling with optional job rejection on m identical parallel machines, where
+all jobs share an unrestricted CON. The goal is to minimize the integrated cost, which
+includes the TWET of accepted jobs and total penalty of rejected jobs. The key results of
+this paper are outlined as follows: (i) problem Pm|dj = d, Psum ≤d, wj = pj| P wj(Ej + Tj)
+is proved to be strongly NP-hard for arbitrary m; (ii) problem 1|rej, dj = d, Psum ≤d, wj =
+pj|Zwr is proved to be binary NP-hard; (iii) when m is fixed, two pseudo-polynomial DP
+algorithms and two FPTASs are designed for problem Pm|rej, dj = d, Psum ≤d|Zwr; (iv)
+O(n2)-time algorithms are provided for two special cases.
+As the time complexity of the exact DP algorithms and FPTASs designed for
+problem Pm|rej, dj = d, Psum ≤d|Zwr is high for larger values of m, it is challenging
+to design other exact or heuristic algorithms with reduced time complexity.
+Another
+interesting direction is to explore the problem of minimizing the TWET subject to a
+given upper bound on the total penalty of rejected jobs.
+Third, one can investigate a
+more general scenario where the weights of earliness and tardiness are asymmetric, i.e.,
+Pm|rej, dj = d, Psum ≤d| P
+Jj∈A(αjEj + βjTj) + P
+Jj∈R rj.
+Acknowledgments The authors thank the two anonymous reviewers for their valuable
+comments and suggestions, which have led to significant improvements in the quality and
+presentation of this paper.
+Funding This work was supported by the National Natural Science Foundation of China
+(Nos. 12401427, 12471305), the National Natural Science Foundation of Henan Province
+(No. 262300420326), the Key Research Project of Henan Higher Education Institutions (No.
+25B110010), and the Exploration and Practice of Application-Oriented Discrete Mathematics
+in Big Data (No. 2024ZGJGLX028).
+Data availibility No data was used for the research described in the article.
+Conflict of interest The authors declare that they have no conflict of interest.
+29
+=== PAGE 30 ===
+Appendix A
+To simplify the presentation before proving Lemmas 3.2-3.5, we introduce the following
+notation used for π∗. For each machine Mi (i = 1, 2, . . . , m), let Ji
+f denote the first early
+job, Ji
+e the job completing exactly at time d, Ji
+g the first job finishing after time d, and Ji
+l
+the last job. The schedule configuration of π∗on Mi is illustrated in Figure 4. Note that Ji
+f
+and Ji
+e may refer to the same job. Similarly, Ji
+g and Ji
+l may also refer to the same job.
+Mi
+Ji
+f
+AE
+i \ {Ji
+f, Ji
+e}
+Ji
+e
+Ji
+g
+AT
+i \ {Ji
+g, Ji
+l }
+Ji
+l
+d
+Figure 4: The schedule configuration of π∗on Mi
+Proof of Lemma 3.2.
+We first claim that Psum(AT
+i ) ≤Psum(AE
+i ) holds for each i =
+1, 2, . . . , m. Suppose to the contrary that there exists an index i0 with Psum(AT
+i0) > Psum(AE
+i0).
+We build a new solution π′ from π∗by moving Ji0
+l on Mi0 to the position immediately before
+Ji0
+f . Then, the change in the objective cost is ∆= Zwr(π′) −Zwr(π∗) = wi0
+l (Psum(AE
+i0) −
+Psum(AT
+i0)) < 0, which contradicts the optimality of π∗. Hence, the claim holds.
+By the averaging principle, we obtain
+min
+i=1,2,...,m{Psum(AT
+i )} ≤
+1
+m
+Pm
+i=1 Psum(AT
+i ) ≤
+1
+2m
+Pm
+i=1(Psum(AT
+i ) + Psum(AE
+i )) =
+1
+2mPsum(A), which proves (3).
+Define i1
+= arg
+min
+i=1,2,...,m{Psum(AT
+i )} and i2
+= arg
+max
+i=1,2,...,m{Psum(AT
+i )}.
+To prove
+(4), assume for contradiction that it fails, i.e.,
+max
+i=1,2,...,m{Psum(AT
+i )}
+=
+Psum(AT
+i2)
+>
+1
+2mPsum(A) + pmax(A).
+We build a new solution π′′ from π∗by moving Ji2
+l
+from Mi2
+to the position immediately after Ji1
+l
+on Mi1. Then, the change in the objective cost is
+∆= Zwr(π′′) −Zwr(π∗) = wi2
+l (Psum(AT
+i1) + pi2
+l −Psum(AT
+i2)).
+Since pi2
+l
+≤pmax(A) and
+Psum(AT
+i1) ≤
+1
+2mPsum(A), we obtain ∆≤wi2
+l ( 1
+2mPsum(A) + pmax(A) −Psum(AT
+i2)) < 0,
+contradicting the optimality of π∗. Hence, (4) holds.
+2
+Proof of Lemma 3.3. We first show that
+Psum(AE
+i ) ≤Psum(AT
+k ) + 2pi
+f, i, k ∈{1, 2, . . . , m}.
+(25)
+Suppose to the contrary that there exist two indices i0 and k0 (possibly equal) such that
+Psum(AE
+i0) > Psum(AT
+k0) + 2pi0
+f .
+We build a new solution π′ from π∗by moving Ji0
+f
+on
+Mi0 to the position immediately after Jk0
+l . Then, the change in the objective cost is ∆=
+Zwr(π′) −Zwr(π∗) = wi0
+f (Psum(AT
+k0) + pi0
+f ) −(Psum(AT
+i0) −pi0
+f )) < 0, which contradicts the
+optimality of π∗. Hence, (25) holds.
+In particular,
+taking k
+=
+i in (25) gives Psum(AE
+i )
+≤
+Psum(AT
+i ) + 2pi
+f
+≤
+Psum(AT
+i ) + 2pmax(A) for each i = 1, 2, . . . , m.
+By the averaging principle, we obtain
+30
+=== PAGE 31 ===
+min
+i=1,2,...,m{Psum(AE
+i )} ≤
+1
+m
+Pm
+i=1 Psum(AE
+i ) ≤
+1
+2m
+Pm
+i=1(Psum(AE
+i ) + Psum(AT
+i ) + 2pmax(A)) =
+1
+2mPsum(A) + pmax(A), which proves (5).
+Define i3 = arg
+max
+i=1,2,...,m{Psum(AE
+i )}. In view of (3) and pi3
+f ≤pmax(A), we apply (25)
+with k = i3 and i = i1 to obtain
+max
+i=1,2,...,m{Psum(AE
+i )} = Psum(AE
+i3) ≤Psum(AT
+i1) + 2pi3
+f ≤
+1
+2mPsum(A) + 2pmax(A), which proves (6).
+2
+Proof of Lemma 3.4.
+We first claim that Wsum(AT
+i ) ≤Wsum(AE
+i ) holds for each
+i = 1, 2, . . . , m. Suppose to the contrary that there exists an index i0 with Wsum(AT
+i0) >
+Wsum(AE
+i0). We build a new solution π′ from π∗by left-shifting all jobs on Mi0 by δ1 time
+units, where 0 < δ1 < pi0
+g . Then, the change in the objective cost is ∆= Zwr(π′)−Zwr(π∗) =
+δ1(Wsum(AE
+i0) −Wsum(AT
+i0)) < 0, contradicting the optimality of π∗. Hence, the claim holds.
+By the averaging principle, we obtain
+min
+i=1,2,...,m{Wsum(AT
+i )} ≤
+1
+m
+Pm
+i=1 Wsum(AT
+i ) ≤
+1
+2m
+Pm
+i=1(Wsum(AT
+i ) + Wsum(AE
+i )) =
+1
+2mWsum(A), which proves (7).
+Define k1 = arg
+min
+i=1,2,...,m{Wsum(AT
+i )} and k2 = arg
+max
+i=1,2,...,m{Wsum(AT
+i )}. To prove (8), as-
+sume for contradiction that it fails, i.e.,
+max
+i=1,2,...,m{Wsum(AT
+i )} = Wsum(AT
+k2) >
+1
+2mWsum(A) +
+wmax(A). We build a new solution π′′ from π∗by moving Jk2
+g from Mk2 to the position imme-
+diately before Jk1
+g
+on Mk1, ensuring Jk2
+g
+starts at time d. Then, the change in the objective
+cost is ∆= Zwr(π′′)−Zwr(π∗) = pk2
+g (Wsum(AT
+k1)−(Wsum(AT
+k2)−wk2
+g )). Since wk2
+g ≤wmax(A)
+and Wsum(AT
+k1) ≤
+1
+2mWsum(A), we obtain ∆≤pk2
+g ( 1
+2mWsum(A)+wmax(A)−Wsum(AT
+k2)) < 0,
+contradicting the optimality of π∗. Hence, (8) holds.
+2
+Proof of Lemma 3.5. We first claim that Wsum(AE
+i ) ≤Wsum(AT
+i ) + 2wi
+g holds for each
+i = 1, 2, . . . , m. Suppose to the contrary that there exists an index i0 with Wsum(AE
+i0) >
+Wsum(AT
+i0)+2wi0
+g . We build a new solution π′ from π∗by delaying all jobs on Mi0 by δ2 time
+units, where 0 < δ2 < pi0
+e . Then, the change in the objective cost is ∆= Zwr(π′)−Zwr(π∗) =
+δ2((Wsum(AT
+i0)+wi0
+g )−(Wsum(AE
+i0)−wi0
+g )) < 0, which contradicts the optimality of π∗. Hence,
+the claim holds.
+By the averaging principle, we obtain
+min
+i=1,2,...,m{Wsum(AE
+i )} ≤
+1
+m
+Pm
+i=1 Wsum(AE
+i ) ≤
+1
+2m
+Pm
+i=1(Wsum(AE
+i ) + Wsum(AT
+i ) + 2wi
+g) ≤
+1
+2mWsum(A) + wmax(A), which proves (9).
+Define k3 = arg
+min
+i=1,2,...,m{Wsum(AE
+i )} and k4 = arg
+max
+i=1,2,...,m{Wsum(AE
+i )}. To prove (10),
+assume for contradiction that it fails, i.e.,
+max
+i=1,2,...,m{Wsum(AE
+i )} = Wsum(AE
+k4) >
+1
+2mWsum(A)+
+2wmax(A). We build a new solution π′′ from π∗by moving Jk4
+e
+from Mk4 to the position just
+after Jk3
+e
+on Mk3, ensuring Jk4
+e
+completes at time d. Then, the change in the objective cost
+is ∆= Zwr(π′′) −Zwr(π∗) = pk4
+e (Wsum(AE
+k3) −(Wsum(AE
+k4) −wk4
+e )). Since wk4
+e
+≤wmax(A)
+31
+=== PAGE 32 ===
+and Wsum(AE
+k3) ≤
+1
+2mWsum(A) + wmax(A), we obtain ∆≤pk4
+e (( 1
+2mWsum(A) + wmax(A)) −
+(Wsum(AE
+k4) −wmax(A))) < 0, contradicting the optimality of π∗. Hence, (10) holds.
+2
+Appendix B
+Zwr =
+n
+X
+j=1
+wj(
+m
+X
+i=1
+xij
+j−1
+X
+k=1
+pkxik +
+m
+X
+i=1
+yij
+j
+X
+k=1
+pkyik) +
+n
+X
+j=1
+rjzj
+=
+m
+X
+i=1
+(
+n
+X
+j=1
+wjxij
+j−1
+X
+k=1
+pkxik +
+n
+X
+j=1
+wjyij
+j
+X
+k=1
+pkyik) +
+n
+X
+j=1
+rjzj
+=
+m
+X
+i=1
+(
+n
+X
+k=1
+pkxik
+n
+X
+j=k+1
+wjxij +
+n
+X
+k=1
+pkyik
+n
+X
+j=k
+wjyij) +
+n
+X
+j=1
+rjzj
+=
+m
+X
+i=1
+(
+n
+X
+j=1
+pjxij
+n
+X
+k=j+1
+wkxik +
+n
+X
+j=1
+pjyij
+n
+X
+k=j
+wkyik) +
+n
+X
+j=1
+rjzj
+=
+n
+X
+j=1
+pj(
+m
+X
+i=1
+xij
+n
+X
+k=j+1
+wkxik +
+m
+X
+i=1
+yij
+n
+X
+k=j
+wkyik) +
+n
+X
+j=1
+rjzj.
+Appendix C
+Below, we illustrate the detailed implementation of DP1 on the instance of 1|rej, dj =
+d, Psum ≤d|Zwr with three jobs, where (p1, w1, r1) = (6, 9, 38), (p2, w2, r2) = (7, 7, 40), and
+(p3, w3, r3) = (7, 5, 50).
+[Preprocessing] The three jobs are already numbered such that p1
+w1 ≤p2
+w2 ≤p3
+w3.
+[Initialization] Set Φ0 = {(0, 0, 0)} and Φj = ∅for j = 1, 2, 3.
+[Recursion] Generate sets Φ1 to Φ3.
+For j = 1: from (0, 0, 0) ∈Φ0, the check in line 16 fails since 9 × 6 = 54 > 38, thus only
+add (6, 0, 0) and (0, 0, 38) to Φ1. Consequently, Φ1 = {(0, 0, 38), (6, 0, 0)}.
+For j = 2: from (0, 0, 38) ∈Φ1, the check in line 16 fails since 7 × 7 = 49 > 40, thus
+only add (7, 0, 38) and (0, 0, 78) to Φ2; from (6, 0, 0) ∈Φ1, the check in line 11 fails since
+7 × 6 = 42 > 40 and the check in line 16 fails since 7 × 7 = 49 > 40, thus only add (6, 0, 40)
+to Φ2. Consequently, Φ2 = {(0, 0, 78), (6, 0, 40), (7, 0, 38)}.
+For j = 3: from (0, 0, 78) ∈Φ2, add (7, 0, 78), (0, 7, 113), and (0, 0, 128) to Φ3; from
+(6, 0, 40) ∈Φ2, add (13, 0, 70), (6, 7, 75), and (6, 0, 90) to Φ3; from (7, 0, 38) ∈Φ2,
+add (14, 0, 73),
+(7, 7, 73),
+and (7, 0, 88) to Φ3.
+Hence,
+before elimination,
+Φ3
+=
+{(0, 0, 128), (0, 7, 113), (6, 0, 90), (6, 7, 75), (7, 0, 78), (7, 0, 88), (7, 7, 73), (13, 0, 70), (14, 0, 73)}.
+32
+=== PAGE 33 ===
+Since
+(7, 0, 88)
+is
+dominated
+by
+(7, 0, 78),
+after
+elimination
+(line
+23),
+Φ3
+=
+{(0, 0, 128), (0, 7, 113), (6, 0, 90), (6, 7, 75), (7, 0, 78), (7, 7, 73), (13, 0, 70), (14, 0, 73)}.
+[Result] The optimal solution value is z∗= 70, corresponding to the tuple (13, 0, 70) ∈Φ3.
+References
+Arik, O. A. (2023). A heuristic for single machine common due date assignment problem
+with different earliness/tardiness weights. Opsearch, 60(3):1561–1574.
+Arik, O. A., Schutten, M., and Topan, E. (2022).
+Weighted earliness/tardiness parallel
+machine scheduling problem with a common due date. Expert Systems with Applications,
+187:115916.
+Atsmony, M. and Mosheiov, G. (2024a). Common due-date assignment problems with fixed-
+plus-linear earliness and tardiness costs. Computers & Industrial Engineering, 188:109915.
+Atsmony, M. and Mosheiov, G. (2024b). Single machine scheduling to minimize maximum
+earliness/tardiness cost with job rejection. Optimization Letters, 18(3):751–766.
+Cesaret, B., O˘guz, C., and Salman, F. S. (2012). A tabu search algorithm for order acceptance
+and scheduling. Computers & Operations Research, 39(6):1197–1205.
+Chen, R. X. and Li, S. S. (2024).
+Two-machine job shop scheduling with optional job
+rejection. Optimization Letters, 18(7):1593–1618.
+Fomin, A. and Goldengorin, B. (2022). An exact algorithm for the preemptive single machine
+scheduling of equal-length jobs. Computers & Operations Research, 142:105742.
+Fowler, J. W. and Monch, L. (2022). A survey of scheduling with parallel batch (p-batch)
+processing. European Journal of Operational Research, 298(1):1–24.
+Garey, M. R. and Johnson, D. S. (1979). Computers and Intractability: A Guide to the
+Theory of NP-Completeness. W. H. Freeman and Company, San Francisco.
+Geng, Z. and Lu, L. (2025). Multiple identical serial-batch machines scheduling with release
+dates and submodular rejection penalties. Journal of Combinatorial Optimization, 49:32.
+Hall, N. G. (1986). Single and multiple-processor models for minimizing completion time
+variance. Naval Research Logistics, 33(1):49–54.
+33
+=== PAGE 34 ===
+Hall, N. G., Kubiak, W., and Sethi, S. P. (1991). Earliness–tardiness scheduling problems, II:
+Deviation of completion times about a restrictive common due date. Operations Research,
+39(5):847–856.
+Hall, N. G. and Posner, M. E. (1991). Earliness-tardiness scheduling problems, I: Weighted
+deviation of completion times about a common due date. Operations Research, 39(5):836–
+846.
+Hardy, G. H., Littlewood, J. E., and Polya, G. (1967). Inequalities. Cambridge University
+Press, London.
+Hoogeveen, J. A. and van de Velde, S. (1991). Scheduling around a small common due date.
+European Journal of Operational Research, 55(2):237–242.
+Hou, B., Guo, T., Gao, S., Wang, G., Wu, W., and Liu, W. (2024). W-prize-collecting
+scheduling problem on parallel machines. Journal of Combinatorial Optimization, 48:26.
+Hu, G., Pan, P., Liu, S., Yang, P., and Xie, R. (2024). The prize-collecting single machine
+scheduling with bounds and penalties. Journal of Combinatorial Optimization, 48:12.
+Kacem, I. and Kellerer, H. (2024). Minimizing the maximum lateness for scheduling with
+release times and job rejection. Journal of Combinatorial Optimization, 48:23.
+Kellerer, H., Rustogi, K., and Strusevich, V. A. (2020). A fast FPTAS for single machine
+scheduling problem of minimizing total weighted earliness and tardiness about a large
+common due date. Omega, 90:101992.
+Kim, E. S. and Lee, I. S. (2022). Scheduling of two-machine flowshop with outsourcing
+lead-time. Computers & Operations Research, 145:105864.
+Kramer, A. and Subramanian, A. (2019). A unified heuristic and an annotated bibliogra-
+phy for a large class of earliness–tardiness scheduling problems. Journal of Scheduling,
+22(1):21–57.
+Li, C. L. and Cheng, T. C. E. (1994). The parallel machine min-max weighted absolute
+lateness scheduling problem. Naval Research Logistics, 41(1):33–46.
+Li, S. S. and Chen, R. X. (2020). Scheduling with common due date assignment to minimize
+generalized weighted earliness–tardiness penalties. Optimization Letters, 14(7):1681–1699.
+Mor, B. and Shapira, D. (2022). Minsum scheduling with acceptable lead-times and optional
+job rejection. Optimization Letters, 16(3):1073–1091.
+34
+=== PAGE 35 ===
+Mosheiov, G. and Sarig, A. (2024).
+A common due-date assignment problem with job
+rejection on parallel uniform machines.
+International Journal of Production Research,
+62(6):2083–2092.
+Nasrollahi, V., Moslehi, G., and Reisi-Nafchi, M. (2022). Minimizing the weighted sum of
+maximum earliness and maximum tardiness in a single-agent and two-agent form of a
+two-machine flow shop scheduling problem. Operational Research, 22:1403–1442.
+O˘guz, C., Salman, F. S., and Yalcin, Z. B. (2010). Order acceptance and scheduling decisions
+in make-to-order systems. International Journal of Production Economics, 125(1):200–211.
+Rolim, G. A. and Nagano, M. S. (2020). Structural properties and algorithms for earliness
+and tardiness scheduling against common due dates and windows: A review. Computers
+& Industrial Engineering, 149:106803.
+Safarzadeh, H. and Kianfar, F. (2019). Job shop scheduling with the option of jobs out-
+sourcing. International Journal of Production Research, 57(10):3255–3272.
+Shabtay, D., Gaspar, N., and Kaspi, M. (2013). A survey on offline scheduling with rejection.
+Journal of Scheduling, 16(1):3–28.
+Shabtay, D., Gaspar, N., and Yedidsion, L. (2012). A bicriteria approach to scheduling
+a single machine with job rejection and positional penalties. Journal of Combinatorial
+Optimization, 23(4):395–424.
+Shabtay, D. and Gerstl, E. (2024). Coordinating scheduling and rejection decisions in a
+two-machine flow shop scheduling problem. European Journal of Operational Research,
+316(3):887–898.
+Slotnick, S. A. (2011). Order acceptance and scheduling: A taxonomy and review. European
+Journal of Operational Research, 222(1):1–11.
+Sun, H. and Wang, G. (2003). Parallel machine earliness and tardiness scheduling with
+proportional weights. Computers & Operations Research, 30(5):801–808.
+35
