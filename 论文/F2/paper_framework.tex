@@ -378,14 +378,18 @@ if no such job remains; set $\ell_0 = 0$. The blocks are then the segments
 \[
 \mathcal{B}_k = \{\pi(\ell_{k-1}+1), \dots, \pi(\ell_k)\},\qquad k = 1, \dots, K,
 \]
-in particular, $\mathcal{B}_1 = \{\pi(1),\dots,\pi(\ell_1)\}$. Equivalently, each block is removed from the
-schedule before the next one is formed, so the boundaries satisfy $\ell_1\le\ell_2\le\cdots\le\ell_K$ by
-construction and no block extends past its own last job.
+in particular, $\mathcal{B}_1 = \{\pi(1),\dots,\pi(\ell_1)\}$. Equivalently, after the blocks
+$\mathcal{B}_1,\dots,\mathcal{B}_k$ are removed, the remaining jobs are
+\[
+\mathcal{J}\setminus\bigcup_{i=1}^{k}\mathcal{B}_i = \{\pi(\ell_k+1),\dots,\pi(n)\},\qquad k=1,\dots,K,
+\]
+with $\ell_0=0$; consequently $\ell_1\le\ell_2\le\cdots\le\ell_K$ and no block extends past its own
+last job.
 For every block $\mathcal{B}_i$, let $A_i$ denote the total processing time of its jobs on machine
 $M_1$, $B_i$ their total processing time on machine $M_2$, $C_i$ the completion time of its last
 job on machine $M_2$, and $L_i$ the weight of its last job. If $\ell_k = \ell_{k-1}$, then
 $\mathcal{B}_k$ contains no job and is called an empty block; an empty block $\mathcal{B}_i$ has
-$A_i = B_i = C_i = 0$ and may host any job of weight at most $W_i$. By construction, the last job
+$L_i = 0$ and $A_i = B_i = C_i = 0$, and may host any job of weight at most $W_i$. By construction, the last job
 of $\mathcal{B}_k$ carries weight $W_k$, so the block weights are non-increasing:
 $W_{\mathcal{B}_1} \ge W_{\mathcal{B}_2} \ge \cdots \ge W_{\mathcal{B}_K}$.
 
@@ -579,7 +583,7 @@ states and yields $\mathscr{H}_{j}$.
 \textbf{Step 2.} [Evaluation] \For{$i=1$ \KwTo $K$}{
     $T_{A_i}\gets T_{A_{i-1}}+A_i$ \;
     $T_{B_i}\gets \max\{\,T_{A_{i-1}}+C_i,\ T_{B_{i-1}}+B_i\,\}$ \;
-    \If{$\mathcal{B}_i\neq\emptyset$, i.e., $A_i+B_i>0$}{$W C_{\max}\gets \max\{\,W C_{\max},\ L_i\cdot T_{B_i}\,\}$ \;}
+    \If{$L_i>0$}{$W C_{\max}\gets \max\{\,W C_{\max},\ L_i\cdot T_{B_i}\,\}$ \;}
 }
 \KwOut{$W C_{\max}=\max_{i} L_i\cdot T_{B_i}$.}
 \end{algorithm}
@@ -592,19 +596,19 @@ states and yields $\mathscr{H}_{j}$.
 \caption{DP for $F2 \parallel W C_{\max}$}\label{alg:dp}
 \KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$; block count $K$; distinct weights $W_1>\cdots>W_K$.}
 \BlankLine
-\textbf{Step 1.} [Preprocessing] Set $L_i\gets W_i$ for $i=1,\dots,K$. \;
+\textbf{Step 1.} [Preprocessing] Set $L_i\gets 0$ for $i=1,\dots,K$. \;
 \textbf{Step 2.} [Initialization] Set $\mathscr{H}_0\gets\{(0,0,0,0)_{i=1}^{K}\}$. \;
 \textbf{Step 3.} [Generation] \For{$j=1$ \KwTo $n$}{
     $\mathcal{Y}_i\gets\emptyset$ for $i=1,\dots,K$ \;
     \For{each $(\{C_i,A_i,B_i,L_i\}_{i=1}^{K})\in\mathscr{H}_{j-1}$}{
         \For{$i=1$ \KwTo $K$}{
-            \If{$w_j\le L_i$}{
-                \eIf{$\mathcal{B}_i$ is empty, i.e., $A_i=B_i=C_i=0$}{
+            \If{$w_j\le W_i$}{
+                \eIf{$L_i=0$}{
                     $C_i'\gets a_j+b_j$ \;
                 }{
                     $C_i'\gets \max\{\,C_i+b_j,\ A_i+a_j+b_j\,\}$ \;
                 }
-                $A_i'\gets A_i+a_j$, $B_i'\gets B_i+b_j$ \;
+                $A_i'\gets A_i+a_j$, $B_i'\gets B_i+b_j$, $L_i'\gets W_i$ \;
                 Add the updated state to $\mathcal{Y}_i$ \;
             }
         }
@@ -631,7 +635,7 @@ and concatenating the blocks then yields an optimal schedule $\pi^*$ with $W C_{
 \begin{theorem}\label{thm:complexity}
 Algorithm~2 solves $F2 \parallel W C_{\max}$ optimally in
 $O\bigl(n \cdot K \cdot |\mathscr{H}|_{\max}\bigr)$ time, where
-$|\mathscr{H}|_{\max} \le K^K \cdot V^{\,3K-3}$,
+$|\mathscr{H}|_{\max} \le 2^K \cdot V^{\,3K-3}$,
 $V = \sum_{j=1}^{n}a_j + \sum_{j=1}^{n}b_j$.
 For constant $K$, this is $O(n \cdot V^{\,3K-3})$.
 \end{theorem}
@@ -652,13 +656,13 @@ so the $B_i$ components likewise contribute at most $V^{\,K-1}$ distinct combina
 The quantity $C_i$ is the makespan of $\mathcal{B}_i$ when scheduled in isolation by Johnson's rule.
 Since $C_i \le A_i + B_i \le V$ (each block's total $M_1$ and $M_2$ work is bounded by $V$),
 the $C$-vector contributes at most $V^{K-1}$ distinct values.
-The weight $L_i$ is the weight of the last job in $\mathcal{B}_i$ and takes values from $\{W_1,\dots,W_K\}$,
-yielding at most $K^K$ distinct $L$-vectors.
+The weight $L_i$ equals $W_i$ if block $\mathcal{B}_i$ is nonempty and $0$ if it is empty,
+yielding at most $2^K$ distinct $L$-vectors.
 
 Multiplying these bounds yields
 \[
-|\mathscr{H}_{j}| \le K^K \cdot V^{\,K-1} \cdot V^{\,2K-2}
-                      = K^K \cdot V^{\,3K-3}.
+|\mathscr{H}_{j}| \le 2^K \cdot V^{\,K-1} \cdot V^{\,2K-2}
+                      = 2^K \cdot V^{\,3K-3}.
 \]
 
 In iteration $j$, the algorithm takes each state in $\mathscr{H}_{j-1}$, tries every
@@ -671,7 +675,7 @@ and summing over all $n$ iterations gives $O(n \cdot K \cdot |\mathscr{H}|_{\max
 
 The final concatenation via Algorithm~1 evaluates each state in $\mathscr{H}_{n}$
 in $O(K)$ time, which is dominated by the DP phase.
-When $K$ is fixed, $K^K$ is constant, giving $O(n \cdot V^{\,3K-3})$.
+When $K$ is fixed, $2^K$ is constant, giving $O(n \cdot V^{\,3K-3})$.
 \end{proof}
 
 
@@ -749,7 +753,8 @@ We now convert the exact dynamic program of Algorithm~\ref{alg:dp} into a fully
 polynomial-time approximation scheme by geometric rounding of its time
 coordinates: the completion time $C_i$ of block $\mathcal{B}_i$ and its total
 processing times $A_i,B_i$ on $M_1$ and $M_2$ are rounded. The block weights
-$W_1>\dots>W_K$, stored as the labels $L_i=W_i$, are fixed and are not rounded.
+$W_1>\dots>W_K$ are not rounded: block $\mathcal{B}_i$ carries $L_i=W_i$ if it is
+nonempty and $L_i=0$ if it is empty.
 
 Fix $0<\varepsilon<1$ and let
 \[
@@ -797,8 +802,9 @@ C_i\in I^{C}_{r^{C}_i},\ A_i\in I^{A}_{r^{A}_i},\ B_i\in I^{B}_{r^{B}_i}\Big\}.
 \]
 There are $(v^{C}+1)^K(v^{A}+1)^K(v^{B}+1)^K$ boxes, a number independent of
 the job sizes; since $v^{A},v^{B}\le v^{C}$, this is at most $(v^{C}+1)^{3K}$.
-The scheme stores at most one \emph{representative} state per box; since the
-weight labels $L_i=W_i$ are fixed, they are common to all states of a box.
+The scheme stores at most one \emph{representative} state per box; the weight
+label $L_i$ is determined by the time coordinates (block $\mathcal{B}_i$ is empty
+exactly when $A_i=0$), so it need not be rounded.
 
 \begin{algorithm}[H]
 \small
@@ -810,13 +816,13 @@ weight labels $L_i=W_i$ are fixed, they are common to all states of a box.
 \BlankLine
 \textbf{Step 1.} [Preprocessing] Set $\delta=1+\varepsilon/(2n)$, $V_A=\sum_{j}a_j$, $V_B=\sum_{j}b_j$, $V=V_A+V_B$, 
 			$v^{x}=\lceil\log_\delta V_x\rceil$ for $x\in\{C,A,B\}$ with $V_C=V$, and the interval families $I^{x}_r$; 
-			set $L_i\gets W_i$ for $i=1,\dots,K$. \;
+			set $L_i\gets 0$ for $i=1,\dots,K$. \;
 \textbf{Step 2.} [Initialization] Store the zero state as the representative of $\mathscr{B}(\mathbf 0;\mathbf 0;\mathbf 0)$. \;
 \textbf{Step 3.} [Generation] \For{$j=0$ \KwTo $n-1$}{
     \For{each box $\mathscr{B}$ with representative $s=(C_i,A_i,B_i,L_i)_{i=1}^{K}$}{
         \For{$i=1$ \KwTo $K$}{
-            \If{$w_{j+1}\le L_i$}{
-                $\tilde C_i=\max\{C_i+b_{j+1},\ A_i+a_{j+1}+b_{j+1}\}$, $\tilde A_i=A_i+a_{j+1}$, $\tilde B_i=B_i+b_{j+1}$ \;
+            \If{$w_{j+1}\le W_i$}{
+                $\tilde C_i=\max\{C_i+b_{j+1},\ A_i+a_{j+1}+b_{j+1}\}$, $\tilde A_i=A_i+a_{j+1}$, $\tilde B_i=B_i+b_{j+1}$, $\tilde L_i=W_i$ \;
                 Map $\tilde s$ to its box $\mathscr{B}'$ \;
                 \eIf{$\mathscr{B}'$ has no representative}{Store $\tilde s$ and record $s$ as its predecessor}
 				{Keep either one of the two representatives of $\mathscr{B}'$}
