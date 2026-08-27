@@ -834,7 +834,7 @@ exactly when $A_i=0$), so it need not be rounded.
 \SetAlgoLined
 \DontPrintSemicolon
 \caption{Boxed FPTAS for $F2 \parallel W C_{\max}$}\label{alg:fptas}
-\KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$ in Johnson order; block count $K$; accuracy $\varepsilon$.}
+\KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$;max block count $K$; accuracy $\varepsilon$.}
 \BlankLine
 \textbf{Step 1.} [Preprocessing] Set $\delta=1+\varepsilon/(2n)$, $V_A=\sum_{j}a_j$, $V_B=\sum_{j}b_j$, $V=V_A+V_B$, 
 			$v^{x}=\lceil\log_\delta V_x\rceil$ for $x\in\{C,A,B\}$ with $V_C=V$, and the interval families $I^{x}_r$; 
@@ -856,7 +856,7 @@ exactly when $A_i=0$), so it need not be rounded.
     }
 }
 \textbf{Step 4.} [Result] Evaluate every representative at level $n$ with Algorithm~\ref{alg:Block-concat} \;
-\KwOut{The schedule attaining the minimum $W C_{\max}$, with $W C_{\max}\le(1+\varepsilon)\,W C_{\max}^{*}$.}
+\KwOut{$W \tilde C_{\max}$.}
 \end{algorithm}
 
 \begin{lemma}\label{lem:traj-approx}
@@ -950,6 +950,34 @@ and for constant $K$ the bound reduces to
 $O(n^{3K+1}K(\log V)^{3K}/\varepsilon^{3K})$, polynomial in $n$, $\log V$,
 and $1/\varepsilon$.
 \end{proof}
+
+\paragraph{Weight rounding.}
+The FPTAS above rounds the time coordinates $C_i,A_i,B_i$ and assumes that the number $K$ of
+distinct weights is fixed. An analogous geometric rounding applies to the weights themselves when
+their ratio is bounded. Let $W_{\min}=\min_{j}w_j$, $W_{\max}=\max_{j}w_j$, and suppose
+$W_{\max}/W_{\min}\le c$ for a constant $c$. Partition the interval $[W_{\min},W_{\max}]$ into
+\[
+J_0=[W_{\min},W_{\min}\delta),\qquad
+J_r=[W_{\min}\delta^{r},W_{\min}\delta^{r+1})\ \ (1\le r\le q-1),\qquad
+J_q=[W_{\min}\delta^{q},W_{\max}],
+\]
+with $q=\big\lceil\log_\delta(W_{\max}/W_{\min})\big\rceil$, and round each weight $w_j$ upward to
+the right endpoint of its interval,
+\[
+\hat w_j=W_{\min}\,\delta^{\,r_j+1},\qquad
+r_j=\Big\lfloor\log_\delta\frac{w_j}{W_{\min}}\Big\rfloor,
+\]
+so that $w_j\le\hat w_j\le\delta\,w_j$. The rounded weights take only
+$q+1=O\big(\log_\delta(W_{\max}/W_{\min})\big)$ distinct values, so jobs whose weights differ by a
+factor at most $\delta$ merge into a single class. Since $\hat w_j\le\delta w_j$ for every $j$, the
+optimal schedule $\hat\sigma$ of the rounded instance satisfies
+\[
+W C_{\max}(\hat\sigma)\le\widehat{W C_{\max}}(\hat\sigma)=\widehat{W C_{\max}}^{*}
+\le\widehat{W C_{\max}}(\pi^{*})\le\delta\,W C_{\max}^{*},
+\]
+where $\pi^{*}$ is an optimal schedule of the original instance. Hence the weight rounding incurs
+a relative error of at most $\delta=1+\varepsilon/(2n)\le 1+\varepsilon$, exactly as in the
+completion-time rounding.
 
 
 
