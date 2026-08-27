@@ -1029,7 +1029,7 @@ let $J_{[1]},\dots,J_{[n]}$ be the resulting order. \;
 \textbf{Step 3.} [Insertion] \For{$k=2$ \KwTo $n$}{
     $\sigma\gets$ the sequence obtained by inserting $J_{[k]}$ into $\sigma$ at a position minimizing $W C_{\max}$. \;
 }
-\KwOut{The permutation schedule $\sigma$.}
+\KwOut{Schedule $\sigma$.}
 \end{algorithm}
 
 \begin{proposition}\label{prop:neh-complexity}
@@ -1050,87 +1050,6 @@ the local violations of the weight order that may be caused by the processing ti
 
 
 
-\subsection{Ant colony optimization algorithm}
-
-Ant colony optimization (\citealp{dorigo1996}) is a metaheuristic in which artificial ants
-construct solutions incrementally, guided by pheromone trails that encode the experience
-accumulated in previous iterations. We adapt it to $F2 \parallel W C_{\max}$ as follows.
-
-\textbf{Pheromone model.} A pheromone value $\tau_{ij}$ is attached to the assignment of
-job $J_j$ to position $i$, for all $i,j=1,\dots,n$. All entries are initialized to
-$\tau_{ij}=1/\bigl(n\cdot W C_{\max}(\sigma^{\mathrm{NEH}})\bigr)$, where
-$\sigma^{\mathrm{NEH}}$ is the solution produced by Algorithm~\ref{alg:neh}.
-
-\textbf{Solution construction.} Each ant builds a permutation position by position. At
-position $i$, the ant selects an unscheduled job $J_j$ with probability
-\[
-p_{ij}=\frac{[\tau_{ij}]^{\alpha}\,[\eta_j]^{\beta}}
-           {\sum_{h\in\mathcal{U}}[\tau_{ih}]^{\alpha}\,[\eta_h]^{\beta}},
-\]
-where $\mathcal{U}$ is the set of jobs not yet scheduled, the parameters $\alpha,\beta\ge0$
-control the relative influence of the pheromone trail and of the heuristic information, and
-the heuristic information $\eta_j=w_j/(a_j+b_j)$ favors jobs of high weight and small total
-processing time.
-
-\textbf{Local search.} Each constructed solution is improved by one pass of best-insertion
-local search, in which every job is removed in turn and reinserted at the position that
-most decreases the objective.
-
-\textbf{Pheromone update.} After all ants of an iteration have completed their solutions,
-the pheromone evaporates on every assignment,
-\[
-\tau_{ij}\gets(1-\rho)\,\tau_{ij},\qquad i,j=1,\dots,n,
-\]
-where $\rho\in(0,1)$ is the evaporation rate, and the iteration-best solution
-$\sigma^{\mathrm{ib}}$ deposits pheromone on the assignments it uses,
-\[
-\tau_{ij}\gets\tau_{ij}+\frac{\rho}{W C_{\max}(\sigma^{\mathrm{ib}})}
-\qquad\text{for every assignment }(i,j)\text{ of }\sigma^{\mathrm{ib}}.
-\]
-
-\begin{algorithm}[H]
-\small
-\linespread{1.2}\selectfont
-\SetAlgoLined
-\DontPrintSemicolon
-\caption{Ant colony optimization for $F2 \parallel W C_{\max}$}\label{alg:aco}
-\KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$; parameters $\alpha,\beta\ge0$, $0<\rho<1$, the number of ants $m$, 
-		the number of iterations $T$.}
-\BlankLine
-\textbf{Step 1.} [Initialization] Compute $\sigma^{\mathrm{NEH}}$ by Algorithm~\ref{alg:neh}; 
-			set $\sigma^*\gets\sigma^{\mathrm{NEH}}$ and $\tau_{ij}\gets 1/\bigl(n\cdot W C_{\max}(\sigma^{\mathrm{NEH}})\bigr)$ 
-			for all $i,j$. \;
-\textbf{Step 2.} [Iteration] \For{$t=1$ \KwTo $T$}{
-    \For{each ant $q=1$ \KwTo $m$}{
-        Build a permutation $\sigma_q$ by the probabilistic rule with probabilities $p_{ij}$ \;
-        Apply one pass of best-insertion local search to $\sigma_q$ \;
-    }
-    Let $\sigma^{\mathrm{ib}}$ be the solution with the smallest $W C_{\max}$ among the $m$ ants \;
-    $\tau_{ij}\gets(1-\rho)\,\tau_{ij}$ for all $i,j$ \;
-    $\tau_{ij}\gets\tau_{ij}+\rho/W C_{\max}(\sigma^{\mathrm{ib}})$ for each assignment $(i,j)$ of $\sigma^{\mathrm{ib}}$ \;
-    \If{$W C_{\max}(\sigma^{\mathrm{ib}})<W C_{\max}(\sigma^*)$}{
-        $\sigma^*\gets\sigma^{\mathrm{ib}}$ \;
-    }
-}
-\KwOut{The best permutation $\sigma^*$ found.}
-\end{algorithm}
-
-\begin{proposition}\label{prop:aco-complexity}
-Each iteration of Algorithm~\ref{alg:aco} runs in $O(m\,n^3)$ time.
-\end{proposition}
-\begin{proof}
-Building one permutation takes $O(n^2)$ time, since each of the $n$ positions considers at
-most $n$ candidate jobs. One pass of best-insertion local search evaluates, for each of the
-$n$ jobs, at most $n$ insertion positions, each in $O(n)$ time, and thus costs $O(n^3)$ per
-ant. Summing over the $m$ ants gives $O(m\,n^3)$ per iteration.
-\end{proof}
-
-\begin{rem}
-ACO carries no worst-case performance guarantee. In the flow-shop scheduling literature it
-typically returns better solutions than constructive heuristics such as NEH, at the price
-of a much higher running time, and its performance depends on the parameter settings, for
-which common choices are $\alpha=1$, $\beta=2$ and $\rho=0.1$.
-\end{rem}
 
 
 
