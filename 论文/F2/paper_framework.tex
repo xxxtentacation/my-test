@@ -52,14 +52,14 @@
     denoted $F2 \parallel W C_{\max}$, is a classical NP-hard scheduling problem.
     Existing exact methods rely on enumerative techniques that scale poorly with instance size,
     while approximation algorithms often impose restrictive assumptions on processing times.
-    We first sequence all jobs globally by Johnson's rule, obtaining an initial schedule $\pi$.
+    We first order all jobs globally by Johnson's rule, obtaining an initial schedule $\pi$.
     Scanning $\pi$ from left to right, we partition it into at most $K$ blocks: whenever a weight not seen before appears, 
     it serves as the final job of the current block, and the next job starts a new block.
     We establish structural properties of optimal schedules: the permutation property, 
     the positional constraint that block $\mathcal{G}_k$ jobs cannot appear beyond the first $k$ blocks,
     and the block-end condition requiring the final job of each block to carry that block's weight 
     (automatically satisfied by construction).
-    The intra-block Johnson ordering inherited from $\pi$ is further formalized within the DP framework.
+    The intra-block Johnson schedule inherited from $\pi$ is further formalized within the DP framework.
     Building on these properties and the interval-based dynamic programming framework (\citealp{hall1994}) 
     developed for $F2|r_j|C_{\max}$, we design a polynomial-time dynamic programming algorithm with $O(|Y|_{\max}\cdot n)$ 
     complexity that appends jobs block by block. We further show that geometric rounding of weights and 
@@ -83,7 +83,7 @@ Let $\mathcal{J} = \{J_1, J_2, \dots, J_n\}$ be the set of $n$ jobs to be proces
 All processing times $a_j$ and $b_j$ are assumed to be positive integers.
 $M_1$ and $M_2$ can process at most one job at a time.
 Each job $J_j$ has a weight $w_j > 0$.
-A schedule $\pi = (\pi(1), \pi(2), \dots, \pi(n))$ specifies the processing order on both machines.
+A schedule $\pi = (\pi(1), \pi(2), \dots, \pi(n))$ specifies the processing sequence  on both machines.
 For a schedule $\pi$, let $A_j = \sum_{h=1}^{j} a_{\pi(h)}$ and $B_j = \sum_{h=1}^{j} b_{\pi(h)}$ 
 be the cumulative $M_1$ and $M_2$ processing times after the first $j$ jobs. The completion time
 of the job in position $j$ on machine $M_2$ is
@@ -158,7 +158,7 @@ holds?
 	\node[anchor=east] at (-0.5,5.5) {$M_1$};
 	\node[anchor=east] at (-0.5,4) {$M_2$};
 
-	% job on M_1 (all 6 jobs in Johnson order)
+	% job on M_1 (all 6 jobs in Johnson Sequence )
 	\draw[fill=gray!20] (0,5)   rectangle (5,6)   node[midway] {$J_{j\in Z_1}$};
 	\draw[fill=gray!50] (5,5)   rectangle (20,6)   node[midway] {$J_n$};
 	\draw[fill=gray!80] (20,5)   rectangle (25,6)  node[midway] {$J_{j\in Z_2}$};
@@ -270,7 +270,7 @@ Conversely, suppose that a schedule $\pi$ satisfies $W C_{\max}\le Q$. By the st
 two-machine flow shops with a regular objective, it suffices to consider permutation schedules. The separator jobs have 
 identical processing times. Therefore, if their positions are fixed, exchanging the labels of two separators that occur 
 in the wrong order can only decrease the maximum weighted completion time, because
-$w_{s_1}\ge w_{s_2}\ge\cdots\ge w_{s_m}$. We may consequently assume that the separators occur in the order
+$w_{s_1}\ge w_{s_2}\ge\cdots\ge w_{s_m}$. We may consequently assume that the separators occur in the sequence 
 $S_1,S_2,\dots,S_m$.
 By \eqref{eq:deadline-encoding},
 \[
@@ -278,7 +278,7 @@ By \eqref{eq:deadline-encoding},
  \qquad C_j\le T\quad(j=1,\dots,3m).
 \]
 No element job can occur after $S_m$. Indeed, if at least one element job did so, consider the last such element job. 
-By the permutation-schedule property invoked above, the processing order on $M_1$ and $M_2$ coincides, so this job is 
+By the permutation-schedule property invoked above, the processing sequence on $M_1$ and $M_2$ coincides, so this job is 
 also the last job on $M_1$; hence all $m$ separators and all $3m$ element jobs have completed on $M_1$ no later than this job, 
 and its completion on $M_1$ is at least the total $M_1$ processing time
 \[
@@ -368,15 +368,15 @@ and analyse its running time.
 
 \subsection{The number of weights is constant}
 For $F2 \parallel W C_{\max}$, an optimal schedule exists in which both machines process the jobs
-in the same order (\citealp{baker1974introduction}); we therefore restrict attention to such
+in the same sequence (\citealp{baker1974introduction}); we therefore restrict attention to such
 permutation schedules.
 Johnson's rule (\citealp{johnson1954optimal}) orders the $n$ jobs so as to minimize the makespan:
-jobs with $a_j \le b_j$ are scheduled first in non-decreasing order of $a_j$, and the remaining
-jobs follow in non-increasing order of $b_j$.
+jobs with $a_j \le b_j$ are scheduled first in non-decreasing sequence of $a_j$, and the remaining
+jobs follow in non-increasing sequence of $b_j$.
 
 For a given schedule $\pi$, Let $W_{1} > W_{2} > \dots > W_{K}$ be the $K$ distinct weights occurring
 among the jobs, and define $\mathcal{G}_k = \{ J_j \in \mathcal{J} \mid w_j = W_{k} \}$, $k = 1,\dots,K$.
-For $k = 1,\dots,K$ in order, let $\ell_k$ be the position of the last job of weight $W_k$ among the jobs
+For $k = 1,\dots,K$ in sequence, let $\ell_k$ be the position of the last job of weight $W_k$ among the jobs
 not yet assigned to a block, i.e., among $\pi(\ell_{k-1}+1),\dots,\pi(n)$, with the convention $\ell_k=\ell_{k-1}$
 if no such job remains; set $\ell_0 = 0$. The blocks are then the segments
 \[
@@ -421,7 +421,7 @@ $\mathcal{B}_2=\{J_4,J_5\}$ and $\mathcal{B}_3=\{J_6\}$.
 	\node[anchor=east] at (-0.5,5.5) {$M_1$};
 	\node[anchor=east] at (-0.5,4) {$M_2$};
 
-	% job on M_1 (all 6 jobs in Johnson order)
+	% job on M_1 (all 6 jobs in Johnson sequence)
 	\draw[fill=gray!20] (0,5)   rectangle (2,6)   node[midway] {$J_1$};
 	\draw[fill=gray!20] (2,5)   rectangle (7,6)   node[midway] {$J_2$};
 	\draw[fill=gray!20] (7,5)   rectangle (13,6)  node[midway] {$J_3$};
@@ -450,7 +450,7 @@ $\mathcal{B}_2=\{J_4,J_5\}$ and $\mathcal{B}_3=\{J_6\}$.
 \end{center}
 
 \begin{lemma}\label{lem:block-johnson}
-For any schedule $\pi$, reordering the jobs within each block according to Johnson's rule~\citealp{johnson1954optimal}
+For any schedule $\pi$, rescheduling the jobs within each block according to Johnson's rule~\citealp{johnson1954optimal}
 and concatenating the resulting block schedules yields a schedule $\pi'$ with $W C_{\max}(\pi') \le W C_{\max}(\pi)$.
 \end{lemma}
 \begin{proof}
@@ -472,22 +472,22 @@ W C_{\max}(\sigma) = \max_{k=1,\dots,K}\{W(\mathcal{B}_k) \cdot C_k(\sigma)\}.
 \]
 Thus the overall objective depends only on the last job of each block.
 
-Now let $\pi'$ be the schedule obtained by reordering the jobs within each $\mathcal{B}_k$ according
+Now let $\pi'$ be the schedule obtained by rescheduling the jobs within each $\mathcal{B}_k$ according
 to Johnson's rule, while preserving the order of the blocks. We prove $C_k(\pi') \le C_k(\pi)$ for
 all $k$ by induction on $k$.
 
 \textbf{Base case $k=1$.}
-Block $\mathcal{B}_1$ starts at time zero on both machines regardless of its internal order,
+Block $\mathcal{B}_1$ starts at time zero on both machines regardless of its internal ordering,
 so Johnson's rule gives $C_1(\pi') \le C_1(\pi)$.
 
 \textbf{Inductive step.}
 Assume $C_{k-1}(\pi') \le C_{k-1}(\pi)$.
 On $M_1$, the start time of $\mathcal{B}_k$ equals the total $M_1$ work of $\mathcal{B}_1,\dots,\mathcal{B}_{k-1}$,
-which is invariant under internal reordering, so $\mathcal{B}_k$ begins at the same instant on $M_1$ under both schedules.
+which is invariant under internal rescheduling, so $\mathcal{B}_k$ begins at the same instant on $M_1$ under both schedules.
 On $M_2$, $\mathcal{B}_k$ starts at $\max\{\,\sum_{i=1}^{k}A_{i},\; C_{k-1}\,\}$,
 where the first term is identical under $\pi$ and $\pi'$, and the second is no larger under $\pi'$ by the induction hypothesis.
 Hence $\mathcal{B}_k$ starts no later on $M_2$ under $\pi'$ than under $\pi$.
-Together with the same $M_1$ start and the internally optimal Johnson ordering,
+Together with the same $M_1$ start and the internally optimal Johnson scheduling,
 this gives $C_k(\pi') \le C_k(\pi)$, completing the induction.
 
 Finally,
@@ -503,13 +503,13 @@ which establishes the lemma.
 
 
 \subsection{Algorithm Properties and Dynamic Programming}
-We now develop a dynamic programming algorithm that processes jobs sequentially in Johnson order
+We now develop a dynamic programming algorithm that processes jobs sequentially in Johnson sequence
 and assigns each job to one of the $K$ blocks $\mathcal{B}_1,\dots,\mathcal{B}_K$.
 
 Lemma~\ref{lem:block-johnson} provides the structural basis for the dynamic program:
 given any assignment of jobs to the $K$ blocks, sequencing the jobs within each block
 $\mathcal{B}_i$ according to Johnson's rule and concatenating the blocks in
-non-increasing weight order yields a schedule whose $W C_{\max}$ value is no larger
+non-increasing weight sequence yields a schedule whose $W C_{\max}$ value is no larger
 than that of any other schedule respecting the same assignment.
 For each job $J_j$ ($j = 1,\dots,n$), let $\mathscr{H}_j$ denote the set of states attainable
 after the first $j$ jobs have been processed. A state records, for every block $\mathcal{B}_i$:
@@ -653,7 +653,7 @@ We bound the number of distinct values each component can attain.
 
 The quantity $A_i$ is the total $M_1$ processing time of jobs assigned to block $\mathcal{B}_i$,
 hence $A_i \in [0,\,V]$.
-Since the $j$ jobs under consideration form a prefix of the fixed Johnson order,
+Since the $j$ jobs under consideration form a prefix of the fixed Johnson sequence,
 $\sum_{i=1}^{K-1} A_i$ equals the sum of the $a_h$ values over that prefix.
 Consequently at most $K-1$ of the $A_i$ are independent, contributing at most $V^{\,K-1}$ distinct $A$-vectors.
 Symmetrically, $\sum_{i=1}^{K-1} B_i$ is the prefix sum of the $b_j$'s,
@@ -706,7 +706,7 @@ following elementary rule suffices.
 \KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$.}
 \BlankLine
 \textbf{Step 1.} Sort the jobs by non-increasing weight $w_j$ (ties broken arbitrarily). \;
-\textbf{Step 2.} Schedule the jobs in this order on both machines. \;
+\textbf{Step 2.} Schedule the jobs in this sequence on both machines. \;
 \KwOut{The resulting permutation schedule, with $W C_{\max}\le 2\,W C_{\max}^{*}$.}
 \end{algorithm}
 
@@ -1023,30 +1023,24 @@ smallest $W C_{\max}$ is kept.
 \caption{NEH heuristic for $F2 \parallel W C_{\max}$}\label{alg:neh}
 \KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$.}
 \BlankLine
-\textbf{Step 1.} [Ordering] Sort the jobs by non-increasing weight $w_j$, breaking ties by non-increasing $a_j+b_j$; 
-let $J_{[1]},\dots,J_{[n]}$ be the resulting order. \;
-\textbf{Step 2.} [Initialization] $\sigma\gets(J_{[1]})$. \;
+\textbf{Step 1.} [Sequence] Sort the jobs by non-increasing weight $w_j$, breaking ties by non-increasing $a_j+b_j$; 
+let $J_{1},\dots,J_{n}$ be the resulting sequence. \;
+\textbf{Step 2.} [Initialization] $\sigma\gets(J_{1})$. \;
 \textbf{Step 3.} [Insertion] \For{$k=2$ \KwTo $n$}{
-    $\sigma\gets$ the sequence obtained by inserting $J_{[k]}$ into $\sigma$ at a position minimizing $W C_{\max}$. \;
+    $\sigma\gets$ the sequence obtained by inserting $J_{k}$ into $\sigma$ at a position minimizing $W C_{\max}$. \;
 }
 \KwOut{Schedule $\sigma$.}
 \end{algorithm}
 
-\begin{proposition}\label{prop:neh-complexity}
+\begin{theorem}\label{prop:neh-complexity}
 Algorithm~\ref{alg:neh} runs in $O(n^3)$ time.
-\end{proposition}
+\end{theorem}
 \begin{proof}
-At step $k$, the job $J_{[k]}$ is inserted into each of the $k$ positions of a partial
+At step $k$, the job $J_{k}$ is inserted into each of the $k$ positions of a partial
 schedule of $k-1$ jobs, and each candidate sequence is evaluated in $O(k)$ time by the
 recurrence above. Hence step $k$ costs $O(k^2)$, and the total running time is
 $O\bigl(\sum_{k=1}^{n}k^2\bigr)=O(n^3)$.
 \end{proof}
-
-\begin{rem}
-The initial ordering by non-increasing weight coincides with the rule of the
-2-approximation algorithm of Section~\ref{sub:approx2}. The insertion step then repairs
-the local violations of the weight order that may be caused by the processing times.
-\end{rem}
 
 
 
