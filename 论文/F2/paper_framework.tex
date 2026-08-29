@@ -606,15 +606,18 @@ states and yields $\mathscr{H}_{j}$.
     $\mathcal{Y}_i\gets\emptyset$ for $i=1,\dots,K$ \;
     \For{each $(\{A_i,B_i,C_i,L_i\}_{i=1}^{K})\in\mathscr{H}_{j-1}$}{
         \For{$i=1$ \KwTo $K$}{
-            \If{$w_j\le W_i$}{
-                \eIf{$L_i=0$}{
+			\eIf{$L_i=0$}{
                     $C_i'\gets a_j+b_j$ \;
                 }{
+					\If{$w_j\le L_i$}{
+                {
                     $C_i'\gets \max\{\,C_i+b_j,\ A_i+a_j+b_j\,\}$ \;
                 }
                 $A_i'\gets A_i+a_j$, $B_i'\gets B_i+b_j$, $L_i'\gets w_j$ \;
                 Add the updated state to $\mathcal{Y}_i$ \;
-            }
+            	}
+				}
+            
         }
     }
     [Merging] $\mathscr{H}_j\gets\textsc{Merge}(\mathcal{Y}_1,\dots,\mathcal{Y}_K)$ \;
@@ -630,8 +633,6 @@ violating the positional constraint $L_i\in\{0,W_i\}$.\;
 \KwOut{ get the schedule $\sigma$.}
 \end{algorithm}
 
-Algorithm~2 returns the optimal objective value $Z^*$; the optimal schedule itself is recovered
-by standard backtracking.
 To this end, each state in $\mathscr{H}_j$ stores a pointer to the state in $\mathscr{H}_{j-1}$ from
 which it was derived, together with the block $i \in \mathcal{E}(J_j)$ into which $J_j$ was placed.
 Starting from the state in $\mathscr{H}_n$ attaining $Z^*$, backtracking along these pointers
@@ -817,8 +818,8 @@ below.
 
 For each block $\mathcal{B}_i$, let $r^C_i\in\{0,\dots,v^{C}\}$,
 $r^A_i\in\{0,\dots,v^{A}\}$ and $r^B_i\in\{0,\dots,v^{B}\}$ be the indices of the
-intervals containing $C_i$, $A_i$ and $B_i$, respectively. The \emph{label} of a
-state $s=(A_i,B_i,C_i,L_i)_{i=1}^{K}$ is the tuple of interval indices
+intervals containing $C_i$, $A_i$ and $B_i$, respectively. The \emph{identifier} of a
+state $s=(A_i,B_i,C_i,L_i)_{i=1}^{K}$ is the configuration of interval indices
 \[
 \ell(s)=(\mathbf r^{A};\mathbf r^{B};\mathbf r^{C}),
 \]
@@ -842,21 +843,27 @@ last job of block $\mathcal{B}_i$ and is not rounded.
 			$v^{x}=\lceil\log_\delta V_x\rceil$ for $x\in\{A,B,C\}$ with $V_C=V$, and the interval families $I^{x}_r$. \;
 \textbf{Step 2.} [Initialization] Set $\mathscr{S}_0\gets\{s^0\}$, where $s^0$ is the zero state. \;
 	$(A_i,B_i,C_i,L_i)_{i=1}^{K}=(0,0,0,0)_{i=1}^{K}$; set $L_i\gets 0$ for $i=1,\dots,K$. \;
-\textbf{Step 3.} [Generation] \For{$j=0$ \KwTo $n-1$}{
-    $\mathcal{Y}\gets\emptyset$ \;
-    \For{each state $s=(A_i,B_i,C_i,L_i)_{i=1}^{K}\in\mathscr{S}_j$}{
+\textbf{Step 3.} [Generation] \For{$j=1$ \KwTo $n$}{
+    $\mathcal{Y}_i\gets\emptyset$ for $i=1,\dots,K$ \;
+    \For{each state $s=(A_i,B_i,C_i,L_i)_{i=1}^{K}\in\mathscr{S}_{j-1}$}{
         \For{$i=1$ \KwTo $K$}{
-            \If{$w_{j+1}\le W_i$}{
-                $\tilde C_i=\max\{C_i+b_{j+1},\ A_i+a_{j+1}+b_{j+1}\}$,
-				$\tilde A_i=A_i+a_{j+1}$,
-				$\tilde B_i=B_i+b_{j+1}$,
-                Add the state $\tilde s=(\tilde A_i,\tilde B_i,\tilde C_i,\tilde L_i)_{i=1}^{K}$ to $\mathcal{Y}$ \;
-            }
+			\eIf{$L_i=0$}{
+                    $\tilde C_i=a_j+b_j$ \;
+                }{
+					\If{$w_j\le L_i$}{
+                {
+                    $\tilde C_i=\max\{\,C_i+b_j,\ A_i+a_j+b_j\,\}$ \;
+                }
+                $\tilde A_i=A_i+a_j$, $\tilde B_i=B_i+b_j$, $\tilde L_i=w_j$ \;
+                Add the state $\tilde s=(\tilde A_i,\tilde B_i,\tilde C_i,\tilde L_i)_{i=1}^{K}$ to $\mathcal{Y}_i$ \;
+            	}
+				}
+
         }
     }
-    [Elimination] Among the states of $\mathcal{Y}$ sharing the same label
+    [Elimination] Among the states of $\mathcal{Y}_1,\dots,\mathcal{Y}_K$ sharing the same label
     $\ell(s)=(\mathbf r^{A};\mathbf r^{B};\mathbf r^{C})$, keep only one;
-    set $\mathscr{S}_{j+1}$ to the kept states. \;
+    set $\mathscr{S}_j$ to the kept states. \;
 }
 \textbf{Step 4.} [Result] Discard every state in $\mathscr{S}_n$ that violates the positional
 constraint ($L_i\notin\{0,W_i\}$ for some block), and evaluate the remaining ones with
@@ -865,10 +872,10 @@ Algorithm~\ref{alg:Block-concat}; return the schedule attaining the minimum valu
 \end{algorithm}
 
 \begin{lemma}\label{lem:traj-approx}
-Let $s(j^{*})=(A(j^{*})_i,B(j^{*})_i,C(j^{*})_i,W_i)_{i=1}^{K}$, $j=0,\dots,n$, be the states along
+Let $s(j^{*})=(A(j^{*})_i,B(j^{*})_i,C(j^{*})_i,L(j^{*})_i)_{i=1}^{K}$, $j=0,\dots,n$, be the states along
 an optimal trajectory of Algorithm~\ref{alg:dp} with final value $W C_{\max}^{*}$. After
 processing $j$ jobs, the state set $\mathscr{S}_j$ of Algorithm~\ref{alg:fptas} contains a state
-$\hat s_j=(\hat A_i,\hat B_i,\hat C_i,W_i)_{i=1}^{K}$ satisfying
+$\hat s_j=(\hat A_i,\hat B_i,\hat C_i,\hat L_i)_{i=1}^{K}$ satisfying
 \begin{equation}\label{eq:traj-bound}
 \hat A_i\le A(j^{*})_i\,\delta^{j},\qquad
 \hat B_i\le B(j^{*})_i\,\delta^{j},\qquad
