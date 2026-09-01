@@ -606,22 +606,13 @@ states and yields $\mathscr{H}_{j}$.
     $\mathcal{Y}_i\gets\emptyset$ for $i=1,\dots,K$ \;
     \For{each $(\{A_i,B_i,C_i,L_i\}_{i=1}^{K})\in\mathscr{H}_{j-1}$}{
         \For{$i=1$ \KwTo $K$}{
-			\eIf{$L_i=0$}{
-                    $C_i'\gets a_j+b_j$ \;
-                }{
-					\If{$w_j\le L_i$}{
-                {
-                    $C_i'\gets \max\{\,C_i+b_j,\ A_i+a_j+b_j\,\}$ \;
-                }
                 $A_i'\gets A_i+a_j$, $B_i'\gets B_i+b_j$, $L_i'\gets w_j$ \;
+                $C_i'\gets \max\{\,C_i+b_j,\ A_i+a_j+b_j\,\}$ \;
                 Add the updated state to $\mathcal{Y}_i$ \;
-            	}
-				}
-            
+			}
+        [Merging] $\mathscr{H}_j\gets\textsc{Merge}(\mathcal{Y}_1,\dots,\mathcal{Y}_K)$ \;
         }
     }
-    [Merging] $\mathscr{H}_j\gets\textsc{Merge}(\mathcal{Y}_1,\dots,\mathcal{Y}_K)$ \;
-}
 \textbf{Step 4.} [Feasibility check] Remove from $\mathscr{H}_n = \{A_i,B_i,C_i,L_i\}_{i=1}^{K}$ 
 	violating the positional constraint $L_i\in\{0,W_i\}$.\;
 \textbf{Step 5.} [Calculate] Set $Z^{*}\gets+\infty$ \;
@@ -855,15 +846,13 @@ rounded.
             $\tilde C_i=\max\{\,C_i+b_j,\ A_i+a_j+b_j\,\}$ \;
             Round $\tilde A_i,\tilde B_i,\tilde C_i$ into $I^{A}_{r^{A}_i}, I^{B}_{r^{B}_i}, I^{C}_{r^{C}_i}$, 
             giving the identifier $\ell(\tilde s)=(\mathbf r^{A};\mathbf r^{B};\mathbf r^{C};\mathbf L)$ \;
+            Add $\tilde s=(\tilde A_i,\tilde B_i,\tilde C_i,\tilde L_i)_{i=1}^{K}$ to $\mathcal{Y}_i$ and record $s$ as its predecessor \;
         }
-        Add $\tilde s=(\tilde A_i,\tilde B_i,\tilde C_i,\tilde L_i)_{i=1}^{K}$ to $\mathcal{Y}_i$ and record $s$ as its predecessor \;
+        [Merging] $\mathscr{S}_j\gets\textsc{Merge}(\mathcal{Y}_1,\dots,\mathcal{Y}_K)$ \;
     }
 }
-\textbf{Step 4.}[Feasibility check] Among the states of $\mathcal{Y}_1,\dots,\mathcal{Y}_K$ sharing the same identifier
-    $\ell(s)=(\mathbf r^{A};\mathbf r^{B};\mathbf r^{C};\mathbf L)$, keep only one;
-    set $\mathscr{S}_j$ to the kept states. \;
-\textbf{Step 5.} [Calculate] Remove from $\mathscr{S}_n$ the states violating the positionalconstraint $L_i\in\{0,W_i\}$,
-			and evaluate the rest with Algorithm~\ref{alg:Block-concat}.\;
+\textbf{Step 4.}[Feasibility check] Remove from $\mathscr{S}_n$ the states violating the positional constraint $L_i\in\{0,W_i\}$. \;
+\textbf{Step 5.} [Calculate] Evaluate the rest with Algorithm~\ref{alg:Block-concat}.\;
 \textbf{Step 6.} [Result] Return the schedule of minimum value by backtracking the predecessor pointers. \;
 \KwOut{An approximate schedule $\sigma$.}
 \end{algorithm}
