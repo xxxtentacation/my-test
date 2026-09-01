@@ -853,14 +853,12 @@ rounded.
         \For{$i=1$ \KwTo $K$}{
             $\tilde A_i=A_i+a_j$, $\tilde B_i=B_i+b_j$, $\tilde L_i=w_j$ \;
             $\tilde C_i=\max\{\,C_i+b_j,\ A_i+a_j+b_j\,\}$ \;
-        }
-		{[Geometric Rounding]} Round $\tilde A_i,\tilde B_i,\tilde C_i$ into
-            $I^{A}_{r^{A}_i}, I^{B}_{r^{B}_i}, I^{C}_{r^{C}_i}$, 
+            Round $\tilde A_i,\tilde B_i,\tilde C_i$ into $I^{A}_{r^{A}_i}, I^{B}_{r^{B}_i}, I^{C}_{r^{C}_i}$, 
             giving the identifier $\ell(\tilde s)=(\mathbf r^{A};\mathbf r^{B};\mathbf r^{C};\mathbf L)$ \;
-            Add $\tilde s=(\tilde A_i,\tilde B_i,\tilde C_i,\tilde L_i)_{i=1}^{K}$ to $\mathcal{Y}_i$ and
-            record $s$ as its predecessor \;
         }
+        Add $\tilde s=(\tilde A_i,\tilde B_i,\tilde C_i,\tilde L_i)_{i=1}^{K}$ to $\mathcal{Y}_i$ and record $s$ as its predecessor \;
     }
+}
 \textbf{Step 4.}[Feasibility check] Among the states of $\mathcal{Y}_1,\dots,\mathcal{Y}_K$ sharing the same identifier
     $\ell(s)=(\mathbf r^{A};\mathbf r^{B};\mathbf r^{C};\mathbf L)$, keep only one;
     set $\mathscr{S}_j$ to the kept states. \;
