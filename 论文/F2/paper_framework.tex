@@ -811,9 +811,7 @@ For each block $\mathcal{B}_i$, let $r^C_i\in\{0,\dots,v^{C}\}$,
 $r^A_i\in\{0,\dots,v^{A}\}$ and $r^B_i\in\{0,\dots,v^{B}\}$ be the indices of the
 intervals containing $C_i$, $A_i$ and $B_i$, respectively. The \emph{identifier} of a
 state $s=(A_i,B_i,C_i,L_i)_{i=1}^{K}$ is the tuple
-\[
-\ell(s)=(\mathbf r^{A};\mathbf r^{B};\mathbf r^{C};\mathbf L),
-\]
+$(\mathbf r^{A};\mathbf r^{B};\mathbf r^{C};\mathbf L),$
 where $\mathbf r^{x}=(r^{x}_1,\dots,r^{x}_K)\in\{0,\dots,v^{x}\}^{K}$ for
 $x\in\{A,B,C\}$, and $\mathbf L=(L_1,\dots,L_K)$. There are
 $(v^{A}+1)^K(v^{B}+1)^K(v^{C}+1)^K(K+1)^K$ identifiers, a number independent of
@@ -844,9 +842,8 @@ rounded.
         \For{$i=1$ \KwTo $K$}{
             $\tilde A_i=A_i+a_j$, $\tilde B_i=B_i+b_j$, $\tilde L_i=w_j$ \;
             $\tilde C_i=\max\{\,C_i+b_j,\ A_i+a_j+b_j\,\}$ \;
-            Round $\tilde A_i,\tilde B_i,\tilde C_i$ into $I^{A}_{r^{A}_i}, I^{B}_{r^{B}_i}, I^{C}_{r^{C}_i}$, 
-            giving the identifier $\ell(\tilde s)=(\mathbf r^{A};\mathbf r^{B};\mathbf r^{C};\mathbf L)$ \;
-            Add $\tilde s=(\tilde A_i,\tilde B_i,\tilde C_i,\tilde L_i)_{i=1}^{K}$ to $\mathcal{Y}_i$ and record $s$ as its predecessor \;
+            Round $\tilde A_i,\tilde B_i,\tilde C_i$ into $I^{A}_{r^{A}_i}, I^{B}_{r^{B}_i}, I^{C}_{r^{C}_i}$. \;
+            Add $\tilde s=(\tilde A_i,\tilde B_i,\tilde C_i,\tilde L_i)_{i=1}^{K}$ to $\mathcal{Y}_i$ and record $s$ as its predecessor. \;
         }
         [Merging] $\mathscr{S}_j\gets\textsc{Merge}(\mathcal{Y}_1,\dots,\mathcal{Y}_K)$ \;
     }
