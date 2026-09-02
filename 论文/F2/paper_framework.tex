@@ -48,25 +48,20 @@
 \maketitle
 
 \begin{abstract}
-    Minimizing $W C_{\max}$ on a two-machine flow shop,
-    denoted $F2 \parallel W C_{\max}$, is a classical NP-hard scheduling problem.
-    Existing exact methods rely on enumerative techniques that scale poorly with instance size,
-    while approximation algorithms often impose restrictive assumptions on processing times.
-    We first order all jobs globally by Johnson's rule, obtaining an initial schedule $\pi$.
-    Scanning $\pi$ from left to right, we partition it into at most $K$ blocks: whenever a weight not seen before appears, 
-    it serves as the final job of the current block, and the next job starts a new block.
-    We establish structural properties of optimal schedules: the permutation property, 
-    the positional constraint that block $\mathcal{G}_k$ jobs cannot appear beyond the first $k$ blocks,
-    and the block-end condition requiring the final job of each block to carry that block's weight 
-    (automatically satisfied by construction).
-    The intra-block Johnson schedule inherited from $\pi$ is further formalized within the DP framework.
-    Building on these properties and the interval-based dynamic programming framework (\citealp{hall1994}) 
-    developed for $F2|r_j|C_{\max}$, we design a polynomial-time dynamic programming algorithm with $O(|Y|_{\max}\cdot n)$ 
-    complexity that appends jobs block by block. We further show that geometric rounding of weights and 
-    processing times converts this algorithm into a polynomial-time approximation scheme.
+    The problem of minimizing maximum weighted completion time on a two-machine flow shop,
+    denoted $F2 \parallel W C_{\max}$, is a scheduling problem we establish to be strongly NP-hard.
+    We first establish that the optimal solution maintains the permutation property and introduce a novel block structure
+    where jobs are partitioned by distinct weights, enabling efficient dynamic programming solutions.
+    The exact dynamic programming algorithm leverages interval-based state representation and runs in
+    $O(n \cdot K \cdot V^{3K-3})$ time for constant $K$, where $V$ is the total processing time.
+    For approximation guarantees, we design a fully polynomial-time approximation scheme (FPTAS) with state-class labeling
+    that achieves $(1+\varepsilon)$-approximation while maintaining polynomial complexity.
+    Additionally, we develop practical heuristics including an adapted NEH algorithm and an ant colony optimization (ACO) algorithm (\citealp{zhang2023})
+    that provide fast solutions for large-scale instances. The computational results demonstrate that our algorithms
+    efficiently solve both small and large instances while maintaining theoretical guarantees.
 \end{abstract}
 
-\noindent \textbf{Keywords:} Flow shop scheduling; $W C_{\max}$; Dynamic programming; Structural properties
+\noindent \textbf{Keywords:} Flow shop scheduling; Block-based dynamic programming; Approximation algorithms
 
 \section{Introduction}
 \label{sec:intro}
@@ -848,14 +843,14 @@ rounded.
         \For{$i=1$ \KwTo $K$}{
             $\tilde A_i=A_i+a_j$, $\tilde B_i=B_i+b_j$, $\tilde L_i=w_j$ \;
             $\tilde C_i=\max\{\,C_i+b_j,\ A_i+a_j+b_j\,\}$ \;
-            \textbf[Labeling] The interval indices $r^{A}_i,r^{B}_i,r^{C}_i$ with $\tilde A_i\in I^{A}_{r^{A}_i}$,
-            $\tilde B_i\in I^{B}_{r^{B}_i}$, $\tilde C_i\in I^{C}_{r^{C}_i}$ \;
-            Add $\tilde{\mathscr{H}}^{\varPhi}_{j}=(\tilde A_i,\tilde B_i,\tilde C_i,\tilde L_i)_{i=1}^{K}$ to $\mathcal{Y}_i$ 
-            and record $\mathscr{H}^{\varPhi}$ as its predecessor. \;
+            \textbf[Labeling] For $\tilde A_i$, $\tilde B_i$, $\tilde C_i$, determine the interval indices
+            $r^{A}_i,r^{B}_i,r^{C}_i$ such that $\tilde A_i\in I^{A}_{r^{A}_i}$, $\tilde B_i\in I^{B}_{r^{B}_i}$,
+            $\tilde C_i\in I^{C}_{r^{C}_i}$. Record the label $\ell(\tilde{\mathscr{H}}^{\varPhi})=(\mathbf{r}^{A};\mathbf{r}^{B};\mathbf{r}^{C};\mathbf{L})$
+            for the updated state. \;
         }
+        [Deletion] From all candidate states in $\mathcal{Y}_{I_{r_1}},\dots,\mathcal{Y}_{I_{r_K}}$ that share the same label,
+        delete all but one; set $\mathscr{H}^{\varPhi}_{j}$ to the remaining states. \;
     }
-    [Deletion] Among the states of $\mathcal{Y}_1,\dots,\mathcal{Y}_K$ carrying the same label,
-    delete all but one; set $\mathscr{H}^{\varPhi}_{j}$ to the kept states. \;
 }
 \textbf{Step 4.} [Feasibility check] Same as Step~4 of Algorithm~\ref{alg:dp}, applied to $\mathscr{H}^{\varPhi,n}$. \;
 \textbf{Step 5.} [Calculate] Same as Step~5 of Algorithm~\ref{alg:dp}. \;
@@ -1005,9 +1000,9 @@ completion-time rounding.
 The exact dynamic program of Section~\ref{sec:dp_algorithm} is pseudo-polynomial, and the
 running time of the FPTAS of Section~\ref{sub:fptas} is exponential in the number $K$ of
 distinct weights. For large instances, fast heuristics are therefore of practical interest.
-In this section we present two heuristics for $F2 \parallel W C_{\max}$: an adaptation of
-the NEH algorithm (\citealp{puka2024}) and an ant colony optimization (ACO) algorithm
-(\citealp{dorigo1996}).
+In this section we present three heuristics for $F2 \parallel W C_{\max}$: an adaptation of
+the NEH algorithm (\citealp{puka2024}), an ant colony optimization (ACO) algorithm
+(\citealp{zhang2023}), and a genetic algorithm (Section~\ref{sub:ga}).
 
 Throughout this section, the objective of a permutation
 $\sigma=(\sigma(1),\dots,\sigma(k))$ of $k$ jobs is evaluated by \eqref{eq:completion}, so that
@@ -1061,7 +1056,7 @@ $O\bigl(\sum_{k=1}^{n}k^2\bigr)=O(n^3)$.
 
 
 \subsection{Ant Colony Optimization}
-The ant colony optimization (ACO) algorithm (\citealp{dorigo1996}) is a metaheuristic inspired by the foraging behavior of ants. 
+The ant colony optimization (ACO) algorithm (\citealp{zhang2023}) is a metaheuristic inspired by the foraging behavior of ants. 
 For $F2 \parallel W C_{\max}$, we adapt ACO to construct permutation schedules by iteratively improving solutions 
 through pheromone trail reinforcement.
 
@@ -1093,127 +1088,173 @@ through pheromone trail reinforcement.
 
 
 
-\subsubsection{Genetic Algorithm II}
-While standard genetic algorithms (GA) have been applied to scheduling problems, we propose a 
-second-generation genetic algorithm specifically designed for $F2 \parallel W C_{\max}$. 
-This approach incorporates problem-specific knowledge, adaptive operators, 
-and enhanced selection mechanisms to improve solution quality and convergence speed.
+\subsection{A Genetic Algorithm}
+\label{sub:ga}
 
-\paragraph{Problem Encoding} A chromosome represents a permutation of jobs $\sigma = (\sigma(1), \sigma(2), \dots, \sigma(n))$. 
-Each chromosome encodes a complete schedule for the two-machine flow shop.
+The objective $\max_{j} w_j\,C_j$ is a bottleneck criterion: the value of a schedule is
+determined by the single \emph{critical} job that attains the maximum, and an ordering can be
+improved only by lowering that job's completion time, or by shortening completion times across
+the board. A genetic algorithm for $F2 \parallel W C_{\max}$ should therefore not treat all
+jobs symmetrically. We design its operators around the weight classes and the block structure
+of Section~\ref{sec:dp_algorithm}: high-weight jobs should occupy early positions (their
+weighted completion must be kept small), while the makespan should stay low so that no job is
+delayed unnecessarily.
 
-\paragraph{Fitness Evaluation} The fitness function is the inverse of the objective value:
+\paragraph{Encoding and Decoding}
+A chromosome is a permutation $\sigma=(\sigma(1),\dots,\sigma(n))$, where the gene at
+position $t$ is the job scheduled $t$-th. Permutation encoding is adopted because it always
+represents a feasible permutation schedule: every job occurs exactly once, so no repair
+operator is needed to restore feasibility after crossover or mutation. To decode a
+chromosome, both machines process the jobs in the order $\sigma(1),\dots,\sigma(n)$; the
+completion time $C_{\sigma(t)}$ of the $t$-th job is obtained from the closed form
+\eqref{eq:completion}, which is evaluated in $O(n)$ time using the prefix sums
+$A_t=\sum_{h=1}^{t}a_{\sigma(h)}$ and $B_t=\sum_{h=1}^{t}b_{\sigma(h)}$, and the objective
+value is
 \[
-\text{fitness}(\sigma) = \frac{1}{W C_{\max}(\sigma)} = \frac{1}{\max_{1\le t\le n} w_{\sigma(t)} \cdot C_{\sigma(t)}}
+W C_{\max}(\sigma)=\max_{1\le t\le n}w_{\sigma(t)}\,C_{\sigma(t)}.
 \]
-Lower $W C_{\max}$ values yield higher fitness.
+The fitness $\text{fitness}(\sigma)=1/W C_{\max}(\sigma)$ is used only to compare
+individuals, so its absolute scale is irrelevant.
 
-\paragraph{Selection Mechanism} We employ tournament selection with adaptive tournament size:
+\paragraph{Structured Initialization}
+Random starting populations waste most of the search effort. The initial population $P_0$
+of size $N$ is therefore seeded with the three orderings that already realize the two
+structural ingredients of a good schedule---small makespan and early heavy jobs:
 \begin{itemize}
-    \item Initially, tournament size $= 2$
-    \item If no improvement for 20 generations, increase tournament size by 1
-    \item If improvement rate $> 10\%$, decrease tournament size by 1 (minimum size = 2)
+    \item the Johnson schedule $\sigma^{\mathrm{J}}$ produced by Johnson's rule
+          (\citealp{johnson1954optimal}), which minimizes the makespan and thereby tends
+          to shorten every completion time;
+    \item the weight-descending schedule $\sigma^{\mathrm{W}}$, obtained by ordering jobs
+          by non-increasing $w_j$ with ties broken by Johnson's rule, which directly
+          attacks the bottleneck by giving heavy jobs the smallest possible completion
+          times;
+    \item the schedule $\sigma^{\mathrm{NEH}}$ returned by the NEH heuristic
+          (Algorithm~\ref{alg:neh}).
 \end{itemize}
+The remaining $N-3$ individuals are uniform random permutations, which supply the diversity
+needed to escape these deterministic starting points and to explore regions of the search
+space that no constructive rule reaches. The population size is $N=\Theta(n)$: large enough
+to retain the block structure present in the seeds, yet small enough that a generation,
+whose cost is dominated by evaluating $N$ individuals in $O(n)$ time each, remains $O(Nn)$.
 
-\paragraph{Crossover Operators} We implement multiple crossover operators and select the best offspring:
+\paragraph{Selection}
+Binary tournament selection is used to form the mating pool. In each round, two individuals
+are drawn uniformly at random from the current population $P_{g-1}$, the fitter of the two
+wins and is copied into the mating pool $M_g$, and both are returned to the population
+(ties are broken arbitrarily); this is repeated until $M_g$ contains $N$ individuals.
+Tournament selection is preferred over roulette-wheel selection because it depends only on
+the \emph{ranking} of fitness values rather than on their absolute magnitudes, so it remains
+selective even as the population converges and the fitness values of near-optimal schedules
+become very close.
+
+\paragraph{Weight-Class Crossover (WCX)}
+Crossover is the main source of new schedules, and it is here that the weight structure of
+Section~\ref{sec:dp_algorithm} enters. Let $W_1>\dots>W_K$ be the distinct weights and
+$\mathcal{G}_k=\{J_j\in\mathcal{J}\mid w_j=W_k\}$ the corresponding classes. A random
+threshold $q\in\{0,\dots,K\}$ fixes how many of the heaviest classes the child inherits from
+the first parent; the front of the child (the heavy jobs) is then copied from one parent
+while its tail (the light jobs) is filled from the other. This transmits the front-heavy
+layout shared by good schedules of a min-max objective, while the order inside each part
+remains free to evolve. The threshold $q$ is drawn uniformly so that every possible split
+point is explored with equal probability; the extreme cases $q=0$ and $q=K$ reduce to copying
+$\sigma_2$ and $\sigma_1$, respectively, so WCX degrades gracefully when the two parents
+coincide. Since the two parts are filled from different parents and each part preserves its
+parent's relative order, the child is always a valid permutation and never requires repair.
 
 \begin{algorithm}[H]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
 \DontPrintSemicolon
-\caption{Order-Based Crossover (OX) for $F2 \parallel W C_{\max}$}\label{alg:ox}
-\KwIn{Parent chromosomes $\pi_1$, $\pi_2$; positions $i,j$ with $i<j$.}
+\caption{Weight-Class Crossover (WCX) for $F2 \parallel W C_{\max}$}\label{alg:wcx}
+\KwIn{Parents $\sigma_1,\sigma_2$; weight classes $\mathcal{G}_1,\dots,\mathcal{G}_K$.}
 \BlankLine
-\textbf{Step 1.} Select segment $\pi_1[i..j]$ and mark these positions as reserved in child $\pi'$.\;
-\textbf{Step 2.} Fill remaining positions with genes from $\pi_2$ in order, skipping reserved positions.\;
-\textbf{Step 3.} [Repair] Apply Johnson's rule to the segment to respect problem constraints.\;
-\KwOut{Child chromosome $\pi'$.}
+\textbf{Step 1.} Draw $q$ uniformly from $\{0,\dots,K\}$. \;
+\textbf{Step 2.} Scan $\sigma_1$ and copy into $\sigma$, preserving order, every job that
+belongs to one of the $q$ heaviest classes $\mathcal{G}_1,\dots,\mathcal{G}_q$. \;
+\textbf{Step 3.} Scan $\sigma_2$ and append to $\sigma$, preserving order, every job not yet
+in $\sigma$ (equivalently, every job of the classes $\mathcal{G}_{q+1},\dots,\mathcal{G}_K$). \;
+\KwOut{Child schedule $\sigma$.}
 \end{algorithm}
 
-\begin{algorithm}[H]
-\small
-\linespread{1.2}\selectfont
-\SetAlgoLined
-\DontPrintSemicolon
-\caption{Weight-Based Positional Crossover (WPC)}\label{alg:wpc}
-\KwIn{Parent chromosomes $\pi_1$, $\pi_2$; parameter $\gamma \in [0,1]$.}
-\BlankLine
-\textbf{Step 1.} For each position $k$, compute weight-based priority:\;
-$p_k = \gamma \cdot \frac{w_{\pi_1(k)}}{\sum w} + (1-\gamma) \cdot \frac{w_{\pi_2(k)}}{\sum w}$\;
-\textbf{Step 2.} Sort positions by $p_k$ in descending order.\;
-\textbf{Step 3.} Select genes from parents according to priority order, preserving uniqueness.\;
-\textbf{Step 4.} [Local Optimization] Apply 2-opt improvement to the crossover result.\;
-\KwOut{Child chromosome.}
-\end{algorithm}
-
-\paragraph{Mutation Operators} Adaptive mutation with multiple strategies:
+\paragraph{Critical-Job Mutation}
+Mutation aims at the job that currently decides the objective. Let $j^{*}$ be the critical
+job attaining $W C_{\max}(\sigma)$ at position $t^{*}$. Moving $j^{*}$ to an earlier position
+$r<t^{*}$ can only decrease its own completion time (its machine-$2$ work is unchanged while
+it may start earlier), so the weighted completion $w_{j^{*}}C_{j^{*}}$---currently the
+largest---tends to decrease. The mutation therefore tries every insertion of $j^{*}$ into a
+position $r<t^{*}$, evaluates the resulting permutation by \eqref{eq:completion}, and keeps
+the best; this is a cheap, targeted hill-climbing step. If no such insertion improves the
+value, a random swap of two jobs from different weight classes is performed with probability
+$p_m$ to maintain diversity. Applied to every offspring, and combined with the elitist
+replacement, this operator acts as a local search that monotonically improves the incumbent
+without being trapped by the deterministic seeds.
 
 \begin{algorithm}[H]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
 \DontPrintSemicolon
-\caption{Adaptive Mutation for $F2 \parallel W C_{\max}$}\label{alg:mutate}
-\KwIn{Chromosome $\sigma$; current generation $g$; max generations $G$.}
+\caption{Critical-Job Mutation for $F2 \parallel W C_{\max}$}\label{alg:cm}
+\KwIn{Schedule $\sigma$; mutation probability $p_m$.}
 \BlankLine
-\textbf{Step 1.} Calculate mutation rate $p_m = p_{\min} + (p_{\max} - p_{\min}) \cdot (1 - g/G)$.\;
-\textbf{Step 2.} \eIf{$\text{rand}() < p_m$}{
-    \textbf{[Insertion]} Select random job $j$, insert at position minimizing $W C_{\max}$.\;
+\textbf{Step 1.} [Identify] Evaluate $W C_{\max}(\sigma)$ by \eqref{eq:completion}; let
+$j^{*}$ be a job attaining the maximum and let $t^{*}$ be its position in $\sigma$. \;
+\textbf{Step 2.} [Insertion search] \For{$r=1$ \KwTo $t^{*}-1$}{
+    Form $\sigma^{(r)}$ by moving $j^{*}$ to position $r$; evaluate $W C_{\max}(\sigma^{(r)})$. \;
+}
+\textbf{Step 3.} \eIf{$\min_{r} W C_{\max}(\sigma^{(r)})<W C_{\max}(\sigma)$}{
+    $\sigma\gets\sigma^{(r^{*})}$, where $r^{*}=\arg\min_{r} W C_{\max}(\sigma^{(r)})$ \;
 }{
-    \textbf{[Swap]} Swap two jobs $i,j$ where $|w_i - w_j|$ is maximized.\;
+    \If{$\text{rand}()<p_m$}{Swap two jobs of $\sigma$ lying in different weight classes. \;}
 }
-\textbf{Step 3.} [Johnson Repair] Reschedule conflicting jobs according to Johnson's rule.\;
-\KwOut{Mutated chromosome $\sigma'$.}
+\KwOut{Improved schedule $\sigma$.}
 \end{algorithm}
 
-\paragraph{Elitism and Diversity Preservation} The algorithm maintains both elite solutions and diverse populations:
-
-\begin{itemize}
-    \item \textbf{Elitism}: Preserve top $5\%$ solutions unchanged
-    \item \textbf{Crowding Distance}: Calculate diversity measure to maintain solution diversity
-    \item \textbf{Adaptive Crossover Rate}: Increase crossover rate if population diversity drops below threshold
-    \item \textbf{Restart Mechanism}: If no improvement for 50 generations, restart with random population
-\end{itemize}
+\paragraph{Genetic Algorithm}
+Combining the ingredients above gives the following scheme. Elitism preserves the best
+$\lambda$ solutions of each generation, and the final critical-job mutation plays the role
+of a local search.
 
 \begin{algorithm}[H]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
 \DontPrintSemicolon
-\caption{Genetic Algorithm II for $F2 \parallel W C_{\max}$}\label{alg:ga2}
-\KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$; population size $N$; max generations $G$.}
+\caption{Genetic Algorithm for $F2 \parallel W C_{\max}$}\label{alg:ga}
+\KwIn{Jobs $\mathcal{J}$; population size $N$; generations $G$; probabilities $p_c$, $p_m$;
+elitism size $\lambda$.}
 \BlankLine
-\textbf{Step 1.} [Initialization] Generate random population $P_0$; evaluate fitness; set best solution $\sigma^*$.\;
+\textbf{Step 1.} [Initialization] Build $P_0$ from the structured schedules
+$\sigma^{\mathrm{J}},\sigma^{\mathrm{W}},\sigma^{\mathrm{NEH}}$ and $N-3$ random
+permutations; evaluate all individuals; set $\sigma^{*}$ to the best. \;
 \textbf{Step 2.} [Evolution] \For{$g=1$ \KwTo $G$}{
-    \textbf{Selection} Apply tournament selection to create mating pool $M_g$.\;
-    \textbf{Crossover} Apply OX and WPC with probabilities $p_c^{\text{OX}}$, $p_c^{\text{WPC}}$.\;
-    \textbf{Mutation} Apply adaptive mutation with rate $p_m$.\;
-    \textbf{Evaluation} Compute fitness for all offspring.\;
-    \textbf{Replacement} Use elitism and crowding to form next generation $P_g$.\;
-    \textbf{Update} $\sigma^* \gets \arg\max_{\sigma \in P_g} \text{fitness}(\sigma)$.\;
-    \textbf{Adapt} Adjust parameters based on diversity and progress.\;
+    \textbf{Selection} Form the mating pool $M_g$ from $P_{g-1}$ by binary tournament
+    selection. \;
+    \textbf{Crossover} \While{$|O|<N$}{
+        Draw two parents from $M_g$; with probability $p_c$ apply
+        Algorithm~\ref{alg:wcx} to obtain two children, otherwise copy the parents into
+        the offspring set $O$. \;
+    }
+    \textbf{Mutation} Apply Algorithm~\ref{alg:cm} to each offspring with probability
+    $p_m$; evaluate every child by \eqref{eq:completion}. \;
+    \textbf{Replacement} $P_g\gets$ the best $\lambda$ individuals of $P_{g-1}$ plus the
+    $N-\lambda$ best offspring. \;
+    \textbf{Update} If the best individual of $P_g$ improves on $\sigma^{*}$, replace
+    $\sigma^{*}$ by it. \;
 }
-\textbf{Step 3.} [Local Search] Apply NEH heuristic to $\sigma^*$ for final improvement.\;
-\KwOut{Best schedule $\sigma^*$.}
+\textbf{Step 3.} [Local search] Apply Algorithm~\ref{alg:cm} to $\sigma^{*}$ until it yields
+no improvement. \;
+\KwOut{Best schedule $\sigma^{*}$.}
 \end{algorithm}
 
 \paragraph{Complexity Analysis}
-The computational complexity of GA2 is dominated by:
-\begin{itemize}
-    \item \textbf{Fitness Evaluation}: $O(n^2)$ per chromosome
-    \item \textbf{Population Processing}: $O(N \cdot n^2)$ per generation
-    \item \textbf{Local Search}: $O(n^3)$ in final NEH step
-    \item \textbf{Total}: $O(G \cdot N \cdot n^2 + n^3)$
-\end{itemize}
-
-\paragraph{Theoretical Guarantees}
-While GA2 is a heuristic approach, it provides several theoretical properties:
-\begin{itemize}
-    \item Convergence to near-optimal solutions with high probability
-    \item Guaranteed improvement over random search
-    \item Bounded approximation ratio in practice (empirically observed $1.05$-$1.15$)
-\end{itemize}
+Evaluating one schedule takes $O(n)$ time via \eqref{eq:completion}; WCX costs $O(n)$; the
+critical-job mutation tries at most $n$ insertions, each evaluated in $O(n)$ time, hence
+$O(n^{2})$ per application. Initialization is dominated by the NEH seed, which costs
+$O(n^{3})$ by Theorem~\ref{prop:neh-complexity}. A generation therefore costs
+$O(N\,n^{2})$ in the worst case, giving $O(G\,N\,n^{2})$ over $G$ generations; for the
+typical setting $N,G=\Theta(n)$ the total running time is $O(n^{4})$.
 
 
 \section{Conclusion}
