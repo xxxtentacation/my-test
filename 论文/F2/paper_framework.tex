@@ -56,12 +56,12 @@
     $O(n \cdot K \cdot V^{3K-3})$ time for constant $K$, where $V$ is the total processing time.
     For approximation guarantees, we design a fully polynomial-time approximation scheme (FPTAS) with state-class labeling
     that achieves $(1+\varepsilon)$-approximation while maintaining polynomial complexity.
-    Additionally, we develop practical heuristics including an adapted NEH algorithm and an ant colony optimization (ACO) algorithm (\citealp{zhang2023})
-    that provide fast solutions for large-scale instances. The computational results demonstrate that our algorithms
+    Additionally, we develop practical heuristics including an adapted NEH algorithm, an ant colony optimization (ACO) algorithm (\citealp{zhang2023}),
+    and a genetic algorithm based on recent GA2 approaches (\citealp{li2024enhanced}, \citealp{chen2023hybrid}) that provide fast solutions for large-scale instances. The computational results demonstrate that our algorithms
     efficiently solve both small and large instances while maintaining theoretical guarantees.
 \end{abstract}
 
-\noindent \textbf{Keywords:} Flow shop scheduling; Block-based dynamic programming; Approximation algorithms
+\noindent \textbf{Keywords:} Flow shop scheduling; Block-based dynamic programming; Approximation algorithms; Genetic algorithm GA2; Heuristics
 
 \section{Introduction}
 \label{sec:intro}
@@ -1002,7 +1002,7 @@ running time of the FPTAS of Section~\ref{sub:fptas} is exponential in the numbe
 distinct weights. For large instances, fast heuristics are therefore of practical interest.
 In this section we present three heuristics for $F2 \parallel W C_{\max}$: an adaptation of
 the NEH algorithm (\citealp{puka2024}), an ant colony optimization (ACO) algorithm
-(\citealp{zhang2023}), and a genetic algorithm (Section~\ref{sub:ga}).
+(\citealp{zhang2023}), and a GA algorithms (\citealp{li2024enhanced}, \citealp{chen2023hybrid}).
 
 Throughout this section, the objective of a permutation
 $\sigma=(\sigma(1),\dots,\sigma(k))$ of $k$ jobs is evaluated by \eqref{eq:completion}, so that
@@ -1088,14 +1088,15 @@ through pheromone trail reinforcement.
 
 
 
-\subsection{A Genetic Algorithm}
+\subsection{Genetic Algorithm}
 \label{sub:ga}
 
 The objective $\max_{j} w_j\,C_j$ is a bottleneck criterion: the value of a schedule is
 determined by the single \emph{critical} job that attains the maximum, and an ordering can be
 improved only by lowering that job's completion time, or by shortening completion times across
 the board. A genetic algorithm for $F2 \parallel W C_{\max}$ should therefore not treat all
-jobs symmetrically. We design its operators around the weight classes and the block structure
+jobs symmetrically. Following recent advances in GA2 algorithms for flow shop scheduling
+(\citealp{li2024enhanced}, \citealp{chen2023hybrid}), we design its operators around the weight classes and the block structure
 of Section~\ref{sec:dp_algorithm}: high-weight jobs should occupy early positions (their
 weighted completion must be kept small), while the makespan should stay low so that no job is
 delayed unnecessarily.
