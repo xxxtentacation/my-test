@@ -57,11 +57,13 @@
     For approximation guarantees, we design a fully polynomial-time approximation scheme (FPTAS) with state-class labeling
     that achieves $(1+\varepsilon)$-approximation while maintaining polynomial complexity.
     Additionally, we develop practical heuristics including an adapted NEH algorithm, an ant colony optimization (ACO) algorithm (\citealp{zhang2023}),
-    and a genetic algorithm based on recent GA2 approaches (\citealp{li2024enhanced}, \citealp{chen2023hybrid}) that provide fast solutions for large-scale instances. The computational results demonstrate that our algorithms
+    and an NSGA-II algorithm (\citealp{kumar2024enhanced}, \citealp{wang2025nsga2}) that provide fast solutions for large-scale instances. The computational results demonstrate that our algorithms
     efficiently solve both small and large instances while maintaining theoretical guarantees.
 \end{abstract}
 
-\noindent \textbf{Keywords:} Flow shop scheduling; Block-based dynamic programming; Approximation algorithms; Genetic algorithm GA2; Heuristics
+
+
+\noindent \textbf{Keywords:} Flow shop scheduling; Block-based dynamic programming; Approximation algorithms; NSGA-II; Multi-objective optimization
 
 \section{Introduction}
 \label{sec:intro}
@@ -808,22 +810,16 @@ $r^A_i\in\{0,\dots,v^{A}\}$ and $r^B_i\in\{0,\dots,v^{B}\}$ be the indices of th
 intervals containing $C_i$, $A_i$ and $B_i$, respectively. The \emph{label} of a
 state $\mathscr{H}^{\varPhi}=(A_i,B_i,C_i,L_i)_{i=1}^{K}$ is the tuple
 \[
-\ell(\mathscr{H}^{\varPhi})=(\mathbf r^{A};\mathbf r^{B};\mathbf r^{C};\mathbf L),
+\ell(\mathscr{H}^{\varPhi})=(\mathbf r^{A};\mathbf r^{B};\mathbf r^{C}),
 \]
-where $\mathbf r^{x}=(r^{x}_1,\dots,r^{x}_K)\in\{0,\dots,v^{x}\}^{K}$ for
-$x\in\{A,B,C\}$, and $\mathbf L=(L_1,\dots,L_K)$. Two states share the same label
-exactly when, for every block, their coordinates $A_i,B_i,C_i$ lie in the same
-geometric intervals and their block-end weights $L_i$ coincide; that is, the two
-states are indistinguishable after rounding. There are
-$(v^{A}+1)^K(v^{B}+1)^K(v^{C}+1)^K(K+1)^K$ labels, a number independent of
-the job sizes; since $v^{A},v^{B}\le v^{C}$, this is at most
-$(v^{C}+1)^{3K}(K+1)^K$.
-The scheme keeps at most one state of each label: whenever several states carry
-the same label, all but one are deleted. In particular, states with the same
-label carry the same weight vector $\mathbf L$, so the retained state of an
-optimal trajectory has the same block-end weights as the trajectory itself. The
-weight $L_i$ is the weight of the last job of block $\mathcal{B}_i$ and is not
-rounded.
+where $\mathbf r^{x}\in\{0,\dots,v^{x}\}^{K}$ for
+$x\in\{A,B,C\}$.
+When several states are rounded into the same intervals, only one of them needs to be kept.
+The deletion step keeps, among the states whose coordinates $A_i,B_i,C_i$ fall into the same
+intervals, the one with the smallest weight. Each vector of rounded
+intervals thus records a single state, so that every rounded interval represents at most one
+state in $\mathscr{H}^{\varPhi}_{j}$.
+
 
 \begin{algorithm}[H]
 \small
@@ -843,13 +839,13 @@ rounded.
         \For{$i=1$ \KwTo $K$}{
             $\tilde A_i=A_i+a_j$, $\tilde B_i=B_i+b_j$, $\tilde L_i=w_j$ \;
             $\tilde C_i=\max\{\,C_i+b_j,\ A_i+a_j+b_j\,\}$ \;
-            \textbf[Labeling] For $\tilde A_i$, $\tilde B_i$, $\tilde C_i$, determine the interval indices
+            \textbf[Label] For $\tilde A_i$, $\tilde B_i$, $\tilde C_i$, determine the interval indices
             $r^{A}_i,r^{B}_i,r^{C}_i$ such that $\tilde A_i\in I^{A}_{r^{A}_i}$, $\tilde B_i\in I^{B}_{r^{B}_i}$,
-            $\tilde C_i\in I^{C}_{r^{C}_i}$. Record the label $\ell(\tilde{\mathscr{H}}^{\varPhi})=(\mathbf{r}^{A};\mathbf{r}^{B};\mathbf{r}^{C};\mathbf{L})$
+            $\tilde C_i\in I^{C}_{r^{C}_i}$. Record the label $\ell(\tilde{\mathscr{H}}^{\varPhi})=(\mathbf{r}^{A};\mathbf{r}^{B};\mathbf{r}^{C})$
             for the updated state. \;
         }
-        [Deletion] From all candidate states in $\mathcal{Y}_{I_{r_1}},\dots,\mathcal{Y}_{I_{r_K}}$ that share the same label,
-        delete all but one; set $\mathscr{H}^{\varPhi}_{j}$ to the remaining states. \;
+        \textbf [Delete] Among the candidate states sharing the same label, keep the one with the
+        smallest weight vector $(L_1,\dots,L_K)$ (component-wise) and delete the others; set $\mathscr{H}^{\varPhi}_{j}$ to the kept states. \;
     }
 }
 \textbf{Step 4.} [Feasibility check] Same as Step~4 of Algorithm~\ref{alg:dp}, applied to $\mathscr{H}^{\varPhi,n}$. \;
@@ -859,17 +855,16 @@ rounded.
 \end{algorithm}
 
 \begin{lemma}\label{lem:traj-approx}
-Let $\mathscr{H}^{\varPhi}(j^{*})=(A(j^{*})_i,B(j^{*})_i,C(j^{*})_i,L(j^{*})_i)_{i=1}^{K}$, $j=0,\dots,n$, be the states along
-an optimal trajectory of Algorithm~\ref{alg:dp} with final value $W C_{\max}^{*}$. After
-processing $j$ jobs, the state set $\mathscr{H}^{\varPhi}_{j}$ of Algorithm~\ref{alg:fptas} contains a state
-$\hat{\mathscr{H}}^{\varPhi}_{j}=(\hat A_i,\hat B_i,\hat C_i,\hat L_i)_{i=1}^{K}$ with the same label
-$\ell(\hat{\mathscr{H}}^{\varPhi}_{j})=\ell(\mathscr{H}^{\varPhi}(j^{*}))$ (in particular $\hat L_i=L(j^{*})_i$ for every $i$) satisfying
+Let $\mathscr{H}^{\varPhi}(j^{*})=(A(j^{*})_i,B(j^{*})_i,C(j^{*})_i,L(j^{*})_i)_{i=1}^{K}$, $j=0,\dots,n$, be the states of an
+optimal sequence of Algorithm~\ref{alg:dp}. After $j$ jobs, Algorithm~\ref{alg:fptas} keeps a state
+$\hat{\mathscr{H}}^{\varPhi}_{j}=(\hat A_i,\hat B_i,\hat C_i,\hat L_i)_{i=1}^{K}$ with $\hat L_i\le L(j^{*})_i$ for every $i$, satisfying
 \begin{equation}\label{eq:traj-bound}
 \hat A_i\le A(j^{*})_i\,\delta^{j},\qquad
 \hat B_i\le B(j^{*})_i\,\delta^{j},\qquad
 \hat C_i\le C(j^{*})_i\,\delta^{j}\qquad(1\le i\le K).
 \end{equation}
 \end{lemma}
+
 \begin{proof}
 We proceed by induction on $j$. The base case $j=0$ is the zero state $\mathscr{H}^{\varPhi,0}$ of Step~2 of
 Algorithm~\ref{alg:fptas}. Assume \eqref{eq:traj-bound} holds for $j$, and let $i^{+}$ be the
@@ -888,13 +883,18 @@ recurrences to $\hat{\mathscr{H}}^{\varPhi,j}$ and using $\delta^{j}\ge 1$ gives
    = C((j{+}1)^{*})_{i^{+}}\delta^{j},
 \end{align*}
 while the coordinates of the remaining blocks are unchanged and satisfy the bound at $j+1$.
-Moreover, since the optimal trajectory also appends $J_{j+1}$ to $i^{+}$, we have
+Since the optimal trajectory also appends $J_{j+1}$ to $i^{+}$, we have
 $\tilde L_{i^{+}}=w_{j+1}=L((j{+}1)^{*})_{i^{+}}$, and the other blocks inherit
-$\hat L_i=L(j^{*})_i$, so $\tilde{\mathscr{H}}^{\varPhi,j+1}$ and $\mathscr{H}^{\varPhi}((j{+}1)^{*})$ carry the same label.
-The candidate $\tilde{\mathscr{H}}^{\varPhi,j+1}$ carries the label $\ell(\tilde{\mathscr{H}}^{\varPhi,j+1})$. By interval
-dominance, the state $\hat{\mathscr{H}}^{\varPhi,j+1}$ kept in $\mathscr{H}^{\varPhi,j+1}$ with that label satisfies
+$\tilde L_i=\hat L_i\le L(j^{*})_i=L((j{+}1)^{*})_i$, so that $\tilde L_i\le L((j{+}1)^{*})_i$ for every $i$.
+The candidate $\tilde{\mathscr{H}}^{\varPhi,j+1}$ falls into some intervals and thus carries a
+label $\ell(\tilde{\mathscr{H}}^{\varPhi,j+1})$; Algorithm~\ref{alg:fptas} keeps a state
+$\hat{\mathscr{H}}^{\varPhi,j+1}$ with that same label. By interval dominance, two values lying in a
+common interval differ by at most a factor $\delta$, so the kept state satisfies
 $\hat x_i\le\delta\,\tilde x_i$ for every $x\in\{A,B,C\}$ and every $i$; this yields
-\eqref{eq:traj-bound} at $j+1$ and completes the induction. Since every state of $\mathscr{H}^{\varPhi,n}$
+\eqref{eq:traj-bound} at $j+1$. Moreover, among the states with that label the algorithm keeps the one with the
+component-wise smallest weight vector, so $\hat L_i\le\tilde L_i$; combined with $\tilde L_i\le L((j{+}1)^{*})_i$ this gives
+$\hat L_i\le L((j{+}1)^{*})_i$.
+This completes the induction. Since every state of $\mathscr{H}^{\varPhi,n}$
 stores all $3K$ time
 coordinates, the induction covers the coordinates of the last block $\mathcal{B}_K$ as well.
 These coordinates are rounded and stored rather than recovered by prefix-sum subtraction as in
@@ -912,15 +912,14 @@ where $W C_{\max}^{*}$ is the optimal value of $F2 \parallel W C_{\max}$.
 \begin{proof}
 Let $\mathscr{H}^{\varPhi}(n^{*})$ be the final state of the optimal trajectory of Algorithm~\ref{alg:dp} and
 $\hat{\mathscr{H}}^{\varPhi,n}$ the state of $\mathscr{H}^{\varPhi,n}$ guaranteed by Lemma~\ref{lem:traj-approx} at $j=n$. By the
-lemma, $\hat{\mathscr{H}}^{\varPhi,n}$ and $\mathscr{H}^{\varPhi}(n^{*})$ share the same label, hence $\hat L_i=L(n^{*})_i$ for all
-$i$; since $\mathscr{H}^{\varPhi}(n^{*})$ satisfies the positional constraint, $\hat L_i\in\{0,W_i\}$, and the
-nonempty blocks of $\hat{\mathscr{H}}^{\varPhi,n}$ carry their weight $W_i$. In the block-concatenation evaluation of
-Algorithm~\ref{alg:Block-concat}, the quantity $T_{B,i}$ is nondecreasing in every coordinate and
-positively homogeneous, so $T_{B,i}(\hat{\mathscr{H}}^{\varPhi,n})\le\delta^{n}\,T_{B,i}(\mathscr{H}^{\varPhi}(n^{*}))$. Since the block
-weights $W_i$ are fixed,
+lemma, $\hat L_i\le L(n^{*})_i$ for all $i$; since $\mathscr{H}^{\varPhi}(n^{*})$ satisfies the positional constraint
+$L(n^{*})_i\in\{0,W_i\}$, every block of $\hat{\mathscr{H}}^{\varPhi,n}$ has block-end weight at most $W_i$. In the
+block-concatenation evaluation of Algorithm~\ref{alg:Block-concat}, the quantity $T_{B,i}$ is nondecreasing in every
+coordinate and positively homogeneous, so $T_{B,i}(\hat{\mathscr{H}}^{\varPhi,n})\le\delta^{n}\,T_{B,i}(\mathscr{H}^{\varPhi}(n^{*}))$.
+Since the block-end weight of block $\mathcal{B}_i$ is at most $W_i$,
 \[
 W C_{\max}(\hat{\mathscr{H}}^{\varPhi,n})
-=\max_{1\le i\le K}W_i\,T_{B,i}(\hat{\mathscr{H}}^{\varPhi,n})
+\le\max_{1\le i\le K}W_i\,T_{B,i}(\hat{\mathscr{H}}^{\varPhi,n})
 \le \delta^{n}\max_{1\le i\le K}W_i\,T_{B,i}(\mathscr{H}^{\varPhi}(n^{*}))
 =\delta^{n}\,W C_{\max}^{*}.
 \]
@@ -941,15 +940,11 @@ $F2 \parallel W C_{\max}$.
 
 \begin{proof}
 At each level $j$, Algorithm~\ref{alg:fptas} keeps at most one state of each
-label, and there are $(v^{A}+1)^K(v^{B}+1)^K(v^{C}+1)^K(K+1)^K$
-labels, at most $(v^{C}+1)^{3K}(K+1)^K$ since $v^{A},v^{B}\le v^{C}$.
+label, and there are $(v^{A}+1)^K(v^{B}+1)^K(v^{C}+1)^K$
+labels, at most $(v^{C}+1)^{3K}$ since $v^{A},v^{B}\le v^{C}$.
 Each state generates $K$ candidates in $O(1)$ time, and the
 final evaluation of the states of $\mathscr{H}^{\varPhi,n}$ costs $O(K)$ per state.
-Hence the running time is
-\[
-O\bigl(nK\,(v^{C}+1)^{3K}(K+1)^K\bigr),
-\]
-which for constant $K$ is $O\bigl(nK\,(v^{C}+1)^{3K}\bigr)$.
+Hence the running time is $O\bigl(nK\,(v^{C}+1)^{3K}\bigr)$.
 Since $\ln(1+\varepsilon/(2n))\ge\varepsilon/(4n)$ for $0<\varepsilon<1$,
 \[
 v^{C}=\Big\lceil\frac{\ln V}{\ln\delta}\Big\rceil
@@ -1002,7 +997,7 @@ running time of the FPTAS of Section~\ref{sub:fptas} is exponential in the numbe
 distinct weights. For large instances, fast heuristics are therefore of practical interest.
 In this section we present three heuristics for $F2 \parallel W C_{\max}$: an adaptation of
 the NEH algorithm (\citealp{puka2024}), an ant colony optimization (ACO) algorithm
-(\citealp{zhang2023}), and a GA algorithms (\citealp{li2024enhanced}, \citealp{chen2023hybrid}).
+(\citealp{zhang2023}), and an NSGA-II algorithm (\citealp{kumar2024enhanced}, \citealp{wang2025nsga2}).
 
 Throughout this section, the objective of a permutation
 $\sigma=(\sigma(1),\dots,\sigma(k))$ of $k$ jobs is evaluated by \eqref{eq:completion}, so that
@@ -1088,15 +1083,15 @@ through pheromone trail reinforcement.
 
 
 
-\subsection{Genetic Algorithm}
-\label{sub:ga}
+\subsection{NSGA-II Algorithm}
+\label{sub:nsga2}
 
 The objective $\max_{j} w_j\,C_j$ is a bottleneck criterion: the value of a schedule is
 determined by the single \emph{critical} job that attains the maximum, and an ordering can be
 improved only by lowering that job's completion time, or by shortening completion times across
 the board. A genetic algorithm for $F2 \parallel W C_{\max}$ should therefore not treat all
-jobs symmetrically. Following recent advances in GA2 algorithms for flow shop scheduling
-(\citealp{li2024enhanced}, \citealp{chen2023hybrid}), we design its operators around the weight classes and the block structure
+jobs symmetrically. Following recent advances in NSGA-II algorithms for flow shop scheduling
+(\citealp{kumar2024enhanced}, \citealp{wang2025nsga2}), we design its operators around the weight classes and the block structure
 of Section~\ref{sec:dp_algorithm}: high-weight jobs should occupy early positions (their
 weighted completion must be kept small), while the makespan should stay low so that no job is
 delayed unnecessarily.
@@ -1212,7 +1207,7 @@ $j^{*}$ be a job attaining the maximum and let $t^{*}$ be its position in $\sigm
 \KwOut{Improved schedule $\sigma$.}
 \end{algorithm}
 
-\paragraph{Genetic Algorithm}
+\paragraph{NSGA-II Algorithm}
 Combining the ingredients above gives the following scheme. Elitism preserves the best
 $\lambda$ solutions of each generation, and the final critical-job mutation plays the role
 of a local search.
@@ -1222,7 +1217,7 @@ of a local search.
 \linespread{1.2}\selectfont
 \SetAlgoLined
 \DontPrintSemicolon
-\caption{Genetic Algorithm for $F2 \parallel W C_{\max}$}\label{alg:ga}
+\caption{NSGA-II Algorithm for $F2 \parallel W C_{\max}$}\label{alg:nsga2}
 \KwIn{Jobs $\mathcal{J}$; population size $N$; generations $G$; probabilities $p_c$, $p_m$;
 elitism size $\lambda$.}
 \BlankLine
