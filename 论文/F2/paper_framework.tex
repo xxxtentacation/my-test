@@ -57,13 +57,13 @@
     For approximation guarantees, we design a fully polynomial-time approximation scheme (FPTAS) with state-class labeling
     that achieves $(1+\varepsilon)$-approximation while maintaining polynomial complexity.
     Additionally, we develop practical heuristics including an adapted NEH algorithm, an ant colony optimization (ACO) algorithm (\citealp{zhang2023}),
-    and an NSGA-II algorithm (\citealp{kumar2024enhanced}, \citealp{wang2025nsga2}) that provide fast solutions for large-scale instances. The computational results demonstrate that our algorithms
+    and a genetic algorithm (\citealp{reeves1995}) that provide fast solutions for large-scale instances. The computational results demonstrate that our algorithms
     efficiently solve both small and large instances while maintaining theoretical guarantees.
 \end{abstract}
 
 
 
-\noindent \textbf{Keywords:} Flow shop scheduling; Block-based dynamic programming; Approximation algorithms; NSGA-II; Multi-objective optimization
+\noindent \textbf{Keywords:} Flow shop scheduling; Block-based dynamic programming; Approximation algorithms; Genetic algorithm
 
 \section{Introduction}
 \label{sec:intro}
@@ -997,7 +997,7 @@ running time of the FPTAS of Section~\ref{sub:fptas} is exponential in the numbe
 distinct weights. For large instances, fast heuristics are therefore of practical interest.
 In this section we present three heuristics for $F2 \parallel W C_{\max}$: an adaptation of
 the NEH algorithm (\citealp{puka2024}), an ant colony optimization (ACO) algorithm
-(\citealp{zhang2023}), and an NSGA-II algorithm (\citealp{kumar2024enhanced}, \citealp{wang2025nsga2}).
+(\citealp{zhang2023}), and a genetic algorithm (\citealp{reeves1995}).
 
 Throughout this section, the objective of a permutation
 $\sigma=(\sigma(1),\dots,\sigma(k))$ of $k$ jobs is evaluated by \eqref{eq:completion}, so that
@@ -1008,15 +1008,35 @@ which is computed in $O(k)$ time.
 
 
 \subsection{NEH}
-The NEH algorithm (\citealp{puka2024}) is one of the best-performing constructive heuristics
-for flow-shop scheduling. It orders the jobs by decreasing priority and then inserts them
-one by one into the partial schedule at the position that minimizes the objective.
+Constructive heuristics are attractive for $F2 \parallel W C_{\max}$ because they produce a
+complete schedule in a single pass, without the tuning effort of population-based
+metaheuristics. The NEH heuristic of (\citealp{puka2024}) is among the most effective
+constructive rules for permutation flow shops, and its core idea is to build a schedule by
+incrementally inserting jobs into a growing partial sequence, each time choosing the
+position that best serves the objective.
 
-For $F2 \parallel W C_{\max}$, jobs with large total processing time $a_j+b_j$ dominate the
-completion times and should be scheduled early. We therefore sort the jobs by non-increasing
-$a_j+b_j$, breaking ties by non-increasing weight $w_j$. The $k$-th job is inserted into each
-of the $k$ possible positions of the current partial schedule, and a position attaining the
-smallest $W C_{\max}$ is kept.
+In the maximum weighted completion-time objective, two properties are particularly
+important. First, jobs with large total processing time $a_j+b_j$ tend to push the whole
+makespan forward and therefore should appear early so as not to delay other jobs. Second,
+given a fixed makespan, jobs with larger weight $w_j$ benefit more from occupying earlier
+positions, because their weighted completion time decreases. These two properties suggest a
+greedy priority in which large-$a_j+b_j$ jobs are placed first and large-$w_j$ jobs are used
+as a tie-breaker.
+
+We adapt the NEH framework as follows. The jobs are first sorted by non-increasing
+$a_j+b_j$, breaking ties by non-increasing $w_j$, to obtain an initial sequence
+$J_1,\dots,J_n$. The schedule starts with the single job $J_1$. For each $k=2,\dots,n$, the
+next job $J_k$ is inserted into every one of the $k$ possible positions of the current
+partial schedule. Each candidate sequence is evaluated by \eqref{eq:completion}, and the
+position that yields the smallest $W C_{\max}$ is retained. The pseudo-code is given in
+Algorithm~\ref{alg:neh}.
+
+Because the partial schedule already contains $k-1$ jobs, the cost of evaluating all $k$
+insertions at step $k$ is $O(k^2)$ using the recurrence \eqref{eq:completion}; the total
+running time is therefore $O(n^3)$ (Theorem~\ref{prop:neh-complexity}). The heuristic also
+produces a feasible permutation schedule by construction, requires no hyperparameter
+selection, and can serve either as a fast standalone solver for large instances or as a
+warm-start seed for the population-based heuristics described below.
 
 \begin{algorithm}[H]
 \small
@@ -1051,9 +1071,45 @@ $O\bigl(\sum_{k=1}^{n}k^2\bigr)=O(n^3)$.
 
 
 \subsection{Ant Colony Optimization}
-The ant colony optimization (ACO) algorithm (\citealp{zhang2023}) is a metaheuristic inspired by the foraging behavior of ants. 
-For $F2 \parallel W C_{\max}$, we adapt ACO to construct permutation schedules by iteratively improving solutions 
-through pheromone trail reinforcement.
+Population-based metaheuristics can explore a much larger set of schedules than constructive
+heuristics, but their effectiveness depends on how well the search bias matches the problem
+structure. Ant colony optimization (\citealp{zhang2023}) is a constructive population
+metaheuristic in which a colony of artificial ants incrementally builds schedules, and the
+collective experience is stored in pheromone trails that guide subsequent ants toward
+promising job orderings.
+
+For $F2 \parallel W C_{\max}$, the relative order of jobs is more important than an
+absolute assignment: placing a heavy job too late inflates the objective dramatically, while
+keeping it early usually helps regardless of the exact surrounding permutation. This makes
+pairwise preference information a natural search bias. ACO captures such preferences through
+a pheromone matrix $\tau_{ij}$, where a larger value encourages job $J_j$ to be scheduled
+after job $J_i$, thereby biasing the colony toward front-heavy schedules.
+
+We adapt the standard ACO framework as follows. Initially all pheromone values are set to
+$\tau_{ij}=1/n$. In every iteration, each of the $m$ ants constructs a permutation
+$\sigma_k$ by repeatedly selecting, from the set $U$ of unscheduled jobs, the job $J_j$ to be
+placed at the next position with probability
+\[
+p_{jt}=\frac{\tau_{j}^{\alpha}\cdot\eta_{jt}^{\beta}}{\sum_{l\in U}\tau_{l}^{\alpha}\cdot\eta_{lt}^{\beta}}.
+\]
+Here $\alpha$ and $\beta$ control the relative influence of pheromone and heuristic
+information $\eta_{jt}$, which we set to $\eta_{jt}=w_j/(a_j+b_j+1)$ so that jobs with large
+weight and small total processing time are preferred. After all ants have built their
+schedules, the best schedule $\sigma^{*}$ found so far is identified, and the pheromone
+trails are updated according to
+\[
+\tau_{ij}\gets(1-\rho)\tau_{ij}+\rho\,\Delta\tau_{ij},
+\]
+where $\rho\in(0,1)$ is the evaporation rate and $\Delta\tau_{ij}=Q/Z^{*}$ if the edge
+$(i,j)$ appears in $\sigma^{*}$, and $0$ otherwise. The process is repeated until a stopping
+criterion is met. The pseudo-code is given in Algorithm~\ref{alg:aco}.
+
+Because ants construct complete schedules probabilistically, ACO can escape the restricted
+search region of deterministic heuristics. The pheromone mechanism also provides a compact,
+increasingly focused memory of good pairwise orders, so the algorithm naturally intensifies
+around high-quality regions while the stochastic construction preserves diversification.
+Moreover, each schedule is evaluated in $O(n)$ time by \eqref{eq:completion}, making each
+iteration computationally lightweight and well suited to large instances.
 
 \begin{algorithm}[H]
 \small
@@ -1083,15 +1139,15 @@ through pheromone trail reinforcement.
 
 
 
-\subsection{NSGA-II Algorithm}
-\label{sub:nsga2}
+\subsection{Genetic Algorithm}
+\label{sub:ga}
 
 The objective $\max_{j} w_j\,C_j$ is a bottleneck criterion: the value of a schedule is
 determined by the single \emph{critical} job that attains the maximum, and an ordering can be
 improved only by lowering that job's completion time, or by shortening completion times across
 the board. A genetic algorithm for $F2 \parallel W C_{\max}$ should therefore not treat all
-jobs symmetrically. Following recent advances in NSGA-II algorithms for flow shop scheduling
-(\citealp{kumar2024enhanced}, \citealp{wang2025nsga2}), we design its operators around the weight classes and the block structure
+jobs symmetrically. Following the genetic algorithm of Reeves (\citealp{reeves1995}) for
+flow-shop sequencing, we design its operators around the weight classes and the block structure
 of Section~\ref{sec:dp_algorithm}: high-weight jobs should occupy early positions (their
 weighted completion must be kept small), while the makespan should stay low so that no job is
 delayed unnecessarily.
@@ -1143,34 +1199,36 @@ the \emph{ranking} of fitness values rather than on their absolute magnitudes, s
 selective even as the population converges and the fitness values of near-optimal schedules
 become very close.
 
-\paragraph{Weight-Class Crossover (WCX)}
-Crossover is the main source of new schedules, and it is here that the weight structure of
-Section~\ref{sec:dp_algorithm} enters. Let $W_1>\dots>W_K$ be the distinct weights and
-$\mathcal{G}_k=\{J_j\in\mathcal{J}\mid w_j=W_k\}$ the corresponding classes. A random
-threshold $q\in\{0,\dots,K\}$ fixes how many of the heaviest classes the child inherits from
-the first parent; the front of the child (the heavy jobs) is then copied from one parent
-while its tail (the light jobs) is filled from the other. This transmits the front-heavy
-layout shared by good schedules of a min-max objective, while the order inside each part
-remains free to evolve. The threshold $q$ is drawn uniformly so that every possible split
-point is explored with equal probability; the extreme cases $q=0$ and $q=K$ reduce to copying
-$\sigma_2$ and $\sigma_1$, respectively, so WCX degrades gracefully when the two parents
-coincide. Since the two parts are filled from different parents and each part preserves its
-parent's relative order, the child is always a valid permutation and never requires repair.
+\paragraph{Crossover (PMX)}
+Crossover recombines two parent schedules into offspring that inherit both the relative order
+and the absolute positions of jobs---the two ingredients a permutation schedule is built
+from. We use the partially mapped crossover (PMX), the standard operator for
+permutation-encoded genetic algorithms. Two cut points $p_1<p_2$ are drawn uniformly at
+random, and the middle segment $\pi_1[p_1..p_2]$ is copied verbatim into the child. The
+remaining positions are filled from the second parent $\pi_2$; whenever a gene of $\pi_2$
+already occurs in the child, it is replaced through the mapping induced by the middle
+segment, so the child is always a valid permutation. PMX transfers contiguous blocks of jobs,
+which realize the front-heavy structure identified in Section~\ref{sec:dp_algorithm}, while
+still recombining the two parents' orders on the outer positions. Swapping the roles of
+$\pi_1$ and $\pi_2$ yields the second child.
 
 \begin{algorithm}[H]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
 \DontPrintSemicolon
-\caption{Weight-Class Crossover (WCX) for $F2 \parallel W C_{\max}$}\label{alg:wcx}
-\KwIn{Parents $\sigma_1,\sigma_2$; weight classes $\mathcal{G}_1,\dots,\mathcal{G}_K$.}
+\caption{Partially Mapped Crossover (PMX) for $F2 \parallel W C_{\max}$}\label{alg:pmx}
+\KwIn{Parents $\pi_1,\pi_2$; cut points $p_1<p_2$.}
 \BlankLine
-\textbf{Step 1.} Draw $q$ uniformly from $\{0,\dots,K\}$. \;
-\textbf{Step 2.} Scan $\sigma_1$ and copy into $\sigma$, preserving order, every job that
-belongs to one of the $q$ heaviest classes $\mathcal{G}_1,\dots,\mathcal{G}_q$. \;
-\textbf{Step 3.} Scan $\sigma_2$ and append to $\sigma$, preserving order, every job not yet
-in $\sigma$ (equivalently, every job of the classes $\mathcal{G}_{q+1},\dots,\mathcal{G}_K$). \;
-\KwOut{Child schedule $\sigma$.}
+\textbf{Step 1.} [Copy segment] Set $\pi'[t]\gets\pi_1[t]$ for $t=p_1,\dots,p_2$. \;
+\textbf{Step 2.} [Fill outer positions] \For{$t=1$ \KwTo $n$, $t\notin[p_1,p_2]$}{
+    $j\gets\pi_2[t]$ \;
+    \While{$j$ occurs in $\pi'$}{
+        $j\gets\pi_2[\pi_1^{-1}(j)]$ \tcp*{follow the PMX mapping}
+    }
+    $\pi'[t]\gets j$ \;
+}
+\KwOut{Child $\pi'$.}
 \end{algorithm}
 
 \paragraph{Critical-Job Mutation}
@@ -1207,7 +1265,7 @@ $j^{*}$ be a job attaining the maximum and let $t^{*}$ be its position in $\sigm
 \KwOut{Improved schedule $\sigma$.}
 \end{algorithm}
 
-\paragraph{NSGA-II Algorithm}
+\paragraph{Genetic Algorithm}
 Combining the ingredients above gives the following scheme. Elitism preserves the best
 $\lambda$ solutions of each generation, and the final critical-job mutation plays the role
 of a local search.
@@ -1217,7 +1275,7 @@ of a local search.
 \linespread{1.2}\selectfont
 \SetAlgoLined
 \DontPrintSemicolon
-\caption{NSGA-II Algorithm for $F2 \parallel W C_{\max}$}\label{alg:nsga2}
+\caption{Genetic Algorithm for $F2 \parallel W C_{\max}$}\label{alg:ga}
 \KwIn{Jobs $\mathcal{J}$; population size $N$; generations $G$; probabilities $p_c$, $p_m$;
 elitism size $\lambda$.}
 \BlankLine
@@ -1229,7 +1287,7 @@ permutations; evaluate all individuals; set $\sigma^{*}$ to the best. \;
     selection. \;
     \textbf{Crossover} \While{$|O|<N$}{
         Draw two parents from $M_g$; with probability $p_c$ apply
-        Algorithm~\ref{alg:wcx} to obtain two children, otherwise copy the parents into
+        Algorithm~\ref{alg:pmx} to obtain two children, otherwise copy the parents into
         the offspring set $O$. \;
     }
     \textbf{Mutation} Apply Algorithm~\ref{alg:cm} to each offspring with probability
@@ -1245,7 +1303,7 @@ no improvement. \;
 \end{algorithm}
 
 \paragraph{Complexity Analysis}
-Evaluating one schedule takes $O(n)$ time via \eqref{eq:completion}; WCX costs $O(n)$; the
+Evaluating one schedule takes $O(n)$ time via \eqref{eq:completion}; PMX costs $O(n)$; the
 critical-job mutation tries at most $n$ insertions, each evaluated in $O(n)$ time, hence
 $O(n^{2})$ per application. Initialization is dominated by the NEH seed, which costs
 $O(n^{3})$ by Theorem~\ref{prop:neh-complexity}. A generation therefore costs
