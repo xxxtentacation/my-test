@@ -68,6 +68,36 @@
 \section{Introduction}
 \label{sec:intro}
 
+Flow shop scheduling, a fundamental problem in operations research, has been studied since the 1950s when Johnson established 
+the foundation for two-machine systems with his pioneering rule for minimizing makespan \cite{johnson1954optimal}. 
+This classical work laid the groundwork for decades of research on more general flow shop configurations with multiple machines, 
+multiple objectives, and complex constraints. Over the past seven decades, the field has evolved from exact algorithms and 
+heuristic approaches to sophisticated metaheuristics and approximation schemes, reflecting the increasing complexity of 
+real-world industrial applications.
+
+The practical significance of flow shop scheduling spans multiple industrial domains. In manufacturing systems, 
+these problems arise in automotive assembly lines where different processing stages must be coordinated to minimize 
+total production time while meeting quality requirements. The semiconductor industry exemplifies the complexity of 
+modern flow shop scheduling, where integrated circuit fabrication involves hundreds of operations with precise timing constraints 
+and temperature control considerations. Logistics and distribution centers employ flow shop scheduling to optimize order 
+fulfillment processes, ensuring efficient sorting, packing, and shipping operations. Energy sector applications include power 
+generation scheduling and renewable energy system integration, where energy conversion and storage processes must be coordinated 
+to maximize efficiency and minimize costs.
+
+Despite these advances, contemporary flow shop scheduling research continues to address new challenges. 
+Dynamic environments with machine breakdowns, job arrivals, and parameter uncertainty necessitate robust scheduling approaches 
+that can adapt to changing conditions. Multi-objective optimization problems, combining makespan minimization with energy efficiency, 
+sustainability goals, and fairness considerations, require novel algorithmic frameworks. Additionally, 
+complex constraints such as release times, due dates, sequence-dependent setup times, 
+and precedence relations further complicate the solution landscape. 
+These challenges motivate our research on approximation schemes and heuristics for the weighted maximum completion time objective 
+in two-machine flow shops.
+
+In this paper, we focus on the problem $F2 \parallel W C_{\max}$, which extends the classical two-machine flow shop by 
+incorporating job weights to reflect varying importance or processing priorities. While this problem is NP-hard in the strong 
+sense \cite{thm:nphard} and thus cannot be solved exactly for large instances, we develop both approximation schemes and 
+heuristic algorithms that provide efficient solutions with guaranteed performance bounds.
+
 
 
 
