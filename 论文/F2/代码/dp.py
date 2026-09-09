@@ -10,6 +10,7 @@ it is used only as a cross-check in `main()`.
 
 from __future__ import annotations
 
+import random
 from typing import List, Tuple
 
 
@@ -290,11 +291,23 @@ def wcmax_of_order(order: List[int], a: List[float], b: List[float], w: List[flo
 
 
 def main() -> None:  # pragma: no cover
-    """Small self-contained example, cross-checked with MILP when available."""
-    # Example 4.1 from the paper
-    a = [2, 5, 6, 8, 4, 3]
-    b = [5, 7, 9, 4, 3, 2]
-    w = [2, 2, 5, 2, 4, 2]
+    """Random instance generated from a fixed seed, as in MILP.py."""
+    # random-instance parameters
+    seed = 42       # random seed
+    n = 6           # number of jobs (small: the DP is pseudo-polynomial)
+    a_lo, a_hi = 1, 10   # M1 processing-time range
+    b_lo, b_hi = 1, 10   # M2 processing-time range
+    w_lo, w_hi = 1, 3     # weight range
+
+    random.seed(seed)
+    a = [random.randint(a_lo, a_hi) for _ in range(n)]
+    b = [random.randint(b_lo, b_hi) for _ in range(n)]
+    w = [random.randint(w_lo, w_hi) for _ in range(n)]
+
+    print("seed   :", seed, "| n =", n)
+    print("a      :", a)
+    print("b      :", b)
+    print("w      :", w)
 
     res = solve_dp(a, b, w)
     print("DP result:")
@@ -305,7 +318,7 @@ def main() -> None:  # pragma: no cover
 
     # Optional: compare with MILP if gurobipy is installed
     try:
-        from milp import solve_milp, wcmax_of_order as milp_wcmax_of_order
+        from MILP import solve_milp, wcmax_of_order as milp_wcmax_of_order
         milp_res = solve_milp(a, b, w, output_flag=0)
         if milp_res["order"] is not None:
             print("\nMILP result:")

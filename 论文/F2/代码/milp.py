@@ -1,35 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Exact MILP solver for F2 || WCmax (two-machine flow shop, minimizing the maximum
-weighted completion time), implemented with Gurobi.
-
-This file implements the mixed-integer linear program of the paper
-(paper_framework.tex, Section 2 "Preliminaries").
-
-Decision variables
-------------------
-  x[j,k] in {0,1}   : job J_j is assigned to position k (1-based positions)
-  C1[k]             : completion time of the job at position k on M1
-  C2[k]             : completion time of the job at position k on M2
-  C[j]              : completion time of job J_j on M2
-  Z                 : the maximum weighted completion time WCmax
-
-Model
------
-  min  Z
-  s.t. sum_k x[j,k] = 1                    (milp:assign1)
-       sum_j x[j,k] = 1                    (milp:assign2)
-       C1[1] = sum_j a_j x[j,1]            (milp:m1_start)
-       C1[k] = C1[k-1] + sum_j a_j x[j,k]  (milp:m1_rec, k>=2)
-       C2[1] = C1[1] + sum_j b_j x[j,1]    (milp:m2_start)
-       C2[k] >= C1[k] + sum_j b_j x[j,k]   (milp:m2_a, k>=2)
-       C2[k] >= C2[k-1] + sum_j b_j x[j,k] (milp:m2_b, k>=2)
-       C[j] >= C2[k] - M(1 - x[j,k])       (milp:link)
-       Z >= w_j C[j]                       (milp:wcmax)
-       x binary; C1, C2, C >= 0            (milp:x, milp:dom)
-where M = 2 * sum_j (a_j + b_j) is a sufficiently large constant.
-"""
-
 import random
 
 import gurobipy as gp
@@ -37,31 +5,6 @@ from gurobipy import GRB
 
 
 def solve_milp(a, b, w, time_limit=None, threads=None, output_flag=0):
-    """
-    Solve F2 || WCmax exactly via the MILP model.
-
-    Parameters
-    ----------
-    a, b, w : list[float], length n
-        Processing time on M1, processing time on M2, and weight of each job.
-    time_limit : float or None
-        Solver time limit in seconds (None means no limit).
-    threads : int or None
-        Number of threads (None means Gurobi default).
-    output_flag : int
-        Gurobi OutputFlag (0 = silent, 1 = verbose).
-
-    Returns
-    -------
-    dict with keys
-        status      : Gurobi status code (gurobipy.GRB.*)
-        status_str  : readable status string
-        obj         : optimal WCmax value (or incumbent if not proven optimal)
-        best_bound  : dual bound (equals obj when proven optimal)
-        order       : list of job indices (0-based) in the optimal sequence,
-                      or None if no feasible solution was found
-        C1, C2, C   : completion-time arrays (position-based / job-based)
-    """
     n = len(a)
     if n != len(b) or n != len(w):
         raise ValueError("a, b, w must have the same length")
@@ -156,12 +99,6 @@ def solve_milp(a, b, w, time_limit=None, threads=None, output_flag=0):
 
 
 def wcmax_of_order(order, a, b, w):
-    """
-    Compute the WCmax of a given permutation via the standard flow-shop recurrence
-    (paper eq:completion):
-        C_{pi(j)} = max_{1<=i<=j} { sum_{h=1..i} a_{pi(h)} + sum_{h=i..j} b_{pi(h)} },
-        WCmax = max_j w_{pi(j)} C_{pi(j)}.
-    """
     n = len(order)
     wc = 0.0
     for j in range(n):
@@ -190,7 +127,6 @@ def _status_str(status):
 
 
 def main():
-    """Random instance generated from a fixed seed."""
     # random-instance parameters
     seed = 42       # random seed
     n = 150          # number of jobs
