@@ -316,18 +316,6 @@ def main() -> None:  # pragma: no cover
     print("  order :", [j + 1 for j in res["order"]])
     print("  verify:", wcmax_of_order(res["order"], a, b, w))
 
-    # Optional: compare with MILP if gurobipy is installed
-    try:
-        from MILP import solve_milp, wcmax_of_order as milp_wcmax_of_order
-        milp_res = solve_milp(a, b, w, output_flag=0)
-        if milp_res["order"] is not None:
-            print("\nMILP result:")
-            print("  WCmax :", milp_res["obj"])
-            print("  order :", [j + 1 for j in milp_res["order"]])
-            print("  verify:", milp_wcmax_of_order(milp_res["order"], a, b, w))
-    except Exception as exc:  # noqa: BLE001
-        print("\nMILP comparison skipped:", exc)
-
 
 if __name__ == "__main__":
     main()

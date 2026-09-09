@@ -103,16 +103,6 @@ def main() -> None:  # pragma: no cover
     print("  WCmax :", res["obj"])
     print("  order :", [j + 1 for j in res["order"]], "(1-based)")
 
-    # Optional: cross-check optimal value with the DP solver, only for sizes
-    # where the pseudo-polynomial DP is tractable.
-    if n <= 30:
-        try:
-            from DP import solve_dp
-            dp_res = solve_dp(a, b, w)
-            print("  DP opt:", dp_res["obj"])
-            print("  gap   : %.4f%%" % ((res["obj"] / dp_res["obj"] - 1) * 100))
-        except Exception as exc:  # noqa: BLE001
-            print("  DP comparison skipped:", exc)
 
 
 if __name__ == "__main__":
