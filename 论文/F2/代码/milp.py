@@ -30,6 +30,8 @@ Model
 where M = 2 * sum_j (a_j + b_j) is a sufficiently large constant.
 """
 
+import random
+
 import gurobipy as gp
 from gurobipy import GRB
 
@@ -55,7 +57,7 @@ def solve_milp(a, b, w, time_limit=None, threads=None, output_flag=0):
         status      : Gurobi status code (gurobipy.GRB.*)
         status_str  : readable status string
         obj         : optimal WCmax value (or incumbent if not proven optimal)
-        best_bound  : dual bound (only meaningful if not proven optimal)
+        best_bound  : dual bound (equals obj when proven optimal)
         order       : list of job indices (0-based) in the optimal sequence,
                       or None if no feasible solution was found
         C1, C2, C   : completion-time arrays (position-based / job-based)
@@ -138,6 +140,7 @@ def solve_milp(a, b, w, time_limit=None, threads=None, output_flag=0):
 
     if m.SolCount > 0:
         res["obj"] = m.ObjVal
+        res["best_bound"] = m.ObjBound
         # recover the optimal permutation (job index at each position)
         order = [None] * n
         for j in jobs:
@@ -148,9 +151,6 @@ def solve_milp(a, b, w, time_limit=None, threads=None, output_flag=0):
         res["C1"] = [C1[k].X for k in pos]
         res["C2"] = [C2[k].X for k in pos]
         res["C"] = [C[j].X for j in jobs]
-
-    if m.Status in (GRB.TIME_LIMIT, GRB.INTERRUPTED, GRB.USER_OBJ_LIMIT, GRB.NODE_LIMIT):
-        res["best_bound"] = m.ObjBound
 
     return res
 
@@ -190,13 +190,25 @@ def _status_str(status):
 
 
 def main():
-    """Small self-contained example."""
-    # jobs: (a_j, b_j, w_j)
-    a = [1, 100, 3, 2]
-    b = [100, 1, 2, 3]
-    w = [10, 11, 5, 7]
+    """Random instance generated from a fixed seed."""
+    # random-instance parameters
+    seed = 42       # random seed
+    n = 150          # number of jobs
+    a_lo, a_hi = 1, 10   # M1 processing-time range
+    b_lo, b_hi = 1, 10   # M2 processing-time range
+    w_lo, w_hi = 1, 3     # weight range
 
-    res = solve_milp(a, b, w, time_limit=60, output_flag=1)
+    random.seed(seed)
+    a = [random.randint(a_lo, a_hi) for _ in range(n)]
+    b = [random.randint(b_lo, b_hi) for _ in range(n)]
+    w = [random.randint(w_lo, w_hi) for _ in range(n)]
+
+    print("seed   :", seed, "| n =", n)
+    print("a      :", a)
+    print("b      :", b)
+    print("w      :", w)
+
+    res = solve_milp(a, b, w, time_limit=1200, output_flag=1)
 
     print("status :", res["status_str"])
     if res["order"] is not None:
@@ -206,6 +218,11 @@ def main():
         # cross-check with the closed-form recurrence
         check = wcmax_of_order(res["order"], a, b, w)
         print("verify :", check, "(should equal WCmax)")
+    if res["best_bound"] is not None:
+        print("best bound :", res["best_bound"])
+        if res["obj"] is not None and res["best_bound"] > 0:
+            gap = (res["obj"] - res["best_bound"]) / res["best_bound"] * 100
+            print("gap        : %.4f%%" % gap)
 
 
 if __name__ == "__main__":

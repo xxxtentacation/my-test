@@ -347,39 +347,39 @@ and $B$. Since 3-Partition remains NP-complete when $B$ is polynomially bounded 
 Therefore $F2 \parallel W C_{\max}$ is strongly NP-hard.
 \end{proof}
 \begin{center}
-\begin{tikzpicture}[x=0.20in, y=0.3in]
+\begin{tikzpicture}[x=0.18in, y=0.33in]
 	% machine index
-	\node[anchor=east] at (-0.5,5.5) {$M_1$};
-	\node[anchor=east] at (-0.5,4) {$M_2$};
+	\node[anchor=east] at (-0.6,5.7) {$M_1$};
+	\node[anchor=east] at (-0.6,4.0) {$M_2$};
 
 	% M_1: element jobs (narrow strips, 3 per block) + separators
-	\draw[fill=gray!20] (0,5)    rectangle (1.5,6) node[midway] {$G_1$};
-	\draw[fill=gray!50] (1.5,5)  rectangle (6.5,6)  node[midway] {$S_1$};
-	\draw[fill=gray!20] (6.5,5)  rectangle (8,6) node[midway] {$G_2$};
-	\draw[fill=gray!50] (8,5)  rectangle (13,6) node[midway] {$S_2$};
-	\node at (15,5.5) {$\cdots$};
-	\draw[fill=gray!20] (17,5) rectangle (18.5,6) node[midway] {$G_m$};
-	\draw[fill=gray!50] (18.5,5)   rectangle (23.5,6)   node[midway] {$S_{m}$};
+	\draw[fill=gray!20] (0,5.2)    rectangle (1.5,6.2) node[midway] {$G_1$};
+	\draw[fill=gray!50] (1.5,5.2)  rectangle (6.5,6.2)  node[midway] {$S_1$};
+	\draw[fill=gray!20] (6.5,5.2)  rectangle (8,6.2) node[midway] {$G_2$};
+	\draw[fill=gray!50] (8,5.2)  rectangle (13,6.2) node[midway] {$S_2$};
+	\node at (15,5.7) {$\cdots$};
+	\draw[fill=gray!20] (17,5.2) rectangle (18.5,6.2) node[midway] {$G_m$};
+	\draw[fill=gray!50] (18.5,5.2)   rectangle (23.5,6.2)   node[midway] {$S_{m}$};
 
 	% M_2: element jobs and separators (now separators have b_{s_k} = 1, shown as thin slices)
 	\draw[fill=gray!20] (0.5,3.5)  rectangle (6.5,4.5)   node[midway] {$J_{j\in G_1}$};
 	\draw[fill=gray!50] (6.5,3.5)  rectangle (6.7,4.5);
-	\draw[fill=gray!20] (7,3.5)  rectangle (13,4.5)  node[midway] {$J_{j\in G_2}$};
+	\draw[fill=gray!20] (6.7,3.5)  rectangle (13,4.5)  node[midway] {$J_{j\in G_2}$};
 	\draw[fill=gray!50] (13,3.5)  rectangle (13.2,4.5);
-	\node at (15.5,4) {$\cdots$};
+	\node at (15.35,4.0) {$\cdots$};
 	\draw[fill=gray!20] (17.5,3.5) rectangle (23.5,4.5)  node[midway] {$J_{j\in G_{m}}$};
 	\draw[fill=gray!50] (23.5,3.5) rectangle (23.7,4.5);
 
 	% x-axis (separator $M_2$ completion times)
-	\draw[thick] (0,2.2) -- (25,2.2);
-	\foreach \x/\label in {0/0, 6.7/$D{+}1$, 13.2/$2D{+}1$,  23.7/$mD{+}1$}
+	\draw[thick] (0,2.8) -- (23.7,2.8);
+	\foreach \x/\label in {0/0, 6.7/$D{+}1$, 13.2/$2D{+}1$, 23.7/$mD{+}1$}
 	{
-		\draw (\x,2.2) -- (\x,2.4);
-		\node[below, font=\footnotesize] at (\x,2.0) {\label};
+		\draw (\x,2.8) -- (\x,3.0);
+		\node[below, font=\footnotesize] at (\x,2.6) {\label};
 	}
 
 	% caption
-	\node[below] at (15,0.5) {Figure 3-2: 3-Partition reduction};
+	\node[below] at (11.85,1.7) {Figure 3-2: 3-Partition reduction};
 \end{tikzpicture}
 \label{fig:3-2}
 \end{center}
@@ -845,10 +845,15 @@ state $\mathscr{H}^{\varPhi}=(A_i,B_i,C_i,L_i)_{i=1}^{K}$ is the tuple
 where $\mathbf r^{x}\in\{0,\dots,v^{x}\}^{K}$ for
 $x\in\{A,B,C\}$.
 When several states are rounded into the same intervals, only one of them needs to be kept.
-The deletion step keeps, among the states whose coordinates $A_i,B_i,C_i$ fall into the same
-intervals, the one with the smallest weight. Each vector of rounded
-intervals thus records a single state, so that every rounded interval represents at most one
-state in $\mathscr{H}^{\varPhi}_{j}$.
+The deletion step proceeds as follows. At iteration $j$, each state of
+$\mathscr{H}^{\varPhi}_{j-1}$ spawns $K$ candidates, one per block, and every candidate is
+first assigned its label $\ell(\cdot)$ as above. The candidates are then partitioned into
+groups by label: two candidates fall into the same group exactly when their coordinates
+$A_i,B_i,C_i$ lie in the same three intervals for every block $i$. Within one group the states
+are indistinguishable after rounding, so a single representative suffices. The step therefore
+keeps, in each group, the candidate with the smallest last-job weight $L_i$ and discards all
+the others. Consequently every label carries exactly one state into $\mathscr{H}^{\varPhi}_{j}$,
+and the number of states never exceeds the number of labels.
 
 
 \begin{algorithm}[H]
