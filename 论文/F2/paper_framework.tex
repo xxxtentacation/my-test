@@ -56,14 +56,16 @@
     $O(n \cdot K \cdot V^{3K-3})$ time for constant $K$, where $V$ is the total processing time.
     For approximation guarantees, we design a fully polynomial-time approximation scheme (FPTAS) with state-class labeling
     that achieves $(1+\varepsilon)$-approximation while maintaining polynomial complexity.
-    Additionally, we develop practical heuristics including an adapted NEH algorithm, an ant colony optimization (ACO) algorithm (\citealp{zhang2023}),
-    and a genetic algorithm (\citealp{reeves1995}) that provide fast solutions for large-scale instances. The computational results demonstrate that our algorithms
+    Additionally, we develop practical heuristics including an adapted NEH algorithm, 
+    an ant colony optimization (ACO) algorithm (\citealp{zhang2023}),
+    and a genetic algorithm (\citealp{reeves1995}) that provide fast solutions for large-scale instances. 
+    The computational results demonstrate that our algorithms
     efficiently solve both small and large instances while maintaining theoretical guarantees.
 \end{abstract}
 
 
 
-\noindent \textbf{Keywords:} Flow shop scheduling; Block-based dynamic programming; Approximation algorithms; Genetic algorithm
+\noindent \textbf{Keywords:} Flow shop; Dynamic programming; Approximation algorithms; 
 
 \section{Introduction}
 \label{sec:intro}
@@ -95,7 +97,8 @@ in two-machine flow shops.
 
 In this paper, we focus on the problem $F2 \parallel W C_{\max}$, which extends the classical two-machine flow shop by 
 incorporating job weights to reflect varying importance or processing priorities. While this problem is NP-hard in the strong 
-sense \cite{thm:nphard} and thus cannot be solved exactly for large instances, we develop both approximation schemes and 
+sense Theorem~\ref{thm:nphard}, it can be approximated within a constant factor in polynomial time. Therefore, for large instances, 
+we develop both approximation schemes and 
 heuristic algorithms that provide efficient solutions with guaranteed performance bounds.
 
 
@@ -629,7 +632,9 @@ states and yields $\mathscr{H}_{j}$.
         \For{each block $i\in\mathcal{E}(J_j)=\{1,\dots,i^{*}\}$}{
                 $A_i'\gets A_i+a_j$, $B_i'\gets B_i+b_j$, $L_i'\gets w_j$ \;
                 $C_i'\gets \max\{\,C_i+b_j,\ A_i+a_j+b_j\,\}$ \;
-                Add the state $(A_1,\dots,A_i',\dots,A_K; B_1,\dots,B_i',\dots,B_K; C_1,\dots,C_i',\dots,C_K; L_1,\dots,L_i',\dots,L_K)$ to $\mathcal{Y}_i$ \;
+                Add the state 
+                    $(A_1,\dots,A_i',\dots,A_K; B_1,\dots,B_i',\dots,B_K; C_1,\dots,C_i',\dots,C_K; L_1,\dots,L_i',\dots,L_K)$ 
+                to $\mathcal{Y}_i$ \;
 			}
         [Elimination] $\mathscr{H}_j\gets\textsc{Eliminate}(\mathcal{Y}_1,\dots,\mathcal{Y}_K)$ by Lemma~\ref{lem:merge-dominance} \;
         }
@@ -715,7 +720,7 @@ time, and the FPTAS of Section~\ref{sub:fptas} has running time exponential in t
 number $K$ of distinct weights. When only a constant-factor guarantee is needed, the
 following elementary rule suffices.
 
-\begin{algorithm}[tbp]
+\begin{algorithm}[H]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -748,16 +753,15 @@ bounded by the full sum:
 \qquad 1\le i\le k.
 \]
 Hence
-\[
+\begin{equation}\label{eq:approx2-completion}
 C_{j_k}(\sigma)\ \le\ \sum_{h\in S_k}\bigl(a_h+b_h\bigr).
-\]
-Since $W C_{\max}(\sigma)=\max_{1\le k\le n}w_{j_k}\,C_{j_k}(\sigma)$, multiplying the inequality
-$C_{j_k}(\sigma)\le\sum_{h\in S_k}(a_h+b_h)$ by $w_{j_k}>0$ and taking the maximum over $k$
-gives
-\[
+\end{equation}
+Since $W C_{\max}(\sigma)=\max_{1\le k\le n}w_{j_k}\,C_{j_k}(\sigma)$, multiplying \eqref{eq:approx2-completion}
+by $w_{j_k}>0$ and taking the maximum over $k$ gives
+\begin{equation}\label{eq:approx2-upper}
 W C_{\max}(\sigma)=\max_{1\le k\le n}w_{j_k}\,C_{j_k}(\sigma)
 \le \max_{1\le k\le n}\,w_{j_k}\sum_{h\in S_k}\bigl(a_h+b_h\bigr).
-\]
+\end{equation}
 
 It remains to bound the right-hand side by $2W C_{\max}^{*}$. Fix a prefix $S_k$ and let
 $\pi^{*}$ be an optimal schedule. Let $u$ be the job of $S_k$ that finishes last on $M_1$
@@ -768,21 +772,21 @@ precedes $v$'s completion on $M_2$, so $C^{*}_v\ge\sum_{h\in S_k}b_h$.
 Since $u,v\in S_k$, we have $w_u,w_v\ge w_{j_k}$. Because $W C_{\max}^{*}$ bounds the weighted
 completion time of every job in $\pi^{*}$, the bound $C^{*}_u\ge\sum_{h\in S_k}a_h$ together with
 $w_u\ge w_{j_k}$ gives
-\[
+\begin{equation}\label{eq:approx2-lower-a}
 W C_{\max}^{*}\ge w_u\,C^{*}_u \ge w_{j_k}\sum_{h\in S_k}a_h,
-\]
+\end{equation}
 and, similarly, $C^{*}_v\ge\sum_{h\in S_k}b_h$ together with $w_v\ge w_{j_k}$ gives
-\[
+\begin{equation}\label{eq:approx2-lower-b}
 W C_{\max}^{*}\ge w_v\,C^{*}_v \ge w_{j_k}\sum_{h\in S_k}b_h.
-\]
-Combining these two lower bounds yields
-\[
+\end{equation}
+Combining \eqref{eq:approx2-lower-a} and \eqref{eq:approx2-lower-b} yields
+\begin{equation}\label{eq:approx2-lower}
 W C_{\max}^{*}\ge w_{j_k}\max\Bigl\{\sum_{h\in S_k}a_h,\ \sum_{h\in S_k}b_h\Bigr\}
 \ge \frac{w_{j_k}}{2}\Bigl(\sum_{h\in S_k}a_h+\sum_{h\in S_k}b_h\Bigr),
-\]
+\end{equation}
 where the last inequality uses $\max\{x,y\}\ge(x+y)/2$. Hence
-$w_{j_k}\sum_{h\in S_k}(a_h+b_h)\le 2W C_{\max}^{*}$ for every $k$, and the claim follows
-from the upper bound above.
+\eqref{eq:approx2-lower} gives $w_{j_k}\sum_{h\in S_k}(a_h+b_h)\le 2W C_{\max}^{*}$ for every $k$,
+and the claim follows from \eqref{eq:approx2-upper}.
 \end{proof}
 
 
@@ -799,15 +803,15 @@ polynomial-time approximation scheme by rounding the input data
 valid lower and upper bounds for the coordinates to be rounded: each time
 coordinate ranges in a bounded interval, and rounding it to one of a fixed number
 of geometrically spaced values keeps the relative error within a single factor
-$\delta$. The total processing times $A_i,B_i$ of block $\mathcal{B}_i$ on $M_1$
+$\theta$. The total processing times $A_i,B_i$ of block $\mathcal{B}_i$ on $M_1$
 and $M_2$, and its completion time $C_i$, are rounded. The weight $L_i$ of the
 last job of block $\mathcal{B}_i$ is not rounded; following
 Algorithm~\ref{alg:dp}, the positional constraint $L_i\in\{0,W_i\}$ is required
 for every block, and a state violating it is discarded.
 
-Fix $0<\varepsilon<1$ and let
+Fix $0<\epsilon<1$ and let
 \[
-\delta=1+\frac{\varepsilon}{2n},\qquad
+\theta=1+\frac{\epsilon}{2n},\qquad
 V_A=\sum_{j=1}^{n}a_j,\qquad
 V_B=\sum_{j=1}^{n}b_j,\qquad
 V=V_A+V_B.
@@ -816,47 +820,45 @@ For every block $\mathcal{B}_i$, the recurrence \eqref{eq:transition}
 preserves $A_i\le V_A$ and $B_i\le V_B$, since block $\mathcal{B}_i$ contains a
 subset of the jobs; moreover $C_i\le A_i+B_i\le V$. We therefore round the $A$
 dimension over $[0,V_A]$, the $B$ dimension over $[0,V_B]$, and the $C$
-dimension over $[0,V]$. To this end, for $x\in\{A,B,C\}$ set
-$v^{x}=\lceil\log_\delta V_x\rceil$, where $V_C=V$, and split the range
-$[0,V_x]$ of dimension $x$ into the $v^{x}+1$ intervals
+dimension over $[0,V]$. To this end, let
 \[
-I^{x}_0=[0,1),\qquad
-I^{x}_r=[\delta^{r-1},\delta^{r})\ \ (1\le r\le v^{x}-1),\qquad
-I^{x}_{v^{x}}=[\delta^{v^{x}-1},V_x].
+\Delta(x)=k=\big\lfloor\log_\theta x\big\rfloor
+\quad\text{for every }x\ge 1\text{ with }\theta^{k}\le x<\theta^{k+1},
+\qquad\text{and}\qquad \Delta(0)=-1 .
 \]
 All processing times are integral, so every value taken by a coordinate
-$A_i,B_i,C_i$ is a nonnegative integer. Hence any two values lying in a common
-interval satisfy $x\le\delta\,y$; we call this the \emph{interval-dominance}
-property, and it is the only fact about the rounding used in the analysis
-below.
+$A_i,B_i,C_i$ is a nonnegative integer. Hence any two values $y,y'\ge1$ with
+$\Delta(y)=\Delta(y')$ satisfy $y\le\theta\,y'$; we call this the
+\emph{interval-dominance} property, and it is the only fact about the rounding
+used in the analysis below.
 
-For each block $\mathcal{B}_i$, let $r^A_i$, $r^B_i$ and $r^C_i$ be the indices of the
-intervals containing $A_i$, $B_i$ and $C_i$. Collecting them gives the vectors
-$\mathbf r^{A}=(r^{A}_1,\dots,r^{A}_K)\in\{0,\dots,v^{A}\}^{K}$, while $\mathbf r^{B}$ and
-$\mathbf r^{C}$ are defined analogously. The \emph{label} of a
-state $\mathscr{H}^{\varPhi}=(A_1,\dots,A_K; B_1,\dots,B_K; C_1,\dots,C_K; L_1,\dots,L_K)$ is the tuple
+The \emph{label} of a
+state $\mathscr{H}^{\epsilon}=(A_1,\dots,A_K; B_1,\dots,B_K; C_1,\dots,C_K; L_1,\dots,L_K)$
+is the tuple formed by applying $\Delta$ to its time coordinates, together with its block-end weights,
 \[
-\ell(\mathscr{H}^{\varPhi})=(\mathbf r^{A};\mathbf r^{B};\mathbf r^{C}).
+\ell(\mathscr{H}^{\epsilon})=
+\bigl(\Delta(A_1),\dots,\Delta(A_K);\;
+\Delta(B_1),\dots,\Delta(B_K);\;
+\Delta(C_1),\dots,\Delta(C_K);\;
+L_1,\dots,L_K\bigr).
 \]
-Concretely, the index of the interval containing a value $y$ in the $A$ dimension is
-\[
-r^{A}(y)=
-\begin{cases}
-0, & 0\le y<1,\\[2pt]
-\big\lfloor\log_\delta y\big\rfloor+1, & 1\le y<\delta^{v^{A}-1},\\[2pt]
-v^{A}, & \delta^{v^{A}-1}\le y\le V_A,
-\end{cases}
-\]
-and $r^{B}(y)$ and $r^{C}(y)$ are defined analogously with $v^{B},V_B$ and $v^{C},V_C$. Hence
-$A_i\in I^{A}_{r^{A}(A_i)}$, $B_i\in I^{B}_{r^{B}(B_i)}$ and $C_i\in I^{C}_{r^{C}(C_i)}$.
+Thus two states share a label exactly when every coordinate $A_i$, $B_i$ and
+$C_i$ falls into the same box and their block-end weights coincide. Each dimension
+$x\in\{A,B,C\}$ contributes at
+most $v^{x}+2$ distinct values of $\Delta$, where
+$v^{x}=\lceil\log_\theta V_x\rceil$ and $V_C=V$, while the weight is not rounded and
+each $L_i$ takes at most $n+1$ values.
 
 The deletion step keeps one representative per label. At iteration $j$, every state of
-$\mathscr{H}^{\varPhi}_{j-1}$ spawns one candidate for each eligible block
+$\mathscr{H}^{\epsilon}_{j-1}$ spawns one candidate for each eligible block
 $i\in\mathcal{E}(J_j)=\{1,\dots,i^{*}\}$, and each candidate is assigned its label. Two
-candidates with the same label are indistinguishable after rounding, so the step keeps the one
-with the smallest last-job weight $L_i$ and discards the rest. Every label therefore carries
-exactly one state into $\mathscr{H}^{\varPhi}_{j}$, and the number of states never exceeds the
-number of labels.
+candidates with the same label are indistinguishable after rounding and carry the same
+block-end weights $L_1,\dots,L_K$, so the step keeps any one of them and discards the rest:
+the kept state satisfies $x\le\theta\,\tilde x$ in every time coordinate $x\in\{A,B,C\}$ of every
+block, relative to every candidate $\tilde{\mathscr{H}}^{\epsilon}$ it replaces, while its
+block-end weights are unchanged. Every
+label therefore carries exactly one state into $\mathscr{H}^{\epsilon}_{j}$, and the number of
+states never exceeds the number of labels.
 
 
 \begin{algorithm}[H]
@@ -865,131 +867,163 @@ number of labels.
 \SetAlgoLined
 \DontPrintSemicolon
 \caption{State-class FPTAS for $F2 \parallel W C_{\max}$}\label{alg:fptas}
-\KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$; block count $K$; accuracy $\varepsilon$.}
+\KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$; block count $K$; accuracy $\epsilon$.}
 \BlankLine
-\textbf{Step 1.} [Initialization] Set $\delta=1+\varepsilon/(2n)$, $V_A=\sum_{j}a_j$, $V_B=\sum_{j}b_j$, $V=V_A+V_B$,
-			$v^{x}=\lceil\log_\delta V_x\rceil$ for $x\in\{A,B,C\}$ with $V_C=V$, and $I^{x}_r$ ($r=0,\dots,v^{x}$);
-			set $\mathscr{H}^{\varPhi,0}\gets\{(0,\dots,0; \; 0,\dots,0; \; 0,\dots,0; \; 0,\dots,0)\}$ and $Z^{*}\gets+\infty$. \;
+\textbf{Step 1.} [Initialization] Set $\theta=1+\epsilon/(2n)$, $V_A=\sum_{j}a_j$, $V_B=\sum_{j}b_j$, $V=V_A+V_B$,
+			$v^{x}=\lceil\log_\theta V_x\rceil$ for $x\in\{A,B,C\}$ with $V_C=V$, and the index function $\Delta(\cdot)$;
+			set $\mathscr{H}^{\epsilon,0}\gets\{(0,\dots,0; \; 0,\dots,0; \; 0,\dots,0; \; 0,\dots,0)\}$ and $Z^{*}\gets+\infty$. \;
 \textbf{Step 2.} [Generation] \For{$j=1$ \KwTo $n$}{
     $\mathcal{Y}_i\gets\emptyset$ for $i=1,\dots,K$ \;
-    \For{each state $(A_1,\dots,A_K; B_1,\dots,B_K; C_1,\dots,C_K; L_1,\dots,L_K)\in\mathscr{H}^{\varPhi}_{j-1}$}{
+    \For{each state $(A_1,\dots,A_K; B_1,\dots,B_K; C_1,\dots,C_K; L_1,\dots,L_K)\in\mathscr{H}^{\epsilon}_{j-1}$}{
         \For{each block $i\in\mathcal{E}(J_j)=\{1,\dots,i^{*}\}$}{
             $\tilde A_i=A_i+a_j$, $\tilde B_i=B_i+b_j$, $\tilde L_i=w_j$ \;
             $\tilde C_i=\max\{\,C_i+b_j,\ A_i+a_j+b_j\,\}$ \;
-            \textbf[Label] For $\tilde A_i$, $\tilde B_i$, $\tilde C_i$, determine the interval indices
-            $r^{A}_i,r^{B}_i,r^{C}_i$ such that $\tilde A_i\in I^{A}_{r^{A}_i}$, $\tilde B_i\in I^{B}_{r^{B}_i}$,
-            $\tilde C_i\in I^{C}_{r^{C}_i}$. Record the label $\ell(\tilde{\mathscr{H}}^{\varPhi})=(\mathbf{r}^{A};\mathbf{r}^{B};\mathbf{r}^{C})$
-            for the updated state. \;
+            \textbf[Label] Record the label
+            $\ell(\tilde{\mathscr{H}}^{\epsilon})=\bigl(\Delta(\tilde A_1),\dots,\Delta(\tilde A_K);\;
+            \Delta(\tilde B_1),\dots,\Delta(\tilde B_K);\;
+            \Delta(\tilde C_1),\dots,\Delta(\tilde C_K);\;
+            \tilde L_1,\dots,\tilde L_K\bigr)$ for the state. \;
         }
-        \textbf [Delete] Among the candidate states sharing the same label, keep the one with the
-        smallest weight vector $(L_1,\dots,L_K)$ (component-wise) and delete the others; set $\mathscr{H}^{\varPhi}_{j}$ to the kept states. \;
+        \textbf [Elimination] Among the candidate states sharing the same label, keep one of them and
+            delete the others;
+            set $\mathscr{H}^{\epsilon}_{j}$ to the kept states. \;
     }
 }
-\textbf{Step 3.} [Calculate] Same as Step~3 of Algorithm~\ref{alg:dp}, applied to $\mathscr{H}^{\varPhi,n}$. \;
+\textbf{Step 3.} [Calculate] Same as Step~3 of Algorithm~\ref{alg:dp}, applied to $\mathscr{H}^{\epsilon,n}$. \;
 \textbf{Step 4.} [Result] Same as Step~4 of Algorithm~\ref{alg:dp}. \;
 \KwOut{An approximate schedule $\sigma$.}
 \end{algorithm}
 
 \begin{lemma}\label{lem:traj-approx}
-Let $\mathscr{H}^{\varPhi}(j^{*})=(A(j^{*})_1,\dots,A(j^{*})_K; B(j^{*})_1,\dots,B(j^{*})_K; C(j^{*})_1,\dots,C(j^{*})_K; L(j^{*})_1,\dots,L(j^{*})_K)$, $j=0,\dots,n$, be the states of an
-optimal sequence of Algorithm~\ref{alg:dp}. After $j$ jobs, Algorithm~\ref{alg:fptas} keeps a state
-$\hat{\mathscr{H}}^{\varPhi}_{j}=(\hat A_1,\dots,\hat A_K; \hat B_1,\dots,\hat B_K; \hat C_1,\dots,\hat C_K; \hat L_1,\dots,\hat L_K)$ with $\hat L_i\le L(j^{*})_i$ for every $i$, satisfying
+Let $\mathscr{H}_{j}=(A_1,\dots,A_K; B_1,\dots,B_K; C_1,\dots,C_K; L_1,\dots,L_K)$,
+$j=1,\dots,n$, be the states along an optimal sequence of Algorithm~\ref{alg:dp}. Algorithm~\ref{alg:fptas} keeps a corresponding state
+$\hat{\mathscr{H}}^{\epsilon}_{j}=(\hat A_1,\dots,\hat A_K; \hat B_1,\dots,\hat B_K; \hat C_1,\dots,\hat C_K; L_1,\dots, L_K)$
+satisfying 
 \begin{equation}\label{eq:traj-bound}
-\hat A_i\le A(j^{*})_i\,\delta^{j},\qquad
-\hat B_i\le B(j^{*})_i\,\delta^{j},\qquad
-\hat C_i\le C(j^{*})_i\,\delta^{j}\qquad(1\le i\le K).
+\hat A_i\le A_i\,\theta^{j-1},~~
+\hat B_i\le B_i\,\theta^{j-1},~~
+\hat C_i\le C_i\,\theta^{j-1},~~(1\le i\le K).
 \end{equation}
 \end{lemma}
 
 \begin{proof}
-We proceed by induction on $j$. The base case $j=0$ is the zero state $\mathscr{H}^{\varPhi,0}$ of Step~1 of
-Algorithm~\ref{alg:fptas}. Assume \eqref{eq:traj-bound} holds for $j$, and let $i^{+}$ be the
-block to which $\mathscr{H}^{\varPhi}(j^{*})$ appends $J_{j+1}$ in Algorithm~\ref{alg:dp}. By the positional
-constraint of Algorithm~\ref{alg:dp}, which assigns a job only to a block $i$ with $w\le W_i$,
-we have $w_{j+1}\le W_{i^{+}}$; this constraint depends only on $J_{j+1}$ and the block index,
-so the same transition is applicable from $\hat{\mathscr{H}}^{\varPhi,j}$. Applying the exact
-recurrences to $\hat{\mathscr{H}}^{\varPhi,j}$ and using $\delta^{j}\ge 1$ gives a candidate $\tilde{\mathscr{H}}^{\varPhi,j+1}$ with
+The proof proceeds by induction on $j$ from $1$ to $n$. For the base case $j=1$, both algorithms
+generate their candidates for $J_1$ from the same zero state, and two
+candidates differ as soon as they place $J_1$ in different blocks. They therefore carry different
+labels and no state is deleted, so that $\mathscr{H}^{\epsilon}_{1}$ and $\mathscr{H}_{1}$
+coincide and \eqref{eq:traj-bound} holds with equality at $j=1$.
+
+Assume now that \eqref{eq:traj-bound} holds for $j-1$, where $j\ge2$, and let $i$ be the block
+to which $\mathscr{H}_{j-1}$ appends $J_j$ in Algorithm~\ref{alg:dp}. By the positional
+constraint of Algorithm~\ref{alg:dp}, which assigns a job only to a block $i$ with $w\le W_i$, we have
+$w_j\le W_i$; this constraint depends only on $J_j$ and the block index, so appending $J_j$ to
+block $i$ is available from $\hat{\mathscr{H}}^{\epsilon}_{j-1}$ as well. Let $A^{\prime}_i$, $B^{\prime}_i$ and
+$C^{\prime}_i$ denote the coordinates of $\mathscr{H}_{j-1}$. Applying
+the exact recurrences to $\hat{\mathscr{H}}^{\epsilon}_{j-1}$ and using $\theta^{j-2}\ge1$ gives a
+candidate $\tilde{\mathscr{H}}^{\epsilon}_{j}$ with
 \begin{align*}
-\tilde A_{i^{+}} &= \hat A_{i^{+}}+a_{j+1}
-   \le \big(A(j^{*})_{i^{+}}+a_{j+1}\big)\delta^{j}=A((j{+}1)^{*})_{i^{+}}\delta^{j},\\
-\tilde B_{i^{+}} &= \hat B_{i^{+}}+b_{j+1}
-   \le \big(B(j^{*})_{i^{+}}+b_{j+1}\big)\delta^{j}=B((j{+}1)^{*})_{i^{+}}\delta^{j},\\
-\tilde C_{i^{+}} &= \max\big\{\hat C_{i^{+}}+b_{j+1},\ \hat A_{i^{+}}+a_{j+1}+b_{j+1}\big\}\\
-   &\le \max\big\{C(j^{*})_{i^{+}}+b_{j+1},\ A(j^{*})_{i^{+}}+a_{j+1}+b_{j+1}\big\}\delta^{j}
-   = C((j{+}1)^{*})_{i^{+}}\delta^{j},
+\tilde A_{i} &= \hat A_{i}+a_j
+   \le \big(A^{\prime}_{i}+a_j\big)\theta^{j-2}=A_{i}\theta^{j-2},\\
+\tilde B_{i} &= \hat B_{i}+b_j
+   \le \big(B^{\prime}_{i}+b_j\big)\theta^{j-2}=B_{i}\theta^{j-2},\\
+\tilde C_{i} &= \max\big\{\hat C_{i}+b_j,\ \hat A_{i}+a_j+b_j\big\}\\
+   &\le \max\big\{C^{\prime}_{i}+b_j,\ A^{\prime}_{i}+a_j+b_j\big\}\theta^{j-2}
+   = C_{i}\theta^{j-2},
 \end{align*}
-while the coordinates of the remaining blocks are unchanged and satisfy the bound at $j+1$.
-Since the optimal trajectory also appends $J_{j+1}$ to $i^{+}$, we have
-$\tilde L_{i^{+}}=w_{j+1}=L((j{+}1)^{*})_{i^{+}}$, and the other blocks inherit
-$\tilde L_i=\hat L_i\le L(j^{*})_i=L((j{+}1)^{*})_i$, so that $\tilde L_i\le L((j{+}1)^{*})_i$ for every $i$.
-The candidate $\tilde{\mathscr{H}}^{\varPhi,j+1}$ falls into some intervals and thus carries a
-label $\ell(\tilde{\mathscr{H}}^{\varPhi,j+1})$; Algorithm~\ref{alg:fptas} keeps a state
-$\hat{\mathscr{H}}^{\varPhi,j+1}$ with that same label. By interval dominance, two values lying in a
-common interval differ by at most a factor $\delta$, so the kept state satisfies
-$\hat x_i\le\delta\,\tilde x_i$ for every $x\in\{A,B,C\}$ and every $i$; this yields
-\eqref{eq:traj-bound} at $j+1$. Moreover, among the states with that label the algorithm keeps the one with the
-component-wise smallest weight vector, so $\hat L_i\le\tilde L_i$; combined with $\tilde L_i\le L((j{+}1)^{*})_i$ this gives
-$\hat L_i\le L((j{+}1)^{*})_i$.
-This completes the induction. Since every state of $\mathscr{H}^{\varPhi,n}$
+where $A_i$, $B_i$ and $C_i$ are the coordinates of $\mathscr{H}_{j}$. For the remaining blocks
+$m\ne i$ the same transition leaves the coordinates unchanged, so that
+$\tilde x_m=\hat x_m\le x^{\prime}_m\theta^{j-2}=x_m\theta^{j-2}$ for $x\in\{A,B,C\}$. Hence
+$\tilde x_m\le x_m\theta^{j-2}$ holds for every block $m=1,\dots,K$, and the block-end weights
+$L_1,\dots,L_K$ of the candidate are those of $\mathscr{H}_{j}$, because $L_i=w_j$ and the
+remaining block-end weights are unchanged.
+The candidate $\tilde{\mathscr{H}}^{\epsilon}_{j}$ then carries the label
+$\ell(\tilde{\mathscr{H}}^{\epsilon}_{j})$ assigned in Algorithm~\ref{alg:fptas}, and the algorithm
+keeps a state $\hat{\mathscr{H}}^{\epsilon}_{j}\in\mathscr{H}^{\epsilon}_{j}$ with that same label; since the
+label records the block-end weights, $\hat{\mathscr{H}}^{\epsilon}_{j}$ carries $L_1,\dots,L_K$ as
+well. By
+interval dominance, two values with the same index $\Delta$ differ by at most a factor $\theta$, so
+$y^{x}_{m}\le\theta\,\tilde x_{m}$ for every $x\in\{A,B,C\}$ and
+every block $m=1,\dots,K$, where $y^{x}_{m}$ denotes the coordinates of $\hat{\mathscr{H}}^{\epsilon}_{j}$;
+combined with $\tilde x_m\le x_m\theta^{j-2}$ this yields \eqref{eq:traj-bound} at $j$.
+This completes the induction. Since every state of $\mathscr{H}^{\epsilon,n}$
 stores all $3K$ time
 coordinates, the induction covers the coordinates of the last block $\mathcal{B}_K$ as well.
 These coordinates are rounded and stored for every block, exactly as in
 Algorithm~\ref{alg:dp}, rather than derived from the others, because a derived value would
-accumulate the rounding errors of the remaining blocks and destroy the factor $\delta^{j}$
+accumulate the rounding errors of the remaining blocks and destroy the factor $\theta^{j-1}$
 in \eqref{eq:traj-bound}.
 \end{proof}
 
-\begin{theorem}\label{thm:fptas-ratio}
-For every $0<\varepsilon<1$, Algorithm~\ref{alg:fptas} returns a schedule with
+\begin{theorem}\label{thm:fptas}
+Algorithm~\ref{alg:fptas} is a fully polynomial-time approximation scheme for
+$F2 \parallel W C_{\max}$ with
 \[
-W C_{\max}\ \le\ (1+\varepsilon)\,W C_{\max}^{*},
+W C_{\max}\ \le\ (1+\epsilon)\,W C_{\max}^{*},
 \]
-where $W C_{\max}^{*}$ is the optimal value of $F2 \parallel W C_{\max}$.
-\end{theorem}
-\begin{proof}
-Let $\mathscr{H}^{\varPhi}(n^{*})$ be the final state of the optimal trajectory of Algorithm~\ref{alg:dp} and
-$\hat{\mathscr{H}}^{\varPhi,n}$ the state of $\mathscr{H}^{\varPhi,n}$ guaranteed by Lemma~\ref{lem:traj-approx} at $j=n$. By the
-lemma, $\hat L_i\le L(n^{*})_i$ for all $i$; since $\mathscr{H}^{\varPhi}(n^{*})$ satisfies the positional constraint
-$L(n^{*})_i\in\{0,W_i\}$, every block of $\hat{\mathscr{H}}^{\varPhi,n}$ has block-end weight at most $W_i$. In the
-block-concatenation evaluation of Algorithm~\ref{alg:Block-concat}, the quantity $T_{B,i}$ is nondecreasing in every
-coordinate and positively homogeneous, so $T_{B,i}(\hat{\mathscr{H}}^{\varPhi,n})\le\delta^{n}\,T_{B,i}(\mathscr{H}^{\varPhi}(n^{*}))$.
-Since the block-end weight of block $\mathcal{B}_i$ is at most $W_i$,
-\[
-W C_{\max}(\hat{\mathscr{H}}^{\varPhi,n})
-\le\max_{1\le i\le K}W_i\,T_{B,i}(\hat{\mathscr{H}}^{\varPhi,n})
-\le \delta^{n}\max_{1\le i\le K}W_i\,T_{B,i}(\mathscr{H}^{\varPhi}(n^{*}))
-=\delta^{n}\,W C_{\max}^{*}.
-\]
-Finally, $\delta^{n}=(1+\varepsilon/(2n))^{n}\le 1+\varepsilon$ for $0<\varepsilon<1$. The
-schedule returned by Algorithm~\ref{alg:fptas} is no worse than the schedule obtained by
-concatenating the blocks of the state $\hat{\mathscr{H}}^{\varPhi,n}$, so its value is at most
-$(1+\varepsilon)\,W C_{\max}^{*}$.
-\end{proof}
-
-\begin{theorem}\label{thm:fptas-complex}
-For fixed $K$, Algorithm~\ref{alg:fptas} runs in
-\[
-O\!\left(n^{3K+1}\cdot K\cdot\frac{(\log V)^{3K}}{\varepsilon^{3K}}\right)
-\]
-time and is therefore a fully polynomial-time approximation scheme for
-$F2 \parallel W C_{\max}$.
+where $W C_{\max}^{*}$ is the optimal value,$0<\epsilon<1$ , and for fixed $K$ it runs in
+$
+O\!\left(n^{4K+1}\cdot K\cdot\frac{(\log V)^{3K}}{\epsilon^{3K}}\right)
+$
+time.
 \end{theorem}
 
 \begin{proof}
-At each level $j$, Algorithm~\ref{alg:fptas} keeps at most one state of each
-label, and there are $(v^{A}+1)^K(v^{B}+1)^K(v^{C}+1)^K$
-labels, at most $(v^{C}+1)^{3K}$ since $v^{A},v^{B}\le v^{C}$.
+We first bound the value of the returned schedule, and then its running time.
+
+Let $\mathscr{H}_{n}$ be the final state of the optimal trajectory of Algorithm~\ref{alg:dp} and
+$\hat{\mathscr{H}}^{\epsilon}_{n}\in\mathscr{H}^{\epsilon}_{n}$ the state guaranteed by Lemma~\ref{lem:traj-approx} at $j=n$. By the
+lemma, the time coordinates of $\hat{\mathscr{H}}^{\epsilon}_{n}$ are within a factor $\theta^{n-1}$ of those of
+$\mathscr{H}_{n}$. Since $L_i$ is not rounded, the block-end weights of $\hat{\mathscr{H}}^{\epsilon}_{n}$ are those of
+$\mathscr{H}_{n}$, which satisfies the positional constraint $L_i\in\{0,W_i\}$; every block of
+$\hat{\mathscr{H}}^{\epsilon}_{n}$ therefore has block-end weight at most $W_i$.
+
+Let $\hat\sigma$ and $\sigma^{*}$ be the schedules obtained by concatenating the blocks of
+$\hat{\mathscr{H}}^{\epsilon}_{n}$ and $\mathscr{H}_{n}$, and let $C_i(\sigma)$ denote the completion time of
+the last job of block $\mathcal{B}_i$ in a schedule $\sigma$. By the concatenation recurrence of
+Algorithm~\ref{alg:Block-concat}, $C_i(\sigma)$ is nondecreasing in every coordinate of the state and
+positively homogeneous, so $C_i(\hat\sigma)\le\theta^{n-1}C_i(\sigma^{*})$ for every $i$. Since every
+block of $\hat{\mathscr{H}}^{\epsilon}_{n}$ has block-end weight at most $W_i$, Lemma~\ref{lem:block-johnson} yields
+\[
+W C_{\max}(\hat\sigma)
+=\max_{1\le i\le K}W_i\,C_i(\hat\sigma)
+\le \theta^{n-1}\max_{1\le i\le K}W_i\,C_i(\sigma^{*})
+=\theta^{n-1}\,W C_{\max}^{*}.
+\]
+Finally, $\theta^{n-1}\le 1+\epsilon$ for $0<\epsilon<1$. Indeed, $1+x\le e^{x}$ for every
+real $x$, so
+\[
+\theta^{n-1}=\Bigl(1+\frac{\epsilon}{2n}\Bigr)^{n-1}
+\le e^{\frac{(n-1)\epsilon}{2n}}
+<e^{\epsilon/2},
+\]
+where the strict inequality uses $(n-1)/(2n)<1/2$. It remains to check that
+$e^{\epsilon/2}\le1+\epsilon$ on $[0,1]$. The function $g(\epsilon)=1+\epsilon-e^{\epsilon/2}$
+satisfies $g(0)=0$ and
+\[
+g'(\epsilon)=1-\tfrac12 e^{\epsilon/2}\ge 1-\tfrac12 e^{1/2}>0
+\qquad(0\le\epsilon\le1),
+\]
+because $e^{\epsilon/2}\le e^{1/2}<2$ on that interval; hence $g$ is increasing and
+$g(\epsilon)\ge0$, which gives $e^{\epsilon/2}\le1+\epsilon$ and therefore
+$\theta^{n-1}\le1+\epsilon$. The
+schedule returned by Algorithm~\ref{alg:fptas} is no worse than $\hat\sigma$, so its value is at most
+$(1+\epsilon)\,W C_{\max}^{*}$.
+
+It remains to bound the running time. At each level $j$, Algorithm~\ref{alg:fptas} keeps at most one state of each
+label, and there are $(v^{A}+2)^K(v^{B}+2)^K(v^{C}+2)^K(n+1)^K$
+labels: the rounded time coordinates contribute $(v^{A}+2)^K(v^{B}+2)^K(v^{C}+2)^K$, at most
+$(v^{C}+2)^{3K}$ since $v^{A},v^{B}\le v^{C}$, and each of the $K$ block-end weights takes at most
+$n+1$ values.
 Each state generates at most $K$ candidates, one per eligible block, in $O(1)$ time each, and the
-final evaluation of the states of $\mathscr{H}^{\varPhi,n}$ costs $O(K)$ per state.
-Hence the running time is $O\bigl(nK\,(v^{C}+1)^{3K}\bigr)$.
-Since $\ln(1+\varepsilon/(2n))\ge\varepsilon/(4n)$ for $0<\varepsilon<1$,
+final evaluation of the states of $\mathscr{H}^{\epsilon,n}$ costs $O(K)$ per state.
+Hence the running time is $O\bigl(nK\,(v^{C}+2)^{3K}(n+1)^{K}\bigr)$.
+Since $\ln(1+\epsilon/(2n))\ge\epsilon/(4n)$ for $0<\epsilon<1$,
 \[
-v^{C}=\Big\lceil\frac{\ln V}{\ln\delta}\Big\rceil
-=O\!\left(\frac{n\log V}{\varepsilon}\right),
+v^{C}=\Big\lceil\frac{\ln V}{\ln\theta}\Big\rceil
+=O\!\left(\frac{n\log V}{\epsilon}\right),
 \]
 and for constant $K$ the bound reduces to
-$O(n^{3K+1}K(\log V)^{3K}/\varepsilon^{3K})$, polynomial in $n$, $\log V$,
-and $1/\varepsilon$.
+$O(n^{4K+1}K(\log V)^{3K}/\epsilon^{3K})$, which is polynomial in $n$, $\log V$ and $1/\epsilon$.
 \end{proof}
 
 \paragraph{Weight rounding.}
@@ -998,26 +1032,26 @@ distinct weights is fixed. An analogous geometric rounding applies to the weight
 their ratio is bounded. Let $W_{\min}=\min_{j}w_j$, $W_{\max}=\max_{j}w_j$, and suppose
 $W_{\max}/W_{\min}\le c$ for a constant $c$. Partition the interval $[W_{\min},W_{\max}]$ into
 \[
-J_0=[W_{\min},W_{\min}\delta),\qquad
-J_r=[W_{\min}\delta^{r},W_{\min}\delta^{r+1})\ \ (1\le r\le q-1),\qquad
-J_q=[W_{\min}\delta^{q},W_{\max}],
+J_0=[W_{\min},W_{\min}\theta),\qquad
+J_r=[W_{\min}\theta^{r},W_{\min}\theta^{r+1})\ \ (1\le r\le q-1),\qquad
+J_q=[W_{\min}\theta^{q},W_{\max}],
 \]
-with $q=\big\lceil\log_\delta(W_{\max}/W_{\min})\big\rceil$, and round each weight $w_j$ upward to
+with $q=\big\lceil\log_\theta(W_{\max}/W_{\min})\big\rceil$, and round each weight $w_j$ upward to
 the right endpoint of its interval,
 \[
-\hat w_j=W_{\min}\,\delta^{\,r_j+1},\qquad
-r_j=\Big\lfloor\log_\delta\frac{w_j}{W_{\min}}\Big\rfloor,
+\hat w_j=W_{\min}\,\theta^{\,r_j+1},\qquad
+r_j=\Big\lfloor\log_\theta\frac{w_j}{W_{\min}}\Big\rfloor,
 \]
-so that $w_j\le\hat w_j\le\delta\,w_j$. The rounded weights take only
-$q+1=O\big(\log_\delta(W_{\max}/W_{\min})\big)$ distinct values, so jobs whose weights differ by a
-factor at most $\delta$ merge into a single class. Since $\hat w_j\le\delta w_j$ for every $j$, the
+so that $w_j\le\hat w_j\le\theta\,w_j$. The rounded weights take only
+$q+1=O\big(\log_\theta(W_{\max}/W_{\min})\big)$ distinct values, so jobs whose weights differ by a
+factor at most $\theta$ merge into a single class. Since $\hat w_j\le\theta w_j$ for every $j$, the
 optimal schedule $\hat\sigma$ of the rounded instance satisfies
 \[
 W C_{\max}(\hat\sigma) \le \hat W C_{\max}(\hat\sigma) = \hat W C_{\max}^{*}
-\le \hat W C_{\max}(\pi^{*}) \le \delta\,W C_{\max}^{*},
+\le \hat W C_{\max}(\pi^{*}) \le \theta\,W C_{\max}^{*},
 \]
 where $\pi^{*}$ is an optimal schedule of the original instance. Hence the weight rounding incurs
-a relative error of at most $\delta=1+\varepsilon/(2n)\le 1+\varepsilon$, exactly as in the
+a relative error of at most $\theta=1+\epsilon/(2n)\le 1+\epsilon$, exactly as in the
 completion-time rounding.
 
 
