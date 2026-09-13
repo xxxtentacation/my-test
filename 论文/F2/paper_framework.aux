@@ -25,12 +25,16 @@
 \newlabel{milp:dom}{{13}{4}{Preliminaries}{equation.13}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {3}Problem formulation}{4}{section.3}\protected@file@percent }
 \newlabel{thm:nphard}{{3.1}{4}{}{theorem.3.1}{}}
-\newlabel{fig:3-1}{{3}{4}{Problem formulation}{theorem.3.1}{}}
+\newlabel{fig:3-1}{{3-1}{4}{Problem formulation}{figure.3.1}{}}
 \newlabel{eq:completetime1}{{14}{5}{Problem formulation}{equation.14}{}}
 \newlabel{eq:completetime2}{{15}{5}{Problem formulation}{equation.15}{}}
 \newlabel{thm:snphard}{{3.2}{5}{}{theorem.3.2}{}}
 \newlabel{eq:deadline-encoding}{{16}{6}{Problem formulation}{equation.16}{}}
-\newlabel{fig:3-2}{{3}{7}{Problem formulation}{equation.16}{}}
+\newlabel{eq:path-m2}{{17}{7}{Problem formulation}{equation.17}{}}
+\newlabel{eq:path-m1}{{18}{7}{Problem formulation}{equation.18}{}}
+\newlabel{eq:group-bound}{{19}{7}{Problem formulation}{equation.19}{}}
+\newlabel{eq:group-bound-k1}{{20}{7}{Problem formulation}{equation.20}{}}
+\newlabel{fig:3-2}{{3-2}{7}{Problem formulation}{figure.3.2}{}}
 \citation{baker1974introduction}
 \citation{johnson1954optimal}
 \@writefile{toc}{\contentsline {section}{\numberline {4}Algorithm}{8}{section.4}\protected@file@percent }
@@ -41,62 +45,67 @@
 \newlabel{lem:block-johnson}{{4.1}{9}{}{lemma.4.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Algorithm Properties and Dynamic Programming}{10}{subsection.4.2}\protected@file@percent }
 \newlabel{lem:merge-dominance}{{4.2}{10}{}{lemma.4.2}{}}
-\newlabel{eq:transition}{{17}{11}{Algorithm Properties and Dynamic Programming}{equation.17}{}}
 \@writefile{loa}{\contentsline {algocf}{\numberline {1}{\ignorespaces Block concatenation and evaluation}}{11}{algocf.1}\protected@file@percent }
 \newlabel{alg:Block-concat}{{1}{11}{Algorithm Properties and Dynamic Programming}{algocf.1}{}}
+\newlabel{eq:transition}{{21}{11}{Algorithm Properties and Dynamic Programming}{equation.21}{}}
+\newlabel{thm:complexity}{{4.1}{11}{}{theorem.4.1}{}}
 \@writefile{loa}{\contentsline {algocf}{\numberline {2}{\ignorespaces DP for $F2 \parallel W C_{\max }$}}{12}{algocf.2}\protected@file@percent }
 \newlabel{alg:dp}{{2}{12}{Algorithm Properties and Dynamic Programming}{algocf.2}{}}
-\newlabel{thm:complexity}{{4.1}{12}{}{theorem.4.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}A 2-Approximation Algorithm}{13}{subsection.4.3}\protected@file@percent }
 \newlabel{sub:approx2}{{4.3}{13}{A 2-Approximation Algorithm}{subsection.4.3}{}}
 \@writefile{loa}{\contentsline {algocf}{\numberline {3}{\ignorespaces 2-Approximation for $F2 \parallel W C_{\max }$}}{13}{algocf.3}\protected@file@percent }
 \newlabel{alg:approx2}{{3}{13}{A 2-Approximation Algorithm}{algocf.3}{}}
 \newlabel{thm:approx2}{{4.2}{13}{}{theorem.4.2}{}}
+\newlabel{eq:approx2-completion}{{22}{13}{A 2-Approximation Algorithm}{equation.22}{}}
+\newlabel{eq:approx2-upper}{{23}{13}{A 2-Approximation Algorithm}{equation.23}{}}
 \citation{hall1994}
-\newlabel{eq:approx2-completion}{{18}{14}{A 2-Approximation Algorithm}{equation.18}{}}
-\newlabel{eq:approx2-upper}{{19}{14}{A 2-Approximation Algorithm}{equation.19}{}}
-\newlabel{eq:approx2-lower-a}{{20}{14}{A 2-Approximation Algorithm}{equation.20}{}}
-\newlabel{eq:approx2-lower-b}{{21}{14}{A 2-Approximation Algorithm}{equation.21}{}}
-\newlabel{eq:approx2-lower}{{22}{14}{A 2-Approximation Algorithm}{equation.22}{}}
+\newlabel{eq:approx2-lower-a}{{24}{14}{A 2-Approximation Algorithm}{equation.24}{}}
+\newlabel{eq:approx2-lower-b}{{25}{14}{A 2-Approximation Algorithm}{equation.25}{}}
+\newlabel{eq:approx2-lower}{{26}{14}{A 2-Approximation Algorithm}{equation.26}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.4}FPTAS}{14}{subsection.4.4}\protected@file@percent }
 \newlabel{sub:fptas}{{4.4}{14}{FPTAS}{subsection.4.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.1}Rounding the time coordinates}{14}{subsubsection.4.4.1}\protected@file@percent }
+\newlabel{subsub:fptas-time}{{4.4.1}{14}{Rounding the time coordinates}{subsubsection.4.4.1}{}}
+\newlabel{lem:traj-approx}{{4.3}{15}{}{lemma.4.3}{}}
+\newlabel{eq:traj-bound}{{27}{15}{}{equation.27}{}}
 \@writefile{loa}{\contentsline {algocf}{\numberline {4}{\ignorespaces State-class FPTAS for $F2 \parallel W C_{\max }$}}{16}{algocf.4}\protected@file@percent }
-\newlabel{alg:fptas}{{4}{16}{FPTAS}{algocf.4}{}}
-\newlabel{lem:traj-approx}{{4.3}{16}{}{lemma.4.3}{}}
-\newlabel{eq:traj-bound}{{23}{16}{}{equation.23}{}}
+\newlabel{alg:fptas}{{4}{16}{Rounding the time coordinates}{algocf.4}{}}
 \newlabel{thm:fptas}{{4.3}{17}{}{theorem.4.3}{}}
 \citation{puka2024}
 \citation{zhang2023}
 \citation{reeves1995}
-\@writefile{toc}{\contentsline {paragraph}{Weight rounding.}{18}{section*.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.2}Weight rounding}{18}{subsubsection.4.4.2}\protected@file@percent }
+\newlabel{subsub:fptas-weight}{{4.4.2}{18}{Weight rounding}{subsubsection.4.4.2}{}}
+\newlabel{lem:weight-approx}{{4.4}{18}{}{lemma.4.4}{}}
+\newlabel{eq:weight-bound}{{28}{18}{}{equation.28}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Heuristic Algorithms}{18}{section.5}\protected@file@percent }
+\newlabel{sec:heuristics}{{5}{18}{Heuristic Algorithms}{section.5}{}}
 \citation{puka2024}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Heuristic Algorithms}{19}{section.5}\protected@file@percent }
-\newlabel{sec:heuristics}{{5}{19}{Heuristic Algorithms}{section.5}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.1}NEH}{19}{subsection.5.1}\protected@file@percent }
+\newlabel{prop:neh-complexity}{{5.1}{19}{}{theorem.5.1}{}}
 \citation{zhang2023}
 \@writefile{loa}{\contentsline {algocf}{\numberline {5}{\ignorespaces NEH heuristic for $F2 \parallel W C_{\max }$}}{20}{algocf.5}\protected@file@percent }
 \newlabel{alg:neh}{{5}{20}{NEH}{algocf.5}{}}
-\newlabel{prop:neh-complexity}{{5.1}{20}{}{theorem.5.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Ant Colony Optimization}{20}{subsection.5.2}\protected@file@percent }
 \citation{reeves1995}
 \@writefile{loa}{\contentsline {algocf}{\numberline {6}{\ignorespaces Ant Colony Optimization for $F2 \parallel W C_{\max }$}}{21}{algocf.6}\protected@file@percent }
 \newlabel{alg:aco}{{6}{21}{Ant Colony Optimization}{algocf.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Genetic Algorithm}{21}{subsection.5.3}\protected@file@percent }
+\newlabel{sub:ga}{{5.3}{21}{Genetic Algorithm}{subsection.5.3}{}}
 \citation{johnson1954optimal}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Genetic Algorithm}{22}{subsection.5.3}\protected@file@percent }
-\newlabel{sub:ga}{{5.3}{22}{Genetic Algorithm}{subsection.5.3}{}}
-\@writefile{toc}{\contentsline {paragraph}{Encoding and Decoding}{22}{section*.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Structured Initialization}{22}{section*.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Selection}{23}{section*.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Crossover (PMX)}{23}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Encoding and Decoding}{22}{section*.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Structured Initialization}{22}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Selection}{22}{section*.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Crossover (PMX)}{23}{section*.4}\protected@file@percent }
 \@writefile{loa}{\contentsline {algocf}{\numberline {7}{\ignorespaces Partially Mapped Crossover (PMX) for $F2 \parallel W C_{\max }$}}{23}{algocf.7}\protected@file@percent }
 \newlabel{alg:pmx}{{7}{23}{Crossover (PMX)}{algocf.7}{}}
-\@writefile{toc}{\contentsline {paragraph}{Critical-Job Mutation}{23}{section*.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Critical-Job Mutation}{23}{section*.5}\protected@file@percent }
 \@writefile{loa}{\contentsline {algocf}{\numberline {8}{\ignorespaces Critical-Job Mutation for $F2 \parallel W C_{\max }$}}{24}{algocf.8}\protected@file@percent }
 \newlabel{alg:cm}{{8}{24}{Critical-Job Mutation}{algocf.8}{}}
-\@writefile{toc}{\contentsline {paragraph}{Genetic Algorithm}{24}{section*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Genetic Algorithm}{24}{section*.6}\protected@file@percent }
 \@writefile{loa}{\contentsline {algocf}{\numberline {9}{\ignorespaces Genetic Algorithm for $F2 \parallel W C_{\max }$}}{24}{algocf.9}\protected@file@percent }
 \newlabel{alg:ga}{{9}{24}{Genetic Algorithm}{algocf.9}{}}
-\@writefile{toc}{\contentsline {paragraph}{Complexity Analysis}{24}{section*.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Complexity Analysis}{24}{section*.7}\protected@file@percent }
 \bibstyle{apalike}
 \bibdata{ref_IJPR}
 \bibcite{baker1974introduction}{{1}{1974}{{Baker}}{{}}}

@@ -20,6 +20,7 @@
 \usepackage[ruled, linesnumbered]{algorithm2e}
 \usepackage{enumerate}
 \usepackage{float}
+\usepackage[section]{placeins}
 \usepackage{indentfirst}
 \usepackage{CJKutf8}
 \usepackage{tikz}
@@ -35,6 +36,23 @@
 \newtheorem{obs}{Observation}
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{exam}{Example}[section]
+
+% Figures are numbered per section as "3-1", "3-2", ... to match the
+% non-floating figure blocks used in the paper.
+\makeatletter
+\@addtoreset{figure}{section}
+\makeatother
+\renewcommand{\thefigure}{\thesection-\arabic{figure}}
+\renewcommand{\floatpagefraction}{0.9}
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.6}
+\renewcommand{\textfraction}{0.05}
+
+% Keep every float (algorithm) inside the subsection that introduces it:
+% each \subsection starts with a float barrier, so a pending algorithm is
+% flushed before the next subsection begins.
+\let\origsubsection\subsection
+\renewcommand{\subsection}{\FloatBarrier\origsubsection}
 
 \title{\LARGE\bf $F2 \parallel W C_{\max}$ Structural Properties and Dynamic Programming}
 \author{Author One$^{a,}$\footnote{Corresponding author. E-mail address: author@email.com}, Author Two$^{b}$\\
@@ -170,20 +188,22 @@ Constraint (\ref{milp:dom}) imposes the nonnegativity of the completion times $C
     $F2 \parallel W C_{\max}$ is NP-hard.
 \end{theorem}
 \begin{proof}
-We reduce from the Partition problem: given $n$ positive integers $x_1, x_2, \dots, x_r$ with $\sum_{i=1}^{r} x_i = 2T$, 
-does there exist subset $Z_1$ and $Z_2 \subseteq \{1,\dots,r\}$ such that:
- $\sum_{i \in Z_1} x_i$ = $\sum_{i \in Z_2} x_i$ = $T$?
-
-Construct an instance of $F2 \parallel W C_{\max}$,  Let the number of jobs $n = r + 1$.
-Let $a_j = 1$, $b_j = rx_j$, $w_j = T+1$ for jobs $j = 1,\dots,n-1$.
-Put $a_n = rT$, $b_n = 1$, $w_n = 2T+1$ for job $J_n$.
-Does there exist a threshold Y such that:
+We reduce from the Partition problem: given $r$ positive integers $x_1,\dots,x_r$ with
+$\sum_{i=1}^{r}x_i=2T$, do there exist disjoint subsets $Z_1,Z_2\subseteq\{1,\dots,r\}$ with
+$Z_1\cup Z_2=\{1,\dots,r\}$ and
 \[
-W C_{\max} \le Y = r(T+1)(2T+1)
+\sum_{i\in Z_1}x_i=\sum_{i\in Z_2}x_i=T?
 \]
-holds?
+
+Construct an instance of $F2 \parallel W C_{\max}$ with $n=r+1$ jobs. For $j=1,\dots,n-1$, set
+$a_j=1$, $b_j=rx_j$ and $w_j=T+1$; for the remaining job $J_n$, set $a_n=rT$, $b_n=1$ and
+$w_n=2T+1$. The decision question is whether some schedule satisfies
+\[
+W C_{\max}\le Y, \qquad\text{where}\qquad Y=r(T+1)(2T+1).
+\]
 \begin{center}
-\begin{tikzpicture}[x=0.15in, y=0.3in] 
+\refstepcounter{figure}
+\begin{tikzpicture}[x=0.15in, y=0.3in]
 	% machine index
 	\node[anchor=east] at (-0.5,5.5) {$M_1$};
 	\node[anchor=east] at (-0.5,4) {$M_2$};
@@ -207,53 +227,50 @@ holds?
 	}
 
 	% caption
-	\node[below] at (17,0.5) {Figure 3-1};
+	\node[below] at (17,0.5) {Figure~\thefigure};
 \end{tikzpicture}
 \label{fig:3-1}
 \end{center}
 
-We partition jobs $j_1$ to $j_{n-1}$ into two subsets via $j_n$, 
-the distribution of jobs on the machine is shown in Figure~\ref{fig:3-1}.
-Since the processing times of $A_1$ and $A_2$ are unknown, while their total processing time is 2T. 
-We may assume that the processing time of $A_1$ on $M_2$ is $r(T+\xi)$, $A_2$ is $r(T-\xi)$, where $-T\le\xi\le T$.
-Therefore, the completion time of $J_n$ is determined by the following formula:
+The jobs $J_1,\dots,J_{n-1}$ are partitioned into two subsets by $J_n$; the resulting layout on the
+two machines is shown in Figure~\ref{fig:3-1}. The total $M_2$ processing times of the two subsets
+are unknown, but their sum equals $2rT$. We may therefore write them as $r(T+\xi)$ and $r(T-\xi)$
+for some $-T\le\xi\le T$. The completion times of $J_n$ are then
 \begin{equation}\label{eq:completetime1}
-    \qquad
-    C_n^1 = |A_1| + rT + 1
+    C_n^1 = |Z_1| + rT + 1,
 \end{equation}
 \begin{equation}\label{eq:completetime2}
-    \qquad
-    C_n^2 = 1 + r ( T + \xi ) + 1
+    C_n^2 = 1 + r(T+\xi) + 1,
 \end{equation}
-and $C_n = \max \{C_n^1, C_n^2\}$
+and $C_n = \max\{C_n^1, C_n^2\}$.
 
-If $\xi = 0$, then $\sum_{j\epsilon A_1}b_j =\sum_{j\epsilon A_2}b_j $, which means the partition problem has a feasible solution. 
-In this case, the completion time of job \(J_n\) is determined by \eqref{eq:completetime1}, we have:
+If $\xi=0$, then $\sum_{j\in Z_1}b_j=\sum_{j\in Z_2}b_j$, so the Partition instance has a feasible
+solution. In this case $C_n$ is given by \eqref{eq:completetime1}, and
 \begin{align*}
-C_n &= |A_1| + rT + 1 \leqslant (rT + r) = r(T+1) \\
-w_nC_n &= (2T + 1)(r(T+1)) = Y\\
-W C_{\max} &= r(T+1)(C_n + rT) = Y\\
+C_n &= |Z_1| + rT + 1 \le rT + r = r(T+1), \\
+w_nC_n &= (2T+1)\,r(T+1) = Y, \\
+W C_{\max} &= r(T+1)(C_n + rT) = Y,
 \end{align*}
-so $w_jC_j \leqslant W C_{\max} = Y$
+so $w_jC_j\le W C_{\max}=Y$.
 
-If the scheduling problem exists a threshold y such that \(W C_{\text{max}} \le y\).
-When $ \xi > 0 $, $C_n$is determined by \eqref{eq:completetime2}, we have:
+Conversely, suppose that some schedule satisfies $W C_{\max}\le Y$. When $\xi>0$, $C_n$ is given by
+\eqref{eq:completetime2}, and
 \begin{align*}
-C_n &= (1 + r ( T + \xi ) + 1) \geqslant (1 + r ( T + 1 ) + 1) \\
-w_nC_n  &\geqslant (2T + 1)(1 + r ( T + 1 ) + 1) = Y
+C_n &= 1 + r(T+\xi) + 1 \ge 1 + r(T+1) + 1, \\
+w_nC_n &\ge (2T+1)\bigl(1 + r(T+1) + 1\bigr) = Y.
 \end{align*}
-When $ \xi < 0 $, $C_n$is determined by \eqref{eq:completetime1}, we have:
+When $\xi<0$, $C_n$ is given by \eqref{eq:completetime1}, and
 \begin{align*}
-C_{\max} &= (C_n +  \sum_{j\epsilon A_2}b_j)  \\
-         &= (1 + rT + |A_1|  + r ( T - \xi )) \\
-         &\geqslant (rT + r + rT)  \\
-         &= r(2T+1) = Y \\
-WC_{\max} &\geqslant r(T+1)(r(2T+1)) = Y\\
+C_{\max} &= C_n + \sum_{j\in Z_2}b_j \\
+         &= 1 + rT + |Z_1| + r(T-\xi) \\
+         &\ge rT + r + rT \\
+         &= r(2T+1) = Y, \\
+WC_{\max} &\ge r(T+1)\bigl(r(2T+1)\bigr) = Y,
 \end{align*}
-so $W C_{\max} > Y$, there exists a contradiction.
+so $W C_{\max}>Y$, a contradiction.
 
-Therefore, the Partition instance admits a solution if and only if 
-the constructed $F2 \parallel W C_{\max}$ instance admits a schedule with $W C_{\max} \le Y$.
+The Partition instance therefore admits a solution if and only if the constructed
+$F2 \parallel W C_{\max}$ instance admits a schedule with $W C_{\max}\le Y$.
 \end{proof}
 
 \begin{theorem}\label{thm:snphard}
@@ -267,11 +284,11 @@ Let $R=3m+5$, $D=RB+4$, and $T=mD$. We construct an instance with $3m$ element j
 and $m$ separator jobs $S_1,\dots,S_m$:
 \begin{itemize}
   \item for every element job $J_j$, set $a_j=1$, $b_j=Rx_j+1$;
-  \item for every separator job $S_k$, set $a_{s_k}=RB+1$, $b_{s_k}=1$.
+  \item for every separator job $S_k$, set $a_{S_k}=RB+1$, $b_{S_k}=1$.
 \end{itemize}
 All processing times are positive integers. For $k=1,\dots,m$, define $d_k=kD+1$ and let $Q=(T+2)^3$. Set
 \[
- w_{s_k}=\left\lfloor\frac{Q}{d_k}\right\rfloor,
+ w_{S_k}=\left\lfloor\frac{Q}{d_k}\right\rfloor,
  \qquad
  w_j=\left\lfloor\frac{Q}{T}\right\rfloor\quad(j=1,\dots,3m),
 \]
@@ -291,32 +308,33 @@ The three element jobs in $G_k$ use $3$ units on $M_1$, and $S_k$ uses $RB+1$ un
 at time $kD$. The three element jobs in $G_k$ use $RB+3$ units on $M_2$; since the preceding separator completes on $M_2$ 
 at time $(k-1)D+1$, the last element of $G_k$ completes at time $kD$. Therefore
 \[
- C_{s_k}=kD+1=d_k.
+ C_{S_k}=kD+1=d_k.
 \]
 Every element job completes on $M_2$ no later than $T=mD$. By the definition of the weights, all weighted completion times 
 are at most $Q$, so $W C_{\max}\le Y$.
 
-Conversely, suppose that a schedule $\pi$ satisfies $W C_{\max}\le Q$. By the standard permutation-schedule property for 
-two-machine flow shops with a regular objective, it suffices to consider permutation schedules. The separator jobs have 
-identical processing times. Therefore, if their positions are fixed, exchanging the labels of two separators that occur 
-in the wrong order can only decrease the maximum weighted completion time, because
-$w_{s_1}\ge w_{s_2}\ge\cdots\ge w_{s_m}$. We may consequently assume that the separators occur in the sequence 
-$S_1,S_2,\dots,S_m$.
+Conversely, suppose that a schedule $\pi$ satisfies $W C_{\max}\le Y$. Since the objective is regular,
+the standard permutation-schedule property for two-machine flow shops lets us restrict attention to
+permutation schedules. The separator jobs have identical processing times, so if their positions are
+fixed, exchanging the labels of two separators that occur in the wrong order can only decrease the
+maximum weighted completion time, because $w_{S_1}\ge w_{S_2}\ge\cdots\ge w_{S_m}$. We may
+consequently assume that the separators occur in the order $S_1,S_2,\dots,S_m$.
 By \eqref{eq:deadline-encoding},
 \[
- C_{s_k}\le kD+1\quad(k=1,\dots,m),
+ C_{S_k}\le kD+1\quad(k=1,\dots,m),
  \qquad C_j\le T\quad(j=1,\dots,3m).
 \]
 No element job can occur after $S_m$. Indeed, if at least one element job did so, consider the last such element job. 
-By the permutation-schedule property invoked above, the processing sequence on $M_1$ and $M_2$ coincides, so this job is 
-also the last job on $M_1$; hence all $m$ separators and all $3m$ element jobs have completed on $M_1$ no later than this job, 
-and its completion on $M_1$ is at least the total $M_1$ processing time
+By the permutation-schedule property invoked above, the processing sequences on $M_1$ and $M_2$
+coincide, so this job is also the last job on $M_1$. All $m$ separators and all $3m$ element jobs
+therefore complete on $M_1$ no later than it, so its $M_1$ completion time is at least the total
+$M_1$ processing time
 \[
  m(RB+1)+3m=m(RB+4)=T.
 \]
-Its completion on $M_2$ would consequently be strictly greater than $T$, contradicting $C_j\le T$.
-Thus the element jobs are partitioned into the $m$ groups $G_k$ lying between $S_{k-1}$ and $S_k$, where $S_0$ 
-denotes the beginning of the schedule. 
+Its $M_2$ completion time would then be strictly greater than $T$, contradicting $C_j\le T$. The element
+jobs are therefore partitioned into the $m$ groups $G_k$ lying between $S_{k-1}$ and $S_k$, where $S_0$
+denotes the start of the schedule.
 Put
 \[
  B_k=\sum_{J_j\in G_k}x_j,
@@ -324,32 +342,34 @@ Put
  \qquad E_0=0.
 \]
 For $k=2,\dots,m$, the $M_2$ path gives
-\[
- C_{s_k}\ge C_{s_{k-1}}+RB_k+|G_k|+1,
-\]
+\begin{equation}\label{eq:path-m2}
+ C_{S_k}\ge C_{S_{k-1}}+RB_k+|G_k|+1,
+\end{equation}
 while the $M_1$ path to $S_{k-1}$ gives
-\[
- C_{s_{k-1}}\ge (k-1)(RB+1)+E_{k-1}+1.
-\]
-Combining these inequalities with $C_{s_k}\le kD+1$ yields
-\[
+\begin{equation}\label{eq:path-m1}
+ C_{S_{k-1}}\ge (k-1)(RB+1)+E_{k-1}+1.
+\end{equation}
+Combining \eqref{eq:path-m2} and \eqref{eq:path-m1} with $C_{S_k}\le kD+1$ yields
+\begin{equation}\label{eq:group-bound}
  R(B_k-B)+E_k\le 3k,\qquad k=2,\dots,m.
-\]
-For $k=1$, the $M_2$ path and $C_{s_1}\le D+1$ similarly give
-\[
+\end{equation}
+For $k=1$, the $M_2$ path and $C_{S_1}\le D+1$ similarly give
+\begin{equation}\label{eq:group-bound-k1}
  R(B_1-B)+E_1\le4.
-\]
-Because $R=3m+5$, these inequalities imply $B_k\le B$ for every $k$: otherwise $B_k\ge B+1$ and the respective left-hand 
-side is greater than $3k$ (or greater than $4$ when $k=1$). All element jobs belong to one of the groups, so
-$\sum_{k=1}^{m}B_k=mB$. Hence $B_k=B$ for every $k$.
+\end{equation}
+Because $R=3m+5$, \eqref{eq:group-bound} and \eqref{eq:group-bound-k1} imply $B_k\le B$ for every
+$k$. Otherwise $B_k\ge B+1$, and the respective left-hand side exceeds $3k$, or exceeds $4$ when
+$k=1$. Since every element job belongs to one of the groups, $\sum_{k=1}^{m}B_k=mB$, and hence
+$B_k=B$ for every $k$.
 Finally, $B/4<x_j<B/2$ implies that a group with sum $B$ contains exactly three elements: at most two elements have sum strictly 
 less than $B$, while at least four elements have sum strictly greater than $B$. Thus $G_1,\dots,G_m$ is a valid 3-partition.
 
-The construction has $4m$ jobs, and all processing times, weights, and the threshold are bounded by a polynomial in $m$ 
-and $B$. Since 3-Partition remains NP-complete when $B$ is polynomially bounded in $m$, this is a strong polynomial reduction. 
-Therefore $F2 \parallel W C_{\max}$ is strongly NP-hard.
+The construction uses $4m$ jobs, and all processing times, weights and the threshold are bounded by a
+polynomial in $m$ and $B$. Since 3-Partition remains NP-complete when $B$ is polynomially bounded in
+$m$, this is a strong polynomial reduction, and $F2 \parallel W C_{\max}$ is strongly NP-hard.
 \end{proof}
 \begin{center}
+\refstepcounter{figure}
 \begin{tikzpicture}[x=0.18in, y=0.33in]
 	% machine index
 	\node[anchor=east] at (-0.6,5.7) {$M_1$};
@@ -364,7 +384,7 @@ Therefore $F2 \parallel W C_{\max}$ is strongly NP-hard.
 	\draw[fill=gray!20] (17,5.2) rectangle (18.5,6.2) node[midway] {$G_m$};
 	\draw[fill=gray!50] (18.5,5.2)   rectangle (23.5,6.2)   node[midway] {$S_{m}$};
 
-	% M_2: element jobs and separators (now separators have b_{s_k} = 1, shown as thin slices)
+	% M_2: element jobs and separators (now separators have b_{S_k} = 1, shown as thin slices)
 	\draw[fill=gray!20] (0.5,3.5)  rectangle (6.5,4.5)   node[midway] {$J_{j\in G_1}$};
 	\draw[fill=gray!50] (6.5,3.5)  rectangle (6.7,4.5);
 	\draw[fill=gray!20] (6.7,3.5)  rectangle (13,4.5)  node[midway] {$J_{j\in G_2}$};
@@ -382,7 +402,7 @@ Therefore $F2 \parallel W C_{\max}$ is strongly NP-hard.
 	}
 
 	% caption
-	\node[below] at (11.85,1.7) {Figure 3-2: 3-Partition reduction};
+	\node[below] at (11.85,1.7) {Figure~\thefigure: 3-Partition reduction};
 \end{tikzpicture}
 \label{fig:3-2}
 \end{center}
@@ -394,42 +414,45 @@ Therefore $F2 \parallel W C_{\max}$ is strongly NP-hard.
 \section{Algorithm} 
 \label{sec:dp_algorithm}
 In this section, we design a dynamic programming algorithm for $F2 \parallel W C_{\max}$
-and analyse its running time.
+and analyse its running time. Throughout, $W C_{\max}^{*}$ denotes the optimal value of
+$F2 \parallel W C_{\max}$.
 
 \subsection{The number of weights is constant}
 For $F2 \parallel W C_{\max}$, an optimal schedule exists in which both machines process the jobs
-in the same sequence (\citealp{baker1974introduction}); we therefore restrict attention to such
-permutation schedules.
-Johnson's rule (\citealp{johnson1954optimal}) orders the $n$ jobs so as to minimize the makespan:
-jobs with $a_j \le b_j$ are scheduled first in non-decreasing sequence of $a_j$, and the remaining
-jobs follow in non-increasing sequence of $b_j$.
+in the same order (\citealp{baker1974introduction}); we therefore restrict attention to such
+permutation schedules. Within this class, Johnson's rule (\citealp{johnson1954optimal}) minimizes
+the makespan: the jobs with $a_j \le b_j$ are scheduled first in non-decreasing order of $a_j$,
+and the remaining jobs follow in non-increasing order of $b_j$.
 
-For a given schedule $\pi$, Let $W_{1} > W_{2} > \dots > W_{K}$ be the $K$ distinct weights occurring
-among the jobs, and define $\mathcal{G}_k = \{ J_j \in \mathcal{J} \mid w_j = W_{k} \}$, $k = 1,\dots,K$.
-For $k = 1,\dots,K$ in sequence, let $\ell_k$ be the position of the last job of weight $W_k$ among the jobs
-not yet assigned to a block, i.e., among $\pi(\ell_{k-1}+1),\dots,\pi(n)$, with the convention $\ell_k=\ell_{k-1}$
-if no such job remains; set $\ell_0 = 0$. The blocks are then the segments
+Fix a permutation schedule $\pi$. Let $W_1 > W_2 > \cdots > W_K$ be the $K$ distinct weights
+occurring among the jobs, and let
 \[
-\mathcal{B}_k = \{\pi(\ell_{k-1}+1), \dots, \pi(\ell_k)\},\qquad k = 1, \dots, K,
+\mathcal{G}_k = \{J_j \in \mathcal{J} \mid w_j = W_k\}, \qquad k = 1,\dots,K,
 \]
-in particular, $\mathcal{B}_1 = \{\pi(1),\dots,\pi(\ell_1)\}$. Equivalently, after the blocks
-$\mathcal{B}_1,\dots,\mathcal{B}_k$ are removed, the remaining jobs are
+denote the corresponding weight classes. Set $\ell_0 = 0$. For $k = 1,\dots,K$ in sequence, let
+$\ell_k$ be the position of the last job of weight $W_k$ among the jobs not yet assigned to a block,
+that is, among $\pi(\ell_{k-1}+1),\dots,\pi(n)$; if no such job remains, set $\ell_k = \ell_{k-1}$.
+The blocks are the consecutive segments
 \[
-\mathcal{J}\setminus\bigcup_{i=1}^{k}\mathcal{B}_i = \{\pi(\ell_k+1),\dots,\pi(n)\},\qquad k=1,\dots,K,
+\mathcal{B}_k = \{\pi(\ell_{k-1}+1), \dots, \pi(\ell_k)\}, \qquad k = 1,\dots,K,
 \]
-with $\ell_0=0$; consequently $\ell_1\le\ell_2\le\cdots\le\ell_K$ and no block extends past its own
-last job.
-For every block $\mathcal{B}_i$, let $A_i$ denote the total processing time of its jobs on machine
-$M_1$, $B_i$ their total processing time on machine $M_2$, $C_i$ the completion time of its last
-job on machine $M_2$, and $L_i$ the weight of its last job. If $\ell_k = \ell_{k-1}$, then
-$\mathcal{B}_k$ contains no job and is called an empty block; an empty block $\mathcal{B}_i$ has
-$L_i = 0$ and $A_i = B_i = C_i = 0$, and may host any job of weight at most $W_i$. By construction, the last job
-of $\mathcal{B}_k$ carries weight $W_k$, so the block weights are non-increasing:
-$W_{\mathcal{B}_1} \ge W_{\mathcal{B}_2} \ge \cdots \ge W_{\mathcal{B}_K}$.
+so that in particular $\mathcal{B}_1 = \{\pi(1),\dots,\pi(\ell_1)\}$. Equivalently, once the blocks
+$\mathcal{B}_1,\dots,\mathcal{B}_k$ have been removed, the remaining jobs are
+\[
+\mathcal{J}\setminus\bigcup_{i=1}^{k}\mathcal{B}_i = \{\pi(\ell_k+1),\dots,\pi(n)\}, \qquad k=1,\dots,K .
+\]
+Hence $\ell_1\le\ell_2\le\cdots\le\ell_K$, and no block extends beyond its own last job.
+For each block $\mathcal{B}_i$, let $A_i$ and $B_i$ denote the total processing time of its jobs on
+$M_1$ and $M_2$, respectively, $C_i$ the completion time of its last job on $M_2$, and $L_i$ the
+weight of its last job. If $\ell_k = \ell_{k-1}$, then $\mathcal{B}_k$ contains no job; such a block
+is called empty and satisfies $A_k = B_k = C_k = L_k = 0$, and it may host any job of weight at most
+$W_k$. By construction, a non-empty block $\mathcal{B}_k$ ends with a job of weight $W_k$, whereas an
+empty block has $L_k = 0$. Since $W_1 > W_2 > \cdots > W_K$, the block-end weights are non-increasing
+on the non-empty blocks.
 
 We illustrate the block construction with a small example.
 \begin{exam}\label{ex:blocking}
-Consider a 6-job instance with sequence $\pi = (J_1, \dots, J_6)$ and the following $(a_j, b_j, w_j)$ values:
+Consider a six-job instance with sequence $\pi = (J_1, \dots, J_6)$ and the following $(a_j,b_j,w_j)$ values:
 \[
 \begin{array}{c|cccccc}
       & J_1 & J_2 & J_3 & J_4 & J_5 & J_6 \\
@@ -440,12 +463,13 @@ w_j &  2  &  2  &  5  &  2  &  4  &  2
 \end{array}
 \]
 
-The resulting groups are $\mathcal{G}_1=\{J_3\}$, $\mathcal{G}_2=\{J_5\}$ and
-$\mathcal{G}_3=\{J_1,J_2,J_4,J_6\}$, and the blocks are $\mathcal{B}_1=\{J_1,J_2,J_3\}$,
-$\mathcal{B}_2=\{J_4,J_5\}$ and $\mathcal{B}_3=\{J_6\}$.
+The weight classes are $\mathcal{G}_1=\{J_3\}$, $\mathcal{G}_2=\{J_5\}$, and
+$\mathcal{G}_3=\{J_1,J_2,J_4,J_6\}$, and the resulting blocks are $\mathcal{B}_1=\{J_1,J_2,J_3\}$,
+$\mathcal{B}_2=\{J_4,J_5\}$, and $\mathcal{B}_3=\{J_6\}$.
 \end{exam}
 
 \begin{center}
+\refstepcounter{figure}
 \begin{tikzpicture}[x=0.15in, y=0.3in]
 	% machine index
 	\node[anchor=east] at (-0.5,5.5) {$M_1$};
@@ -475,56 +499,57 @@ $\mathcal{B}_2=\{J_4,J_5\}$ and $\mathcal{B}_3=\{J_6\}$.
 	}
 
 	% caption
-	\node[below] at (17,0.5) {Figure 4.1};
+	\node[below] at (17,0.5) {Figure~\thefigure};
 \end{tikzpicture}
 \end{center}
 
 \begin{lemma}\label{lem:block-johnson}
 For any schedule $\pi$, rescheduling the jobs within each block according to Johnson's rule~\citealp{johnson1954optimal}
-and concatenating the resulting block schedules yields a schedule $\pi'$ with $W C_{\max}(\pi') \le W C_{\max}(\pi)$.
+and concatenating the blocks in their original order yields a schedule $\pi'$ with
+$W C_{\max}(\pi') \le W C_{\max}(\pi)$.
 \end{lemma}
 \begin{proof}
-By construction, the final job of block $\mathcal{B}_k$ carries weight $W(\mathcal{B}_k)$,
-and every job in $\mathcal{B}_k$ has weight at most $W(\mathcal{B}_k)$:
-a weight occurring in $\mathcal{B}_k$ either equals $W(\mathcal{B}_k)$, or it has already
-appeared in an earlier block with larger weight.
-Let $C_k(\sigma)$ denote the completion time of the last job of $\mathcal{B}_k$ under schedule $\sigma$.
+By construction, a non-empty block $\mathcal{B}_k$ ends with a job of weight $L_k$, and every job in
+$\mathcal{B}_k$ has weight at most $L_k$: a weight occurring in $\mathcal{B}_k$ either equals $W_k$,
+or it has already appeared in an earlier block, whose weights are larger. Let $C_k(\sigma)$ denote
+the completion time of the last job of $\mathcal{B}_k$ under schedule $\sigma$. An empty block
+satisfies $L_k C_k(\sigma) = 0$ and therefore contributes nothing to the objective, so the argument
+below applies to the non-empty blocks.
 
-We first show that, within each block, the maximum weighted completion time is attained by the last job.
-For any $J_j \in \mathcal{B}_k$, the last job of the block finishes no earlier than $J_j$, so
-$C_j(\sigma) \le C_k(\sigma)$, and $w_j \le W(\mathcal{B}_k)$ by the block construction.
-Hence $w_j C_j(\sigma) \le W(\mathcal{B}_k) \cdot C_k(\sigma)$.
-Taking the maximum over $j \in \mathcal{B}_k$ yields
-$\max_{J_j \in \mathcal{B}_k} w_j C_j(\sigma) = W(\mathcal{B}_k) \cdot C_k(\sigma)$,
-and therefore
+We first show that the maximum weighted completion time within a block is attained by the last job of
+that block. For any $J_j \in \mathcal{B}_k$, the last job of the block completes no earlier than
+$J_j$, so $C_j(\sigma) \le C_k(\sigma)$, while $w_j \le L_k$ by the block construction. Hence
+$w_j C_j(\sigma) \le L_k C_k(\sigma)$, and taking the maximum over $j \in \mathcal{B}_k$ gives
 \[
-W C_{\max}(\sigma) = \max_{k=1,\dots,K}\{W(\mathcal{B}_k) \cdot C_k(\sigma)\}.
+\max_{J_j \in \mathcal{B}_k} w_j C_j(\sigma) = L_k C_k(\sigma).
 \]
-Thus the overall objective depends only on the last job of each block.
+The objective therefore equals
+\[
+W C_{\max}(\sigma) = \max_{k=1,\dots,K} L_k C_k(\sigma),
+\]
+so it depends only on the last job of each block.
 
-Now let $\pi'$ be the schedule obtained by rescheduling the jobs within each $\mathcal{B}_k$ according
-to Johnson's rule, while preserving the order of the blocks. We prove $C_k(\pi') \le C_k(\pi)$ for
-all $k$ by induction on $k$.
+Let $\pi'$ be the schedule obtained by rescheduling the jobs within each block $\mathcal{B}_k$
+according to Johnson's rule, keeping the blocks in their original order. We prove
+$C_k(\pi') \le C_k(\pi)$ for every $k$ by induction on $k$.
 
 \textbf{Base case $k=1$.}
-Block $\mathcal{B}_1$ starts at time zero on both machines regardless of its internal ordering,
-so Johnson's rule gives $C_1(\pi') \le C_1(\pi)$.
+Block $\mathcal{B}_1$ starts at time zero on both machines regardless of its internal order, so
+Johnson's rule gives $C_1(\pi') \le C_1(\pi)$.
 
 \textbf{Inductive step.}
-Assume $C_{k-1}(\pi') \le C_{k-1}(\pi)$.
-On $M_1$, the start time of $\mathcal{B}_k$ equals the total $M_1$ work of $\mathcal{B}_1,\dots,\mathcal{B}_{k-1}$,
-which is invariant under internal rescheduling, so $\mathcal{B}_k$ begins at the same instant on $M_1$ under both schedules.
-On $M_2$, $\mathcal{B}_k$ starts at $\max\{\,\sum_{i=1}^{k}A_{i},\; C_{k-1}\,\}$,
-where the first term is identical under $\pi$ and $\pi'$, and the second is no larger under $\pi'$ by the induction hypothesis.
-Hence $\mathcal{B}_k$ starts no later on $M_2$ under $\pi'$ than under $\pi$.
-Together with the same $M_1$ start and the internally optimal Johnson scheduling,
-this gives $C_k(\pi') \le C_k(\pi)$, completing the induction.
+Assume $C_{k-1}(\pi') \le C_{k-1}(\pi)$. On $M_1$, the start time of $\mathcal{B}_k$ equals the
+total $M_1$ work of $\mathcal{B}_1,\dots,\mathcal{B}_{k-1}$, which is invariant under internal
+rescheduling, so $\mathcal{B}_k$ begins at the same instant on $M_1$ under both schedules. On $M_2$,
+block $\mathcal{B}_k$ starts at $\max\{\sum_{i=1}^{k}A_{i},\,C_{k-1}\}$; the first term is identical
+under $\pi$ and $\pi'$, and the second is no larger under $\pi'$ by the induction hypothesis. Hence
+$\mathcal{B}_k$ starts no later on $M_2$ under $\pi'$ than under $\pi$. Together with the same $M_1$
+start and the internally optimal Johnson scheduling, this gives $C_k(\pi') \le C_k(\pi)$, which
+completes the induction.
 
 Finally,
 \[
-W C_{\max}(\pi') = \max_{k} \; W(\mathcal{B}_k) \cdot C_k(\pi')
-   \le \max_{k} \; W(\mathcal{B}_k) \cdot C_k(\pi)
-   = W C_{\max}(\pi),
+W C_{\max}(\pi') = \max_{k} L_k C_k(\pi') \le \max_{k} L_k C_k(\pi) = W C_{\max}(\pi),
 \]
 which establishes the lemma.
 \end{proof}
@@ -533,62 +558,60 @@ which establishes the lemma.
 
 
 \subsection{Algorithm Properties and Dynamic Programming}
-We now develop a dynamic programming algorithm that processes jobs sequentially in Johnson sequence
-and assigns each job to one of the $K$ blocks $\mathcal{B}_1,\dots,\mathcal{B}_K$.
+We now develop a dynamic programming algorithm that processes the jobs sequentially in the Johnson
+sequence and assigns each job to one of the $K$ blocks $\mathcal{B}_1,\dots,\mathcal{B}_K$.
 
-Lemma~\ref{lem:block-johnson} provides the structural basis for the dynamic program:
-given any assignment of jobs to the $K$ blocks, sequencing the jobs within each block
-$\mathcal{B}_i$ according to Johnson's rule and concatenating the blocks in
-non-increasing weight sequence yields a schedule whose $W C_{\max}$ value is no larger
-than that of any other schedule respecting the same assignment.
-For each job $J_j$ ($j = 1,\dots,n$), let $\mathscr{H}_j$ denote the set of states attainable
-after the first $j$ jobs have been processed. A state records, for every block $\mathcal{B}_i$:
+Lemma~\ref{lem:block-johnson} provides the structural basis for the dynamic program. Given any
+assignment of jobs to the $K$ blocks, sequencing the jobs within each block $\mathcal{B}_i$
+according to Johnson's rule and concatenating the blocks in the order of non-increasing block
+weights yields a schedule whose $W C_{\max}$ value is no larger than that of any other schedule
+respecting the same assignment.
+For each $j = 1,\dots,n$, let $\mathscr{H}_j$ denote the set of states attainable after the first
+$j$ jobs have been processed. A state records the following quantities for every block
+$\mathcal{B}_i$:
 \begin{itemize}
     \item $A_i$: the total processing time on machine $M_1$ of the jobs in block $\mathcal{B}_i$;
     \item $B_i$: the total processing time on machine $M_2$ of the jobs in block $\mathcal{B}_i$;
     \item $C_i$: the completion time of the last job of block $\mathcal{B}_i$ on machine $M_2$;
     \item $L_i$: the weight of the last job of block $\mathcal{B}_i$.
 \end{itemize}
-Since $W_{1} > \cdots > W_{K}$, the blocks eligible for $J_j$ form a prefix:
+Since $W_1 > \cdots > W_K$, the blocks eligible for $J_j$ form a prefix. Writing
 \[
-    \mathcal{E}(J_j) = \{\, i : w_j \le W_i \,\}, \qquad
-    i^* = \max_{i \in \{1,\dots,K\}} \{\, i : W_i \ge w_j \,\},
+    i^* = \max\{\, i : w_j \le W_i \,\},
 \]
-so that $\mathcal{E}(J_j) = \{\, 1, \dots, i^* \,\}$.
-A state is in fact the aggregate $K$-block tuple, described by $4K$ parameters:
+the eligible set is $\mathcal{E}(J_j) = \{\, 1,\dots,i^* \,\}$.
+Each state is therefore the aggregate $K$-block tuple
 \[
     (A_1,\dots,A_K; \; B_1,\dots,B_K; \; C_1,\dots,C_K; \; L_1,\dots,L_K),
 \]
-i.e.\ each state of $\mathscr{H}_j$ records, for every block $\mathcal{B}_i$, its total $M_1$ and $M_2$
-processing time, the completion time of its last job, and its block-end weight.
+which is described by $4K$ parameters.
 
-The initial state set contains a single state with all components set to zero:
+The initial state set contains a single state whose components are all zero:
 $\mathscr{H}_{0} = \{ (0,\dots,0; \; 0,\dots,0; \; 0,\dots,0; \; 0,\dots,0) \}$.
-In Algorithm~\ref{alg:Block-concat} below, $T_{A_i}$ denotes the total $M_1$ processing time of the
-first $i$ blocks, and $T_{B_i}$ the completion time of block $\mathcal{B}_i$ on $M_2$.
+In Algorithm~\ref{alg:Block-concat}, $T_{A_i}$ denotes the total $M_1$ processing time of the first
+$i$ blocks, and $T_{B_i}$ the completion time of block $\mathcal{B}_i$ on $M_2$.
 
 \begin{lemma}\label{lem:merge-dominance}
 Let $\mathscr{H} = (A_1,\dots,A_K; B_1,\dots,B_K; C_1,\dots,C_K; L_1,\dots,L_K)$ and
-$\mathscr{H}' = (A'_1,\dots,A'_K; B'_1,\dots,B'_K; C'_1,\dots,C'_K; L'_1,\dots,L'_K)$
-be two states in $\mathscr{H}_j$ for job $J_j$.
-If $A_i = A'_i$, $B_i = B'_i$, $L_i = L'_i$ for all $i$, and $C_i \le C'_i$ for all $i$,
-then $\mathscr{H}'$ can be discarded without affecting the optimal solution.
+$\mathscr{H}' = (A'_1,\dots,A'_K; B'_1,\dots,B'_K; C'_1,\dots,C'_K; L'_1,\dots,L'_K)$ be two states
+in $\mathscr{H}_j$. If $A_i = A'_i$, $B_i = B'_i$ and $L_i = L'_i$ for every $i$, and
+$C_i \le C'_i$ for every $i$, then $\mathscr{H}'$ can be discarded without affecting the optimal
+solution.
 \end{lemma}
 \begin{proof}
-Consider any continuation that extends state $\mathscr{H}'$ to a complete schedule $\Pi'$.
-Replacing the prefix represented by $\mathscr{H}'$ with the prefix represented by $\mathscr{H}$
-yields a schedule $\Pi$ that uses the same assignment of the remaining jobs.
-For every subsequent block $\mathcal{B}_k$ ($k \ge 2$), the $M_2$ start time is
-$\max\{\sum_{i=1}^{k}A_{i},\, C_{k-1}\}$, where $C_{k-1}$ is no larger under $\mathscr{H}$ than under $\mathscr{H}'$.
-By induction, the $M_2$ completion time of every subsequent block is no larger under $\mathscr{H}$,
-and since $A_i$, $B_i$ and $L_i$ are identical, the objective value $W C_{\max}$ of $\Pi$ does not
-exceed that of $\Pi'$.
+Consider any continuation that extends $\mathscr{H}'$ to a complete schedule $\Pi'$. Replacing the
+prefix represented by $\mathscr{H}'$ with the prefix represented by $\mathscr{H}$ yields a schedule
+$\Pi$ that assigns the remaining jobs identically. For every block $\mathcal{B}_k$ that follows the
+updated one, the $M_2$ start time is $\max\{\sum_{i=1}^{k}A_{i},\, C_{k-1}\}$, and $C_{k-1}$ is no
+larger under $\mathscr{H}$ than under $\mathscr{H}'$. By induction, the $M_2$ completion time of
+every subsequent block is no larger under $\mathscr{H}$. Since $A_i$, $B_i$ and $L_i$ are identical
+in the two states, the objective value $W C_{\max}$ of $\Pi$ does not exceed that of $\Pi'$.
 \end{proof}
 
-For $j = 1, \dots, n$, the algorithm extends $\mathscr{H}_{j-1}$ to $\mathscr{H}_j$ as follows:
-for each state in $\mathscr{H}_{j-1}$ and each block $i \in \mathcal{E}(J_j)$,
-the algorithm places $J_j$ at the end of $\mathcal{B}_i$.
-Only the $i$-th slice of the state is updated, while all other blocks remain unchanged:
+For $j = 1,\dots,n$, the algorithm extends $\mathscr{H}_{j-1}$ to $\mathscr{H}_j$ by placing $J_j$
+at the end of each eligible block. That is, for every state in $\mathscr{H}_{j-1}$ and every
+$i \in \mathcal{E}(J_j)$, only the $i$-th slice of the state is updated while all other blocks
+remain unchanged:
 \begin{equation}\label{eq:transition}
 A'_i = A_i + a_j,\quad
 B'_i = B_i + b_j,\quad
@@ -599,7 +622,7 @@ By Lemma~\ref{lem:merge-dominance}, merging the candidates removes dominated and
 states and yields $\mathscr{H}_{j}$.
 
 \setlength{\intextsep}{4pt}
-\begin{algorithm}[H]
+\begin{algorithm}[tbp]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -616,13 +639,13 @@ states and yields $\mathscr{H}_{j}$.
 \KwOut{$W C_{\max}$.}
 \end{algorithm}
 
-\begin{algorithm}[H]
+\begin{algorithm}[tbp]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
 \DontPrintSemicolon
 \caption{DP for $F2 \parallel W C_{\max}$}\label{alg:dp}
-\KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$;max block count $K$; weights $W_1>\cdots>W_K$.}
+\KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$; block count $K$; weights $W_1>\cdots>W_K$.}
 \BlankLine
 \textbf{Step 1.} [Initialization] Set $L_i\gets 0$ for $i=1,\dots,K$, set
 	$\mathscr{H}_0\gets\{(0,\dots,0; \; 0,\dots,0; \; 0,\dots,0; \; 0,\dots,0)\}$ and $Z^{*}\gets+\infty$. \;
@@ -636,75 +659,68 @@ states and yields $\mathscr{H}_{j}$.
                     $(A_1,\dots,A_i',\dots,A_K; B_1,\dots,B_i',\dots,B_K; C_1,\dots,C_i',\dots,C_K; L_1,\dots,L_i',\dots,L_K)$ 
                 to $\mathcal{Y}_i$ \;
 			}
-        [Elimination] $\mathscr{H}_j\gets\textsc{Eliminate}(\mathcal{Y}_1,\dots,\mathcal{Y}_K)$ by Lemma~\ref{lem:merge-dominance} \;
+        \textbf{[Elimination]} $\mathscr{H}_j\gets\textsc{Eliminate}(\mathcal{Y}_1,\dots,\mathcal{Y}_K)$ by Lemma~\ref{lem:merge-dominance} \;
         }
     }
 
 \textbf{Step 3.} [Calculate] \For{each state $S=(A_1,\dots,A_K; B_1,\dots,B_K; C_1,\dots,C_K; L_1,\dots,L_K)\in\mathscr{H}_n$}{
     \eIf{$L_i\in\{0,W_i\}$ for every $i=1,\dots,K$}{
-        $W C_{\max}\gets$ Algorithm~\ref{alg:Block-concat} \;
+        $W C_{\max}\gets$ Algorithm~\ref{alg:Block-concat} applied to $S$ \;
         $Z^{*}\gets\min\{\,Z^{*},\ W C_{\max}\,\}$ \;
     }{
         Discard $S$. \;
     }
 }
-\textbf{Step 4.} [Result] By standard backtracking $Z^{*}$. \;
-\KwOut{ get the schedule $\sigma$.}
+\textbf{Step 4.} [Result] Recover a schedule attaining $Z^{*}$ by standard backtracking. \;
+\KwOut{An optimal schedule $\sigma$.}
 \end{algorithm}
 
-To this end, each state in $\mathscr{H}_j$ stores a pointer to the state in $\mathscr{H}_{j-1}$ from
-which it was derived, together with the block $i \in \mathcal{E}(J_j)$ into which $J_j$ was placed.
-Starting from the state in $\mathscr{H}_n$ attaining $Z^*$, backtracking along these pointers
-recovers, for every job $J_j$, the block $\mathcal{B}_i$ it belongs to.
-Sequencing the jobs of each block according to Johnson's rule (Lemma~\ref{lem:block-johnson})
-and concatenating the blocks then yields an optimal schedule $\pi^*$ with $W C_{\max}(\pi^*) = Z^*$.
+To support Step~4, each state in $\mathscr{H}_j$ stores a pointer to the state in $\mathscr{H}_{j-1}$
+from which it was derived, together with the block $i \in \mathcal{E}(J_j)$ into which $J_j$ was
+placed. Starting from a state in $\mathscr{H}_n$ attaining $Z^{*}$, backtracking along these pointers
+recovers the block $\mathcal{B}_i$ containing each job $J_j$. Sequencing the jobs of each block
+according to Johnson's rule (Lemma~\ref{lem:block-johnson}) and concatenating the blocks then yields
+an optimal schedule $\pi^{*}$ with $W C_{\max}(\pi^{*}) = Z^{*}$.
 
 \begin{theorem}\label{thm:complexity}
-Algorithm~2 solves $F2 \parallel W C_{\max}$ optimally in
+Algorithm~\ref{alg:dp} solves $F2 \parallel W C_{\max}$ optimally in
 $O\bigl(n \cdot K \cdot |\mathscr{H}|_{\max}\bigr)$ time, where
-$|\mathscr{H}|_{\max} \le 2^K \cdot V^{\,3K-3}$,
-$V = \sum_{j=1}^{n}a_j + \sum_{j=1}^{n}b_j$.
-For constant $K$, this is $O(n \cdot V^{\,3K-3})$.
+$|\mathscr{H}|_{\max} \le 2^{K}V^{\,3K-3}$ and $V = \sum_{j=1}^{n}a_j + \sum_{j=1}^{n}b_j$.
+For constant $K$, this is $O(nV^{\,3K-3})$.
 \end{theorem}
 
 \begin{proof}
-Each state in $\mathscr{H}_j$ is a $4K$-tuple
+Each state in $\mathscr{H}_j$ is the $4K$-tuple
 \[
-(A_1,\dots,A_K;\, B_1,\dots,B_K;\, C_1,\dots,C_K;\, L_1,\dots,L_K).
+(A_1,\dots,A_K;\, B_1,\dots,B_K;\, C_1,\dots,C_K;\, L_1,\dots,L_K),
 \]
-We bound the number of distinct values each component can attain.
+so it suffices to bound the number of distinct values each component can attain.
 
-The quantity $A_i$ is the total $M_1$ processing time of jobs assigned to block $\mathcal{B}_i$,
-hence $A_i \in [0,\,V]$.
-Since the $j$ jobs under consideration form a prefix of the fixed Johnson sequence,
-$\sum_{i=1}^{K} A_i$ equals the sum of the $a_h$ values over that prefix.
-Consequently at most $K-1$ of the $A_i$ are independent, contributing at most $V^{\,K-1}$ distinct $A$-vectors.
-Symmetrically, $\sum_{i=1}^{K} B_i$ is the prefix sum of the $b_j$'s,
-so the $B_i$ components likewise contribute at most $V^{\,K-1}$ distinct combinations.
+The quantity $A_i$ is the total $M_1$ processing time of the jobs assigned to block
+$\mathcal{B}_i$, hence $A_i \in [0,\,V]$. Since the $j$ jobs considered so far form a prefix of the
+fixed Johnson sequence, $\sum_{i=1}^{K} A_i$ equals the sum of the $a_h$ over that prefix. At most
+$K-1$ of the $A_i$ are therefore independent, contributing at most $V^{\,K-1}$ distinct
+$A$-vectors. Symmetrically, $\sum_{i=1}^{K} B_i$ is the prefix sum of the $b_j$, so the $B_i$
+components likewise contribute at most $V^{\,K-1}$ distinct combinations.
 
-The quantity $C_i$ is the makespan of $\mathcal{B}_i$ when scheduled in isolation by Johnson's rule.
-Since $C_i \le A_i + B_i \le V$ (each block's total $M_1$ and $M_2$ work is bounded by $V$),
-the $C$-vector contributes at most $V^{K-1}$ distinct values.
-The weight $L_i$ equals $W_i$ if block $\mathcal{B}_i$ is nonempty and $0$ if it is empty,
-yielding at most $2^K$ distinct $L$-vectors.
-
-Multiplying these bounds yields
+The quantity $C_i$ is the makespan of $\mathcal{B}_i$ when that block is scheduled in isolation by
+Johnson's rule. Since $C_i \le A_i + B_i \le V$, the $C$-vector contributes at most $V^{K-1}$
+distinct values. The weight $L_i$ equals $W_i$ when block $\mathcal{B}_i$ is non-empty and $0$ when
+it is empty, so the $L$-vector takes at most $2^K$ distinct values. Multiplying these bounds gives
 \[
-|\mathscr{H}_{j}| \le 2^K \cdot V^{\,K-1} \cdot V^{\,2K-2}
-                      = 2^K \cdot V^{\,3K-3}.
+|\mathscr{H}_{j}| \le 2^K \cdot V^{\,K-1} \cdot V^{\,2K-2} = 2^K \cdot V^{\,3K-3}.
 \]
 
-In iteration $j$, the algorithm takes each state in $\mathscr{H}_{j-1}$, tries every
-block $i \in \{1,\dots,K\}$, computes the updated tuple in $O(1)$ time,
-and inserts it into $\mathcal{Y}_i$.
-The merge step collects the $K$ sets $\mathcal{Y}_1,\dots,\mathcal{Y}_K$ and removes duplicates in time
-proportional to the total number of generated tuples.
-Hence iteration $j$ costs $O(K \cdot |\mathscr{H}_{j-1}|)$,
-and summing over all $n$ iterations gives $O(n \cdot K \cdot |\mathscr{H}|_{\max})$.
+In iteration $j$, the algorithm takes each state in $\mathscr{H}_{j-1}$, tries every block
+$i \in \{1,\dots,K\}$, computes the updated tuple in $O(1)$ time, and inserts it into
+$\mathcal{Y}_i$. The merge step collects the $K$ sets $\mathcal{Y}_1,\dots,\mathcal{Y}_K$ and removes
+duplicates in time proportional to the total number of generated tuples. Iteration $j$ therefore
+costs $O(K \cdot |\mathscr{H}_{j-1}|)$, and summing over the $n$ iterations gives
+$O(n \cdot K \cdot |\mathscr{H}|_{\max})$.
 
-The final concatenation via Algorithm~1 evaluates each state in $\mathscr{H}_{n}$
-in $O(K)$ time, which is dominated by the DP phase.
-When $K$ is fixed, $2^K$ is constant, giving $O(n \cdot V^{\,3K-3})$.
+The final concatenation by Algorithm~\ref{alg:Block-concat} evaluates each state in
+$\mathscr{H}_{n}$ in $O(K)$ time, which is dominated by the DP phase. For fixed $K$, $2^K$ is
+constant and the bound becomes $O(n \cdot V^{\,3K-3})$.
 \end{proof}
 
 
@@ -797,6 +813,9 @@ and the claim follows from \eqref{eq:approx2-upper}.
 \subsection{FPTAS}
 \label{sub:fptas}
 
+\subsubsection{Rounding the time coordinates}
+\label{subsub:fptas-time}
+
 We now convert the exact dynamic program of Algorithm~\ref{alg:dp} into a fully
 polynomial-time approximation scheme by rounding the input data
 (\citealp{hall1994}). One key point of this technique is the determination of
@@ -849,7 +868,7 @@ most $v^{x}+2$ distinct values of $\Delta$, where
 $v^{x}=\lceil\log_\theta V_x\rceil$ and $V_C=V$, while the weight is not rounded and
 each $L_i$ takes at most $n+1$ values.
 
-The deletion step keeps one representative per label. At iteration $j$, every state of
+The Elimination step keeps one representative per label. At iteration $j$, every state of
 $\mathscr{H}^{\epsilon}_{j-1}$ spawns one candidate for each eligible block
 $i\in\mathcal{E}(J_j)=\{1,\dots,i^{*}\}$, and each candidate is assigned its label. Two
 candidates with the same label are indistinguishable after rounding and carry the same
@@ -861,7 +880,7 @@ label therefore carries exactly one state into $\mathscr{H}^{\epsilon}_{j}$, and
 states never exceeds the number of labels.
 
 
-\begin{algorithm}[H]
+\begin{algorithm}[tbp]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -869,9 +888,8 @@ states never exceeds the number of labels.
 \caption{State-class FPTAS for $F2 \parallel W C_{\max}$}\label{alg:fptas}
 \KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$; block count $K$; accuracy $\epsilon$.}
 \BlankLine
-\textbf{Step 1.} [Initialization] Set $\theta=1+\epsilon/(2n)$, $V_A=\sum_{j}a_j$, $V_B=\sum_{j}b_j$, $V=V_A+V_B$,
-			$v^{x}=\lceil\log_\theta V_x\rceil$ for $x\in\{A,B,C\}$ with $V_C=V$, and the index function $\Delta(\cdot)$;
-			set $\mathscr{H}^{\epsilon,0}\gets\{(0,\dots,0; \; 0,\dots,0; \; 0,\dots,0; \; 0,\dots,0)\}$ and $Z^{*}\gets+\infty$. \;
+\textbf{Step 1.} [Initialization] Set $\theta=1+\epsilon/(2n)$; set $Z^{*}\gets+\infty$; 
+			 $\mathscr{H}^{\epsilon}_{0}\gets\{(0,\dots,0; \; 0,\dots,0; \; 0,\dots,0; \; 0,\dots,0)\}$. \;
 \textbf{Step 2.} [Generation] \For{$j=1$ \KwTo $n$}{
     $\mathcal{Y}_i\gets\emptyset$ for $i=1,\dots,K$ \;
     \For{each state $(A_1,\dots,A_K; B_1,\dots,B_K; C_1,\dots,C_K; L_1,\dots,L_K)\in\mathscr{H}^{\epsilon}_{j-1}$}{
@@ -879,26 +897,27 @@ states never exceeds the number of labels.
             $\tilde A_i=A_i+a_j$, $\tilde B_i=B_i+b_j$, $\tilde L_i=w_j$ \;
             $\tilde C_i=\max\{\,C_i+b_j,\ A_i+a_j+b_j\,\}$ \;
             \textbf[Label] Record the label
-            $\ell(\tilde{\mathscr{H}}^{\epsilon})=\bigl(\Delta(\tilde A_1),\dots,\Delta(\tilde A_K);\;
+            $\ell(\tilde{\mathscr{H}}^{\epsilon}_{j})=\bigl(\Delta(\tilde A_1),\dots,\Delta(\tilde A_K);\;
             \Delta(\tilde B_1),\dots,\Delta(\tilde B_K);\;
             \Delta(\tilde C_1),\dots,\Delta(\tilde C_K);\;
-            \tilde L_1,\dots,\tilde L_K\bigr)$ for the state. \;
+            \tilde L_1,\dots,\tilde L_K\bigr)$. \;
         }
         \textbf [Elimination] Among the candidate states sharing the same label, keep one of them and
             delete the others;
             set $\mathscr{H}^{\epsilon}_{j}$ to the kept states. \;
     }
 }
-\textbf{Step 3.} [Calculate] Same as Step~3 of Algorithm~\ref{alg:dp}, applied to $\mathscr{H}^{\epsilon,n}$. \;
+\textbf{Step 3.} [Calculate] Same as Step~3 of Algorithm~\ref{alg:dp}, applied to $\mathscr{H}^{\epsilon}_{n}$. \;
 \textbf{Step 4.} [Result] Same as Step~4 of Algorithm~\ref{alg:dp}. \;
 \KwOut{An approximate schedule $\sigma$.}
 \end{algorithm}
 
 \begin{lemma}\label{lem:traj-approx}
-Let $\mathscr{H}_{j}=(A_1,\dots,A_K; B_1,\dots,B_K; C_1,\dots,C_K; L_1,\dots,L_K)$,
-$j=1,\dots,n$, be the states along an optimal sequence of Algorithm~\ref{alg:dp}. Algorithm~\ref{alg:fptas} keeps a corresponding state
+Let $\mathscr{H}_{j}=(A_1,\dots,A_K; B_1,\dots,B_K; C_1,\dots,C_K; L_1,\dots,L_K)$, $j=1,\dots,n$, be the
+states along an optimal trajectory of Algorithm~\ref{alg:dp}, that is, the states recovered by
+backtracking from an optimal final state. For every $j$, Algorithm~\ref{alg:fptas} keeps a state
 $\hat{\mathscr{H}}^{\epsilon}_{j}=(\hat A_1,\dots,\hat A_K; \hat B_1,\dots,\hat B_K; \hat C_1,\dots,\hat C_K; L_1,\dots, L_K)$
-satisfying 
+that carries the same block-end weights $L_1,\dots,L_K$ and satisfies
 \begin{equation}\label{eq:traj-bound}
 \hat A_i\le A_i\,\theta^{j-1},~~
 \hat B_i\le B_i\,\theta^{j-1},~~
@@ -907,20 +926,21 @@ satisfying
 \end{lemma}
 
 \begin{proof}
-The proof proceeds by induction on $j$ from $1$ to $n$. For the base case $j=1$, both algorithms
-generate their candidates for $J_1$ from the same zero state, and two
-candidates differ as soon as they place $J_1$ in different blocks. They therefore carry different
-labels and no state is deleted, so that $\mathscr{H}^{\epsilon}_{1}$ and $\mathscr{H}_{1}$
-coincide and \eqref{eq:traj-bound} holds with equality at $j=1$.
+We argue by induction on $j$, from $1$ to $n$.
 
-Assume now that \eqref{eq:traj-bound} holds for $j-1$, where $j\ge2$, and let $i$ be the block
-to which $\mathscr{H}_{j-1}$ appends $J_j$ in Algorithm~\ref{alg:dp}. By the positional
-constraint of Algorithm~\ref{alg:dp}, which assigns a job only to a block $i$ with $w\le W_i$, we have
-$w_j\le W_i$; this constraint depends only on $J_j$ and the block index, so appending $J_j$ to
-block $i$ is available from $\hat{\mathscr{H}}^{\epsilon}_{j-1}$ as well. Let $A^{\prime}_i$, $B^{\prime}_i$ and
-$C^{\prime}_i$ denote the coordinates of $\mathscr{H}_{j-1}$. Applying
-the exact recurrences to $\hat{\mathscr{H}}^{\epsilon}_{j-1}$ and using $\theta^{j-2}\ge1$ gives a
-candidate $\tilde{\mathscr{H}}^{\epsilon}_{j}$ with
+\textbf{Base case $j=1$.} Both algorithms generate their candidates for $J_1$ from the same zero
+state. Two candidates that place $J_1$ in different blocks differ in at least one time coordinate,
+so they carry different labels and no state is deleted. The sets $\mathscr{H}^{\epsilon}_{1}$ and
+$\mathscr{H}_{1}$ therefore coincide, and \eqref{eq:traj-bound} holds with equality at $j=1$.
+
+\textbf{Inductive step $j\ge2$.} Assume that \eqref{eq:traj-bound} holds at $j-1$, and let $i$ be the
+block to which $\mathscr{H}_{j-1}$ appends $J_j$ in Algorithm~\ref{alg:dp}. Algorithm~\ref{alg:dp}
+assigns a job only to a block $i$ with $w\le W_i$, so $w_j\le W_i$. This constraint depends only on
+$J_j$ and the block index, hence appending $J_j$ to block $i$ is available from
+$\hat{\mathscr{H}}^{\epsilon}_{j-1}$ as well. Write $A^{\prime}_i$, $B^{\prime}_i$ and $C^{\prime}_i$
+for the coordinates of $\mathscr{H}_{j-1}$. Applying the exact recurrences to
+$\hat{\mathscr{H}}^{\epsilon}_{j-1}$ and using $\theta^{j-2}\ge1$ gives a candidate
+$\tilde{\mathscr{H}}^{\epsilon}_{j}$ with
 \begin{align*}
 \tilde A_{i} &= \hat A_{i}+a_j
    \le \big(A^{\prime}_{i}+a_j\big)\theta^{j-2}=A_{i}\theta^{j-2},\\
@@ -933,34 +953,33 @@ candidate $\tilde{\mathscr{H}}^{\epsilon}_{j}$ with
 where $A_i$, $B_i$ and $C_i$ are the coordinates of $\mathscr{H}_{j}$. For the remaining blocks
 $m\ne i$ the same transition leaves the coordinates unchanged, so that
 $\tilde x_m=\hat x_m\le x^{\prime}_m\theta^{j-2}=x_m\theta^{j-2}$ for $x\in\{A,B,C\}$. Hence
-$\tilde x_m\le x_m\theta^{j-2}$ holds for every block $m=1,\dots,K$, and the block-end weights
+$\tilde x_m\le x_m\theta^{j-2}$ holds for every block $m=1,\dots,K$. The block-end weights
 $L_1,\dots,L_K$ of the candidate are those of $\mathscr{H}_{j}$, because $L_i=w_j$ and the
 remaining block-end weights are unchanged.
-The candidate $\tilde{\mathscr{H}}^{\epsilon}_{j}$ then carries the label
+
+The candidate $\tilde{\mathscr{H}}^{\epsilon}_{j}$ carries the label
 $\ell(\tilde{\mathscr{H}}^{\epsilon}_{j})$ assigned in Algorithm~\ref{alg:fptas}, and the algorithm
-keeps a state $\hat{\mathscr{H}}^{\epsilon}_{j}\in\mathscr{H}^{\epsilon}_{j}$ with that same label; since the
-label records the block-end weights, $\hat{\mathscr{H}}^{\epsilon}_{j}$ carries $L_1,\dots,L_K$ as
-well. By
-interval dominance, two values with the same index $\Delta$ differ by at most a factor $\theta$, so
-$y^{x}_{m}\le\theta\,\tilde x_{m}$ for every $x\in\{A,B,C\}$ and
-every block $m=1,\dots,K$, where $y^{x}_{m}$ denotes the coordinates of $\hat{\mathscr{H}}^{\epsilon}_{j}$;
-combined with $\tilde x_m\le x_m\theta^{j-2}$ this yields \eqref{eq:traj-bound} at $j$.
-This completes the induction. Since every state of $\mathscr{H}^{\epsilon,n}$
-stores all $3K$ time
-coordinates, the induction covers the coordinates of the last block $\mathcal{B}_K$ as well.
-These coordinates are rounded and stored for every block, exactly as in
-Algorithm~\ref{alg:dp}, rather than derived from the others, because a derived value would
-accumulate the rounding errors of the remaining blocks and destroy the factor $\theta^{j-1}$
-in \eqref{eq:traj-bound}.
+keeps a state $\hat{\mathscr{H}}^{\epsilon}_{j}\in\mathscr{H}^{\epsilon}_{j}$ with that same label.
+Since the label records the block-end weights, $\hat{\mathscr{H}}^{\epsilon}_{j}$ carries
+$L_1,\dots,L_K$ as well. Interval dominance states that two values with the same index $\Delta$
+differ by at most a factor $\theta$, so $y^{x}_{m}\le\theta\,\tilde x_{m}$ for every
+$x\in\{A,B,C\}$ and every block $m=1,\dots,K$, where $y^{x}_{m}$ denotes the coordinates of
+$\hat{\mathscr{H}}^{\epsilon}_{j}$. Together with $\tilde x_m\le x_m\theta^{j-2}$, this yields
+\eqref{eq:traj-bound} at $j$ and completes the induction.
+
+Every state of $\mathscr{H}^{\epsilon}_n$ stores all $3K$ time coordinates, so the induction covers
+the coordinates of the last block $\mathcal{B}_K$ as well. Storing these coordinates for every
+block, exactly as in Algorithm~\ref{alg:dp}, rather than deriving them from the others, preserves
+the factor $\theta^{j-1}$ of \eqref{eq:traj-bound}: a derived value would accumulate the rounding
+errors of the remaining blocks.
 \end{proof}
 
 \begin{theorem}\label{thm:fptas}
-Algorithm~\ref{alg:fptas} is a fully polynomial-time approximation scheme for
-$F2 \parallel W C_{\max}$ with
+For every $0<\epsilon<1$, Algorithm~\ref{alg:fptas} returns a fully polynomial-time approximation scheme with
 \[
-W C_{\max}\ \le\ (1+\epsilon)\,W C_{\max}^{*},
+W C_{\max}\ \le\ (1+\epsilon)\,W C_{\max}^{*}.
 \]
-where $W C_{\max}^{*}$ is the optimal value,$0<\epsilon<1$ , and for fixed $K$ it runs in
+For fixed $K$, the algorithm runs in
 $
 O\!\left(n^{4K+1}\cdot K\cdot\frac{(\log V)^{3K}}{\epsilon^{3K}}\right)
 $
@@ -970,63 +989,66 @@ time.
 \begin{proof}
 We first bound the value of the returned schedule, and then its running time.
 
-Let $\mathscr{H}_{n}$ be the final state of the optimal trajectory of Algorithm~\ref{alg:dp} and
-$\hat{\mathscr{H}}^{\epsilon}_{n}\in\mathscr{H}^{\epsilon}_{n}$ the state guaranteed by Lemma~\ref{lem:traj-approx} at $j=n$. By the
-lemma, the time coordinates of $\hat{\mathscr{H}}^{\epsilon}_{n}$ are within a factor $\theta^{n-1}$ of those of
-$\mathscr{H}_{n}$. Since $L_i$ is not rounded, the block-end weights of $\hat{\mathscr{H}}^{\epsilon}_{n}$ are those of
-$\mathscr{H}_{n}$, which satisfies the positional constraint $L_i\in\{0,W_i\}$; every block of
-$\hat{\mathscr{H}}^{\epsilon}_{n}$ therefore has block-end weight at most $W_i$.
+Let $\mathscr{H}_{n}$ be the final state of the optimal trajectory of Algorithm~\ref{alg:dp}, and let
+$\hat{\mathscr{H}}^{\epsilon}_{n}\in\mathscr{H}^{\epsilon}_{n}$ be the state guaranteed by
+Lemma~\ref{lem:traj-approx} at $j=n$. By the lemma, the time coordinates of
+$\hat{\mathscr{H}}^{\epsilon}_{n}$ are within a factor $\theta^{n-1}$ of those of $\mathscr{H}_{n}$,
+and its block-end weights are those of $\mathscr{H}_{n}$, because the weights are not rounded. The
+final state $\mathscr{H}_{n}$ satisfies the positional constraint $L_i\in\{0,W_i\}$ of
+Algorithm~\ref{alg:dp}, so every block of $\hat{\mathscr{H}}^{\epsilon}_{n}$ has block-end weight at
+most $W_i$.
 
 Let $\hat\sigma$ and $\sigma^{*}$ be the schedules obtained by concatenating the blocks of
-$\hat{\mathscr{H}}^{\epsilon}_{n}$ and $\mathscr{H}_{n}$, and let $C_i(\sigma)$ denote the completion time of
-the last job of block $\mathcal{B}_i$ in a schedule $\sigma$. By the concatenation recurrence of
-Algorithm~\ref{alg:Block-concat}, $C_i(\sigma)$ is nondecreasing in every coordinate of the state and
-positively homogeneous, so $C_i(\hat\sigma)\le\theta^{n-1}C_i(\sigma^{*})$ for every $i$. Since every
-block of $\hat{\mathscr{H}}^{\epsilon}_{n}$ has block-end weight at most $W_i$, Lemma~\ref{lem:block-johnson} yields
+$\hat{\mathscr{H}}^{\epsilon}_{n}$ and $\mathscr{H}_{n}$, and let $C_i(\sigma)$ denote the completion
+time of the last job of block $\mathcal{B}_i$ in a schedule $\sigma$. By the concatenation
+recurrence of Algorithm~\ref{alg:Block-concat}, $C_i(\sigma)$ is nondecreasing in every coordinate
+of the state and positively homogeneous. Hence $C_i(\hat\sigma)\le\theta^{n-1}C_i(\sigma^{*})$ for
+every $i$. Since every block of $\hat{\mathscr{H}}^{\epsilon}_{n}$ has block-end weight at most
+$W_i$, Lemma~\ref{lem:block-johnson} yields
 \[
 W C_{\max}(\hat\sigma)
 =\max_{1\le i\le K}W_i\,C_i(\hat\sigma)
 \le \theta^{n-1}\max_{1\le i\le K}W_i\,C_i(\sigma^{*})
 =\theta^{n-1}\,W C_{\max}^{*}.
 \]
-Finally, $\theta^{n-1}\le 1+\epsilon$ for $0<\epsilon<1$. Indeed, $1+x\le e^{x}$ for every
-real $x$, so
+The factor $\theta^{n-1}$ is at most $1+\epsilon$ for $0<\epsilon<1$. Because $1+x\le e^{x}$ for
+every real $x$,
 \[
 \theta^{n-1}=\Bigl(1+\frac{\epsilon}{2n}\Bigr)^{n-1}
 \le e^{\frac{(n-1)\epsilon}{2n}}
 <e^{\epsilon/2},
 \]
-where the strict inequality uses $(n-1)/(2n)<1/2$. It remains to check that
+where the strict inequality uses $(n-1)/(2n)<1/2$. It is therefore enough to check that
 $e^{\epsilon/2}\le1+\epsilon$ on $[0,1]$. The function $g(\epsilon)=1+\epsilon-e^{\epsilon/2}$
 satisfies $g(0)=0$ and
 \[
 g'(\epsilon)=1-\tfrac12 e^{\epsilon/2}\ge 1-\tfrac12 e^{1/2}>0
 \qquad(0\le\epsilon\le1),
 \]
-because $e^{\epsilon/2}\le e^{1/2}<2$ on that interval; hence $g$ is increasing and
-$g(\epsilon)\ge0$, which gives $e^{\epsilon/2}\le1+\epsilon$ and therefore
-$\theta^{n-1}\le1+\epsilon$. The
-schedule returned by Algorithm~\ref{alg:fptas} is no worse than $\hat\sigma$, so its value is at most
-$(1+\epsilon)\,W C_{\max}^{*}$.
+because $e^{\epsilon/2}\le e^{1/2}<2$ on that interval. Hence $g$ is increasing, so
+$g(\epsilon)\ge0$ and $e^{\epsilon/2}\le1+\epsilon$. Consequently $\theta^{n-1}\le1+\epsilon$, and
+the schedule returned by Algorithm~\ref{alg:fptas}, being no worse than $\hat\sigma$, has a value of
+at most $(1+\epsilon)\,W C_{\max}^{*}$.
 
-It remains to bound the running time. At each level $j$, Algorithm~\ref{alg:fptas} keeps at most one state of each
-label, and there are $(v^{A}+2)^K(v^{B}+2)^K(v^{C}+2)^K(n+1)^K$
-labels: the rounded time coordinates contribute $(v^{A}+2)^K(v^{B}+2)^K(v^{C}+2)^K$, at most
-$(v^{C}+2)^{3K}$ since $v^{A},v^{B}\le v^{C}$, and each of the $K$ block-end weights takes at most
-$n+1$ values.
-Each state generates at most $K$ candidates, one per eligible block, in $O(1)$ time each, and the
-final evaluation of the states of $\mathscr{H}^{\epsilon,n}$ costs $O(K)$ per state.
-Hence the running time is $O\bigl(nK\,(v^{C}+2)^{3K}(n+1)^{K}\bigr)$.
-Since $\ln(1+\epsilon/(2n))\ge\epsilon/(4n)$ for $0<\epsilon<1$,
+We now bound the running time. At each level $j$, Algorithm~\ref{alg:fptas} keeps at most one state
+per label, and the number of labels is $(v^{A}+2)^K(v^{B}+2)^K(v^{C}+2)^K(n+1)^K$. The rounded time
+coordinates contribute $(v^{A}+2)^K(v^{B}+2)^K(v^{C}+2)^K$, which is at most $(v^{C}+2)^{3K}$ since
+$v^{A},v^{B}\le v^{C}$, and each of the $K$ block-end weights takes at most $n+1$ values. Each
+state generates at most $K$ candidates, one per eligible block, in $O(1)$ time each. The final
+evaluation of the states of $\mathscr{H}^{\epsilon,n}$ costs $O(K)$ per state. The running time is
+therefore $O\bigl(nK\,(v^{C}+2)^{3K}(n+1)^{K}\bigr)$. Since
+$\ln(1+\epsilon/(2n))\ge\epsilon/(4n)$ for $0<\epsilon<1$, we have
 \[
 v^{C}=\Big\lceil\frac{\ln V}{\ln\theta}\Big\rceil
-=O\!\left(\frac{n\log V}{\epsilon}\right),
+=O\!\left(\frac{n\log V}{\epsilon}\right).
 \]
-and for constant $K$ the bound reduces to
+For constant $K$, the bound reduces to
 $O(n^{4K+1}K(\log V)^{3K}/\epsilon^{3K})$, which is polynomial in $n$, $\log V$ and $1/\epsilon$.
 \end{proof}
 
-\paragraph{Weight rounding.}
+\subsubsection{Weight rounding}
+\label{subsub:fptas-weight}
+
 The FPTAS above rounds the time coordinates $A_i,B_i,C_i$ and assumes that the number $K$ of
 distinct weights is fixed. An analogous geometric rounding applies to the weights themselves when
 their ratio is bounded. Let $W_{\min}=\min_{j}w_j$, $W_{\max}=\max_{j}w_j$, and suppose
@@ -1044,13 +1066,34 @@ r_j=\Big\lfloor\log_\theta\frac{w_j}{W_{\min}}\Big\rfloor,
 \]
 so that $w_j\le\hat w_j\le\theta\,w_j$. The rounded weights take only
 $q+1=O\big(\log_\theta(W_{\max}/W_{\min})\big)$ distinct values, so jobs whose weights differ by a
-factor at most $\theta$ merge into a single class. Since $\hat w_j\le\theta w_j$ for every $j$, the
-optimal schedule $\hat\sigma$ of the rounded instance satisfies
+factor at most $\theta$ merge into a single class.
+
+\begin{lemma}\label{lem:weight-approx}
+Let $\hat w_j$ be the rounded weights defined above, and let $\hat\sigma$ be an optimal schedule of
+the instance with weights $\hat w_j$, whose optimal value is $\hat W C_{\max}^{*}$. Then
+\begin{equation}\label{eq:weight-bound}
+W C_{\max}(\hat\sigma)\le\theta\,W C_{\max}^{*}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+By construction $w_j\le\hat w_j\le\theta w_j$ for every job $J_j$. Since the maximum is monotone,
+every schedule $\sigma$ satisfies
 \[
-W C_{\max}(\hat\sigma) \le \hat W C_{\max}(\hat\sigma) = \hat W C_{\max}^{*}
-\le \hat W C_{\max}(\pi^{*}) \le \theta\,W C_{\max}^{*},
+W C_{\max}(\sigma)=\max_{1\le j\le n}w_j C_j(\sigma)
+\le\max_{1\le j\le n}\hat w_j C_j(\sigma)=\hat W C_{\max}(\sigma)
+\le\theta\,W C_{\max}(\sigma).
 \]
-where $\pi^{*}$ is an optimal schedule of the original instance. Hence the weight rounding incurs
+Let $\pi^{*}$ be an optimal schedule of the original instance. The rounded problem is solved
+optimally by $\hat\sigma$, and $\pi^{*}$ is feasible for it, so
+\[
+W C_{\max}(\hat\sigma)\le\hat W C_{\max}(\hat\sigma)=\hat W C_{\max}^{*}
+\le\hat W C_{\max}(\pi^{*})\le\theta\,W C_{\max}(\pi^{*})=\theta\,W C_{\max}^{*},
+\]
+which is \eqref{eq:weight-bound}.
+\end{proof}
+
+Hence the weight rounding incurs
 a relative error of at most $\theta=1+\epsilon/(2n)\le 1+\epsilon$, exactly as in the
 completion-time rounding.
 
@@ -1109,7 +1152,7 @@ produces a feasible permutation schedule by construction, requires no hyperparam
 selection, and can serve either as a fast standalone solver for large instances or as a
 warm-start seed for the population-based heuristics described below.
 
-\begin{algorithm}[H]
+\begin{algorithm}[tbp]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -1182,7 +1225,7 @@ around high-quality regions while the stochastic construction preserves diversif
 Moreover, each schedule is evaluated in $O(n)$ time by \eqref{eq:completion}, making each
 iteration computationally lightweight and well suited to large instances.
 
-\begin{algorithm}[H]
+\begin{algorithm}[tbp]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
