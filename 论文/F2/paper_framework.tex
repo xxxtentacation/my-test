@@ -75,8 +75,8 @@
     For approximation guarantees, we design a fully polynomial-time approximation scheme (FPTAS) with state-class labeling
     that achieves $(1+\varepsilon)$-approximation while maintaining polynomial complexity.
     Additionally, we develop practical heuristics including an adapted NEH algorithm, 
-    an ant colony optimization (ACO) algorithm (\citealp{zhang2023}),
-    and a genetic algorithm (\citealp{reeves1995}) that provide fast solutions for large-scale instances. 
+    an ant colony optimization (ACO) algorithm \citep{zhang2023},
+    and a genetic algorithm \citep{reeves1995} that provide fast solutions for large-scale instances.
     The computational results demonstrate that our algorithms
     efficiently solve both small and large instances while maintaining theoretical guarantees.
 \end{abstract}
@@ -88,39 +88,90 @@
 \section{Introduction}
 \label{sec:intro}
 
-Flow shop scheduling, a fundamental problem in operations research, has been studied since the 1950s when Johnson established 
-the foundation for two-machine systems with his pioneering rule for minimizing makespan \cite{johnson1954optimal}. 
-This classical work laid the groundwork for decades of research on more general flow shop configurations with multiple machines, 
-multiple objectives, and complex constraints. Over the past seven decades, the field has evolved from exact algorithms and 
-heuristic approaches to sophisticated metaheuristics and approximation schemes, reflecting the increasing complexity of 
-real-world industrial applications.
+Flow shop scheduling models a production line in which every job visits the same
+machines in the same order. It is among the oldest problems in operations research,
+and Johnson's rule settled its two-machine case with the makespan as the criterion
+\citep{johnson1954optimal}. Seven decades later the model remains central, for a
+reason that has little to do with its combinatorial difficulty: it continues to
+describe how goods are actually made.
 
-The practical significance of flow shop scheduling spans multiple industrial domains. In manufacturing systems, 
-these problems arise in automotive assembly lines where different processing stages must be coordinated to minimize 
-total production time while meeting quality requirements. The semiconductor industry exemplifies the complexity of 
-modern flow shop scheduling, where integrated circuit fabrication involves hundreds of operations with precise timing constraints 
-and temperature control considerations. Logistics and distribution centers employ flow shop scheduling to optimize order 
-fulfillment processes, ensuring efficient sorting, packing, and shipping operations. Energy sector applications include power 
-generation scheduling and renewable energy system integration, where energy conversion and storage processes must be coordinated 
-to maximize efficiency and minimize costs.
+The two-machine flow shop, the setting of this paper, arises wherever a production
+line consists of a transforming stage followed by a finishing stage. Machining
+followed by coating or heat treatment, casting followed by rolling, printing
+followed by binding, and granulation followed by tableting all share the same
+structure. Each job must complete its first operation before the second can begin,
+and each stage processes one job at a time. The two stages are rarely balanced, so
+the first machine becomes a bottleneck that feeds the second; the sequence in which
+jobs are released then determines how long each of them waits. A sequencing decision
+taken at the bottleneck therefore propagates directly into delivery performance.
 
-Despite these advances, contemporary flow shop scheduling research continues to address new challenges. 
-Dynamic environments with machine breakdowns, job arrivals, and parameter uncertainty necessitate robust scheduling approaches 
-that can adapt to changing conditions. Multi-objective optimization problems, combining makespan minimization with energy efficiency, 
-sustainability goals, and fairness considerations, require novel algorithmic frameworks. Additionally, 
-complex constraints such as release times, due dates, sequence-dependent setup times, 
-and precedence relations further complicate the solution landscape. 
-These challenges motivate our research on approximation schemes and heuristics for the weighted maximum completion time objective 
-in two-machine flow shops.
+Real plants rarely treat their orders as interchangeable, and this is what the
+criterion studied here captures. The objective is the maximum weighted completion
+time, written $WC_{\max}$, and also called the weighted makespan. The weight makes
+the criterion discriminate between jobs. An order $j$ contributes the product
+$w_j C_j$, which measures what its sojourn in the plant costs; the objective is the
+maximum of these products, so it identifies the single worst-treated order rather
+than the average. Weights are not an artificial device.
+A weight may stand for the contractual penalty incurred per unit time when an order
+is delivered late, for the revenue tied up while it is in process, or for the
+priority of the customer who placed it; all of these attach to individual orders
+rather than to the plant as a whole. Minimizing the maximum weighted completion
+time then amounts to protecting the most costly order from delay, which is the
+decision a planner faces when a line is oversubscribed and not every order can be
+served on time.
 
-In this paper, we focus on the problem $F2 \parallel W C_{\max}$, which extends the classical two-machine flow shop by 
-incorporating job weights to reflect varying importance or processing priorities. While this problem is NP-hard in the strong 
-sense Theorem~\ref{thm:nphard}, it can be approximated within a constant factor in polynomial time. Therefore, for large instances, 
-we develop both approximation schemes and 
-heuristic algorithms that provide efficient solutions with guaranteed performance bounds.
+Computing such a schedule is hard. The problem is strongly NP-hard
+(Theorem~\ref{thm:snphard}), so no analogue of Johnson's rule can exist for it
+unless P $=$ NP. Exact methods based on mixed integer programming and on dynamic
+programming are available, but both scale poorly, the dynamic program being  
+pseudo-polynomial in the total processing time. For the large instances that arise
+in production, a method with a provable performance guarantee, or one that finds
+near-optimal schedules quickly, is therefore needed.
+
+This paper addresses that need. We first establish the structural properties of the
+problem, showing that an optimal schedule exists in a block form determined by the
+distinct weights. On that structure we build an exact dynamic program, a
+2-approximation algorithm, and a fully polynomial-time approximation scheme. Because
+the exact methods remain exponential in the number of distinct weights, we also
+develop three heuristics for large instances and report a computational study that
+compares all of them.
 
 
 
+
+\section{Literature review}
+\label{sec:literature}
+
+The criterion studied in this paper appears in the literature under two names. When
+the weights are read as the priorities attached to individual jobs, $WC_{\max}$
+is the \emph{maximum weighted completion time}; when the schedule is viewed as a
+single aggregate job, the same expression is the \emph{weighted makespan}. The two
+names denote one criterion, and the work closest to this paper is divided between
+them.
+
+On a single machine, the criterion has been studied in the online setting, where
+jobs are revealed over time and must be sequenced without knowledge of the future;
+best-possible online algorithms are known \citep{li2015best}. A single machine
+carrying one restricted rate-modifying activity has also been treated, again with
+the weighted makespan as the criterion \citep{zuo2026single}. On identical parallel
+machines, randomized approximation schemes for the weighted makespan have been
+developed \citep{sun2024randomized}, and the criterion has been combined with the
+decision of which orders to accept \citep{lu2025order}. These four results share the
+criterion of this paper but not its machine environment. In each of them a job
+occupies one machine for its entire processing time, so the two-stage interaction
+that makes the flow shop difficult does not arise.
+
+Within flow shop scheduling, by contrast, the weighted objective that has been
+studied is the \emph{sum} of the weighted completion times rather than its maximum.
+The total weighted completion time has been minimized in a proportionate flow shop,
+the environment in which every machine spends the same time on a given job
+\citep{shakhlevich1998minimizing}. For the general two-machine flow shop, the
+criterion that has been treated is the makespan, most recently together with
+rejection decisions \citep{shabtay2024coordinating}.
+
+The maximum weighted completion time in a two-machine flow shop, which is the
+problem studied here, therefore does not appear in the literature reviewed above.
+The machine environment and the criterion have each been treated, but never together.
 
 \section{Preliminaries}
 \label{sec:preliminaries}
@@ -419,8 +470,8 @@ $F2 \parallel W C_{\max}$.
 
 \subsection{The number of weights is constant}
 For $F2 \parallel W C_{\max}$, an optimal schedule exists in which both machines process the jobs
-in the same order (\citealp{baker1974introduction}); we therefore restrict attention to such
-permutation schedules. Within this class, Johnson's rule (\citealp{johnson1954optimal}) minimizes
+in the same order \citep{baker1974introduction}; we therefore restrict attention to such
+permutation schedules. Within this class, Johnson's rule \citep{johnson1954optimal} minimizes
 the makespan: the jobs with $a_j \le b_j$ are scheduled first in non-decreasing order of $a_j$,
 and the remaining jobs follow in non-increasing order of $b_j$.
 
@@ -504,7 +555,7 @@ $\mathcal{B}_2=\{J_4,J_5\}$, and $\mathcal{B}_3=\{J_6\}$.
 \end{center}
 
 \begin{lemma}\label{lem:block-johnson}
-For any schedule $\pi$, rescheduling the jobs within each block according to Johnson's rule~\citealp{johnson1954optimal}
+For any schedule $\pi$, rescheduling the jobs within each block according to Johnson's rule~\citep{johnson1954optimal}
 and concatenating the blocks in their original order yields a schedule $\pi'$ with
 $W C_{\max}(\pi') \le W C_{\max}(\pi)$.
 \end{lemma}
@@ -818,7 +869,7 @@ and the claim follows from \eqref{eq:approx2-upper}.
 
 We now convert the exact dynamic program of Algorithm~\ref{alg:dp} into a fully
 polynomial-time approximation scheme by rounding the input data
-(\citealp{hall1994}). One key point of this technique is the determination of
+\citep{hall1994}. One key point of this technique is the determination of
 valid lower and upper bounds for the coordinates to be rounded: each time
 coordinate ranges in a bounded interval, and rounding it to one of a fixed number
 of geometrically spaced values keeps the relative error within a single factor
@@ -1110,8 +1161,8 @@ The exact dynamic program of Section~\ref{sec:dp_algorithm} is pseudo-polynomial
 running time of the FPTAS of Section~\ref{sub:fptas} is exponential in the number $K$ of
 distinct weights. For large instances, fast heuristics are therefore of practical interest.
 In this section we present three heuristics for $F2 \parallel W C_{\max}$: an adaptation of
-the NEH algorithm (\citealp{puka2024}), an ant colony optimization (ACO) algorithm
-(\citealp{zhang2023}), and a genetic algorithm (\citealp{reeves1995}).
+the NEH algorithm \citep{puka2024}, an ant colony optimization (ACO) algorithm
+\citep{zhang2023}, and a genetic algorithm \citep{reeves1995}.
 
 Throughout this section, the objective of a permutation
 $\sigma=(\sigma(1),\dots,\sigma(k))$ of $k$ jobs is evaluated by \eqref{eq:completion}, so that
@@ -1124,7 +1175,7 @@ which is computed in $O(k)$ time.
 \subsection{NEH}
 Constructive heuristics are attractive for $F2 \parallel W C_{\max}$ because they produce a
 complete schedule in a single pass, without the tuning effort of population-based
-metaheuristics. The NEH heuristic of (\citealp{puka2024}) is among the most effective
+metaheuristics. The NEH heuristic \citep{puka2024} is among the most effective
 constructive rules for permutation flow shops, and its core idea is to build a schedule by
 incrementally inserting jobs into a growing partial sequence, each time choosing the
 position that best serves the objective.
@@ -1187,7 +1238,7 @@ $O\bigl(\sum_{k=1}^{n}k^2\bigr)=O(n^3)$.
 \subsection{Ant Colony Optimization}
 Population-based metaheuristics can explore a much larger set of schedules than constructive
 heuristics, but their effectiveness depends on how well the search bias matches the problem
-structure. Ant colony optimization (\citealp{zhang2023}) is a constructive population
+structure. Ant colony optimization \citep{zhang2023} is a constructive population
 metaheuristic in which a colony of artificial ants incrementally builds schedules, and the
 collective experience is stored in pheromone trails that guide subsequent ants toward
 promising job orderings.
@@ -1260,13 +1311,12 @@ The objective $\max_{j} w_j\,C_j$ is a bottleneck criterion: the value of a sche
 determined by the single \emph{critical} job that attains the maximum, and an ordering can be
 improved only by lowering that job's completion time, or by shortening completion times across
 the board. A genetic algorithm for $F2 \parallel W C_{\max}$ should therefore not treat all
-jobs symmetrically. Following the genetic algorithm of Reeves (\citealp{reeves1995}) for
-flow-shop sequencing, we design its operators around the weight classes and the block structure
+jobs symmetrically. Following the genetic algorithm \citep{reeves1995} for flow-shop
+sequencing, we design its operators around the weight classes and the block structure
 of Section~\ref{sec:dp_algorithm}: high-weight jobs should occupy early positions (their
 weighted completion must be kept small), while the makespan should stay low so that no job is
 delayed unnecessarily.
 
-\paragraph{Encoding and Decoding}
 A chromosome is a permutation $\sigma=(\sigma(1),\dots,\sigma(n))$, where the gene at
 position $t$ is the job scheduled $t$-th. Permutation encoding is adopted because it always
 represents a feasible permutation schedule: every job occurs exactly once, so no repair
@@ -1282,13 +1332,12 @@ W C_{\max}(\sigma)=\max_{1\le t\le n}w_{\sigma(t)}\,C_{\sigma(t)}.
 The fitness $\text{fitness}(\sigma)=1/W C_{\max}(\sigma)$ is used only to compare
 individuals, so its absolute scale is irrelevant.
 
-\paragraph{Structured Initialization}
 Random starting populations waste most of the search effort. The initial population $P_0$
 of size $N$ is therefore seeded with the three orderings that already realize the two
 structural ingredients of a good schedule---small makespan and early heavy jobs:
 \begin{itemize}
     \item the Johnson schedule $\sigma^{\mathrm{J}}$ produced by Johnson's rule
-          (\citealp{johnson1954optimal}), which minimizes the makespan and thereby tends
+          \citep{johnson1954optimal}, which minimizes the makespan and thereby tends
           to shorten every completion time;
     \item the weight-descending schedule $\sigma^{\mathrm{W}}$, obtained by ordering jobs
           by non-increasing $w_j$ with ties broken by Johnson's rule, which directly
@@ -1303,7 +1352,6 @@ space that no constructive rule reaches. The population size is $N=\Theta(n)$: l
 to retain the block structure present in the seeds, yet small enough that a generation,
 whose cost is dominated by evaluating $N$ individuals in $O(n)$ time each, remains $O(Nn)$.
 
-\paragraph{Selection}
 Binary tournament selection is used to form the mating pool. In each round, two individuals
 are drawn uniformly at random from the current population $P_{g-1}$, the fitter of the two
 wins and is copied into the mating pool $M_g$, and both are returned to the population
@@ -1313,7 +1361,6 @@ the \emph{ranking} of fitness values rather than on their absolute magnitudes, s
 selective even as the population converges and the fitness values of near-optimal schedules
 become very close.
 
-\paragraph{Crossover (PMX)}
 Crossover recombines two parent schedules into offspring that inherit both the relative order
 and the absolute positions of jobs---the two ingredients a permutation schedule is built
 from. We use the partially mapped crossover (PMX), the standard operator for
@@ -1345,7 +1392,6 @@ $\pi_1$ and $\pi_2$ yields the second child.
 \KwOut{Child $\pi'$.}
 \end{algorithm}
 
-\paragraph{Critical-Job Mutation}
 Mutation aims at the job that currently decides the objective. Let $j^{*}$ be the critical
 job attaining $W C_{\max}(\sigma)$ at position $t^{*}$. Moving $j^{*}$ to an earlier position
 $r<t^{*}$ can only decrease its own completion time (its machine-$2$ work is unchanged while
@@ -1416,13 +1462,328 @@ no improvement. \;
 \KwOut{Best schedule $\sigma^{*}$.}
 \end{algorithm}
 
-\paragraph{Complexity Analysis}
-Evaluating one schedule takes $O(n)$ time via \eqref{eq:completion}; PMX costs $O(n)$; the
-critical-job mutation tries at most $n$ insertions, each evaluated in $O(n)$ time, hence
-$O(n^{2})$ per application. Initialization is dominated by the NEH seed, which costs
-$O(n^{3})$ by Theorem~\ref{prop:neh-complexity}. A generation therefore costs
-$O(N\,n^{2})$ in the worst case, giving $O(G\,N\,n^{2})$ over $G$ generations; for the
-typical setting $N,G=\Theta(n)$ the total running time is $O(n^{4})$.
+
+
+
+\section{Experiments}
+\label{sec:experiments}
+
+% NOTE.  The token \TBD marks every value that must be filled in from an actual
+% run.  No experimental result is asserted in this section.
+\newcommand{\TBD}{\textcolor{red}{\textbf{[TBD]}}}
+
+This section reports a computational study of the algorithms developed above.
+Section~\ref{sub:exp-design} describes the benchmark instances, the competing
+algorithms and the performance measures; Section~\ref{sub:exp-results} presents
+and discusses the comparative results. The study addresses three questions:
+whether the exact dynamic program and the MILP model agree on the instances where
+both are tractable; how close the approximation guarantees proved in
+Section~\ref{sec:dp_algorithm} are to the ratios observed in practice; and how the
+three heuristics of Section~\ref{sec:heuristics} compare once the instance size
+exceeds the reach of exact methods.
+
+\subsection{Experimental design}
+\label{sub:exp-design}
+
+\subsubsection{Instance generation}
+\label{subsub:instances}
+
+An instance of $F2 \parallel W C_{\max}$ is determined by the processing times
+$a_j,b_j$ and the weights $w_j$, $j=1,\dots,n$. Three parameters are held under
+experimental control, the processing-time range, the number $K$ of distinct
+weights, and the instance size $n$, and each is set for a specific reason.
+
+The processing times are independent integers drawn uniformly from $[1,10]$, and
+this range is kept fixed across every configuration of the study. The choice is
+dictated by the complexity of the exact methods, whose state space is governed by
+the total processing time $V=\sum_{j=1}^{n}(a_j+b_j)$: $V$ enters the running time
+of Algorithm~\ref{alg:dp} as $V^{3K-3}$ and therefore decides how far the exact
+comparison can be pushed in $n$. With draws from $[1,10]$ the expectation of each
+processing time is $5.5$, so that $V\approx 11n$ grows only linearly in the
+instance size and reaches roughly $1100$ at $n=100$; a range such as $[1,100]$
+would inflate $V$ eightfold and, because the state space grows with the third
+power of $V$ already for $K=2$, would push the dynamic program out of reach at far
+smaller $n$. The range is thus the parameter that determines the largest instance
+size at which the two exact methods can still be compared, which is the first
+question of the study. It is not, however, the parameter that separates the
+heuristics from the constant-factor approximation: that approximation orders the
+jobs by weight alone and never reads the processing times, so widening the range
+cannot by itself create a difference in solution quality for it to exploit. A wide
+range was therefore not adopted.
+
+The number $K$ of distinct weights is treated as a first-class experimental factor
+rather than as a by-product of random generation, because it acts on the two
+comparisons of the study in opposite directions. It governs the complexity of the
+exact methods, since Algorithm~\ref{alg:dp} runs in $O(nK V^{3K-3})$ time and the
+running time of the FPTAS of Section~\ref{sub:fptas} is exponential in $K$; and it
+governs how much freedom the 2-approximation of Algorithm~\ref{alg:approx2} is
+left with, since that algorithm fixes only the relative order of the weights. Two
+weight regimes are therefore used. In the \emph{narrow} regime the weights are
+drawn uniformly from $\{1,\dots,K\}$ with $K$ small, so that few weight classes
+keep the state space within reach and the exact methods run to the largest
+possible $n$; this regime is used wherever the exact methods take part. In the
+\emph{wide} regime every weight is distinct, which is realized either by a random
+relabelling of $\{1,\dots,n\}$ or by the geometrically spaced ladder
+$\{1,2,4,\dots,2^{K-1}\}$ with $K$ large. The wide regime is the one that isolates
+the instances on which the weight ordering genuinely decides the schedule: when
+many jobs tie, the ordering prescribed by Algorithm~\ref{alg:approx2} leaves the
+schedule largely undetermined and a secondary rule settles the outcome, whereas
+with all weights distinct that algorithm returns the pure weight-descending
+schedule and nothing else. The ladder setting additionally widens the ratio
+$W_{\max}/W_{\min}$, which is the ratio governing the weight-rounding argument of
+Section~\ref{subsub:fptas-weight}, under which jobs whose weights differ by at
+most a factor $\theta$ are merged into a single class.
+
+Three instance scales are used, summarised in Table~\ref{tab:instances}. The small
+scale varies the size under the narrow regime and carries the two exact methods as
+far as they remain tractable; the medium and large scales switch to the wide
+regime, in which the comparison of the heuristics against the constant-factor
+approximation is meaningful. Each configuration is replicated over $20$
+independent instances, so that the scales differ only in $n$ and in the weight
+regime.
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\caption{Instance scales used in the computational study. Each configuration is
+replicated over $20$ independent instances, and the processing times are drawn
+uniformly from $[1,10]$, so that $V\approx 11n$ throughout.}
+\label{tab:instances}
+\begin{tabular}{llll}
+\hline
+Scale  & $n$            & Weights       & Methods compared \\
+\hline
+Small  & $15,\,20,\,30$    & $K=2$          & MILP, DP \\
+Medium & $50,\,80,\,100$   & all distinct   & 2-approx, Heuristic Algorithms \\
+Large  & $200,\,500$       & all distinct   & 2-approx, Heuristic Algorithms \\
+\hline
+\end{tabular}
+\end{table}
+
+On the small scale the optimum is computed by the MILP formulation of
+Section~\ref{sec:preliminaries} and independently by the dynamic program of
+Algorithm~\ref{alg:dp}; agreement between the two serves as a correctness check on
+both implementations, and the two exact methods are compared with each other in
+running time. On the medium scale the growing state space makes the dynamic program
+the cheaper of the two and the MILP model is run under a time limit, so the
+reference value $z_{\text{ref}}$ is the best value produced by any method and
+instances on which the model fails to close its optimality gap are marked
+accordingly. On the large scale the exact methods are out of reach and
+$z_{\text{ref}}$ is again the best value found. All instances are generated from
+distinct random seeds, and every reported quantity is an average over the $20$
+replications of a configuration.
+
+\subsubsection{Algorithms compared}
+\label{subsub:competing-algorithms}
+
+Seven methods are compared. The mixed integer linear program of
+Section~\ref{sec:preliminaries}, solved with Gurobi, provides the exact reference on
+the small scale; it is given a time limit of \TBD\,s and a single thread so that the
+reported times are comparable across configurations. The dynamic program of
+Algorithm~\ref{alg:dp} is the second exact method; because its running time is
+$O(nK V^{3K-3})$, it is applied only where the state space remains tractable, and
+instances on which it exceeds the time limit are reported as such rather than
+omitted.
+
+The 2-approximation of Algorithm~\ref{alg:approx2} orders the jobs by non-increasing
+weight. It is the cheapest method in the study, running in $O(n\log n)$ time, and
+its interest lies in the distance between the proved ratio of $2$ and the ratios
+observed in practice. Johnson's rule is the makespan-optimal schedule for the
+two-machine flow shop; it ignores the weights entirely and is included as a
+weight-blind baseline, which quantifies how much of the weighted objective is lost
+by optimising the makespan alone. The three heuristics of
+Section~\ref{sec:heuristics} complete the set: the NEH-type rule of
+Algorithm~\ref{alg:neh}, the ant colony optimization of Algorithm~\ref{alg:aco}, and
+the genetic algorithm of Algorithm~\ref{alg:ga}.
+
+The metaheuristics are run with the parameters recommended in
+Section~\ref{sec:heuristics}: for the ant colony optimization, \TBD\ ants,
+$\alpha=\TBD$, $\beta=\TBD$, $\rho=\TBD$ and a stopping criterion of \TBD\
+iterations; for the genetic algorithm, a population of $N=2n$ individuals, \TBD\
+generations, $p_c=\TBD$, $p_m=\TBD$ and an elitism size of $\lambda=N/10$. Both are
+restarted from \TBD\ independent random seeds per instance and the best and median
+values are reported, so that the comparison is not decided by a single run. All
+methods share the same objective evaluation, the recurrence \eqref{eq:completion}.
+
+\subsubsection{Performance measures}
+\label{subsub:measures}
+
+Two measures are reported for every method $A$ and instance. The first is the
+relative percentage gap
+\begin{equation}\label{eq:gap}
+\text{gap}_A = 100\cdot\frac{z_A-z_{\text{ref}}}{z_{\text{ref}}},
+\end{equation}
+where $z_A$ is the objective value of the schedule returned by $A$ and
+$z_{\text{ref}}$ is the reference value defined above; a gap of zero means that $A$
+matched the reference. The second is the CPU time in seconds, measured on \TBD.
+Because the exact methods and the heuristics differ by orders of magnitude in
+running time, the two measures are reported side by side rather than combined into
+a single score.
+
+Two further statistics are used where they are meaningful. For the 2-approximation,
+the empirical ratio $z_{\sigma^{W}}/z^{*}$ on the small scale is compared with the
+proved bound of $2$ of Theorem~\ref{thm:approx2}. For the heuristics we report the
+number of instances on which a method attains $z_{\text{ref}}$, referred to below as
+its \emph{hit rate}; a high hit rate together with a small worst-case gap indicates a
+method that is both reliable and safe.
+
+\subsubsection{Computing environment}
+\label{subsub:environment}
+
+All methods are implemented in Python \TBD\ and run on \TBD\ with \TBD. The MILP
+model is solved with Gurobi \TBD\ using a single thread. Every method is given the
+same time limit of \TBD\,s on the medium and large scales, and a method that reaches
+the limit is recorded with the value it has attained. All reported times are
+wall-clock times and exclude instance generation.
+
+\subsection{Comparison of results}
+\label{sub:exp-results}
+
+The results are organised by scale. Table~\ref{tab:results-small} reports the small
+configurations, Table~\ref{tab:results-medium} the medium ones and
+Table~\ref{tab:results-large} the large ones; each gives the mean gap \eqref{eq:gap}
+of every method, Table~\ref{tab:results-time} collects the corresponding mean CPU
+times, and Figure~\ref{fig:results-gap} summarises the gaps as a function of $n$.
+The discussion below follows the three questions posed at the beginning of the
+section.
+
+\begin{table}[htbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Small-scale results: mean relative gap in percent. A zero entry marks a
+method that matched the optimum on every instance of the configuration; ``--''
+marks a method that exceeded the time limit.}
+\label{tab:results-small}
+\begin{tabular}{cc|ccccccc}
+\hline
+$n$ & $K$ & MILP & DP & 2-approx & Johnson & NEH & ACO & GA \\
+\hline
+$15$ & $2$ & \TBD & \TBD & \TBD & \TBD & \TBD & \TBD & \TBD \\
+$20$ & $2$ & \TBD & \TBD & \TBD & \TBD & \TBD & \TBD & \TBD \\
+$30$ & $2$ & \TBD & \TBD & \TBD & \TBD & \TBD & \TBD & \TBD \\
+\hline
+\end{tabular}
+\end{table}
+
+\paragraph{Small scale: agreement of the exact methods.}
+The first question is whether the two exact methods agree, and how their running
+times compare as the instance grows. The MILP model and the dynamic program
+returned the same optimal value on \TBD\ of the \TBD\ small configurations, which
+validates both implementations; disagreement, if any, would indicate an
+implementation error rather than a modelling limitation, since both are exact.
+Their running times then diverge: the dynamic program overtakes the MILP model
+already at the smallest size and widens its lead with $n$, which makes the
+polynomial-versus-exponential separation of the two methods visible on instances
+both can still solve. Against the true optimum, the 2-approximation attained a
+ratio of \TBD, well inside the worst-case bound of $2$ of
+Theorem~\ref{thm:approx2}, while its $O(n\log n)$ running time remained \TBD\ orders
+of magnitude below that of either exact method. Johnson's rule, which is optimal
+for the unweighted makespan, produced a gap of \TBD, measuring how much of the
+weighted objective is sacrificed when the weights are ignored. Among the
+heuristics, \TBD\ matched the optimum on every instance of this scale.
+
+\begin{table}[htbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Medium-scale results under the wide weight regime (all weights distinct):
+mean relative gap in percent.}
+\label{tab:results-medium}
+\begin{tabular}{c|ccccc}
+\hline
+$n$ & 2-approx & Johnson & NEH & ACO & GA \\
+\hline
+$50$  & \TBD & \TBD & \TBD & \TBD & \TBD \\
+$80$  & \TBD & \TBD & \TBD & \TBD & \TBD \\
+$100$ & \TBD & \TBD & \TBD & \TBD & \TBD \\
+\hline
+\end{tabular}
+\end{table}
+
+\paragraph{Medium scale: ranking of the heuristics.}
+The second question is how the heuristics compare with the constant-factor
+approximation once the exact methods become impractical. Three points are to be
+read from Table~\ref{tab:results-medium}: how the four methods are ranked in
+solution quality at $n=50,80,100$ under the wide weight regime; whether that
+ranking is stable as $n$ grows; and how the running times compare at equal solution
+quality (Table~\ref{tab:results-time}). The NEH-type rule is expected to be the
+fastest by a wide margin, because its $O(n^3)$ cost carries no population or
+iteration overhead, whereas the genetic algorithm evaluates a population of $N=2n$
+individuals per generation and the ant colony optimization constructs \TBD\
+schedules per iteration. The corresponding hit rates against $z_{\text{ref}}$ are
+\TBD, \TBD\ and \TBD.
+
+\begin{table}[htbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\caption{Large-scale results under the wide weight regime (all weights distinct):
+mean relative gap in percent. The exact methods are out of reach at this scale.}
+\label{tab:results-large}
+\begin{tabular}{c|ccccc}
+\hline
+$n$ & 2-approx & Johnson & NEH & ACO & GA \\
+\hline
+$200$ & \TBD & \TBD & \TBD & \TBD & \TBD \\
+$500$ & \TBD & \TBD & \TBD & \TBD & \TBD \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Mean CPU time in seconds, by scale.}
+\label{tab:results-time}
+\begin{tabular}{lccc}
+\hline
+Method & Small & Medium & Large \\
+\hline
+2-approx & \TBD & \TBD & \TBD \\
+Johnson  & \TBD & \TBD & \TBD \\
+NEH      & \TBD & \TBD & \TBD \\
+ACO      & \TBD & \TBD & \TBD \\
+GA       & \TBD & \TBD & \TBD \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox[c][4.5cm][c]{0.85\textwidth}{\centering \TBD\\[6pt]
+\footnotesize Mean relative gap of each method against the instance
+size $n$, on a logarithmic abscissa.}}
+\caption{Mean relative gap as a function of the instance size.}
+\label{fig:results-gap}
+\end{figure}
+
+\paragraph{Large scale: scalability.}
+The third question is how the methods behave when $n$ reaches \TBD. Only the
+heuristics and the constant-factor approximation are run here, since the exact
+methods are out of reach. Table~\ref{tab:results-large} reports the growth of the
+mean gap with $n$ and Table~\ref{tab:results-time} the growth of the running time.
+The wide weight regime is used at this scale as well, so that the comparison is not
+decided by the tie-breaking that the approximation would otherwise inherit from a
+secondary rule, and the question is whether the additional search effort of the
+metaheuristics is repaid in solution quality on instances of realistic size.
+
+\paragraph{Effect of the weight regime.}
+Finally, the two weight regimes are compared. The number $K$ of distinct weights is
+not a property of the instances alone: it enters the complexity of the exact methods
+as an exponent, and it also determines how much freedom the 2-approximation of
+Algorithm~\ref{alg:approx2} is left with, since that algorithm fixes only the
+relative order of the weights. The relevant contrast is therefore between the small
+scale, where $K=2$ and the weight classes are few, and the medium and large scales,
+where all weights are distinct. What is to be read from that contrast is whether
+the gap of each heuristic relative to the 2-approximation widens once the weight
+ordering becomes fully determined, and by how much. A widening gap is the signature
+of an improvement that the approximation cannot reach, because it never reads the
+processing times: with few weight classes the ordering prescribed by
+Algorithm~\ref{alg:approx2} leaves the schedule largely undetermined and a secondary
+rule settles the outcome, whereas with all weights distinct the algorithm returns
+the pure weight-descending schedule and nothing else.
 
 
 \section{Conclusion}

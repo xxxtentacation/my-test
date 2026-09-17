@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import random
+import statistics
+import time
 from typing import List, Sequence
 
 
@@ -79,6 +81,93 @@ def run_neh(a, b, w) -> dict:
     return {"obj": wcmax_of_order(order, a, b, w), "order": order}
 
 
+# ---------------------------------------------------------------------------
+# Experiment harness (paper Section 6.1)
+#
+# Each configuration is replicated over INSTANCES_PER_CONFIG random instances.
+# For every instance the best objective value found by the method and its CPU
+# time are recorded, and the two are averaged over the instances to give the
+# comparison result (paper Section 6.1.3).
+# ---------------------------------------------------------------------------
+
+INSTANCES_PER_CONFIG = 20      # paper Section 6.1: instances per configuration
+PROC_LO, PROC_HI = 1, 10       # processing times ~ U{1, ..., 10}
+
+#: instance scales of paper Table 1: name -> (values of n, values of K)
+SCALES = {
+    "small":  ([6, 8, 10, 12], [2, 3]),
+    "medium": ([20, 50, 100], [3, 5]),
+    "large":  ([200, 500, 1000], [5, 10, 20]),
+}
+
+
+def gen_instance(n, K, rng, geometric=False):
+    """
+    One random instance of the benchmark protocol (paper Section 6.1.1).
+
+    a_j, b_j ~ U{PROC_LO, ..., PROC_HI}; the weights are either uniform on
+    {1, ..., K}, or the geometrically spaced ladder {1, 2, 4, ..., 2^(K-1)}
+    which stresses the weight-rounding argument of Section 4.4.2.
+    """
+    a = [rng.randint(PROC_LO, PROC_HI) for _ in range(n)]
+    b = [rng.randint(PROC_LO, PROC_HI) for _ in range(n)]
+    if geometric:
+        w = [1 << rng.randrange(K) for _ in range(n)]
+    else:
+        w = [rng.randint(1, K) for _ in range(n)]
+    return a, b, w
+
+
+def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42,
+              geometric=False, repeats=1):
+    """
+    Run the method on `instances` random instances and aggregate the result.
+
+    For every instance the method is run `repeats` times; the best objective
+    value found is recorded together with the mean CPU time of a single run.
+    NEH is deterministic, so `repeats` > 1 changes nothing but the timing.
+
+    Returns
+    -------
+    dict with keys
+        mean_obj  : mean over instances of the best objective value (comparison
+                    result of paper Section 6.1.3)
+        best_obj  : best objective value over all instances
+        mean_time : mean CPU time of a single run, in seconds
+        objs, times : the per-instance values
+    """
+    rng = random.Random(seed)
+    objs, times = [], []
+    for _ in range(instances):
+        a, b, w = gen_instance(n, K, rng, geometric)
+        best = float("inf")
+        total = 0.0
+        for _ in range(repeats):
+            t0 = time.perf_counter()
+            order = neh(a, b, w)                      # method under test
+            total += time.perf_counter() - t0
+            best = min(best, wcmax_of_order(order, a, b, w))
+        objs.append(best)
+        times.append(total / repeats)
+
+    return {
+        "n": n, "K": K, "instances": instances,
+        "mean_obj": statistics.fmean(objs),
+        "best_obj": min(objs),
+        "mean_time": statistics.fmean(times),
+        "objs": objs,
+        "times": times,
+    }
+
+
+def report(res, label="NEH"):
+    """Single-line summary of a benchmark result."""
+    return ("%-8s n=%4d K=%2d | instances=%2d | mean obj=%9.2f | best obj=%9.2f"
+            " | mean time=%9.4f s"
+            % (label, res["n"], res["K"], res["instances"],
+               res["mean_obj"], res["best_obj"], res["mean_time"]))
+
+
 def main() -> None:  # pragma: no cover
     """Random instance generated from a fixed seed, as in MILP.py."""
     # random-instance parameters
@@ -102,6 +191,15 @@ def main() -> None:  # pragma: no cover
     print("NEH result:")
     print("  WCmax :", res["obj"])
     print("  order :", [j + 1 for j in res["order"]], "(1-based)")
+
+    # ---- benchmark: INSTANCES_PER_CONFIG instances per configuration -------
+    print()
+    print("Benchmark, %d instances per configuration (paper Section 6.1):"
+          % INSTANCES_PER_CONFIG)
+    for n, K in [(20, 3), (50, 3), (100, 3)]:
+        print("  " + report(benchmark(n=n, K=K, seed=1000 * n + K)))
+    print("  other scales: loop over SCALES, e.g. benchmark(n=n, K=K)"
+          " for n in SCALES['large'][0]")
 
 
 

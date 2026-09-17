@@ -11,6 +11,8 @@ it is used only as a cross-check in `main()`.
 from __future__ import annotations
 
 import random
+import statistics
+import time
 from typing import List, Tuple
 
 
@@ -162,7 +164,8 @@ def _merge(states: List[_State]) -> List[_State]:
     return merged
 
 
-def solve_dp(a: List[float], b: List[float], w: List[float]) -> dict:
+def solve_dp(a: List[float], b: List[float], w: List[float],
+             time_limit: float | None = None) -> dict:
     """
     Algorithm 2: DP for F2 || WCmax.
 
@@ -170,6 +173,11 @@ def solve_dp(a: List[float], b: List[float], w: List[float]) -> dict:
     ----------
     a, b, w : length n
         Processing times on M1 / M2 and job weights.
+    time_limit : float, optional
+        Wall-clock limit in seconds, checked once per job.  When it is exceeded
+        the function raises TimeoutError instead of returning; the benchmark
+        harness uses this to flag instances the DP cannot finish, so that the
+        reported mean covers only the instances actually solved.
 
     Returns
     -------
@@ -205,7 +213,14 @@ def solve_dp(a: List[float], b: List[float], w: List[float]) -> dict:
     )
     H = [zero_state]
 
+    deadline = None if time_limit is None else time.time() + time_limit
+
     for t in range(n):
+        if deadline is not None and time.time() > deadline:
+            raise TimeoutError(
+                "solve_dp exceeded the %.1f s time limit at job %d/%d"
+                % (time_limit, t, n)
+            )
         j = johnson[t]
         wj = w[j]
         max_block = weight_to_block[wj]  # largest i with W[i] >= wj
@@ -290,6 +305,106 @@ def wcmax_of_order(order: List[int], a: List[float], b: List[float], w: List[flo
     return wc
 
 
+# ---------------------------------------------------------------------------
+# Experiment harness (paper Section 6.1)
+#
+# Each configuration is replicated over INSTANCES_PER_CONFIG random instances.
+# For every instance the best objective value found by the method and its CPU
+# time are recorded, and the two are averaged over the instances to give the
+# comparison result (paper Section 6.1.3).
+# ---------------------------------------------------------------------------
+
+INSTANCES_PER_CONFIG = 20      # paper Section 6.1: instances per configuration
+PROC_LO, PROC_HI = 1, 10       # processing times ~ U{1, ..., 10}
+
+#: instance scales of paper Table 1: name -> (values of n, values of K)
+SCALES = {
+    "small":  ([6, 8, 10, 12], [2, 3]),
+    "medium": ([20, 50, 100], [3, 5]),
+    "large":  ([200, 500, 1000], [5, 10, 20]),
+}
+
+
+def gen_instance(n, K, rng, geometric=False):
+    """
+    One random instance of the benchmark protocol (paper Section 6.1.1).
+
+    a_j, b_j ~ U{PROC_LO, ..., PROC_HI}; the weights are either uniform on
+    {1, ..., K}, or the geometrically spaced ladder {1, 2, 4, ..., 2^(K-1)}
+    which stresses the weight-rounding argument of Section 4.4.2.
+    """
+    a = [rng.randint(PROC_LO, PROC_HI) for _ in range(n)]
+    b = [rng.randint(PROC_LO, PROC_HI) for _ in range(n)]
+    if geometric:
+        w = [1 << rng.randrange(K) for _ in range(n)]
+    else:
+        w = [rng.randint(1, K) for _ in range(n)]
+    return a, b, w
+
+
+def benchmark(n=8, K=2, instances=INSTANCES_PER_CONFIG, seed=42,
+              geometric=False, repeats=1, time_limit=None):
+    """
+    Run the exact DP on `instances` random instances and aggregate the result.
+
+    The DP is deterministic (`repeats` > 1 changes nothing) and exact, so the
+    mean objective it reports is the mean optimum of the sampled instances --
+    the reference value z_ref of paper Section 6.1.  Its running time
+    O(n K V^(3K-3)) is pseudo-polynomial, so the benchmark is meaningful only on
+    small configurations; `time_limit` (seconds) aborts an instance that exceeds
+    it, and such instances are counted in `failed` rather than dropped.
+
+    Returns
+    -------
+    dict with keys
+        mean_obj  : mean over the solved instances of the optimal objective
+                    (comparison result of paper Section 6.1.3)
+        best_obj  : best objective value over all instances
+        mean_time : mean CPU time of a single run, in seconds
+        solved    : number of instances solved within the time limit
+        failed    : number of instances aborted by the time limit
+        objs, times : the per-instance values
+    """
+    rng = random.Random(seed)
+    objs, times = [], []
+    failed = 0
+    for _ in range(instances):
+        a, b, w = gen_instance(n, K, rng, geometric)
+        best = float("inf")
+        total = 0.0
+        for _ in range(repeats):
+            t0 = time.perf_counter()
+            try:
+                res = solve_dp(a, b, w, time_limit=time_limit)
+            except TimeoutError:
+                failed += 1
+                break
+            total += time.perf_counter() - t0
+            best = min(best, res["obj"])
+        if best < float("inf"):
+            objs.append(best)
+            times.append(total / repeats)
+
+    return {
+        "n": n, "K": K, "instances": instances,
+        "mean_obj": statistics.fmean(objs) if objs else float("nan"),
+        "best_obj": min(objs) if objs else float("nan"),
+        "mean_time": statistics.fmean(times) if times else float("nan"),
+        "solved": len(objs),
+        "failed": failed,
+        "objs": objs,
+        "times": times,
+    }
+
+
+def report(res, label="DP"):
+    """Single-line summary of a benchmark result."""
+    return ("%-8s n=%4d K=%2d | solved=%2d/%2d | mean opt=%9.2f | best opt=%9.2f"
+            " | mean time=%9.4f s"
+            % (label, res["n"], res["K"], res["solved"], res["instances"],
+               res["mean_obj"], res["best_obj"], res["mean_time"]))
+
+
 def main() -> None:  # pragma: no cover
     """Random instance generated from a fixed seed, as in MILP.py."""
     # random-instance parameters
@@ -315,6 +430,17 @@ def main() -> None:  # pragma: no cover
     print("  blocks:", [[j + 1 for j in blk] for blk in res["blocks"]])
     print("  order :", [j + 1 for j in res["order"]])
     print("  verify:", wcmax_of_order(res["order"], a, b, w))
+
+    # ---- benchmark: INSTANCES_PER_CONFIG instances per configuration -------
+    # The DP is pseudo-polynomial, so only the small scale is attempted; the
+    # time limit flags configurations the state space makes intractable.
+    print()
+    print("Benchmark, %d instances per configuration (paper Section 6.1):"
+          % INSTANCES_PER_CONFIG)
+    for n in SCALES["small"][0]:
+        for K in SCALES["small"][1]:
+            print("  " + report(benchmark(n=n, K=K, seed=1000 * n + K,
+                                          time_limit=60.0)))
 
 
 if __name__ == "__main__":
