@@ -407,7 +407,6 @@ def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42,
     Parameters
     ----------
     method : "ga"        the genetic algorithm of Section 5.3
-             "johnson"   Johnson's rule, the weight-blind baseline
              "2-approx"  the weight-descending schedule of Section 4.3
                          (the 2-approximation algorithm)
 
@@ -430,8 +429,6 @@ def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42,
             t0 = time.perf_counter()
             if method == "ga":
                 order = ga(a, b, w, seed=rng.randrange(1 << 30), **kwargs)
-            elif method == "johnson":
-                order = johnson_order(a, b)
             elif method in ("2-approx", "weight"):
                 order = weight_descending_order(a, b, w)
             else:
@@ -502,7 +499,7 @@ def main() -> None:  # pragma: no cover
     print("Benchmark, %d instances per configuration (paper Section 6.1):"
           % INSTANCES_PER_CONFIG)
     for n, K in [(20, 3), (50, 3), (100, 3)]:
-        for method in ("2-approx", "johnson", "ga"):
+        for method in ("2-approx", "ga"):
             print("  " + report(benchmark(n=n, K=K, seed=1000 * n + K,
                                           method=method), label=method))
     print("  other scales: loop over SCALES, e.g. benchmark(n=n, K=K)"

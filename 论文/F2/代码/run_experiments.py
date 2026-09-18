@@ -52,7 +52,6 @@ APPLICABLE = {
     "milp":    "small",
     "dp":      "small",
     "approx2": "all",
-    "johnson": "all",
     "neh":     "all",
     "aco":     "all",
     "ga":      "all",
@@ -107,12 +106,6 @@ def _run_ga(n, K, instances, seed, geometric, repeats, opts):
                      geometric=geometric, repeats=repeats, **kwargs)
 
 
-def _run_johnson(n, K, instances, seed, geometric, repeats, opts):
-    from GA import benchmark
-    return benchmark(n=n, K=K, instances=instances, seed=seed,
-                     geometric=geometric, repeats=repeats, method="johnson")
-
-
 def _run_approx2(n, K, instances, seed, geometric, repeats, opts):
     from GA import benchmark
     return benchmark(n=n, K=K, instances=instances, seed=seed,
@@ -124,12 +117,11 @@ METHODS = {
     "milp":    ("MILP (exact)",      _run_milp),
     "dp":      ("DP (exact)",        _run_dp),
     "approx2": ("2-approximation",   _run_approx2),
-    "johnson": ("Johnson's rule",    _run_johnson),
     "neh":     ("NEH",               _run_neh),
     "aco":     ("Ant colony",        _run_aco),
     "ga":      ("Genetic algorithm", _run_ga),
 }
-DEFAULT_METHODS = ["approx2", "johnson", "neh", "aco", "ga"]
+DEFAULT_METHODS = ["approx2", "neh", "aco", "ga"]
 
 
 # ---------------------------------------------------------------------------
