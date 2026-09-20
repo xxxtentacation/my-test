@@ -92,120 +92,150 @@
 \section{Introduction}
 \label{sec:intro}
 
-Flow shop scheduling models a production line in which every job visits the same
-machines in the same order. It is among the oldest problems in operations research,
-and Johnson's rule settled its two-machine case with the makespan as the criterion
-\citep{johnson1954optimal}. Seven decades later the model remains central, for a
-reason that has little to do with its combinatorial difficulty: it continues to
-describe how goods are actually made.
+Manufacturing plants that process their orders through two consecutive stages face a
+recurring trade-off between throughput and priority. The two stages are usually
+unbalanced: the first feeds the second and runs close to its capacity. The order in
+which the jobs are released to the line therefore determines how long each of them
+waits. Sequencing the jobs is a production planning decision, and it has been studied
+since Johnson's rule settled the two-machine case for the makespan criterion
+\citep{johnson1954optimal}. The model, its variants and its solution methods have been
+surveyed extensively since \citep{pinedo2022scheduling}.
 
-The two-machine flow shop, the setting of this paper, arises wherever a production
-line consists of a transforming stage followed by a finishing stage. Machining
-followed by coating or heat treatment, casting followed by rolling, printing
-followed by binding, and granulation followed by tableting all share the same
-structure. Each job must complete its first operation before the second can begin,
-and each stage processes one job at a time. The two stages are rarely balanced, so
-the first machine becomes a bottleneck that feeds the second; the sequence in which
-jobs are released then determines how long each of them waits. A sequencing decision
-taken at the bottleneck therefore propagates directly into delivery performance.
+The configuration is common in manufacturing and appears in a variety of process
+industries. A metal-parts plant machines components and then passes them to a coating or
+heat-treatment line; a foundry casts and then rolls; a print shop runs a press and then a
+bindery; a pharmaceutical plant granulates a powder and then compresses it into tablets.
+In each case a job must finish its first operation before its second can begin, and each
+machine can process one job at a time. The plants differ in what makes one order more
+urgent than another. A supplier working under a late-delivery clause loses money for
+every hour an order is overdue; a plant building to stock has capital tied up in work in
+process; a contract manufacturer must respect the priority its largest customer has
+bought. In all three cases a cost is attached to the time an individual order spends in
+the plant. That cost is attached to the order rather than to the plant as a whole.
 
-Real plants rarely treat their orders as interchangeable, and this is what the
-criterion studied here captures. The objective is the maximum weighted completion
-time, written $WC_{\max}$, and also called the weighted makespan. The weight makes
-the criterion discriminate between jobs. An order $j$ contributes the product
-$w_j C_j$, which measures what its sojourn in the plant costs; the objective is the
-maximum of these products, so it identifies the single worst-treated order rather
-than the average. Weights are not an artificial device.
-A weight may stand for the contractual penalty incurred per unit time when an order
-is delivered late, for the revenue tied up while it is in process, or for the
-priority of the customer who placed it; all of these attach to individual orders
-rather than to the plant as a whole. Minimizing the maximum weighted completion
-time then amounts to protecting the most costly order from delay, which is the
-decision a planner faces when a line is oversubscribed and not every order can be
-served on time.
+That cost is what the criterion of this paper measures. The objective is the maximum
+weighted completion time, $WC_{\max}$, also called the weighted makespan. Each order $j$
+contributes the product $w_j C_j$, and the objective is the largest of these products.
+It is therefore determined by the most costly order rather than by the average, and the
+weight decides which order that is. Minimizing $WC_{\max}$ amounts to protecting the
+most costly order from delay. This is the decision a planner faces when a line is loaded
+beyond its capacity and not every order can be completed on time.
 
-Computing such a schedule is hard. The problem is strongly NP-hard
-(Theorem~\ref{thm:snphard}), so no analogue of Johnson's rule can exist for it
-unless P $=$ NP. Exact methods based on mixed integer programming and on dynamic
-programming are available, but both scale poorly, the dynamic program being  
-pseudo-polynomial in the total processing time. For the large instances that arise
-in production, a method with a provable performance guarantee, or one that finds
-near-optimal schedules quickly, is therefore needed.
+In scheduling theory the criterion has been studied in several machine environments. On
+a single machine, jobs are revealed over time and must be sequenced without knowledge of
+the future; for this online setting, best-possible algorithms are known for the maximum
+weighted completion time \citep{li2015best}. A single machine carrying one restricted
+rate-modifying activity has also been treated for the same criterion
+\citep{zuo2026single}. On identical parallel machines, randomized approximation schemes
+for the weighted makespan have been developed \citep{sun2024randomized}, and the
+criterion has been combined with the decision of which orders to accept
+\citep{lu2025order}. Maximum-type criteria have been studied in other forms as well. For
+a single machine, the maximum earliness/tardiness cost has been minimized when jobs may
+be rejected \citep{guo2026maximum}. In all of these settings,
+however, a job occupies one machine for its entire processing time. The interaction
+between two consecutive stages, which is what defines the flow shop, therefore does not
+arise.
 
-This paper addresses that need. We first establish the structural properties of the
-problem, showing that an optimal schedule exists in a block form determined by the
-distinct weights. On that structure we build an exact dynamic program, a
-2-approximation algorithm, and a fully polynomial-time approximation scheme. Because
-the exact methods remain exponential in the number of distinct weights, we also
-develop three heuristics for large instances and report a computational study that
-compares all of them.
+The flow shop environment, by contrast, has been studied extensively but for different
+criteria. The variant that has attracted most theoretical attention is the proportionate
+flow shop, in which every machine spends the same time on a given job; it, the ordered
+flow shop and related models are surveyed in \citep{panwalkar2013review}. Its appeal is
+that it can often be reduced to a single-machine problem with the same criterion
+\citep{panwalkar2015equivalence}, so that results proved for one machine carry over.
+Weighted objectives have been treated within it as well, but the weighted objective is
+the sum of the weighted completion times rather than its maximum
+\citep{shakhlevich1998minimizing}. For the general two-machine flow shop, the criterion
+that has been studied is the makespan, most recently together with the decision of which
+orders to reject \citep{shabtay2024coordinating}.
 
+The criterion and the machine environment are therefore each well established, but their
+combination is not, and the works closest to this paper show how far apart the two
+remain. In the criterion group, every setting reviewed above keeps each job on a single
+machine for its whole processing time. This holds for the online single-machine results
+\citep{li2015best}, the rate-modifying variant \citep{zuo2026single}, the
+parallel-machine approximation schemes \citep{sun2024randomized} and the
+order-acceptance model \citep{lu2025order}. In the environment group, the weighted
+objective that has been treated is a sum rather than a maximum
+\citep{shakhlevich1998minimizing}. For the general two-machine flow shop, the criterion
+treated is the makespan \citep{shabtay2024coordinating}. The maximum weighted completion
+time in a two-machine flow shop appears in none of them.
 
+The problem is not solved by combining these results, for two reasons. The reductions
+that make the proportionate flow shop tractable require the processing times to be
+proportionate. The general two-machine flow shop does not satisfy that assumption, so
+results proved for one machine do not carry over. More fundamentally, a total weighted
+completion time decomposes over the jobs. It can therefore be accumulated while a
+schedule is built, which is what allows a dynamic program to compare partial schedules
+with one another. A maximum does not decompose in this way: a partial schedule carries
+no information about its final value until it is complete. Optimizing the maximum
+weighted completion time in a two-machine flow shop therefore requires structural
+properties of a kind that the earlier work does not supply.
 
+In this paper we study the problem $F2 \parallel WC_{\max}$. Four features distinguish it
+from the settings reviewed above: (i) two machines in series, so that each completion
+time depends on the idle time inherited from its predecessors; (ii) an objective that is
+a maximum over weighted completion times rather than their sum; (iii) general processing
+times, with no proportionate assumption; and (iv) no rejection, so that every job must be
+scheduled. Replacing the weighted sum by a weighted
+maximum, and dropping the proportionality assumption, would already put the problem
+beyond the single-machine reduction. We show that $F2 \parallel WC_{\max}$ is in fact
+strongly NP-hard (Theorem~\ref{thm:snphard}). The difficulty is structural rather than a
+matter of the instance size. Because the objective is determined by a single job, an
+exchange that shortens many completion times while lengthening that one does not improve
+the objective value. Because the jobs carry unequal weights, moreover, Johnson's rule has
+no direct extension to the weighted case.
 
-\section{Literature review}
-\label{sec:literature}
+Our results follow from the structure of an optimal schedule. Since the objective is a
+maximum, jobs of equal weight are interchangeable with respect to it. An optimal
+schedule can therefore be assumed to have a block structure: one block per distinct
+weight, Johnson's order within each block, and blocks in non-increasing weight order. On this structure we build three methods. An exact dynamic program
+runs in $O(nKV^{3K-3})$ time, where $K$ is the number of distinct weights and $V$ the
+total processing time. It is practical when the weights fall into few classes, as in the
+plants described above. A 2-approximation runs in $O(n\log n)$ time. Rounding the input
+of the dynamic program turns it into a fully polynomial-time approximation scheme that
+attains a $(1+\varepsilon)$-approximation for constant $K$. Because the exact methods
+remain exponential in $K$, we also develop three heuristics for large instances and
+report a computational study that compares them with the 2-approximation.
 
-The criterion studied in this paper appears in the literature under two names. When
-the weights are read as the priorities attached to individual jobs, $WC_{\max}$
-is the \emph{maximum weighted completion time}; when the schedule is viewed as a
-single aggregate job, the same expression is the \emph{weighted makespan}. The two
-names denote one criterion, and the work closest to this paper is divided between
-them.
-
-On a single machine, the criterion has been studied in the online setting, where
-jobs are revealed over time and must be sequenced without knowledge of the future;
-best-possible online algorithms are known \citep{li2015best}. A single machine
-carrying one restricted rate-modifying activity has also been treated, again with
-the weighted makespan as the criterion \citep{zuo2026single}. On identical parallel
-machines, randomized approximation schemes for the weighted makespan have been
-developed \citep{sun2024randomized}, and the criterion has been combined with the
-decision of which orders to accept \citep{lu2025order}. These four results share the
-criterion of this paper but not its machine environment. In each of them a job
-occupies one machine for its entire processing time, so the two-stage interaction
-that makes the flow shop difficult does not arise.
-
-Within flow shop scheduling, by contrast, the weighted objective that has been
-studied is the \emph{sum} of the weighted completion times rather than its maximum.
-The total weighted completion time has been minimized in a proportionate flow shop,
-the environment in which every machine spends the same time on a given job
-\citep{shakhlevich1998minimizing}. For the general two-machine flow shop, the
-criterion that has been treated is the makespan, most recently together with
-rejection decisions \citep{shabtay2024coordinating}.
-
-The maximum weighted completion time in a two-machine flow shop, which is the
-problem studied here, therefore does not appear in the literature reviewed above.
-The machine environment and the criterion have each been treated, but never together.
+The rest of the paper is organized as follows. Section~\ref{sec:preliminaries} fixes
+the notation and states the completion-time recurrence.
+Section~\ref{sec:formulation} gives the mixed integer programming formulation and
+establishes the complexity of the problem. Section~\ref{sec:dp_algorithm} proves the
+structural properties, develops the exact dynamic program, and presents the
+2-approximation and the approximation scheme. Section~\ref{sec:heuristics} describes
+the three heuristics. Section~\ref{sec:experiments} reports the computational study,
+and Section~\ref{sec:conclusion} concludes.
 
 \section{Preliminaries}
 \label{sec:preliminaries}
 
 We consider the problem $F2 \parallel W C_{\max}$.
-Let $\mathcal{J} = \{J_1, J_2, \dots, J_n\}$ be the set of $n$ jobs to be processed on two machines $M_1$ and $M_2$ in series:
- each job $J_j$ must be processed first on $M_1$ for $a_j$ time units and then on $M_2$ for $b_j$ time units, with no preemption allowed.
+Let $\mathcal{J} = \{J_1, J_2, \dots, J_n\}$ be the set of $n$ jobs to be processed on two machines $M_1$ and $M_2$ in series.
+Each job $J_j$ must be processed first on $M_1$ for $a_j$ time units and then on $M_2$ for $b_j$ time units, and preemption is not allowed.
 All processing times $a_j$ and $b_j$ are assumed to be positive integers.
-$M_1$ and $M_2$ can process at most one job at a time.
+Each machine can process at most one job at a time.
 Each job $J_j$ has a weight $w_j > 0$.
-A schedule $\pi = (\pi(1), \pi(2), \dots, \pi(n))$ specifies the processing sequence  on both machines.
-For a schedule $\pi$, let $A_j = \sum_{h=1}^{j} a_{\pi(h)}$ and $B_j = \sum_{h=1}^{j} b_{\pi(h)}$ 
-be the cumulative $M_1$ and $M_2$ processing times after the first $j$ jobs. The completion time
+A schedule $\pi = (\pi(1), \pi(2), \dots, \pi(n))$ specifies the processing sequence on both machines.
+For a schedule $\pi$, let $A_j = \sum_{h=1}^{j} a_{\pi(h)}$ and $B_j = \sum_{h=1}^{j} b_{\pi(h)}$
+be the cumulative processing times on $M_1$ and $M_2$ after the first $j$ jobs. The completion time
 of the job in position $j$ on machine $M_2$ is
 \begin{equation}\label{eq:completion}
 C_{\pi(j)} = \max_{1\le i\le j}\Big\{\sum_{h=1}^{i}a_{\pi(h)} + \sum_{h=i}^{j}b_{\pi(h)}\Big\}.
 \end{equation}
 The objective is to find a schedule $\pi$ that minimizes $W C_{\max}$.
+Throughout, $W C_{\max}^{*}$ denotes the optimal value of $F2 \parallel W C_{\max}$.
 
 
 The problem $F2 \parallel W C_{\max}$ can be formulated as a mixed integer linear program (MILP).
-For a permutation schedule, let the positions be indexed by $k = 1,\dots,n$.
+For a permutation schedule, the positions are indexed by $k = 1,\dots,n$.
 We introduce the following decision variables:
 \begin{itemize}
-	\item $x_{jk} = 1$ if job $J_j$ processing at position $k$, and $0$ otherwise;
-	\item $C_k^1$ completion time of the job at position $k$ on $M_1$;
-	\item $C_k^2$ completion time of the job at position $k$ on $M_2$;
+	\item $x_{jk} = 1$ if job $J_j$ is assigned to position $k$, and $0$ otherwise;
+	\item $C_k^1$ completion time of the job in position $k$ on $M_1$;
+	\item $C_k^2$ completion time of the job in position $k$ on $M_2$;
 	\item $C_j$ completion time of job $J_j$ on $M_2$;
-	\item $Z$ the maximum weighted completion time $W C_{\max}$.
-	\item $M = 2\sum_{j=1}^{n}(a_j + b_j)$ be a sufficiently large constant.
+	\item $Z$ the maximum weighted completion time $W C_{\max}$;
+	\item $M$ a sufficiently large constant, taken as $2\sum_{j=1}^{n}(a_j + b_j)$.
 \end{itemize}
 The MILP model is:
 \begin{align}
@@ -224,21 +254,18 @@ The MILP model is:
 \end{align}
 
 Constraint (\ref{milp:assign1})--(\ref{milp:assign2}) ensure a one-to-one assignment between jobs and positions.
-Constraints (\ref{milp:m1_start})--(\ref{milp:m1_rec}) compute the completion time of each position on $M_1$.
-Constraints (\ref{milp:m2_start})--(\ref{milp:m2_b}) compute the completion time of each position on $M_2$:
-for $k \ge 2$, the job at position $k$ starts on $M_2$ only after it completes $M_1$ and the preceding job releases $M_2$.
-Constraint (\ref{milp:link}) links the position-based completion times to the job-based completion times via a big-$M$ formulation:
-when $x_{jk} = 1$, job $J_j$ is at position $k$ and $C_j \ge C_k^2$;
-when $x_{jk} = 0$, the right-hand side becomes $C_k^2 - M \le 0$, which is non-binding.
+Constraints (\ref{milp:m1_start})--(\ref{milp:m1_rec}) compute the completion time of the job in each position on $M_1$.
+Constraints (\ref{milp:m2_start})--(\ref{milp:m2_b}) compute the completion time of the job in each position on $M_2$.
+For $k \ge 2$, the job in position $k$ starts on $M_2$ only after it has completed $M_1$ and the preceding job has released $M_2$.
+Constraint (\ref{milp:link}) links the position-based completion times to the job-based completion times through a big-$M$ formulation:
+when $x_{jk} = 1$, job $J_j$ is in position $k$ and $C_j \ge C_k^2$;
+when $x_{jk} = 0$, the right-hand side becomes $C_k^2 - M \le 0$ and the constraint is inactive.
 Constraint (\ref{milp:wcmax}) enforces $Z \ge w_j C_j$ for every job, so that minimizing $Z$ yields the optimal $W C_{\max}$.
-Constraint (\ref{milp:x}) requires the assignment variables $x_{jk}$ to be binary. 
-Constraint (\ref{milp:dom}) imposes the nonnegativity of the completion times $C_k^1$, $C_k^2$ and $C_j$.
-
-
-
-
+Constraint (\ref{milp:x}) requires the assignment variables $x_{jk}$ to be binary.
+Constraint (\ref{milp:dom}) requires the completion times $C_k^1$, $C_k^2$ and $C_j$ to be nonnegative.
 
 \section{Problem formulation}
+\label{sec:formulation}
 \begin{theorem}\label{thm:nphard}
     $F2 \parallel W C_{\max}$ is NP-hard.
 \end{theorem}
@@ -469,8 +496,25 @@ $m$, this is a strong polynomial reduction, and $F2 \parallel W C_{\max}$ is str
 \section{Algorithm} 
 \label{sec:dp_algorithm}
 In this section, we design a dynamic programming algorithm for $F2 \parallel W C_{\max}$
-and analyse its running time. Throughout, $W C_{\max}^{*}$ denotes the optimal value of
-$F2 \parallel W C_{\max}$.
+and analyze its running time. Throughout, let $K$ denote the number of distinct weights
+and $V=\sum_{j=1}^{n}(a_j+b_j)$ the total processing time.
+
+Since the objective is a maximum over weighted completion times, jobs of equal weight are
+interchangeable. An optimal schedule can therefore be assumed to have a block structure:
+one block per distinct weight, Johnson's order within each block, and blocks in
+non-increasing weight order. A schedule is thus fixed once we decide how each weight class
+is distributed among the blocks. This is what makes a dynamic program possible, and why
+the running time of every algorithm below is governed by $K$.
+
+We build three algorithms on this structure. The first algorithm is exact, and it prunes
+dominated states. A state records each block's processing time on both machines, the
+completion time of its last job on $M_2$, and that job's weight. It runs in
+$O(n \cdot K \cdot |\mathscr{H}|_{\max})$ time, with
+$|\mathscr{H}|_{\max} \le 2^{K}V^{3K-3}$. The second sorts the jobs by non-increasing
+weight in $O(n\log n)$ time and returns a schedule within a factor $2$ of the optimum. The
+third rounds the time coordinates and the weights to geometrically spaced grids, which
+turns the dynamic program into a $(1+\epsilon)$-approximation scheme for a fixed number of
+distinct weights.
 
 \subsection{The number of weights is constant}
 For $F2 \parallel W C_{\max}$, an optimal schedule exists in which both machines process the jobs
@@ -1527,7 +1571,7 @@ drawn uniformly from $\{1,\dots,K\}$ with $K$ small, so that few weight classes
 keep the state space within reach and the exact methods run to the largest
 possible $n$; this regime is used wherever the exact methods take part. In the
 \emph{wide} regime every weight is distinct, which is realized either by a random
-relabelling of $\{1,\dots,n\}$ or by the geometrically spaced ladder
+relabeling of $\{1,\dots,n\}$ or by the geometrically spaced ladder
 $\{1,2,4,\dots,2^{K-1}\}$ with $K$ large. The wide regime is the one that isolates
 the instances on which the weight ordering genuinely decides the schedule: when
 many jobs tie, the ordering prescribed by Algorithm~\ref{alg:approx2} leaves the
@@ -1707,7 +1751,7 @@ wall-clock times and exclude instance generation.
 \subsection{Comparison of results}
 \label{sub:exp-results}
 
-The results are organised by scale. Table~\ref{tab:results-small} reports the small
+The results are organized by scale. Table~\ref{tab:results-small} reports the small
 configurations, Table~\ref{tab:results-medium} the medium ones and
 Table~\ref{tab:results-large} the large ones; each gives the mean gap \eqref{eq:gap}
 of every method, Table~\ref{tab:results-time} collects the corresponding mean CPU
@@ -1744,7 +1788,7 @@ The first question is how the two exact methods compare in solution quality and 
 running time. They are both exact, so wherever the MILP model closes its optimality
 gap they must return the same value as the dynamic program; the model did so on
 \TBD\ of the \TBD\ small configurations, which validates both implementations, and
-disagreement on the remaining ones would indicate a defect rather than a modelling
+disagreement on the remaining ones would indicate a defect rather than a modeling
 limitation. The two methods separate on time long before they separate on value.
 Already at $n=30$ the dynamic program is faster by a factor of \TBD, and the factor
 grows with $n$: at $n=60$ the model exhausts the time limit of \TBD\,s while the
@@ -1861,7 +1905,7 @@ of Algorithm~\ref{alg:approx2} sorts the jobs by weight and reads nothing else, 
 it is a strong baseline on this criterion: it costs $O(n\log n)$, and the weight
 order it produces is already close to what the objective rewards. The genetic
 algorithm improves on it, by \TBD\ per cent on average, and it does so on \TBD\ of
-the instances, which is the expected behaviour of a population-based search whose
+the instances, which is the expected behavior of a population-based search whose
 crossover and mutation operators are both built around the weight classes and the
 critical job (Section~\ref{sub:ga}). The NEH-type rule improves on it only in the
 correlated weight setting, by \TBD\ per cent, and falls behind it by \TBD\ per cent
