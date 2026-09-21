@@ -48,11 +48,6 @@
 \renewcommand{\bottomfraction}{0.6}
 \renewcommand{\textfraction}{0.05}
 
-% Keep every float (algorithm) inside the subsection that introduces it:
-% each \subsection starts with a float barrier, so a pending algorithm is
-% flushed before the next subsection begins.  The same barrier is applied at
-% every \section, so that a float which a subsection cannot absorb is still
-% resolved before the next section opens.
 \let\origsubsection\subsection
 \renewcommand{\subsection}{\FloatBarrier\origsubsection}
 \let\origsection\section
@@ -188,7 +183,8 @@ no direct extension to the weighted case.
 Our results follow from the structure of an optimal schedule. Since the objective is a
 maximum, jobs of equal weight are interchangeable with respect to it. An optimal
 schedule can therefore be assumed to have a block structure: one block per distinct
-weight, Johnson's order within each block, and blocks in non-increasing weight order. On this structure we build three methods. An exact dynamic program
+weight, Johnson's order within each block, and blocks in non-increasing weight order. 
+On this structure we build three methods. An exact dynamic program
 runs in $O(nKV^{3K-3})$ time, where $K$ is the number of distinct weights and $V$ the
 total processing time. It is practical when the weights fall into few classes, as in the
 plants described above. A 2-approximation runs in $O(n\log n)$ time. Rounding the input
