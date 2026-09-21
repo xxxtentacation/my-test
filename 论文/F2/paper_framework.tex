@@ -1644,13 +1644,6 @@ DP       & 381.0 & $-0.394$ & 2.36 \\
 \end{tabular}
 \end{table}
 
-\begin{CJK*}{UTF8}{gbsn}
-\noindent 表 2（精确法试点）：在 $n=60$、$K=2$ 上预跑 5 个实例，用于验证 MILP 与
-DP 两个实现是否互相一致，并先摸清耗时量级。间隙以 MILP 为基准（小规模的
-baseline），故该行恒为 0.000，负值表示优于基准。MILP 限时 30\,s，5 个实例中只有
-1 个证明了最优性；DP 在 2.36\,s 内给出精确最优，而且在 MILP 未能证明最优的实例
-上不劣于它。这正是"DP 在小规模上同时占优解质量与运行时间"的依据。
-\end{CJK*}
 
 A second pilot test is run at the lower end of the large scale, $n=500$ with all
 weights distinct and independent of the processing times, where the exact methods are
