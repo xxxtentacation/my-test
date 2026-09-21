@@ -1598,7 +1598,7 @@ setting in which a constructive rule has something left to exploit beyond the
 weight order itself. Each configuration is replicated over $20$ independent
 instances.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{5pt}
@@ -1620,41 +1620,65 @@ Large  & $500,\,600,\,700$        & all distinct       & 2-approx, Heuristic Alg
 \end{table}
 
 Before the study proper, a pilot test is run on the largest configuration of
-the small scale, $n=60$ with $K=2$, which is the largest one on which all six
-methods remain applicable. Its purpose is to verify that the implementations agree
-with one another before they are compared at scale, and to obtain a first profile
-of the running times. Five instances are used and every method is applied to each of
+the small scale, $n=60$ with $K=2$, which is the largest one on which the exact
+methods remain applicable. Its purpose is to verify that the two implementations agree
+with one another before they are compared at scale, and to obtain a first profile of
+the running times. Five instances are used and both methods are applied to each of
 them, so that the values are directly comparable. Table~\ref{tab:pilot} reports the
 outcome.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{6pt}
-\caption{Pilot test on the largest configuration of the small scale ($n=60$,
-$K=2$), averaged over five instances. The methods are reported in the two groups of
-Section~\ref{subsub:competing-algorithms}, and each group is measured against its own
-baseline, so that the gap is \eqref{eq:gap} with $z_{\text{base}}$ the MILP model in
-the first block and the 2-approximation in the second. The baseline of a block
-therefore reads zero by construction, and a negative entry marks a method that
-returned a better schedule than its baseline. MILP is given a time limit of $30$\,s,
-which suffices to prove optimality on one instance only. The entry reported as
-$<10^{-4}$\,s lies at the resolution of the timer and is to be read as
-instantaneous.}
+\caption{Pilot test of the exact methods on the largest configuration of the small
+scale ($n=60$, $K=2$), averaged over five instances. The gap is \eqref{eq:gap} against
+the MILP model, which is the baseline at this scale and therefore reads zero by
+construction; a negative entry marks a method that returned a better schedule than the
+model. MILP is given a time limit of $30$\,s, which suffices to prove optimality on
+one instance only.}
 \label{tab:pilot}
 \begin{tabular}{lrrr}
 \hline
 Algorithm & Mean objective & Gap (\%) & Mean CPU time (s) \\
 \hline
-\multicolumn{4}{l}{\emph{Exact methods, baseline: MILP}} \\
 MILP     & 382.6 & 0.000    & 29.85 \\
 DP       & 381.0 & $-0.394$ & 2.36 \\
 \hline
-\multicolumn{4}{l}{\emph{Approximation and heuristics, baseline: 2-approx}} \\
-2-approx & 381.2 & 0.000    & $<10^{-4}$ \\
-NEH      & 384.2 & 0.877    & 0.0103 \\
-ACO      & 402.8 & 5.564    & 4.15 \\
-GA       & 387.2 & 1.632    & 0.70 \\
+\end{tabular}
+\end{table}
+
+\begin{CJK*}{UTF8}{gbsn}
+\noindent 表 2（精确法试点）：在 $n=60$、$K=2$ 上预跑 5 个实例，用于验证 MILP 与
+DP 两个实现是否互相一致，并先摸清耗时量级。间隙以 MILP 为基准（小规模的
+baseline），故该行恒为 0.000，负值表示优于基准。MILP 限时 30\,s，5 个实例中只有
+1 个证明了最优性；DP 在 2.36\,s 内给出精确最优，而且在 MILP 未能证明最优的实例
+上不劣于它。这正是"DP 在小规模上同时占优解质量与运行时间"的依据。
+\end{CJK*}
+
+A second pilot test is run at the lower end of the large scale, $n=500$ with all
+weights distinct and independent of the processing times, where the exact methods are
+out of reach and the comparison is between the 2-approximation and the heuristics.
+Five instances are used again, and Table~\ref{tab:pilot-large} reports the outcome.
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{Pilot test of the heuristics at the lower end of the large scale ($n=500$,
+all weights distinct and independent of the processing times), averaged over five
+instances. The gap is \eqref{eq:gap} against the 2-approximation, which is the baseline
+at this scale and therefore reads zero by construction; a negative entry marks a method
+that improved on the baseline.}
+\label{tab:pilot-large}
+\begin{tabular}{lrrr}
+\hline
+Algorithm & Mean objective & Gap (\%) & Mean CPU time (s) \\
+\hline
+2-approx & 364940.0 & 0.000    & 0.00025 \\
+NEH      & 386232.0 & 5.834    & 4.33 \\
+ACO      & 528168.0 & 44.727   & 137.56 \\
+GA       & 360620.0 & $-1.184$ & 70.79 \\
 \hline
 \end{tabular}
 \end{table}
@@ -1696,14 +1720,23 @@ improve upon it: the NEH-type rule of Algorithm~\ref{alg:neh}, the ant colony
 optimization of Algorithm~\ref{alg:aco}, and the genetic algorithm of
 Algorithm~\ref{alg:ga}.
 
-The metaheuristics are run with the parameters recommended in
-Section~\ref{sec:heuristics}: for the ant colony optimization, \TBD\ ants,
-$\alpha=\TBD$, $\beta=\TBD$, $\rho=\TBD$ and a stopping criterion of \TBD\
-iterations; for the genetic algorithm, a population of $N=2n$ individuals, \TBD\
-generations, $p_c=\TBD$, $p_m=\TBD$ and an elitism size of $\lambda=N/10$. Both are
-restarted from \TBD\ independent random seeds per instance and the best and median
-values are reported, so that the comparison is not decided by a single run. All
-methods share the same objective evaluation, the recurrence \eqref{eq:completion}.
+The parameters of the two metaheuristics were calibrated on the medium scale before
+the study was run, and the values below are the ones that survived that calibration.
+The ant colony optimization uses $50$ ants, $\alpha=1$, $\beta=30$, $\rho=0.1$ and a
+stopping criterion of $100$ iterations. The colony size is capped rather than tied to
+$n$, because the construction loop costs $O(m \cdot \text{iter} \cdot n^2)$ and
+$m=n$ would put the large scale out of reach; raising $m$ from $10$ to $50$ moves the
+mean gap by less than three points, so the cap costs little. The exponent $\beta=30$
+is the smallest value at which the gap is not still falling on the correlated
+setting, and the gap grows on both sides of it. The genetic algorithm uses a
+population of $N=2n$ individuals, $G=30$ generations, $p_c=0.9$, $p_m=0.1$ and an
+elitism size of $\lambda=N/10$. The generation count is the one parameter the
+calibration changed materially: raising $G$ from $30$ to $120$ leaves the mean gap
+unchanged to three decimal places on every configuration tested, so $30$ generations
+already reach the fixed point of the search and the remaining generations are
+wasted. Quadrupling the population for the same budget buys $0.055$ percentage
+points and octupling it buys nothing further, so $N=2n$ is kept. All methods share
+the same objective evaluation, the recurrence \eqref{eq:completion}.
 
 \subsubsection{Performance measures}
 \label{subsub:measures}

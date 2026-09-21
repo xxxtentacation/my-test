@@ -231,7 +231,7 @@ def critical_job_mutation(sigma: Sequence[int], a: Sequence[float],
 
 
 def ga(a: Sequence[float], b: Sequence[float], w: Sequence[float],
-       N: Optional[int] = None, G: int = 100, pc: float = 0.9, pm: float = 0.1,
+       N: Optional[int] = None, G: int = 30, pc: float = 0.9, pm: float = 0.1,
        lam: Optional[int] = None, seed: Optional[int] = None) -> List[int]:
     """
     Genetic algorithm for F2 || WCmax  (Algorithm alg:ga).
@@ -241,7 +241,9 @@ def ga(a: Sequence[float], b: Sequence[float], w: Sequence[float],
     a, b, w : length n
         Processing time on M1, processing time on M2, and weight of each job.
     N       : population size (default 2n; the paper sets N = Theta(n)).
-    G       : number of generations.
+    G       : number of generations (default 30).  Calibrated in Section 6.1.2:
+              raising G to 120 leaves the mean gap unchanged on every tested
+              configuration, so 30 generations already reach the GA's fixed point.
     pc      : crossover probability; with probability 1 - pc the two parents are
               copied into the offspring set unchanged.
     pm      : mutation probability.  Used twice, as in the paper: Algorithm

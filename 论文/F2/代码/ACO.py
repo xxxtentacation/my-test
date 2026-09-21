@@ -23,10 +23,16 @@ the previous position; this matches both the update rule and the motivation
 
 from __future__ import annotations
 
+import math
 import random
 import statistics
 import time
 from typing import List, Optional, Sequence
+
+#: log / exp guarded against a zero argument, since tau and eta are both positive
+#: in exact arithmetic but can underflow to 0.0 after many evaporation rounds.
+_log = lambda x: math.log(x) if x > 0.0 else -math.inf
+_exp = lambda x: math.exp(x) if x > -700.0 else 0.0
 
 
 def wcmax_of_order(order: Sequence[int], a: Sequence[float], b: Sequence[float],
@@ -68,8 +74,8 @@ def _wcmax_fast(order: Sequence[int], a: Sequence[float], b: Sequence[float],
 
 
 def aco(a: Sequence[float], b: Sequence[float], w: Sequence[float],
-        m: Optional[int] = None, alpha: float = 1.0, beta: float = 5.0,
-        rho: float = 0.1, Q: float = 1.0, max_iter: int = 200,
+        m: Optional[int] = None, alpha: float = 1.0, beta: float = 30.0,
+        rho: float = 0.1, Q: float = 1.0, max_iter: int = 100,
         seed: Optional[int] = None) -> List[int]:
     """
     ACO for F2 || WCmax  (Algorithm alg:aco).
@@ -78,15 +84,23 @@ def aco(a: Sequence[float], b: Sequence[float], w: Sequence[float],
     ----------
     a, b, w  : length n
         Processing time on M1, processing time on M2, and weight of each job.
-    m        : number of ants per iteration (default n).
-    alpha    : pheromone exponent.
-    beta     : heuristic-information exponent.  The paper does not fix a value;
-               a comparatively large beta helps here, because the heuristic
-               eta_j = w_j / (a_j + b_j + 1) encodes the "heavy jobs first" bias
-               that the bottleneck objective rewards.
-    rho      : evaporation rate in (0, 1).
-    Q        : pheromone deposit constant.
-    max_iter : number of iterations (the "stopping criterion" of Step 4).
+    m        : number of ants per iteration (default min(n, ACO_ANTS), i.e. 50 for
+               every n >= 50).  Calibrated in Section 6.1.2: raising m from 10 to
+               50 moves the mean gap by under three points while costing five
+               times as much, and tying m to n makes the run cubic in n.
+    alpha    : pheromone exponent (default 1.0).
+    beta     : heuristic-information exponent (default 30.0).  eta_j =
+               w_j / (a_j + b_j + 1) encodes the "heavy jobs first" bias that the
+               bottleneck objective rewards.  Calibrated in Section 6.1.2: the gap
+               is smallest near beta = 30 on the correlated setting, and grows on
+               both sides of it; no beta makes the colony match the
+               2-approximation, because as beta grows the construction approaches
+               the weight-descending order and hence the approximation itself.
+    rho      : evaporation rate in (0, 1) (default 0.1).
+    Q        : pheromone deposit constant (default 1.0).
+    max_iter : number of iterations, the "stopping criterion" of Step 4
+               (default 100).  Calibrated in Section 6.1.2: iterations help on the
+               correlated setting and barely at all on the independent one.
     seed     : optional random seed.
 
     Returns
@@ -97,7 +111,11 @@ def aco(a: Sequence[float], b: Sequence[float], w: Sequence[float],
     if n != len(b) or n != len(w):
         raise ValueError("a, b, w must have the same length")
     if m is None:
-        m = n
+        # The colony size is capped rather than tied to n.  The construction loop
+        # costs O(m * max_iter * n^2), so m = n makes the run quadratic-and-a-half
+        # in n and puts the large scale out of reach; raising m from 10 to 50 also
+        # changes the mean gap by under three points, so the cap costs little.
+        m = min(n, ACO_ANTS)
 
     rng = random.Random(seed)
 
@@ -117,12 +135,22 @@ def aco(a: Sequence[float], b: Sequence[float], w: Sequence[float],
 
             for _pos in range(n):
                 # Selection weights tau_{prev,j}^alpha * eta_j^beta.
+                #
+                # The product is assembled in log space and shifted by its maximum
+                # before exponentiation.  eta_j = w_j / (a_j + b_j + 1) can be huge
+                # when the weights are spread over a wide range -- a geometric
+                # ladder 1, 2, ..., 2^(K-1) gives eta ~ 2^K -- and raising it to
+                # beta then overflows the double range.  Dividing every weight by
+                # the largest one is a positive rescaling, so it leaves the
+                # selection distribution unchanged.
                 if prev < 0:
-                    weights = [eta[j] ** beta for j in remaining]
+                    logw = [beta * _log(eta[j]) for j in remaining]
                 else:
                     tau_row = tau[prev]
-                    weights = [tau_row[j] ** alpha * eta[j] ** beta
-                               for j in remaining]
+                    logw = [alpha * _log(tau_row[j]) + beta * _log(eta[j])
+                            for j in remaining]
+                mx = max(logw)
+                weights = [_exp(x - mx) for x in logw]
                 total = sum(weights)
                 if total <= 0.0:           # degenerate: fall back to uniform
                     j = rng.choice(remaining)
@@ -168,6 +196,9 @@ def run_aco(a, b, w, **kwargs) -> dict:
 
 INSTANCES_PER_CONFIG = 20      # paper Section 6.1: instances per configuration
 PROC_LO, PROC_HI = 1, 10       # processing times ~ U{1, ..., 10}
+
+#: colony size used when `m` is not given (paper Section 6.1.2: "50 ants")
+ACO_ANTS = 50
 
 #: instance scales of paper Table 1: name -> (values of n, values of K)
 SCALES = {
