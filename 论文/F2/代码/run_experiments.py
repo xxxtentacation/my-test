@@ -2,28 +2,78 @@
 """
 Master driver for the computational study of paper Section 6 (Experiments).
 
-It runs a selected subset of the algorithms implemented in this folder on the
-configurations of one instance scale, and records the aggregated results -- the
-mean objective value and the mean CPU time per configuration, as specified in
-paper Section 6.1.3 -- in a single results file.  By default that file is
-written next to this folder, i.e. in the same directory as the algorithm folder::
+The driver follows the design of that section rather than inventing its own:
 
-    论文/F2/experiment_results.txt          <- results file (default)
-    论文/F2/代码/run_experiments.py          <- this script
-    论文/F2/代码/{MILP,DP,NEH,ACO,GA}.py     <- the algorithms
+* **Instances.**  Every configuration is a pair (n, weight setting) drawn from
+  paper Table 1.  The small scale uses the narrow regime, in which the weights
+  are uniform on {1, ..., K} with K = 2; the medium and large scales use the two
+  wide regimes, in which the weights fall into a fixed number of classes, 3 in
+  the independent setting ("indep") and 9 in the correlated one ("corr"), the
+  classes of the latter following the order of a_j + b_j.  The 320 instances of
+  the paper are therefore 20 replications of each of the 16 configurations of
+  SCALES below.
 
-Every algorithm is driven through the `benchmark()` harness of its own module,
-so the protocol is the same whichever subset is selected: each configuration is
-replicated over `--instances` random instances, and for every instance the best
-objective value found and the CPU time are recorded and then averaged.
+* **Methods.**  Each scale runs the methods the paper reports there: MILP and DP
+  on the small scale, where the exact methods are still within reach, and NEH,
+  ACO and GA on the medium and the large scale, where they are not.  The baseline
+  is not a method but the reference value of those two scales: it returns no
+  schedule, it is never run, and it appears in no table.  Every method runs once
+  on every instance, so no comparison rests on a different sample.
+
+* **Parameters.**  Those of paper Section 6, all of them the defaults of the
+  algorithm modules or the constants at the top of this file: processing times
+  U(1,10); a time limit of 600 s shared by MILP and DP; ACO with 10 ants,
+  alpha=1, beta=30, rho=0.1 and 100 iterations; GA with N=n individuals, G=10
+  generations, p_c=0.9, p_m=0.1 and an elitism size of N/10; and Gurobi on a
+  single thread.
+
+* **Gap.**  The quantity reported is the relative percentage gap of a method
+  against the *baseline of the configuration*, which is fixed instance by
+  instance: the value of the MILP model on the small configurations, and the
+  reference value W_max * sum_j (a_j + b_j) on the rest.  The latter is not a
+  schedule but a number, and it is computed by each algorithm on the instance it
+  has just been handed (`instance_baseline()` of the algorithm modules), so
+  nothing extra is run and the denominator is always the value of the very
+  instance that was solved.  Being an upper bound on the optimum, it makes every
+  gap of those two scales negative, and the more negative the better.  The gap is
+  computed **per instance** and then aggregated, so the mean, the minimum and the
+  maximum below are the statistics of the same 20 gaps.  A method that hits the
+  time limit without producing a value contributes no gap and is counted
+  separately.
+
+* **Best count.**  Once every method of a configuration has run, the best value
+  found on each instance by any of them is determined, and each method reports
+  the number of instances on which it attains that value.  On the small scale
+  the MILP model is one of the methods, so the value is the optimum and the count
+  is the number of instances solved to optimality; on the other two scales it is
+  the best value known for the instance.
+
+* **Seed.**  The seed of a configuration depends only on (n, weight setting), so
+  every method sees literally the same instances and the gaps are paired.
+
+* **Output.**  The run is reported line by line as it happens: one line per
+  instance, carrying the value found, the running time of that instance and the
+  time elapsed since the method started on the configuration, and one line per
+  configuration once its methods have all run.  stdout is put in line-buffered
+  mode, so the same holds when the output is redirected to a file.
+
+Every scale that is run is written to the results file, and a copy is filed away
+under the date and the scales, so that running the script again never overwrites
+the results of an earlier run::
+
+    论文/F2/代码/记录/结果_最新.txt                    <- the run that just finished
+    论文/F2/代码/记录/结果存档/<date>_<scales>.txt      <- one file per run, kept
+    论文/F2/代码/记录/实例记录_<scales>_<date>.txt      <- one line per instance, live
+    论文/F2/代码/run_experiments.py                   <- this script
+    论文/F2/代码/{MILP,DP,NEH,ACO,GA}.py              <- the algorithms
 
 Usage
 -----
-    python run_experiments.py --list
-    python run_experiments.py --scale medium --algos neh ga approx2
-    python run_experiments.py --scale small --algos milp dp neh --time-limit 300
-    python run_experiments.py --scale medium --algos ga --geometric --repeats 5
-    python run_experiments.py --scale medium --algos neh ga --out ../res.csv
+    python run_experiments.py                       # the whole study
+    python run_experiments.py --list                # what would be run
+    python run_experiments.py --scale small         # one scale
+    python run_experiments.py --scale medium --algos neh aco ga
+    python run_experiments.py --scale small --instances 2   # a quick check
 """
 
 from __future__ import annotations
@@ -37,24 +87,56 @@ from datetime import datetime
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-#: default results file: same directory as the algorithm folder (this folder)
-DEFAULT_OUT = HERE.parent / "experiment_results.txt"
+#: everything the runs produce is written here, and nowhere else: the results of
+#: the run that has just finished, the kept copy of every earlier run, and the
+#: per-instance records
+RECORD_DIR = HERE / "记录"
+#: default results file: holds the run that has just finished, and is overwritten
+#: by the next one -- the kept copies are the archive below
+DEFAULT_OUT = RECORD_DIR / "结果_最新.txt"
+#: every run is also filed here under its date and scales, so that no run
+#: overwrites the results of an earlier one
+ARCHIVE_DIR = RECORD_DIR / "结果存档"
 
-#: instance scales of paper Table 1: name -> (values of n, values of K)
+#: weight settings of paper Section 6.1.1, in the order used to derive the seed
+WEIGHT_SETTINGS = ("narrow", "indep", "corr")
+
+#: how a weight setting is written in the output and in the files: by the number
+#: of distinct weights it produces, which is how the tables of the paper label
+#: their rows.  The names above remain the internal keys, and the ones the
+#: instance generator takes.
+WEIGHTS_LABEL = {"narrow": "K=2", "indep": "K=3", "corr": "K=9"}
+
+#: how the baseline of a configuration is written in the output: "milp" is the
+#: value of the model itself, "base" the reference value of the instance
+BASELINE_LABEL = {"milp": "MILP", "base": "W_max*sum(a_j+b_j)"}
+
+#: The configuration of paper Section 6 and Table 1, and the only place where it
+#: is written down: 16 configurations over three scales, 20 instances each, for
+#: the 320 instances of the study.  "configs" holds one (n, weight setting,
+#: baseline) triple per configuration; "instances" is the replication count of
+#: the scale; and "methods" the methods the paper reports there -- the exact ones
+#: on the small scale, where they are still within reach, and the three
+#: heuristics on the other two, where they are not.  Running this file with no
+#: arguments runs all three scales exactly as they stand here.
 SCALES = {
-    "small":  ([6, 8, 10, 12], [2, 3]),
-    "medium": ([20, 50, 100], [3, 5]),
-    "large":  ([200, 500, 1000], [5, 10, 20]),
-}
-
-#: scales on which each method is meaningful; "all" means every scale
-APPLICABLE = {
-    "milp":    "small",
-    "dp":      "small",
-    "approx2": "all",
-    "neh":     "all",
-    "aco":     "all",
-    "ga":      "all",
+    "small": {                  # 4 configurations x 20 =  80 instances, K = 2
+        "instances": 20,
+        "methods": ("milp", "dp"),
+        "configs": tuple((n, "narrow", "milp") for n in (30, 40, 50, 60)),
+    },
+    "medium": {                 # 6 configurations x 20 = 120 instances, K = 3, 9
+        "instances": 20,
+        "methods": ("neh", "aco", "ga"),
+        "configs": tuple((n, wt, "base")
+                         for n in (200, 250, 300) for wt in ("indep", "corr")),
+    },
+    "large": {                  # 6 configurations x 20 = 120 instances, K = 3, 9
+        "instances": 20,
+        "methods": ("neh", "aco", "ga"),
+        "configs": tuple((n, wt, "base")
+                         for n in (500, 600, 700) for wt in ("indep", "corr")),
+    },
 }
 
 
@@ -62,137 +144,269 @@ APPLICABLE = {
 # runners: one thin adapter per algorithm, each calling that module's benchmark
 # ---------------------------------------------------------------------------
 
-def _run_milp(n, K, instances, seed, geometric, repeats, opts):
+def _run_milp(n, weights, instances, seed, opts, progress=None):
     from MILP import benchmark
-    return benchmark(n=n, K=K, instances=instances, seed=seed,
-                     geometric=geometric, repeats=repeats,
-                     time_limit=opts.time_limit)
+    return benchmark(n=n, K=2, instances=instances, seed=seed, weights=weights,
+                     time_limit=opts.time_limit, progress=progress,
+                     log_path=getattr(opts, "record_path", None))
 
 
-def _run_dp(n, K, instances, seed, geometric, repeats, opts):
+def _run_dp(n, weights, instances, seed, opts, progress=None):
     from DP import benchmark
-    return benchmark(n=n, K=K, instances=instances, seed=seed,
-                     geometric=geometric, repeats=repeats,
-                     time_limit=opts.time_limit)
+    return benchmark(n=n, K=2, instances=instances, seed=seed, weights=weights,
+                     time_limit=opts.time_limit, progress=progress,
+                     log_path=getattr(opts, "record_path", None))
 
 
-def _run_neh(n, K, instances, seed, geometric, repeats, opts):
+def _run_neh(n, weights, instances, seed, opts, progress=None):
     from NEH import benchmark
-    return benchmark(n=n, K=K, instances=instances, seed=seed,
-                     geometric=geometric, repeats=repeats)
+    return benchmark(n=n, K=2, instances=instances, seed=seed, weights=weights,
+                     progress=progress, log_path=getattr(opts, "record_path", None))
 
 
-def _run_aco(n, K, instances, seed, geometric, repeats, opts):
+def _run_aco(n, weights, instances, seed, opts, progress=None):
     from ACO import benchmark
-    kwargs = {}
+    kwargs = dict(ACO_SETTINGS)                 # test mode, or the paper values
     if opts.aco_ants is not None:
         kwargs["m"] = opts.aco_ants
     if opts.aco_iter is not None:
         kwargs["max_iter"] = opts.aco_iter
     if opts.aco_rho is not None:
         kwargs["rho"] = opts.aco_rho
-    return benchmark(n=n, K=K, instances=instances, seed=seed,
-                     geometric=geometric, repeats=repeats, **kwargs)
+    return benchmark(n=n, K=2, instances=instances, seed=seed, weights=weights,
+                     progress=progress, log_path=getattr(opts, "record_path", None),
+                     **kwargs)
 
 
-def _run_ga(n, K, instances, seed, geometric, repeats, opts):
+def _run_ga(n, weights, instances, seed, opts, progress=None):
     from GA import benchmark
-    kwargs = {}
+    kwargs = {"N": max(8, GA_SETTINGS["N_factor"] * n),   # test mode, or the paper
+              "G": GA_SETTINGS["G"]}                      # values of Section 6
     if opts.ga_pop is not None:
         kwargs["N"] = opts.ga_pop
     if opts.ga_gen is not None:
         kwargs["G"] = opts.ga_gen
-    return benchmark(n=n, K=K, instances=instances, seed=seed,
-                     geometric=geometric, repeats=repeats, **kwargs)
+    return benchmark(n=n, K=2, instances=instances, seed=seed, weights=weights,
+                     progress=progress, log_path=getattr(opts, "record_path", None),
+                     **kwargs)
 
 
-def _run_approx2(n, K, instances, seed, geometric, repeats, opts):
-    from GA import benchmark
-    return benchmark(n=n, K=K, instances=instances, seed=seed,
-                     geometric=geometric, repeats=repeats, method="2-approx")
+# ---------------------------------------------------------------------------
+# settings of the two metaheuristics
+# ---------------------------------------------------------------------------
+#
+# The parameters of paper Section 6, fixed by the calibration run that paragraph
+# reports.  A quicker check of the pipeline is a matter of the command line --
+# fewer instances (--instances), a single scale (--scale), or a smaller budget
+# for a method (--aco-ants, --aco-iter, --ga-pop, --ga-gen), which override what
+# is below:
+#
+#   GA   N = n, G = 10 reproduces the mean objective of N = 2n, G = 30 on both
+#        weight regimes, at a quarter of the running time: the population reaches
+#        its fixed point within a few generations, and even N = n/2, G = 10
+#        still matches.
+#   ACO  at an equal budget of m * max_iter = 1000, ten ants for a hundred
+#        iterations beat twenty for fifty -- 1718.7 against 1734.7 on the
+#        independent setting and 5018.7 against 5175.0 on the correlated one --
+#        so the budget is spent on iterations rather than on ants.  Against
+#        fifty ants and a hundred iterations, at five times the cost, ten ants
+#        cost 1.7 and 2.8 per cent of mean objective.
+#: ACO arguments: colony size, and iterations of the stopping criterion
+ACO_SETTINGS = {"m": 10, "max_iter": 100}
+#: GA arguments: population size as a multiple of n, and generations
+GA_SETTINGS = {"N_factor": 1, "G": 10}
 
 
-#: output order of the methods, and the runner of each
+#: output order of the methods, and the runner of each.  The baseline of the
+#: medium and large scales is not among them: it is a property of the instance
+#: rather than a method, and each algorithm computes it on the instance it is
+#: handed (see instance_baseline() in the algorithm modules).
 METHODS = {
-    "milp":    ("MILP (exact)",      _run_milp),
-    "dp":      ("DP (exact)",        _run_dp),
-    "approx2": ("2-approximation",   _run_approx2),
-    "neh":     ("NEH",               _run_neh),
-    "aco":     ("Ant colony",        _run_aco),
-    "ga":      ("Genetic algorithm", _run_ga),
+    "milp": ("MILP", _run_milp),
+    "dp":   ("DP",   _run_dp),
+    "neh":  ("NEH",  _run_neh),
+    "aco":  ("ACO",  _run_aco),
+    "ga":   ("GA",   _run_ga),
 }
-DEFAULT_METHODS = ["approx2", "neh", "aco", "ga"]
+#: scales run when none is named: the three of paper Table 1
+DEFAULT_SCALES = ["small", "medium", "large"]
 
 
 # ---------------------------------------------------------------------------
 # experiment driver
 # ---------------------------------------------------------------------------
 
-def run_experiments(scale, methods, args, stream=sys.stdout):
+def seed_of(n, weights, base):
+    """Seed of a configuration; depends only on (n, weights), never on the method."""
+    return base + 1000 * n + WEIGHT_SETTINGS.index(weights)
+
+
+def _hms(seconds):
+    """Seconds as h:mm:ss, or m:ss below an hour."""
+    seconds = int(seconds)
+    h, rest = divmod(seconds, 3600)
+    m, s = divmod(rest, 60)
+    return ("%d:%02d:%02d" % (h, m, s)) if h else ("%d:%02d" % (m, s))
+
+
+def _instance_reporter(label, n, weights, stream):
+    """
+    One line per instance, printed as soon as that instance is done.
+
+    A configuration can take an hour or more -- the ant colony optimization at
+    n = 700 runs for a couple of minutes on each of twenty instances -- so the
+    driver would otherwise be silent for the whole of it.  The reporter carries
+    the running time of the instance and the time elapsed since the method
+    started on this configuration.
+    """
+    started = time.perf_counter()
+
+    def report(done, total, obj, seconds):
+        print("      %-4s n=%-4d %-6s | instance %2d/%-2d | value %-14s"
+              " %9s | elapsed %s"
+              % (label, n, weights, done, total,
+                 "none" if obj is None else "%.1f" % obj,
+                 "%.2f s" % (seconds or 0.0),
+                 _hms(time.perf_counter() - started)),
+              file=stream, flush=True)
+
+    return report
+
+
+def gaps_against(objs, base_objs):
+    """
+    Per-instance percentage gaps of `objs` against `base_objs`.
+
+    Both lists are indexed by instance, so the pairing is exact.  An instance on
+    which either side produced no value contributes no gap and is reported as
+    missing instead.
+    """
+    out, missing = [], 0
+    for o, b in zip(objs, base_objs):
+        if o is None or b is None or b == 0:
+            missing += 1
+            continue
+        out.append(100.0 * (o - b) / b)
+    return out, missing
+
+
+def run_scale(scale, methods, args, stream=sys.stdout):
     """
     Run every selected method on every configuration of `scale`.
 
-    Returns a list of records, one per (method, n, K):
-        algo, n, K, instances, mean_obj, best_obj, mean_time, solved, failed
+    Returns a list of records, one per (method, n, weights):
+        algo, n, weights, instances, gaps, mean_gap, min_gap, max_gap,
+        mean_time, missing, hit
     """
-    ns, Ks = SCALES[scale]
-    records = []
-    total = len(ns) * len(Ks) * len(methods)
-    done = 0
+    spec = SCALES[scale]
+    instances = args.instances or spec["instances"]
+    total = len(spec["configs"]) * len(methods)
+    records, done = [], 0
 
-    for n in ns:
-        for K in Ks:
-            for name in methods:
-                label, runner = METHODS[name]
-                seed = args.seed + 1000 * n + K
-                t0 = time.perf_counter()
-                try:
-                    res = runner(n, K, args.instances, seed, args.geometric,
-                                 args.repeats, args)
-                except Exception as exc:                       # noqa: BLE001
-                    print("  %-8s n=%4d K=%2d  FAILED: %s" % (name, n, K, exc),
-                          file=stream)
-                    done += 1
-                    continue
-                elapsed = time.perf_counter() - t0
+    for (n, weights, baseline) in spec["configs"]:
+        seed = seed_of(n, weights, args.seed)
 
-                rec = {
-                    "algo": name,
-                    "n": n,
-                    "K": K,
-                    "instances": res["instances"],
-                    "mean_obj": res["mean_obj"],
-                    "best_obj": res["best_obj"],
-                    "mean_time": res["mean_time"],
-                    "solved": res.get("solved", res["instances"]),
-                    "failed": res.get("failed", 0),
-                    "wall": elapsed,
-                }
-                records.append(rec)
-                done += 1
-                print("  [%2d/%2d] %-8s n=%4d K=%2d | mean obj=%9.2f"
-                      " | best obj=%9.2f | mean time=%9.4f s"
-                      % (done, total, name, n, K, rec["mean_obj"],
-                         rec["best_obj"], rec["mean_time"]), file=stream)
+        # The baseline of the configuration is the denominator of every gap of
+        # that configuration, and it is obtained in one of two ways.  On the
+        # small scale it is the value of the MILP model, so the model is run
+        # first and its values are the denominator.  On the other two scales it
+        # is the reference value W_max * sum_j (a_j + b_j), which is a property of
+        # the instance alone: every method computes it from the instance it has
+        # just been handed -- see instance_baseline() of the algorithm modules --
+        # so nothing extra has to be run at all.
+        base_objs, base_res = None, None
+        wlabel = WEIGHTS_LABEL.get(weights, weights)
+        if baseline == "milp":
+            label, runner = METHODS["milp"]
+            print("  n=%-4d %-6s | baseline %s (seed %d)" % (n, wlabel, label, seed),
+                  file=stream, flush=True)
+            base_res = runner(n, weights, instances, seed, args,
+                              _instance_reporter(label, n, wlabel, stream))
+            base_objs = base_res["objs"]
+        else:
+            print("  n=%-4d %-6s | baseline %s (seed %d)"
+                  % (n, wlabel, BASELINE_LABEL[baseline], seed),
+                  file=stream, flush=True)
+
+        # Every method of the configuration is run first, because the number of
+        # instances on which a method finds the best solution cannot be counted
+        # until all of them have reported on the same instances.
+        results = {}
+        for name in methods:
+            label, runner = METHODS[name]
+            if base_objs is not None and name == "milp":
+                results[name] = base_res
+            else:
+                results[name] = runner(n, weights, instances, seed, args,
+                                       _instance_reporter(label, n, wlabel, stream))
+
+        # The best value found on each instance by any of the methods run here:
+        # on the small scale the MILP model is among them and the value is the
+        # optimum, on the other two scales it is the best known one.
+        best_of_instance = []
+        for i in range(instances):
+            vals = [results[m]["objs"][i] for m in methods
+                    if results[m]["objs"][i] is not None]
+            best_of_instance.append(min(vals) if vals else None)
+
+        for name in methods:
+            label = METHODS[name][0]
+            res = results[name]
+            denom = base_objs if base_objs is not None else res["bases"]
+            gaps, missing = gaps_against(res["objs"], denom)
+            hit = sum(1 for i, o in enumerate(res["objs"])
+                      if o is not None and best_of_instance[i] is not None
+                      and abs(o - best_of_instance[i]) < 1e-9)
+            rec = {
+                "algo": name,
+                "label": label,
+                "n": n,
+                "weights": weights,
+                "baseline": baseline,
+                "instances": instances,
+                "paired": len(gaps),
+                "missing": missing,
+                "mean_gap": statistics.fmean(gaps) if gaps else float("nan"),
+                "min_gap": min(gaps) if gaps else float("nan"),
+                "max_gap": max(gaps) if gaps else float("nan"),
+                "mean_time": res["mean_time"],
+                "hit": hit,
+                # the raw per-instance values, so that the file still holds the
+                # run after the driver has moved on: a change of baseline or of
+                # gap formula can then be applied without repeating the run
+                "objs": res["objs"],
+                "times": res["times"],
+                "bases": res["bases"],
+                "best_of_instance": best_of_instance,
+            }
+            records.append(rec)
+            done += 1
+            print("  [%2d/%2d] %-4s n=%-4d %-6s | mean gap %+8.3f%% "
+                  "| min %+8.3f%% | max %+9.3f%% | %9.4f s | best %2d/%-2d "
+                  "| unpaired %d"
+                  % (done, total, label, n, wlabel, rec["mean_gap"],
+                     rec["min_gap"], rec["max_gap"], rec["mean_time"],
+                     hit, instances, missing),
+                  file=stream, flush=True)
 
     return records
 
 
 def summarise(records):
-    """Mean objective and mean CPU time of each method, over all configurations."""
+    """Mean gap and mean CPU time of each method, over the configurations of the scale."""
     by_algo = {}
     for rec in records:
         by_algo.setdefault(rec["algo"], []).append(rec)
     out = []
     for name in METHODS:
-        recs = by_algo.get(name)
+        recs = [r for r in by_algo.get(name, []) if r["paired"]]
         if not recs:
             continue
         out.append({
             "algo": name,
             "label": METHODS[name][0],
             "configurations": len(recs),
-            "mean_obj": statistics.fmean(r["mean_obj"] for r in recs),
+            "mean_gap": statistics.fmean(r["mean_gap"] for r in recs),
             "mean_time": statistics.fmean(r["mean_time"] for r in recs),
         })
     return out
@@ -202,52 +416,100 @@ def summarise(records):
 # writers
 # ---------------------------------------------------------------------------
 
-def _header(scale, methods, args):
+def _header(scales, methods, args):
     return [
         "F2 || WCmax -- computational study (paper Section 6)",
         "generated     : %s" % datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "scale         : %s  (n in %s, K in %s)"
-        % (scale, SCALES[scale][0], SCALES[scale][1]),
-        "methods       : %s" % ", ".join(methods),
-        "instances/cfg : %d" % args.instances,
-        "repeats       : %d" % args.repeats,
-        "weight setting: %s" % ("geometric ladder" if args.geometric
-                                else "uniform {1..K}"),
-        "seed          : %d" % args.seed,
+        "scales        : %s" % ", ".join(scales),
+        "methods       : %s" % "; ".join(
+            "%s: %s" % (s, ", ".join(METHODS[m][0] for m in SCALES[s]["methods"]))
+            for s in scales),
+        "instances/cfg : %d" % (args.instances or 20),
+        "metaheuristics: ACO %s; GA %s"
+        % (", ".join("%s=%s" % kv for kv in sorted(ACO_SETTINGS.items())),
+           ", ".join("%s=%s" % kv for kv in sorted(GA_SETTINGS.items()))),
+        "gap against   : the baseline of each configuration "
+                        "(MILP on the small scale, the reference value "
+                        "W_max*sum(a+b) elsewhere)",
+        "seed          : %d (+1000*n, + weight setting)" % args.seed,
         "time limit    : %s s" % (args.time_limit if args.time_limit else "none"),
+        "records       : %s" % getattr(args, "record_path", "-"),
     ]
 
 
-def write_text(path, records, summary, scale, methods, args):
-    lines = ["# " + h for h in _header(scale, methods, args)]
-    lines.append("#")
-    lines.append("# per-configuration results (paper Section 6.1.3)")
-    lines.append("# %-8s %5s %3s %10s %12s %12s %13s %8s"
-                 % ("algo", "n", "K", "instances", "mean_obj", "best_obj",
-                    "mean_time(s)", "failed"))
+def _scale_block(lines, scale, records, summary, args):
+    spec = SCALES[scale]
+    lines.append("")
+    lines.append("# " + "=" * 84)
+    lines.append("# scale %s  --  configurations: %s"
+                 % (scale, ", ".join("n=%d/%s" % (n, WEIGHTS_LABEL.get(wt, wt))
+                                     for n, wt, _ in spec["configs"])))
+    lines.append("# " + "=" * 84)
+    lines.append("# per-configuration results")
+    lines.append("# %-5s %5s %-7s %9s %9s %10s %10s %9s %9s %6s"
+                 % ("algo", "n", "weights", "paired", "unpaired", "mean_gap",
+                    "min_gap", "max_gap", "time(s)", "best"))
     for r in records:
-        lines.append("  %-8s %5d %3d %10d %12.2f %12.2f %13.6f %8d"
-                     % (r["algo"], r["n"], r["K"], r["instances"],
-                        r["mean_obj"], r["best_obj"], r["mean_time"],
-                        r["failed"]))
+        lines.append("  %-5s %5d %-7s %9d %9d %10.3f %10.3f %9.3f %9.4f %6d"
+                     % (r["label"], r["n"], WEIGHTS_LABEL.get(r["weights"],
+                                                              r["weights"]),
+                        r["paired"], r["missing"], r["mean_gap"], r["min_gap"],
+                        r["max_gap"], r["mean_time"], r["hit"]))
+    lines.append("#")
+    lines.append("# the column 'best' counts the instances on which the method attained the")
+    lines.append("# best value found on that instance by any method run there")
+    lines.append("#")
+    lines.append("# per-instance baseline, objective values and CPU times, in instance order")
+    seen = set()
+    for r in records:
+        wl = WEIGHTS_LABEL.get(r["weights"], r["weights"])
+        key = (r["n"], r["weights"])
+        if key not in seen:            # the same for every method of the configuration
+            seen.add(key)
+            lines.append("  %-5s %5d %-7s best  : %s"
+                         % ("-", r["n"], wl,
+                            " ".join("none" if b is None else "%.1f" % b
+                                     for b in r["best_of_instance"])))
+        lines.append("  %-5s %5d %-7s base  : %s"
+                     % (r["label"], r["n"], wl,
+                        " ".join("%.1f" % b for b in r["bases"])))
+        lines.append("  %-5s %5d %-7s objs  : %s"
+                     % (r["label"], r["n"], wl,
+                        " ".join("none" if o is None else "%.1f" % o
+                                 for o in r["objs"])))
+        lines.append("  %-5s %5d %-7s times : %s"
+                     % (r["label"], r["n"], wl,
+                        " ".join("none" if t is None else "%.4f" % t
+                                 for t in r["times"])))
     lines.append("#")
     lines.append("# summary, averaged over the configurations of the scale")
-    lines.append("# %-20s %10s %12s %14s"
-                 % ("method", "configs", "mean_obj", "mean_time(s)"))
+    lines.append("# %-8s %14s %11s %13s"
+                 % ("method", "configurations", "mean_gap", "mean_time(s)"))
     for s in summary:
-        lines.append("  %-20s %10d %12.2f %14.6f"
-                     % (s["label"], s["configurations"], s["mean_obj"],
+        lines.append("  %-8s %14d %11.3f %13.4f"
+                     % (s["label"], s["configurations"], s["mean_gap"],
                         s["mean_time"]))
+
+
+def write_text(path, by_scale, methods, args):
+    """One file holding every scale that was run, in the order given."""
+    lines = ["# " + h for h in _header(list(by_scale), methods, args)]
+    for scale, (records, summary) in by_scale.items():
+        _scale_block(lines, scale, records, summary, args)
     lines.append("")
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def write_csv(path, records, scale, methods, args):
+def write_csv(path, by_scale, methods, args):
+    rows = []
+    for scale, (records, _) in by_scale.items():
+        for r in records:
+            rows.append(dict(r, scale=scale))
     with path.open("w", newline="", encoding="utf-8") as fh:
-        fh.write("# " + "; ".join(_header(scale, methods, args)) + "\n")
-        writer = csv.DictWriter(fh, fieldnames=list(records[0].keys()))
+        fh.write("# " + "; ".join(_header(list(by_scale), methods, args)) + "\n")
+        writer = csv.DictWriter(fh, fieldnames=list(rows[0].keys()))
         writer.writeheader()
-        writer.writerows(records)
+        writer.writerows(rows)
 
 
 # ---------------------------------------------------------------------------
@@ -256,28 +518,26 @@ def write_csv(path, records, scale, methods, args):
 
 def parse_args(argv=None):
     p = argparse.ArgumentParser(
-        description="Run the F2 || WCmax algorithm comparison and record the "
-                    "results in a single file (paper Section 6).",
+        description="Run the F2 || WCmax algorithm comparison of paper "
+                    "Section 6 and record the results in a single file.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__.split("Usage")[-1],
     )
-    p.add_argument("--scale", choices=sorted(SCALES), default="medium",
-                   help="instance scale (default: medium)")
+    p.add_argument("--scale", nargs="+", choices=sorted(SCALES), default=None,
+                   help="instance scale(s); several may be given and are written "
+                        "to the same file (default: %s)"
+                        % ",".join(DEFAULT_SCALES))
     p.add_argument("--algos", nargs="+", default=None,
                    help="methods to run, space- or comma-separated, or 'all' "
-                        "(default: %s)" % ",".join(DEFAULT_METHODS))
-    p.add_argument("--instances", type=int, default=20,
-                   help="instances per configuration (default: 20, paper 6.1)")
-    p.add_argument("--repeats", type=int, default=1,
-                   help="runs per instance for the stochastic methods; the best "
-                        "value is recorded (default: 1)")
+                        "(default: the methods the paper reports at each scale, "
+                        "which are listed by --list)")
+    p.add_argument("--instances", type=int, default=None,
+                   help="instances per configuration (default: 20, or 5 for the "
+                        "pilot tests)")
     p.add_argument("--seed", type=int, default=42, help="base random seed")
-    p.add_argument("--geometric", action="store_true",
-                   help="use the geometrically spaced weight ladder "
-                        "{1,2,4,...,2^(K-1)} instead of uniform {1..K}")
-    p.add_argument("--time-limit", type=float, default=300.0,
+    p.add_argument("--time-limit", type=float, default=600.0,
                    help="solver time limit in seconds for MILP / DP "
-                        "(default: 300)")
+                        "(default: 600, the limit of paper Section 6)")
     p.add_argument("--aco-ants", type=int, default=None, help="ACO: number of ants")
     p.add_argument("--aco-iter", type=int, default=None, help="ACO: iterations")
     p.add_argument("--aco-rho", type=float, default=None, help="ACO: evaporation rate")
@@ -292,13 +552,21 @@ def parse_args(argv=None):
 
 
 def resolve_methods(spec):
+    """
+    The methods named on the command line, or None when the scale decides.
+
+    None (no --algos) and "all" both mean "the methods the paper reports at each
+    scale", which differ from one scale to the next; the baseline is never among
+    them, as it is a reference value and not a method, and it is computed anyway
+    wherever it serves as a denominator.
+    """
     if spec is None:
-        return list(DEFAULT_METHODS)
+        return None
     if isinstance(spec, str):
         spec = [spec]
     names = [t for chunk in spec for t in chunk.replace(",", " ").split() if t]
     if len(names) == 1 and names[0].lower() == "all":
-        return list(METHODS)
+        return None
     unknown = [t for t in names if t not in METHODS]
     if unknown:
         raise SystemExit("unknown method(s): %s\navailable: %s"
@@ -309,55 +577,99 @@ def resolve_methods(spec):
 def main(argv=None):
     args = parse_args(argv)
 
+    # The run takes hours and its output is often redirected to a file, where
+    # stdout would otherwise be block-buffered and show nothing until the end,
+    # so it is put into line-buffered mode: every line appears as it is printed.
+    try:
+        sys.stdout.reconfigure(line_buffering=True)
+    except (AttributeError, ValueError):        # older interpreters, closed pipe
+        pass
+
     if args.list:
         print("methods:")
         for name, (label, _) in METHODS.items():
-            print("  %-8s %-20s applicable on: %s"
-                  % (name, label, APPLICABLE[name]))
+            print("  %-8s %s" % (name, label))
         print("scales:")
-        for name, (ns, Ks) in SCALES.items():
-            print("  %-8s n in %s, K in %s" % (name, ns, Ks))
+        for name, spec in SCALES.items():
+            print("  %-7s %d instances/configuration, methods: %s"
+                  % (name, spec["instances"],
+                     ", ".join(METHODS[m][0] for m in spec["methods"])))
+            for n, wt, base in spec["configs"]:
+                print("            n=%-4d %-6s  baseline %s"
+                      % (n, WEIGHTS_LABEL[wt], BASELINE_LABEL[base]))
         return
 
     methods = resolve_methods(args.algos)
+    scales = args.scale or list(DEFAULT_SCALES)
+    # Without an explicit --algos, every scale runs the methods the paper reports
+    # there; with one, the same list is run at every scale.
+    methods_by_scale = {s: (list(methods) if methods
+                            else list(SCALES[s]["methods"])) for s in scales}
     out_path = Path(args.out)
 
+    # The per-instance records of the whole run go into one file, whose name
+    # carries the scales and the time the run started.  Every method appends to
+    # it as each of its instances finishes, so a run that is interrupted here
+    # leaves behind everything it has already solved.
+    started = datetime.now()
+    stamp = started.strftime("%Y-%m-%d_%H-%M-%S")
+    RECORD_DIR.mkdir(parents=True, exist_ok=True)
+    args.record_path = RECORD_DIR / ("实例记录_%s_%s.txt"
+                                     % ("-".join(scales), stamp))
+
     print("F2 || WCmax -- computational study (paper Section 6)")
-    print("  scale     : %s" % args.scale)
-    print("  methods   : %s" % ", ".join(methods))
-    print("  instances : %d per configuration, %d repeat(s) each"
-          % (args.instances, args.repeats))
-    print("  weights   : %s"
-          % ("geometric ladder" if args.geometric else "uniform {1..K}"))
+    print("  scales    : %s" % ", ".join(scales))
+    for s in scales:
+        print("  methods   : %-7s %s"
+              % (s, ", ".join(METHODS[m][0] for m in methods_by_scale[s])))
+    print("  instances : %d per configuration" % (args.instances or 20))
+    print("  metaheur.: ACO %s; GA %s"
+          % (", ".join("%s=%s" % kv for kv in sorted(ACO_SETTINGS.items())),
+             ", ".join("%s=%s" % kv for kv in sorted(GA_SETTINGS.items()))))
+    print("  time limit: %s s" % args.time_limit)
     print("  output    : %s" % out_path)
-    print()
+    print("  archive   : %s" % ARCHIVE_DIR)
+    print("  records   : %s" % args.record_path)
+    print(flush=True)
 
-    for name in methods:
-        if APPLICABLE[name] != "all" and APPLICABLE[name] != args.scale:
-            print("  warning: %s is meant for the %s scale, running it on '%s' "
-                  "may be intractable" % (name, APPLICABLE[name], args.scale))
+    by_scale = {}
+    for scale in scales:
+        print("=== scale %s ===" % scale)
+        records = run_scale(scale, methods_by_scale[scale], args)
+        if not records:
+            print("  no results produced for this scale", file=sys.stderr)
+            continue
+        by_scale[scale] = (records, summarise(records))
 
-    records = run_experiments(args.scale, methods, args)
-    if not records:
+    if not by_scale:
         raise SystemExit("no results produced")
 
-    summary = summarise(records)
-
+    # Every run is kept: the file named by --out holds this run, and a copy that
+    # carries the date and the scales is filed away so that no run overwrites an
+    # earlier one.
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    if out_path.suffix.lower() == ".csv":
-        write_csv(out_path, records, args.scale, methods, args)
-    else:
-        write_text(out_path, records, summary, args.scale, methods, args)
+    ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
+    # named date first, so that a listing of the folder reads chronologically
+    archive_path = ARCHIVE_DIR / ("%s_%s%s"
+                                  % (stamp, "-".join(by_scale),
+                                     out_path.suffix or ".txt"))
+    for path in (out_path, archive_path):
+        if path.suffix.lower() == ".csv":
+            write_csv(path, by_scale, methods, args)
+        else:
+            write_text(path, by_scale, methods, args)
 
-    print()
-    print("summary (averaged over the configurations of the scale):")
-    print("  %-20s %10s %12s %14s"
-          % ("method", "configs", "mean_obj", "mean_time(s)"))
-    for s in summary:
-        print("  %-20s %10d %12.2f %14.6f"
-              % (s["label"], s["configurations"], s["mean_obj"], s["mean_time"]))
+    for scale, (_, summary) in by_scale.items():
+        print()
+        print("summary for %s (averaged over its configurations):" % scale)
+        print("  %-8s %14s %11s %13s"
+              % ("method", "configurations", "mean_gap", "mean_time(s)"))
+        for s in summary:
+            print("  %-8s %14d %11.3f %13.4f"
+                  % (s["label"], s["configurations"], s["mean_gap"], s["mean_time"]))
     print()
     print("results written to %s" % out_path)
+    print("archived as        %s" % archive_path)
 
 
 if __name__ == "__main__":

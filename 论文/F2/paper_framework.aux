@@ -71,10 +71,10 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}A 2-Approximation Algorithm}{15}{subsection.4.3}\protected@file@percent }
 \newlabel{sub:approx2}{{4.3}{15}{A 2-Approximation Algorithm}{subsection.4.3}{}}
 \newlabel{thm:approx2}{{4.2}{15}{}{theorem.4.2}{}}
+\newlabel{eq:approx2-completion}{{22}{15}{A 2-Approximation Algorithm}{equation.22}{}}
 \@writefile{loa}{\contentsline {algocf}{\numberline {3}{\ignorespaces 2-Approximation for $F2 \parallel W C_{\max }$}}{15}{algocf.3}\protected@file@percent }
 \newlabel{alg:approx2}{{3}{15}{A 2-Approximation Algorithm}{algocf.3}{}}
 \citation{hall1994}
-\newlabel{eq:approx2-completion}{{22}{16}{A 2-Approximation Algorithm}{equation.22}{}}
 \newlabel{eq:approx2-upper}{{23}{16}{A 2-Approximation Algorithm}{equation.23}{}}
 \newlabel{eq:approx2-lower-a}{{24}{16}{A 2-Approximation Algorithm}{equation.24}{}}
 \newlabel{eq:approx2-lower-b}{{25}{16}{A 2-Approximation Algorithm}{equation.25}{}}
@@ -119,31 +119,26 @@
 \@writefile{toc}{\contentsline {paragraph}{Genetic Algorithm}{26}{section*.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {6}Experiments}{27}{section.6}\protected@file@percent }
 \newlabel{sec:experiments}{{6}{27}{Experiments}{section.6}{}}
+\newlabel{eq:ref}{{29}{27}{Experiments}{equation.29}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Each configuration is replicated over $20$ independent instances, with processing times drawn uniformly from $[1,10]$.}}{28}{table.1}\protected@file@percent }
 \newlabel{tab:instances}{{1}{28}{Each configuration is replicated over $20$ independent instances, with processing times drawn uniformly from $[1,10]$}{table.1}{}}
-\newlabel{eq:gap}{{29}{28}{Experiments}{equation.29}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces $n=60$, $K=2$, averaged over five instances. MILP proves optimality on one instance only.}}{29}{table.2}\protected@file@percent }
-\newlabel{tab:pilot}{{2}{29}{$n=60$, $K=2$, averaged over five instances. MILP proves optimality on one instance only}{table.2}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces $n=500$, averaged over five instances, with all weights distinct and independent of the processing times.}}{29}{table.3}\protected@file@percent }
-\newlabel{tab:pilot-large}{{3}{29}{$n=500$, averaged over five instances, with all weights distinct and independent of the processing times}{table.3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces $K=2$, processing times from $[1,10]$. ``proved'' counts the instances whose optimality the MILP model established.}}{29}{table.4}\protected@file@percent }
-\newlabel{tab:results-small}{{4}{29}{$K=2$, processing times from $[1,10]$. ``proved'' counts the instances whose optimality the MILP model established}{table.4}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces All weights distinct. ``indep.'' and ``corr.'' denote weights independent of, and positively correlated with, the processing times. $^{1}$ The mean gap is followed by the minimum and the maximum over the $20$ replications, in parentheses.}}{30}{table.5}\protected@file@percent }
-\newlabel{tab:results-medium}{{5}{30}{All weights distinct. ``indep.'' and ``corr.'' denote weights independent of, and positively correlated with, the processing times. $^{1}$ The mean gap is followed by the minimum and the maximum over the $20$ replications, in parentheses}{table.5}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces All weights distinct; the exact methods are out of reach at this scale. $^{1}$ The mean gap is followed by the minimum and the maximum over the $20$ replications, in parentheses.}}{30}{table.6}\protected@file@percent }
-\newlabel{tab:results-large}{{6}{30}{All weights distinct; the exact methods are out of reach at this scale. $^{1}$ The mean gap is followed by the minimum and the maximum over the $20$ replications, in parentheses}{table.6}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Mean CPU time in seconds, by scale.}}{30}{table.7}\protected@file@percent }
-\newlabel{tab:results-time}{{7}{30}{Mean CPU time in seconds, by scale}{table.7}{}}
+\newlabel{eq:gap}{{30}{29}{Experiments}{equation.30}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces MILP and DP on the small scale. ``opt.'' count optimality.}}{29}{table.2}\protected@file@percent }
+\newlabel{tab:results-small}{{2}{29}{MILP and DP on the small scale. ``opt.'' count optimality}{table.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces NEH, ACO and GA on the medium scale.}}{30}{table.3}\protected@file@percent }
+\newlabel{tab:results-medium}{{3}{30}{NEH, ACO and GA on the medium scale}{table.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces NEH, ACO and GA on the large scale.}}{30}{table.4}\protected@file@percent }
+\newlabel{tab:results-large}{{4}{30}{NEH, ACO and GA on the large scale}{table.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6-1}{\ignorespaces Mean relative gap as a function of the instance size.}}{30}{figure.6.1}\protected@file@percent }
+\newlabel{fig:results-gap}{{6-1}{30}{Mean relative gap as a function of the instance size}{figure.6.1}{}}
 \bibstyle{apalike}
 \bibdata{ref_IJPR}
 \bibcite{baker1974introduction}{{1}{1974}{{Baker}}{{}}}
 \bibcite{guo2026maximum}{{2}{2026}{{Guo et~al.}}{{}}}
 \bibcite{hall1994}{{3}{1994}{{Hall}}{{}}}
-\bibcite{johnson1954optimal}{{4}{1954}{{Johnson}}{{}}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6-1}{\ignorespaces Mean relative gap as a function of the instance size.}}{31}{figure.6.1}\protected@file@percent }
-\newlabel{fig:results-gap}{{6-1}{31}{Mean relative gap as a function of the instance size}{figure.6.1}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{31}{section.7}\protected@file@percent }
 \newlabel{sec:conclusion}{{7}{31}{Conclusion}{section.7}{}}
+\bibcite{johnson1954optimal}{{4}{1954}{{Johnson}}{{}}}
 \bibcite{li2015best}{{5}{2015}{{Li}}{{}}}
 \bibcite{lu2025order}{{6}{2025}{{Lu et~al.}}{{}}}
 \bibcite{panwalkar2015equivalence}{{7}{2015}{{Panwalkar and Koulamas}}{{}}}

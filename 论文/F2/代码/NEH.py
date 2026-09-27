@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from datetime import datetime
+from pathlib import Path
+
 import random
 import statistics
 import time
@@ -93,6 +96,52 @@ def run_neh(a, b, w) -> dict:
 INSTANCES_PER_CONFIG = 20      # paper Section 6.1: instances per configuration
 PROC_LO, PROC_HI = 1, 10       # processing times ~ U{1, ..., 10}
 
+#: name of this module, used to tag the per-instance records
+LABEL = Path(__file__).stem.upper()
+
+#: where the per-instance records go when the caller names no file
+RECORD_DIR = Path(__file__).resolve().parent / "记录"
+
+#: how the weight settings are written in the records: by the number of distinct
+#: weights they produce, which is how the tables of the paper label them.  The
+#: names of WEIGHT_SETTINGS remain the internal keys the generator takes.
+WEIGHT_LABELS = {"narrow": "K=2", "indep": "K=3", "corr": "K=9"}
+
+
+def record_instance(path, n, weights, seed, idx, total, obj, seconds):
+    """
+    Append one line for a finished instance, and flush it at once.
+
+    The line is written as soon as that instance is done, not when the whole
+    benchmark is over, so that a run which is interrupted or killed still holds
+    every instance it has already solved.  `path` may be a str or a Path; its
+    parent directory is created if it does not exist.
+    """
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as fh:
+        fh.write("%s  %-5s n=%-4d %-6s seed=%-7d instance %3d/%-3d  obj %-14s"
+                 " time %9.4f s\n"
+                 % (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), LABEL, n,
+                    WEIGHT_LABELS.get(weights, weights),
+                    seed, idx, total,
+                    "none" if obj is None else "%.1f" % obj, seconds or 0.0))
+
+
+def instance_baseline(a, b, w):
+    """
+    The reference value of one instance:
+
+        B = W_max * sum_j (a_j + b_j),        W_max = max_j w_j.
+
+    It is computed from the instance the method has just been handed, not from a
+    regenerated copy of it, so the denominator of the gap is always the value of
+    the very instance that was solved.  The shop must do sum_j (a_j + b_j) units
+    of work and no weight exceeds W_max, so C_j <= sum_h (a_h + b_h) and
+    W Cmax <= W_max * sum_h (a_h + b_h) = B.
+    """
+    return max(w) * sum(a[j] + b[j] for j in range(len(a)))
+
 #: instance scales of paper Table 1: name -> (values of n, values of K)
 SCALES = {
     "small":  ([6, 8, 10, 12], [2, 3]),
@@ -101,25 +150,55 @@ SCALES = {
 }
 
 
-def gen_instance(n, K, rng, geometric=False):
+#: number of distinct weights of the two wide regimes of paper Section 6.1.1; the
+#: small scale uses the narrow regime instead, whose count is the parameter K
+WIDE_K = {"indep": 3, "corr": 9}
+
+#: weight settings of paper Section 6.1.1
+#:   "narrow"  weights uniform on {1, ..., K} with K small, so that few weight
+#:             classes keep the exact methods tractable;
+#:   "indep"   weights uniform on {1, ..., 3}, independent of the processing times;
+#:   "corr"    the jobs split into 9 weight classes by the rank of a_j + b_j, so
+#:             that the heaviest jobs are also the longest.
+WEIGHT_SETTINGS = ("narrow", "indep", "corr")
+
+
+def gen_instance(n, K, rng, geometric=False, weights="narrow"):
     """
     One random instance of the benchmark protocol (paper Section 6.1.1).
 
-    a_j, b_j ~ U{PROC_LO, ..., PROC_HI}; the weights are either uniform on
-    {1, ..., K}, or the geometrically spaced ladder {1, 2, 4, ..., 2^(K-1)}
-    which stresses the weight-rounding argument of Section 4.4.2.
+    a_j, b_j ~ U{PROC_LO, ..., PROC_HI}.  The weights follow the setting
+    `weights`: the narrow regime draws them uniformly from {1, ..., K}; the
+    independent regime draws them uniformly from {1, ..., 3}; and the correlated
+    regime sorts the jobs by a_j + b_j and cuts that order into 9 equal classes,
+    so that the heaviest jobs are also the longest.  `geometric`, the ladder
+    {1, 2, 4, ..., 2^(K-1)} used to stress the weight-rounding argument of
+    Section 4.4.2, is retained for compatibility and takes precedence when set.
     """
+    if weights not in WEIGHT_SETTINGS:
+        raise ValueError("unknown weight setting: %r" % (weights,))
     a = [rng.randint(PROC_LO, PROC_HI) for _ in range(n)]
     b = [rng.randint(PROC_LO, PROC_HI) for _ in range(n)]
     if geometric:
         w = [1 << rng.randrange(K) for _ in range(n)]
-    else:
+    elif weights == "narrow":
         w = [rng.randint(1, K) for _ in range(n)]
+    elif weights == "indep":
+        w = [rng.randint(1, WIDE_K["indep"]) for _ in range(n)]
+    else:                                   # "corr"
+        k = WIDE_K["corr"]
+        order = sorted(range(n), key=lambda j: a[j] + b[j])
+        w = [0] * n
+        for rank, j in enumerate(order):
+            w[j] = 1 + rank * k // n
     return a, b, w
 
 
+
+
 def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42,
-              geometric=False, repeats=1):
+              geometric=False, weights="narrow", repeats=1, progress=None,
+              log_path=None):
     """
     Run the method on `instances` random instances and aggregate the result.
 
@@ -136,10 +215,16 @@ def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42,
         mean_time : mean CPU time of a single run, in seconds
         objs, times : the per-instance values
     """
+    # Records go to the file the caller names, or to one of our own tagged with
+    # the time this benchmark started.
+    if log_path is None:
+        log_path = (RECORD_DIR / ("%s_%s.txt"
+                                  % (LABEL, datetime.now().strftime("%Y%m%d-%H%M%S"))))
     rng = random.Random(seed)
-    objs, times = [], []
-    for _ in range(instances):
-        a, b, w = gen_instance(n, K, rng, geometric)
+    objs, times, bases = [], [], []
+    for idx in range(instances):
+        a, b, w = gen_instance(n, K, rng, geometric, weights)
+        bases.append(instance_baseline(a, b, w))   # reference value of this instance
         best = float("inf")
         total = 0.0
         for _ in range(repeats):
@@ -149,6 +234,10 @@ def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42,
             best = min(best, wcmax_of_order(order, a, b, w))
         objs.append(best)
         times.append(total / repeats)
+        record_instance(log_path, n, weights, seed, idx + 1, instances,
+                        objs[-1], times[-1])   # on disk before the next instance
+        if progress is not None:          # live line for a long-running study
+            progress(idx + 1, instances, objs[-1], times[-1])
 
     return {
         "n": n, "K": K, "instances": instances,
@@ -157,6 +246,7 @@ def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42,
         "mean_time": statistics.fmean(times),
         "objs": objs,
         "times": times,
+        "bases": bases,
     }
 
 
