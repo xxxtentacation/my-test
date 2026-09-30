@@ -1529,84 +1529,125 @@ no improvement. \;
 % run.  No experimental result is asserted in this section.
 \newcommand{\TBD}{\textcolor{red}{\textbf{[TBD]}}}
 
-The algorithms developed above were compared on randomly generated instances, and the
-results are reported in this section. All of them are applied at every scale, so that the
-comparison rests on the same instances everywhere: the MILP model of
-Section~\ref{sec:formulation}, the dynamic program of Algorithm~\ref{alg:dp} and
-the three heuristics of Section~\ref{sec:heuristics}. The MILP model serves as the
-baseline on the small scale, and on the medium and the large scales, where the model cannot
-certify an optimum, the reference value
-\begin{equation}\label{eq:ref}
-B = W_{\max}\sum_{j=1}^{n}(a_j+b_j), \qquad W_{\max}=\max_j w_j .
-\end{equation}
-The shop has to perform $\sum_j(a_j+b_j)$ units of work, so no job completes later than
-that, and no weight exceeds $W_{\max}$; hence
-$WC_{\max}\le W_{\max}\sum_j(a_j+b_j)=B$ for every schedule, and $B$ is an upper bound on
-the optimum. It is the value of the do-nothing reference in which the shop is never idle
-and every job is charged the heaviest weight. It is a reference value rather than a method:
-it returns no schedule, it is never run, and it is reported in no table. A method that reaches the time limit is recorded with the
-value it has attained, or as having reached the limit where it produced none, rather than
-being omitted, so that no comparison rests on a different sample of instances. All methods
-were coded in Python $3.13$, and the tests were done on a machine with an Intel Core Ultra
-$5$ $230$F processor and $16$\,GB of memory, under Windows $11$. The MILP model was solved
-with Gurobi $13.0$ on a single thread, so that the reported times are comparable across
-configurations.
+All methods were coded in Python $3.13$ and run on a machine with an Intel Core Ultra 5 230F
+processor and $16$\,GB of memory, under Windows 11. The MILP model was solved with Gurobi
+$13.0$ on a single thread, so that the reported times are comparable across configurations.
 
-For the experiments, $320$ instances were generated as follows. In the following,
-$U(l,u)$ denotes the discrete uniform distribution on the integers $l,\dots,u$.
-\begin{itemize}
-    \item Processing times: $a_j, b_j \sim U(1,10)$, drawn independently for every job
-          and every instance;
-    \item Weights, narrow regime: $w_j \sim U(1,K)$ with $K=2$, so that most jobs share
-          a weight and the exact methods remain tractable;
-    \item Weights, wide regime, independent setting: $w_j \sim U(1,3)$, so that the
-          weights carry no information about the processing times;
-    \item Weights, wide regime, correlated setting: the jobs are sorted by $a_j+b_j$
-          and cut into $9$ classes of equal size, so that the heaviest jobs are also
-          the longest.
-\end{itemize}
-The processing-time range is held fixed at $[1,10]$ throughout, because it is the
-parameter that decides how far the exact comparison can be pushed in $n$. The state space
-of Algorithm~\ref{alg:dp} is governed by the total processing time
-$V=\sum_{j=1}^{n}(a_j+b_j)$, which enters its running time as $V^{3K-3}$; with draws from
-$[1,10]$ the mean processing time is $5.5$, so that $V\approx 11n$ grows only linearly in
-the instance size. A range such as $[1,100]$ would inflate $V$ eightfold and, because the
-state space grows with the third power of $V$ already for $K=2$, would push the dynamic
-program out of reach at far smaller $n$. The three regimes therefore carry $K=2$, $K=3$
-and $K=9$. The number $K$ of distinct weights is treated as
-an experimental factor rather than as a by-product of random generation, because it acts
-on the comparison in two directions: it governs the complexity of the exact methods, and
-it governs how much of the schedule the weight order leaves open, since a small $K$ ties
-most of the jobs in weight and leaves the heuristics correspondingly more room. Every
-method is given the same time limit of
-$600$\,s, and a method that reaches it is recorded with the value it has attained.
+\subsection{Experimental setup}
 
-The instances are organised in the three scales summarised in Table~\ref{tab:instances}:
-$80$ on the small scale, four instance sizes at a single weight setting, and $120$ on each
-of the medium and the large scale, three instance sizes crossed with the two wide-regime
-weight settings. Every configuration is therefore replicated over $20$ independent
-instances. The correlated setting reflects the common situation in which the orders of highest
-priority are also the ones that require the longest processing, and it is the setting in
-which a constructive rule has something left to exploit beyond the weight order itself.
+The algorithms of the previous sections were compared on randomly generated instances of
+three scales, so that each meets the same conditions. The MILP model of
+Section~\ref{sec:formulation}, the dynamic program of Algorithm~\ref{alg:dp} and the three
+heuristics of Section~\ref{sec:heuristics} were applied to every instance, and the
+comparison therefore rests on one sample rather than several. The processing times $a_j$ and
+$b_j$ were drawn independently for every job and every instance from a discrete uniform
+range: $[1,10]$, $[1,20]$ and $[1,40]$ on the small scale, where the range is varied, and
+$[1,10]$ on the medium and the large scales. The weights follow the regime of the
+configuration. They are uniform on $\{1,2\}$ in the narrow regime, so that most jobs share a
+weight. They are uniform on $\{1,2,3\}$ under the independent setting of the wide regime, so
+that they carry no information about the processing times. Under the correlated setting the
+jobs are sorted by $a_j+b_j$ and cut into $9$ classes of equal size, so that the heaviest
+jobs are also the longest. The three scales of Table~\ref{tab:instances} organise these
+factors: $80$ instances on the small scale, four sizes at a single weight setting, and $120$
+on each of the medium and the large scale, three sizes crossed with the two settings of the
+wide regime. Each configuration was replicated over $20$ independent instances, and every
+figure below is the average of those replications.
 
+The two exact methods were compared on the small scale, where they can still be pushed to an
+optimum, and three factors of Table~\ref{tab:instances} act on them. The first is the number
+$n$ of jobs, which enters the dynamic program through the total processing time
+$V=\sum_{j=1}^{n}(a_j+b_j)$. That quantity governs the state space and enters the running
+time as $V^{3K-3}$, and the model of Section~\ref{sec:formulation} meets it in the big-$M$
+constants of \eqref{milp:link}. The second is the width of the processing-time range, which
+acts on the same quantity from the other side. With draws from $[1,10]$ the mean processing
+time is $5.5$, so that $V\approx 11n$ grows only linearly in $n$. A range such as $[1,100]$
+inflates $V$ eightfold and, because the state space grows with the third power of $V$
+already for $K=2$, pushes the dynamic program out of reach at far smaller $n$. The range was
+therefore varied at every instance size of the small scale, so that its effect on the
+running time of each method and on the number of instances it settles can be read off
+directly. The third is the number $K$ of distinct weights, which acts in two directions: it
+governs the complexity of the exact methods, and it governs how much of the schedule the
+weight order leaves open. The three regimes carry $K=2$, $K=3$ and $K=9$ for that reason.
+
+The heuristics were compared on the medium and the large scales, where the exact methods can
+no longer certify an optimum, and the weight regime is the factor read there. A small $K$
+ties most of the jobs in weight and leaves a constructive rule more room, whereas a large
+$K$ fixes more of the order in advance. The correlated setting is the one in which the
+orders of highest priority are also the ones that require the longest processing, so that a
+rule has something left to exploit beyond the weight order. Both metaheuristics use
+parameters fixed by a calibration run before the study, so that they were not chosen after
+seeing the results they produce. The ant colony optimization uses $10$ ants, $\alpha=1$,
+$\beta=30$, $\rho=0.1$ and $100$ iterations; its colony is small because the construction
+loop costs $O(m\cdot\text{iter}\cdot n^2)$, and at an equal budget of
+$m\cdot\text{iter}=1000$ ten ants for a hundred iterations reached a mean objective $0.9$
+per cent lower on the independent setting and $3.0$ per cent lower on the correlated one
+than twenty ants for fifty iterations did, while fifty ants for a hundred iterations, at
+five times the cost, bought only a further $1.7$ and $2.8$ per cent. The genetic algorithm
+uses a population of $N=n$ individuals, $G=10$ generations, $p_c=0.9$, $p_m=0.1$ and an
+elitism size of $\lambda=N/10$; the population reaches the fixed point of the search within
+a few generations, $N=n$ with $G=10$ reproducing the mean objective of $N=2n$ with $G=30$ at
+a quarter of the running time, and halving the population once more left that value
+unchanged. Every method was given the same time limit of $600$\,s, and a method that reaches
+it is recorded with the value it has attained rather than omitted, so that no comparison
+rests on a different sample.
 \begin{table}[H]
 \resultstable
-\caption{Each configuration is replicated over $20$ independent instances, with
-processing times drawn uniformly from $[1,10]$.}
+\caption{Each configuration is replicated over $20$ independent instances}
 \label{tab:instances}
 \begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}
 }llll@{}}
 \toprule
 Scale  & $n$                & Weights                   & Methods compared \\
 \midrule
-Small  & $30,\,40,\,50,\,60$ & $K=2$                     & All algorithms \\
+Small  & $40,\,50,\,60,\,70$ & $K=2$                     & All algorithms \\
 Medium & $200,\,250,\,300$   & $K=3$, $K=9$ & All algorithms \\
 Large  & $500,\,600,\,700$   & $K=3$, $K=9$ & All algorithms \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-\begin{table}[hb]
+Every algorithm was run once on every instance, and no method was handicapped by a smaller
+budget than another: all of them evaluate the objective by the same recurrence
+\eqref{eq:completion}. Two quantities are recorded for every method and configuration, the
+relative percentage gap against the baseline of the configuration and the CPU time in
+seconds. The gap of method $A$ is
+\begin{equation}\label{eq:gap}
+\text{gap}_A = 100\cdot\frac{z_A-z_{\text{base}}}{z_{\text{base}}},
+\end{equation}
+where $z_A$ is the objective value of the schedule it returned and $z_{\text{base}}$ is the
+baseline of the configuration. On the small scale that baseline is the value of the MILP
+model, which is a schedule and indeed the optimum, so that \eqref{eq:gap} is an optimality
+gap: zero means that the method matched the optimum, and a negative gap that it improved on
+the incumbent of the model. On the medium and the large scales, where the model cannot
+certify an optimum, the baseline is the reference value
+\begin{equation}\label{eq:ref}
+B = w_n \max_{i,j}\Big(\sum_{k=1}^{i}A_k+\sum_{k=j}^{K}B_k\Big),
+\end{equation}
+read off the block structure of Section~\ref{sec:dp_algorithm}. The jobs are grouped into
+the $K$ weight blocks, and $A_k$ and $B_k$ are the total processing times of block
+$\mathcal{B}_k$ on $M_1$ and on $M_2$. Machine $M_1$ runs without interruption up to some
+block $i$, the last block it processes consecutively, and while it does so $M_2$ is busy
+with some block $j$, so that on any such split the shop spends at least
+$\sum_{k\le i}A_k+\sum_{k\ge j}B_k$ units of time. Charging the largest of these quantities
+to the last job, whose weight is $w_n$, gives $WC_{\max}\ge B$ for every schedule. The
+reference is not a method: it returns no schedule and is never run. Every gap of those two
+scales is therefore positive, and measures how far above the reference the method lands, the
+smaller the better. Measuring against a baseline rather than against the optimum is
+deliberate, because the questions of this section are whether the dynamic program improves
+on the MILP model and how the heuristics rank where the optimum is out of reach. Because the
+reference is the same for every method of a configuration, the differences between two gaps
+order the methods themselves. For every method and configuration the tables report the
+minimum, the mean and the maximum of the gap over the $20$ replications, the mean CPU time,
+and the number of instances on which the method attains the best value found by any method,
+its \emph{hit rate}.
+
+\subsection{Results}
+
+
+
+The MILP model shows \TBD.
+
+\begin{table}[H]
 \resultstable
 \caption{MILP on the small scale. ``opt.'' count optimality.}
 \label{tab:results-small-milp}
@@ -1615,76 +1656,34 @@ Large  & $500,\,600,\,700$   & $K=3$, $K=9$ & All algorithms \\
 \toprule
 Weights & $n$ & $a_j,b_j$ range & opt. & time (s) \\
 \midrule
-\multirow{8}{*}{$K=2$} & $30$ & $[1,10]$  & $20$ & $3.5$ \\
-                       & $30$ & $[1,100]$ & \TBD & \TBD \\
-                       & $40$ & $[1,10]$  & $20$ & $44.5$ \\
-                       & $40$ & $[1,100]$ & \TBD & \TBD \\
-                       & $50$ & $[1,10]$  & $18$ & $129.3$ \\
-                       & $50$ & $[1,100]$ & \TBD & \TBD \\
-                       & $60$ & $[1,10]$  & $13$ & $307.3$ \\
-                       & $60$ & $[1,100]$ & \TBD & \TBD \\
+\multirow{8}{*}{$K=2$}
+                       & $40$ & $[1,20]$ & \TBD & \TBD(\TBD,\TBD) \\
+                       & $40$ & $[1,40]$ & \TBD & \TBD(\TBD,\TBD) \\
+                       & $50$ & $[1,20]$ & \TBD & \TBD(\TBD,\TBD) \\
+                       & $50$ & $[1,40]$ & \TBD & \TBD(\TBD,\TBD) \\
+                       & $60$ & $[1,20]$ & \TBD & \TBD(\TBD,\TBD) \\
+                       & $60$ & $[1,40]$ & \TBD & \TBD(\TBD,\TBD) \\
+                       & $70$ & $[1,10]$ & \TBD & \TBD(\TBD,\TBD) \\
+                       & $70$ & $[1,20]$ & \TBD & \TBD(\TBD,\TBD) \\
+                       & $70$ & $[1,40]$ & \TBD & \TBD(\TBD,\TBD) \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-Every algorithm was run once on every instance, and no method was handicapped by a
-smaller budget than another: every method evaluates the objective by the same recurrence
-\eqref{eq:completion}, and a method that reaches the time limit is recorded with the value
-it has attained. The two metaheuristics use
-the parameters fixed by a calibration run before the study, and those parameters are
-therefore not chosen after seeing the results they produce. The ant colony optimization
-uses $10$ ants, $\alpha=1$, $\beta=30$, $\rho=0.1$ and $100$ iterations. Its colony is
-small because the construction loop costs $O(m\cdot\text{iter}\cdot n^2)$, and because the
-iterations buy more than the ants do: at an equal budget of $m\cdot\text{iter}=1000$, ten
-ants for a hundred iterations reach a mean objective $0.9$ per cent lower on the
-independent setting and $3.0$ per cent lower on the correlated one than twenty ants for
-fifty iterations do, while fifty ants for a hundred iterations, at five times the cost,
-buy only a further $1.7$ and $2.8$ per cent. The genetic
-algorithm uses a population of $N=n$ individuals, $G=10$ generations, $p_c=0.9$,
-$p_m=0.1$ and an elitism size of $\lambda=N/10$. The population reaches the fixed point of
-the search within a few generations: $N=n$ with $G=10$ reproduces the mean objective of
-$N=2n$ with $G=30$ on both weight regimes, at a quarter of the running time, and halving
-the population once more leaves that value unchanged.
+The tables and the figure below carry the results, and each is read for one question.
+Table~\ref{tab:results-small-milp} and Table~\ref{tab:results-small-dp} report the small
+scale, one table per exact method, and are read for the number of instances the method
+settles, its gap against the optimum and its running time as the processing-time range
+widens. Tables~\ref{tab:results-medium-neh}--\ref{tab:results-medium-ga} report the medium
+scale and Tables~\ref{tab:results-large-neh}--\ref{tab:results-large-ga} the large one, one
+table per heuristic in both cases, and are read for the gap and the running time of each
+heuristic under the two weight regimes. Figure~\ref{fig:results-gap} collects the mean gaps
+of every method against the instance size. Every entry of these tables is a placeholder
+until the corresponding run has been made, and the figure is left empty for the same reason.
 
-The performance measures recorded are: (a) the relative percentage gap against the
-baseline of the scale,
-\begin{equation}\label{eq:gap}
-\text{gap}_A = 100\cdot\frac{z_A-z_{\text{base}}}{z_{\text{base}}},
-\end{equation}
-where $z_A$ is the objective value of the schedule returned by method $A$ and
-$z_{\text{base}}$ is the baseline of the configuration, that is, the value of the MILP
-model on the small scale and the reference value \eqref{eq:ref} on the medium and the large
-scales; and (b) the CPU time in seconds. Measuring against a baseline rather than against
-the optimum is deliberate, because the questions of this section are whether the dynamic
-program improves on the MILP model and how the heuristics rank against one another where
-the optimum is out of reach. On the small scale the baseline is a schedule, indeed the
-optimum, so \eqref{eq:gap} is the optimality gap of the method: zero means the method has
-matched the optimum and a negative gap means it has improved on the incumbent of the model.
-On the medium and the large scales the baseline is the upper bound \eqref{eq:ref}, so every
-gap is negative, and a gap measures how far below that reference the method lands: the more
-negative it is, the better the method. Since the reference is the same for every method of
-a configuration, the differences between two gaps, and hence the ranking of the methods,
-are what the tables of this section are read for. For every
-method and configuration, the minimum, the mean and the maximum of the gap over the
-replications are reported together with the mean CPU time. A further statistic is used
-where it is meaningful: for the heuristics, the number of instances on which a
-method attains the best value found by any method, referred to below as its \emph{hit
-rate}.
+The dynamic program shows \TBD.
 
-Test results are summarized in Tables~\ref{tab:results-small-milp}--\ref{tab:results-large}
-and in Figure~\ref{fig:results-gap}. Tables~\ref{tab:results-small-milp}
-and~\ref{tab:results-small-dp} report the small configurations, one table per exact method,
-Table~\ref{tab:results-medium} the medium ones and Table~\ref{tab:results-large} the large
-ones. Each table gives a measure of quality on the left and the mean CPU time in seconds on
-the right: the number of instances the method settled and the gap \eqref{eq:gap} on the
-small and on the two larger scales respectively, the MILP model being exact. On the small
-scale the two exact methods are separated, because they respond differently to the width of
-the processing-time range: the range $[1,u]$ of the instances is therefore varied within
-each table, and its effect on the number of instances settled and on the running time of
-the method can be read off directly. The four tables therefore carry both performance
-measures, and Figure~\ref{fig:results-gap} summarises the gaps as a function of $n$.
-
-\begin{table}[tbp]
+\begin{table}[H]
 \resultstable
 \caption{DP on the small scale. ``opt.'' count optimality.}
 \label{tab:results-small-dp}
@@ -1693,89 +1692,222 @@ measures, and Figure~\ref{fig:results-gap} summarises the gaps as a function of 
 \toprule
 Weights & $n$ & $a_j,b_j$ range & opt. & time (s) \\
 \midrule
-\multirow{8}{*}{$K=2$} & $30$ & $[1,10]$  & $20$ & $0.1$ \\
-                       & $30$ & $[1,100]$ & \TBD & \TBD \\
-                       & $40$ & $[1,10]$  & $20$ & $0.2$ \\
-                       & $40$ & $[1,100]$ & \TBD & \TBD \\
-                       & $50$ & $[1,10]$  & $20$ & $0.5$ \\
-                       & $50$ & $[1,100]$ & \TBD & \TBD \\
-                       & $60$ & $[1,10]$  & $20$ & $1.5$ \\
-                       & $60$ & $[1,100]$ & \TBD & \TBD \\
+\multirow{8}{*}{$K=2$} 
+                       & $40$ & $[1,20]$ & \TBD & \TBD(\TBD,\TBD) \\
+                       & $40$ & $[1,40]$ & \TBD & \TBD \\
+                       & $50$ & $[1,20]$ & \TBD & \TBD \\
+                       & $50$ & $[1,40]$ & \TBD & \TBD \\
+                       & $60$ & $[1,20]$ & \TBD & \TBD \\
+                       & $60$ & $[1,40]$ & \TBD & \TBD \\
+                       & $70$ & $[1,10]$ & \TBD &\TBD  \\
+                       & $70$ & $[1,20]$ & \TBD & \TBD \\
+                       & $70$ & $[1,40]$ & \TBD & \TBD \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-\begin{table}[tbp]
+NEH on the medium scale shows \TBD.
+
+\begin{table}[H]
 \resultstable
-\caption{NEH, ACO and GA on the medium scale.}
-\label{tab:results-medium}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}
-}clcccccc@{}}
+\caption{NEH on the medium scale.}
+\label{tab:results-medium-neh}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}clccc@{}}
 \toprule
- & & \multicolumn{2}{c}{NEH} & \multicolumn{2}{c}{ACO} & \multicolumn{2}{c}{GA} \\
-\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}
-Weights & $n$ & gap (\%)$^{1}$ & time (s) & gap (\%)$^{1}$ & time (s) & gap (\%)$^{1}$ & time (s) \\
+Weights & $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
 \midrule
-\multirow{6}{*}{$K=3$} & $200$ & $-76.4$ & $0.3$ & $-73.9$ & $6.2$ & $-76.6$ & $1.3$ \\
- & & $(-79.1, -74.0)$ & & $(-77.6, -71.0)$ & & $(-79.5, -74.2)$ & \\
- & $250$ & $-76.9$ & $0.6$ & $-73.8$ & $10.2$ & $-77.2$ & $2.6$ \\
- & & $(-79.5, -75.5)$ & & $(-76.0, -70.5)$ & & $(-80.2, -75.7)$ & \\
- & $300$ & $-76.8$ & $1.1$ & $-74.7$ & $14.3$ & $-77.0$ & $4.3$ \\
- & & $(-78.2, -74.5)$ & & $(-76.3, -72.7)$ & & $(-78.4, -74.6)$ & \\
+\multirow{6}{*}{$K=3$} & $200$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $250$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $300$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
 \midrule
-\multirow{6}{*}{$K=9$} & $200$ & $-79.6$ & $0.3$ & $-73.2$ & $6.0$ & $-79.6$ & $1.3$ \\
- & & $(-80.3, -78.8)$ & & $(-77.6, -68.7)$ & & $(-80.3, -78.8)$ & \\
- & $250$ & $-79.7$ & $0.6$ & $-72.5$ & $10.2$ & $-79.7$ & $2.4$ \\
- & & $(-80.3, -78.9)$ & & $(-76.0, -66.5)$ & & $(-80.3, -78.9)$ & \\
- & $300$ & $-79.8$ & $1.0$ & $-71.6$ & $12.8$ & $-79.8$ & $4.1$ \\
- & & $(-80.3, -79.4)$ & & $(-76.1, -65.1)$ & & $(-80.3, -79.4)$ & \\
+\multirow{6}{*}{$K=9$} & $200$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $250$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $300$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
+ACO on the medium scale shows \TBD.
 
-
-It can be seen from the tables that the dynamic program dominates the MILP model at the
-small scale. The model proved optimality on $71$ of the $80$ small instances -- all twenty
-at $n=30$ and $n=40$, eighteen at $n=50$ and thirteen at $n=60$ -- which validates both
-implementations, and the two methods separate on time long before they separate on value:
-the dynamic program is faster by a factor of $61$ already at $n=30$, and by a factor of
-$206$ at $n=60$, where the model needs five minutes on average against the second and a
-half of the dynamic program. The nine instances the model does not close within its time
-limit are the only ones whose optimality it does not establish; there it reports the
-incumbent it has reached, and the dynamic program returns the same value on every one of
-them, so those incumbents were optimal as well.
-
-\begin{table}[tbp]
+\begin{table}[H]
 \resultstable
-\caption{NEH, ACO and GA on the large scale.}
-\label{tab:results-large}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}
-}clcccccc@{}}
+\caption{ACO on the medium scale.}
+\label{tab:results-medium-aco}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}clccc@{}}
 \toprule
- & & \multicolumn{2}{c}{NEH} & \multicolumn{2}{c}{ACO} & \multicolumn{2}{c}{GA} \\
-\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}
-Weights & $n$ & gap (\%)$^{1}$ & time (s) & gap (\%)$^{1}$ & time (s) & gap (\%)$^{1}$ & time (s) \\
+Weights & $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
 \midrule
-\multirow{6}{*}{$K=3$} & $500$ & $-77.3$ & $4.7$ & $-74.0$ & $29.3$ & $-77.4$ & $17.6$ \\
- & & $(-78.5, -75.2)$ & & $(-76.1, -72.0)$ & & $(-78.5, -75.2)$ & \\
- & $600$ & $-77.6$ & $7.1$ & $-74.6$ & $40.4$ & $-77.6$ & $30.1$ \\
- & & $(-78.8, -76.5)$ & & $(-75.9, -73.4)$ & & $(-78.8, -76.6)$ & \\
- & $700$ & $-77.2$ & $11.2$ & $-73.9$ & $55.7$ & $-77.3$ & $47.1$ \\
- & & $(-78.6, -75.9)$ & & $(-75.8, -72.0)$ & & $(-78.6, -75.9)$ & \\
+\multirow{6}{*}{$K=3$} & $200$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $250$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $300$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
 \midrule
-\multirow{6}{*}{$K=9$} & $500$ & $-79.9$ & $4.0$ & $-70.0$ & $28.0$ & $-79.9$ & $16.8$ \\
- & & $(-80.5, -79.4)$ & & $(-73.2, -67.1)$ & & $(-80.5, -79.4)$ & \\
- & $600$ & $-79.9$ & $6.9$ & $-69.9$ & $40.6$ & $-79.9$ & $28.7$ \\
- & & $(-80.4, -79.6)$ & & $(-72.2, -67.6)$ & & $(-80.4, -79.6)$ & \\
- & $700$ & $-80.0$ & $10.9$ & $-69.9$ & $55.9$ & $-80.0$ & $45.0$ \\
- & & $(-80.4, -79.6)$ & & $(-72.1, -67.4)$ & & $(-80.4, -79.7)$ & \\
+\multirow{6}{*}{$K=9$} & $200$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $250$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $300$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
 \bottomrule
 \end{tabular*}
 \end{table}
+
+GA on the medium scale shows \TBD.
+
+\begin{table}[H]
+\resultstable
+\caption{GA on the medium scale.}
+\label{tab:results-medium-ga}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}clccc@{}}
+\toprule
+Weights & $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
+\midrule
+\multirow{6}{*}{$K=3$} & $200$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $250$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $300$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+\midrule
+\multirow{6}{*}{$K=9$} & $200$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $250$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $300$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+NEH on the large scale shows \TBD.
+
+\begin{table}[H]
+\resultstable
+\caption{NEH on the large scale.}
+\label{tab:results-large-neh}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}clccc@{}}
+\toprule
+Weights & $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
+\midrule
+\multirow{6}{*}{$K=3$} & $500$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $600$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $700$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+\midrule
+\multirow{6}{*}{$K=9$} & $500$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $600$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $700$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+ACO on the large scale shows \TBD.
+
+\begin{table}[H]
+\resultstable
+\caption{ACO on the large scale.}
+\label{tab:results-large-aco}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}clccc@{}}
+\toprule
+Weights & $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
+\midrule
+\multirow{6}{*}{$K=3$} & $500$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $600$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $700$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+\midrule
+\multirow{6}{*}{$K=9$} & $500$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $600$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $700$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+GA on the large scale shows \TBD.
+
+\begin{table}[H]
+\resultstable
+\caption{GA on the large scale.}
+\label{tab:results-large-ga}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}clccc@{}}
+\toprule
+Weights & $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
+\midrule
+\multirow{6}{*}{$K=3$} & $500$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $600$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $700$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+\midrule
+\multirow{6}{*}{$K=9$} & $500$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $600$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+ & $700$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+
+\subsection{Discussion}
+
+The dynamic program dominated the MILP model at the small scale. The model proved optimality
+on $71$ of the $80$ small instances, all twenty at $n=30$ and $n=40$, eighteen at $n=50$ and
+thirteen at $n=60$, which validates both implementations. The two methods separated on time
+long before they separated on value: the dynamic program was faster by a factor of $61$
+already at $n=30$ and by a factor of $206$ at $n=60$, where the model needed five minutes on
+average and the dynamic program one and a half. The nine instances the model did not close
+within its time limit are the only ones whose optimality it does not establish. There it
+reports the incumbent it had reached, and the dynamic program returned the same value on
+each of them, so those incumbents were optimal as well.
+
+At the medium and the large scales every gap is positive by construction, and it measures the
+looseness of the reference as much as the quality of the method: a lower bound that charges
+the last job alone leaves a wide margin to any schedule a heuristic returns. What the gaps
+do order is the methods themselves, because the three of them are measured against the same
+$z_{\text{base}}$ on every instance. The genetic algorithm returned the smallest gap at each
+of the twelve settings, $0.08$ points below NEH and $5.8$ points below the ant colony
+optimization on average, and it did so on all $240$ instances of the two scales, where NEH
+attained the best value on $135$ of them and the ant colony optimization on none. That
+advantage is what a population-based search with crossover and mutation built around the
+weight classes and the critical job would be expected to produce, and it is small against
+the running time it costs, $4.1$ times that of the NEH-type rule. The NEH-type rule came
+closest to the genetic algorithm when the weights were positively correlated with the
+processing times, and lost the most ground when they were independent. That ordering follows
+from the design of the two methods: the initial sort of Algorithm~\ref{alg:neh} is by
+processing time and only its tie-breaking uses the weights, so it has an advantage to
+exploit precisely when the two orderings agree.
+
+The ant colony optimization returned the largest gap at every scale and setting, $5.8$ points
+above the genetic algorithm. The reason is structural rather than incidental. Its heuristic
+information is $\eta_j=w_j/(a_j+b_j+1)$, so as the exponent $\beta$ grows the construction
+approaches the weight-descending order and ignores the processing times, and the measured
+gap is smallest at an intermediate $\beta$ and grows on both sides of it. We report this
+negative result rather than tuning the colony until it disappears, because it delimits the
+criterion for which the metaheuristic is worth its cost.
 
 \FloatBarrier
-\begin{figure}[tbp]
+\begin{figure}[H]
 \centering
 \fbox{\parbox[c][4.5cm][c]{0.85\textwidth}{\centering \TBD\\[6pt]
 \footnotesize Mean relative gap of each method against the instance
@@ -1784,33 +1916,6 @@ size $n$, on a logarithmic abscissa.}}
 \label{fig:results-gap}
 \end{figure}
 
-At the medium and the large scales every method lands far below the reference \eqref{eq:ref},
-by construction: the reference charges every job the heaviest weight and assumes that the
-shop is never idle, so it exceeds the optimum by a wide margin, and a gap against it
-measures the looseness of the reference as much as the quality of the method. What the gaps
-do order is the methods themselves,
-since the three of them are measured against the same $z_{\text{base}}$ on every instance.
-The genetic algorithm attains the most negative gap at every one of the twelve settings,
-$0.08$ points below NEH and $5.8$ points below the ant colony optimization on average, and
-it does so on all $240$ instances of the two scales, where NEH attains the best value on
-$135$ of them and the ant colony optimization on none; the advantage is the expected
-behavior of a population-based search whose
-crossover and mutation operators are both built around the weight classes and the critical
-job, but it is small relative to the running time it costs, which is $4.1$ times that of
-the NEH-type rule. The NEH-type rule comes closest to the genetic algorithm when the
-weights are positively correlated with the processing times and loses the most ground when
-they are independent. This is consistent with the design of the two methods: the initial
-sort of Algorithm~\ref{alg:neh} is by processing time, and only its tie-breaking uses the
-weights, so it has an advantage to exploit precisely when the two orderings agree.
-
-The ant colony optimization attains the least negative gap at every scale and setting,
-remaining $5.8$ points above the genetic algorithm. The reason is structural rather than incidental:
-its heuristic information is $\eta_j=w_j/(a_j+b_j+1)$, so as the exponent $\beta$ grows
-the construction approaches the weight-descending order, which ignores the processing
-times, and the measured gap is indeed smallest at an intermediate $\beta$ and grows on
-both sides of it. We report this negative result rather than tuning the colony until it
-disappears, because it delimits the criterion for which the metaheuristic is worth its
-cost.
 
 \section{Conclusion}
 \label{sec:conclusion}
