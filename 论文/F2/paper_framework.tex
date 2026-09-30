@@ -39,12 +39,27 @@
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{exam}{Example}[section]
 
-% Figures are numbered per section as "3-1", "3-2", ... to match the
-% non-floating figure blocks used in the paper.
-\makeatletter
-\@addtoreset{figure}{section}
-\makeatother
-\renewcommand{\thefigure}{\thesection-\arabic{figure}}
+% Figures and tables are numbered sequentially over the whole paper as
+% "Figure 1", "Table 1", ... , independently of the section they appear
+% in.  The non-floating figure blocks used below step the figure counter
+% by hand, so the counter must not be reset at a section break.
+\renewcommand{\thefigure}{\arabic{figure}}
+\renewcommand{\thetable}{\arabic{table}}
+
+% The five tables of the experiments share one font size, one inter-column
+% separation, one row spacing and one width, so that they read as one set.
+% Every one of them is opened with \resultstable and drawn on a tabular* of
+% \resultstabwidth, whose columns are then spread over the whole width: the
+% natural width of a table never has to match that of its neighbours, and the
+% widest table, which sets the value below, is the eight-column one.
+\newlength{\resultstabwidth}
+\setlength{\resultstabwidth}{14.32cm}
+\newcommand{\resultstable}{%
+    \centering
+    \footnotesize
+    \setlength{\tabcolsep}{4pt}%
+    \renewcommand{\arraystretch}{1.15}}
+
 \renewcommand{\floatpagefraction}{0.9}
 \renewcommand{\topfraction}{0.95}
 \renewcommand{\bottomfraction}{0.6}
@@ -309,11 +324,11 @@ W C_{\max}\le Y, \qquad\text{where}\qquad Y=r(T+1)(2T+1).
 	% caption
 	\node[below] at (17,0.5) {Figure~\thefigure};
 \end{tikzpicture}
-\label{fig:3-1}
+\label{fig:nphard-partition}
 \end{center}
 
 The jobs $J_1,\dots,J_{n-1}$ are partitioned into two subsets by $J_n$; the resulting layout on the
-two machines is shown in Figure~\ref{fig:3-1}. The total $M_2$ processing times of the two subsets
+two machines is shown in Figure~\ref{fig:nphard-partition}. The total $M_2$ processing times of the two subsets
 are unknown, but their sum equals $2rT$. We may therefore write them as $r(T+\xi)$ and $r(T-\xi)$
 for some $-T\le\xi\le T$. The completion times of $J_n$ are then
 \begin{equation}\label{eq:completetime1}
@@ -484,7 +499,7 @@ $m$, this is a strong polynomial reduction, and $F2 \parallel W C_{\max}$ is str
 	% caption
 	\node[below] at (11.85,1.7) {Figure~\thefigure: 3-Partition reduction};
 \end{tikzpicture}
-\label{fig:3-2}
+\label{fig:snphard-3partition}
 \end{center}
 
 
@@ -718,7 +733,6 @@ The resulting candidate states are collected in temporary sets $\mathcal{Y}_1,\d
 By Lemma~\ref{lem:merge-dominance}, merging the candidates removes dominated and duplicate
 states and yields $\mathscr{H}_{j}$.
 
-\setlength{\intextsep}{4pt}
 \begin{algorithm}[tbp]
 \small
 \linespread{1.2}\selectfont
@@ -1319,7 +1333,7 @@ around high-quality regions while the stochastic construction preserves diversif
 Moreover, each schedule is evaluated in $O(n)$ time by \eqref{eq:completion}, making each
 iteration computationally lightweight and well suited to large instances.
 
-\begin{algorithm}[tbp]
+\begin{algorithm}[]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -1576,13 +1590,12 @@ priority are also the ones that require the longest processing, and it is the se
 which a constructive rule has something left to exploit beyond the weight order itself.
 
 \begin{table}[H]
-\centering
-\small
-\setlength{\tabcolsep}{5pt}
+\resultstable
 \caption{Each configuration is replicated over $20$ independent instances, with
 processing times drawn uniformly from $[1,10]$.}
 \label{tab:instances}
-\begin{tabular}{llll}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}
+}llll@{}}
 \toprule
 Scale  & $n$                & Weights                   & Methods compared \\
 \midrule
@@ -1590,7 +1603,28 @@ Small  & $30,\,40,\,50,\,60$ & $K=2$                     & All algorithms \\
 Medium & $200,\,250,\,300$   & $K=3$, $K=9$ & All algorithms \\
 Large  & $500,\,600,\,700$   & $K=3$, $K=9$ & All algorithms \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+\end{table}
+
+\begin{table}[hb]
+\resultstable
+\caption{MILP on the small scale. ``opt.'' count optimality.}
+\label{tab:results-small-milp}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}
+}clccc@{}}
+\toprule
+Weights & $n$ & $a_j,b_j$ range & opt. & time (s) \\
+\midrule
+\multirow{8}{*}{$K=2$} & $30$ & $[1,10]$  & $20$ & $3.5$ \\
+                       & $30$ & $[1,100]$ & \TBD & \TBD \\
+                       & $40$ & $[1,10]$  & $20$ & $44.5$ \\
+                       & $40$ & $[1,100]$ & \TBD & \TBD \\
+                       & $50$ & $[1,10]$  & $18$ & $129.3$ \\
+                       & $50$ & $[1,100]$ & \TBD & \TBD \\
+                       & $60$ & $[1,10]$  & $13$ & $307.3$ \\
+                       & $60$ & $[1,100]$ & \TBD & \TBD \\
+\bottomrule
+\end{tabular*}
 \end{table}
 
 Every algorithm was run once on every instance, and no method was handicapped by a
@@ -1637,43 +1671,46 @@ where it is meaningful: for the heuristics, the number of instances on which a
 method attains the best value found by any method, referred to below as its \emph{hit
 rate}.
 
-Test results are summarized in Tables~\ref{tab:results-small}--\ref{tab:results-large} and
-in Figure~\ref{fig:results-gap}. Table~\ref{tab:results-small} reports the small
-configurations, Table~\ref{tab:results-medium} the medium ones and
-Table~\ref{tab:results-large} the large ones. Each method occupies two columns of its
-table, a measure of quality on the left and the mean CPU time in seconds on the right: the
-number of instances it settled and the gap \eqref{eq:gap} on the small and on the two
-larger scales respectively, the MILP model being exact. The three tables therefore carry
-both performance measures, and Figure~\ref{fig:results-gap} summarises the gaps as a
-function of $n$.
+Test results are summarized in Tables~\ref{tab:results-small-milp}--\ref{tab:results-large}
+and in Figure~\ref{fig:results-gap}. Tables~\ref{tab:results-small-milp}
+and~\ref{tab:results-small-dp} report the small configurations, one table per exact method,
+Table~\ref{tab:results-medium} the medium ones and Table~\ref{tab:results-large} the large
+ones. Each table gives a measure of quality on the left and the mean CPU time in seconds on
+the right: the number of instances the method settled and the gap \eqref{eq:gap} on the
+small and on the two larger scales respectively, the MILP model being exact. On the small
+scale the two exact methods are separated, because they respond differently to the width of
+the processing-time range: the range $[1,u]$ of the instances is therefore varied within
+each table, and its effect on the number of instances settled and on the running time of
+the method can be read off directly. The four tables therefore carry both performance
+measures, and Figure~\ref{fig:results-gap} summarises the gaps as a function of $n$.
 
-\begin{table}[htbp]
-\centering
-\footnotesize
-\setlength{\tabcolsep}{5pt}
-\caption{MILP and DP on the small scale. ``opt.'' count optimality.}
-\label{tab:results-small}
-\begin{tabular}{clcccc}
+\begin{table}[tbp]
+\resultstable
+\caption{DP on the small scale. ``opt.'' count optimality.}
+\label{tab:results-small-dp}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}
+}clccc@{}}
 \toprule
- & & \multicolumn{2}{c}{MILP} & \multicolumn{2}{c}{DP} \\
-\cmidrule(lr){3-4}\cmidrule(lr){5-6}
-Weights & $n$ & opt. & time (s) & opt. & time (s) \\
+Weights & $n$ & $a_j,b_j$ range & opt. & time (s) \\
 \midrule
-\multirow{4}{*}{$K=2$} & $30$ & $20$ & $3.5$ & $20$ & $0.1$ \\
- & $40$ & $20$ & $44.5$ & $20$ & $0.2$ \\
- & $50$ & $18$ & $129.3$ & $20$ & $0.5$ \\
- & $60$ & $13$ & $307.3$ & $20$ & $1.5$ \\
+\multirow{8}{*}{$K=2$} & $30$ & $[1,10]$  & $20$ & $0.1$ \\
+                       & $30$ & $[1,100]$ & \TBD & \TBD \\
+                       & $40$ & $[1,10]$  & $20$ & $0.2$ \\
+                       & $40$ & $[1,100]$ & \TBD & \TBD \\
+                       & $50$ & $[1,10]$  & $20$ & $0.5$ \\
+                       & $50$ & $[1,100]$ & \TBD & \TBD \\
+                       & $60$ & $[1,10]$  & $20$ & $1.5$ \\
+                       & $60$ & $[1,100]$ & \TBD & \TBD \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}
 
-\begin{table}[htbp]
-\centering
-\footnotesize
-\setlength{\tabcolsep}{4pt}
+\begin{table}[tbp]
+\resultstable
 \caption{NEH, ACO and GA on the medium scale.}
 \label{tab:results-medium}
-\begin{tabular}{clcccccc}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}
+}clcccccc@{}}
 \toprule
  & & \multicolumn{2}{c}{NEH} & \multicolumn{2}{c}{ACO} & \multicolumn{2}{c}{GA} \\
 \cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}
@@ -1693,16 +1730,28 @@ Weights & $n$ & gap (\%)$^{1}$ & time (s) & gap (\%)$^{1}$ & time (s) & gap (\%)
  & $300$ & $-79.8$ & $1.0$ & $-71.6$ & $12.8$ & $-79.8$ & $4.1$ \\
  & & $(-80.3, -79.4)$ & & $(-76.1, -65.1)$ & & $(-80.3, -79.4)$ & \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}
 
-\begin{table}[htbp]
-\centering
-\footnotesize
-\setlength{\tabcolsep}{5pt}
+
+
+It can be seen from the tables that the dynamic program dominates the MILP model at the
+small scale. The model proved optimality on $71$ of the $80$ small instances -- all twenty
+at $n=30$ and $n=40$, eighteen at $n=50$ and thirteen at $n=60$ -- which validates both
+implementations, and the two methods separate on time long before they separate on value:
+the dynamic program is faster by a factor of $61$ already at $n=30$, and by a factor of
+$206$ at $n=60$, where the model needs five minutes on average against the second and a
+half of the dynamic program. The nine instances the model does not close within its time
+limit are the only ones whose optimality it does not establish; there it reports the
+incumbent it has reached, and the dynamic program returns the same value on every one of
+them, so those incumbents were optimal as well.
+
+\begin{table}[tbp]
+\resultstable
 \caption{NEH, ACO and GA on the large scale.}
 \label{tab:results-large}
-\begin{tabular}{clcccccc}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}
+}clcccccc@{}}
 \toprule
  & & \multicolumn{2}{c}{NEH} & \multicolumn{2}{c}{ACO} & \multicolumn{2}{c}{GA} \\
 \cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}
@@ -1722,10 +1771,11 @@ Weights & $n$ & gap (\%)$^{1}$ & time (s) & gap (\%)$^{1}$ & time (s) & gap (\%)
  & $700$ & $-80.0$ & $10.9$ & $-69.9$ & $55.9$ & $-80.0$ & $45.0$ \\
  & & $(-80.4, -79.6)$ & & $(-72.1, -67.4)$ & & $(-80.4, -79.7)$ & \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}
 
-\begin{figure}[htbp]
+\FloatBarrier
+\begin{figure}[tbp]
 \centering
 \fbox{\parbox[c][4.5cm][c]{0.85\textwidth}{\centering \TBD\\[6pt]
 \footnotesize Mean relative gap of each method against the instance
@@ -1733,17 +1783,6 @@ size $n$, on a logarithmic abscissa.}}
 \caption{Mean relative gap as a function of the instance size.}
 \label{fig:results-gap}
 \end{figure}
-
-It can be seen from the tables that the dynamic program dominates the MILP model at the
-small scale. The model proved optimality on $71$ of the $80$ small instances -- all twenty
-at $n=30$ and $n=40$, eighteen at $n=50$ and thirteen at $n=60$ -- which validates both
-implementations, and the two methods separate on time long before they separate on value:
-the dynamic program is faster by a factor of $61$ already at $n=30$, and by a factor of
-$206$ at $n=60$, where the model needs five minutes on average against the second and a
-half of the dynamic program. The nine instances the model does not close within its time
-limit are the only ones whose optimality it does not establish; there it reports the
-incumbent it has reached, and the dynamic program returns the same value on every one of
-them, so those incumbents were optimal as well.
 
 At the medium and the large scales every method lands far below the reference \eqref{eq:ref},
 by construction: the reference charges every job the heaviest weight and assumes that the
