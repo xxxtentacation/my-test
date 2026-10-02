@@ -12,7 +12,7 @@
 \usepackage{mathrsfs}
 \usepackage{latexsym}
 \usepackage[round, sort]{natbib}
-\usepackage[colorlinks=true,linkcolor=black,anchorcolor=black,citecolor=black,urlcolor=black]{hyperref}
+\usepackage[colorlinks=true,linkcolor=blue,anchorcolor=black,citecolor=blue,urlcolor=black]{hyperref}
 \usepackage{color}
 \usepackage{xcolor}
 \usepackage{array}
@@ -69,6 +69,16 @@
 \renewcommand{\subsection}{\FloatBarrier\origsubsection}
 \let\origsection\section
 \renewcommand{\section}{\FloatBarrier\origsection}
+
+% Tables and figures are cited with \cref / \Cref, so that the whole
+% "Table 2" / "Figure 4" is one hyperlink rather than only its number,
+% and so that plurals and ranges ("Tables 4 to 6") come out right.
+% Loaded last: \cref has to see the counters and \newtheorem above.
+\usepackage[nameinlink]{cleveref}
+
+% Equations keep their bare "(1)" form, as \eqref produced, rather than
+% cleveref's default "eq. (1)".
+\crefname{equation}{}{}
 
 \title{\LARGE\bf $F2 \parallel W C_{\max}$ Structural Properties and Dynamic Programming}
 \author{Author One$^{a,}$\footnote{Corresponding author. E-mail address: author@email.com}, Author Two$^{b}$\\
@@ -191,7 +201,7 @@ times, with no proportionate assumption; and (iv) no rejection, so that every jo
 scheduled. Replacing the weighted sum by a weighted
 maximum, and dropping the proportionality assumption, would already put the problem
 beyond the single-machine reduction. We show that $F2 \parallel WC_{\max}$ is in fact
-strongly NP-hard (Theorem~\ref{thm:snphard}). The difficulty is structural rather than a
+strongly NP-hard (\Cref{thm:snphard}). The difficulty is structural rather than a
 matter of the instance size. Because the objective is determined by a single job, an
 exchange that shortens many completion times while lengthening that one does not improve
 the objective value. Because the jobs carry unequal weights, moreover, Johnson's rule has
@@ -210,14 +220,14 @@ attains a $(1+\varepsilon)$-approximation for constant $K$. Because the exact me
 remain exponential in $K$, we also develop three heuristics for large instances and
 report a computational study that compares them with the 2-approximation.
 
-The rest of the paper is organized as follows. Section~\ref{sec:preliminaries} fixes
+The rest of the paper is organized as follows. \Cref{sec:preliminaries} fixes
 the notation and states the completion-time recurrence.
-Section~\ref{sec:formulation} gives the mixed integer programming formulation and
-establishes the complexity of the problem. Section~\ref{sec:dp_algorithm} proves the
+\Cref{sec:formulation} gives the mixed integer programming formulation and
+establishes the complexity of the problem. \Cref{sec:dp_algorithm} proves the
 structural properties, develops the exact dynamic program, and presents the
-2-approximation and the approximation scheme. Section~\ref{sec:heuristics} describes
-the three heuristics. Section~\ref{sec:experiments} reports the computational study,
-and Section~\ref{sec:conclusion} concludes.
+2-approximation and the approximation scheme. \Cref{sec:heuristics} describes
+the three heuristics. \Cref{sec:experiments} reports the computational study,
+and \Cref{sec:conclusion} concludes.
 
 \section{Preliminaries}
 \label{sec:preliminaries}
@@ -266,16 +276,16 @@ The MILP model is:
 	& C_k^1, C_k^2, C_j \ge 0 \quad \label{milp:dom}
 \end{align}
 
-Constraint (\ref{milp:assign1})--(\ref{milp:assign2}) ensure a one-to-one assignment between jobs and positions.
-Constraints (\ref{milp:m1_start})--(\ref{milp:m1_rec}) compute the completion time of the job in each position on $M_1$.
-Constraints (\ref{milp:m2_start})--(\ref{milp:m2_b}) compute the completion time of the job in each position on $M_2$.
+Constraint \cref{milp:assign1}--\cref{milp:assign2} ensure a one-to-one assignment between jobs and positions.
+Constraints \cref{milp:m1_start}--\cref{milp:m1_rec} compute the completion time of the job in each position on $M_1$.
+Constraints \cref{milp:m2_start}--\cref{milp:m2_b} compute the completion time of the job in each position on $M_2$.
 For $k \ge 2$, the job in position $k$ starts on $M_2$ only after it has completed $M_1$ and the preceding job has released $M_2$.
-Constraint (\ref{milp:link}) links the position-based completion times to the job-based completion times through a big-$M$ formulation:
+Constraint \cref{milp:link} links the position-based completion times to the job-based completion times through a big-$M$ formulation:
 when $x_{jk} = 1$, job $J_j$ is in position $k$ and $C_j \ge C_k^2$;
 when $x_{jk} = 0$, the right-hand side becomes $C_k^2 - M \le 0$ and the constraint is inactive.
-Constraint (\ref{milp:wcmax}) enforces $Z \ge w_j C_j$ for every job, so that minimizing $Z$ yields the optimal $W C_{\max}$.
-Constraint (\ref{milp:x}) requires the assignment variables $x_{jk}$ to be binary.
-Constraint (\ref{milp:dom}) requires the completion times $C_k^1$, $C_k^2$ and $C_j$ to be nonnegative.
+Constraint \cref{milp:wcmax} enforces $Z \ge w_j C_j$ for every job, so that minimizing $Z$ yields the optimal $W C_{\max}$.
+Constraint \cref{milp:x} requires the assignment variables $x_{jk}$ to be binary.
+Constraint \cref{milp:dom} requires the completion times $C_k^1$, $C_k^2$ and $C_j$ to be nonnegative.
 
 \section{Problem formulation}
 \label{sec:formulation}
@@ -328,7 +338,7 @@ W C_{\max}\le Y, \qquad\text{where}\qquad Y=r(T+1)(2T+1).
 \end{center}
 
 The jobs $J_1,\dots,J_{n-1}$ are partitioned into two subsets by $J_n$; the resulting layout on the
-two machines is shown in Figure~\ref{fig:nphard-partition}. The total $M_2$ processing times of the two subsets
+two machines is shown in \Cref{fig:nphard-partition}. The total $M_2$ processing times of the two subsets
 are unknown, but their sum equals $2rT$. We may therefore write them as $r(T+\xi)$ and $r(T-\xi)$
 for some $-T\le\xi\le T$. The completion times of $J_n$ are then
 \begin{equation}\label{eq:completetime1}
@@ -340,7 +350,7 @@ for some $-T\le\xi\le T$. The completion times of $J_n$ are then
 and $C_n = \max\{C_n^1, C_n^2\}$.
 
 If $\xi=0$, then $\sum_{j\in Z_1}b_j=\sum_{j\in Z_2}b_j$, so the Partition instance has a feasible
-solution. In this case $C_n$ is given by \eqref{eq:completetime1}, and
+solution. In this case $C_n$ is given by \cref{eq:completetime1}, and
 \begin{align*}
 C_n &= |Z_1| + rT + 1 \le rT + r = r(T+1), \\
 w_nC_n &= (2T+1)\,r(T+1) = Y, \\
@@ -349,12 +359,12 @@ W C_{\max} &= r(T+1)(C_n + rT) = Y,
 so $w_jC_j\le W C_{\max}=Y$.
 
 Conversely, suppose that some schedule satisfies $W C_{\max}\le Y$. When $\xi>0$, $C_n$ is given by
-\eqref{eq:completetime2}, and
+\cref{eq:completetime2}, and
 \begin{align*}
 C_n &= 1 + r(T+\xi) + 1 \ge 1 + r(T+1) + 1, \\
 w_nC_n &\ge (2T+1)\bigl(1 + r(T+1) + 1\bigr) = Y.
 \end{align*}
-When $\xi<0$, $C_n$ is given by \eqref{eq:completetime1}, and
+When $\xi<0$, $C_n$ is given by \cref{eq:completetime1}, and
 \begin{align*}
 C_{\max} &= C_n + \sum_{j\in Z_2}b_j \\
          &= 1 + rT + |Z_1| + r(T-\xi) \\
@@ -414,7 +424,7 @@ permutation schedules. The separator jobs have identical processing times, so if
 fixed, exchanging the labels of two separators that occur in the wrong order can only decrease the
 maximum weighted completion time, because $w_{S_1}\ge w_{S_2}\ge\cdots\ge w_{S_m}$. We may
 consequently assume that the separators occur in the order $S_1,S_2,\dots,S_m$.
-By \eqref{eq:deadline-encoding},
+By \cref{eq:deadline-encoding},
 \[
  C_{S_k}\le kD+1\quad(k=1,\dots,m),
  \qquad C_j\le T\quad(j=1,\dots,3m).
@@ -444,7 +454,7 @@ while the $M_1$ path to $S_{k-1}$ gives
 \begin{equation}\label{eq:path-m1}
  C_{S_{k-1}}\ge (k-1)(RB+1)+E_{k-1}+1.
 \end{equation}
-Combining \eqref{eq:path-m2} and \eqref{eq:path-m1} with $C_{S_k}\le kD+1$ yields
+Combining \cref{eq:path-m2} and \cref{eq:path-m1} with $C_{S_k}\le kD+1$ yields
 \begin{equation}\label{eq:group-bound}
  R(B_k-B)+E_k\le 3k,\qquad k=2,\dots,m.
 \end{equation}
@@ -452,7 +462,7 @@ For $k=1$, the $M_2$ path and $C_{S_1}\le D+1$ similarly give
 \begin{equation}\label{eq:group-bound-k1}
  R(B_1-B)+E_1\le4.
 \end{equation}
-Because $R=3m+5$, \eqref{eq:group-bound} and \eqref{eq:group-bound-k1} imply $B_k\le B$ for every
+Because $R=3m+5$, \cref{eq:group-bound} and \cref{eq:group-bound-k1} imply $B_k\le B$ for every
 $k$. Otherwise $B_k\ge B+1$, and the respective left-hand side exceeds $3k$, or exceeds $4$ when
 $k=1$. Since every element job belongs to one of the groups, $\sum_{k=1}^{m}B_k=mB$, and hence
 $B_k=B$ for every $k$.
@@ -673,7 +683,7 @@ which establishes the lemma.
 We now develop a dynamic programming algorithm that processes the jobs sequentially in the Johnson
 sequence and assigns each job to one of the $K$ blocks $\mathcal{B}_1,\dots,\mathcal{B}_K$.
 
-Lemma~\ref{lem:block-johnson} provides the structural basis for the dynamic program. Given any
+\Cref{lem:block-johnson} provides the structural basis for the dynamic program. Given any
 assignment of jobs to the $K$ blocks, sequencing the jobs within each block $\mathcal{B}_i$
 according to Johnson's rule and concatenating the blocks in the order of non-increasing block
 weights yields a schedule whose $W C_{\max}$ value is no larger than that of any other schedule
@@ -700,7 +710,7 @@ which is described by $4K$ parameters.
 
 The initial state set contains a single state whose components are all zero:
 $\mathscr{H}_{0} = \{ (0,\dots,0; \; 0,\dots,0; \; 0,\dots,0; \; 0,\dots,0) \}$.
-In Algorithm~\ref{alg:Block-concat}, $T_{A_i}$ denotes the total $M_1$ processing time of the first
+In \Cref{alg:Block-concat}, $T_{A_i}$ denotes the total $M_1$ processing time of the first
 $i$ blocks, and $T_{B_i}$ the completion time of block $\mathcal{B}_i$ on $M_2$.
 
 \begin{lemma}\label{lem:merge-dominance}
@@ -730,7 +740,7 @@ B'_i = B_i + b_j,\quad
 C'_i = \max\{C_i + b_j,\; A_i + a_j + b_j\}.
 \end{equation}
 The resulting candidate states are collected in temporary sets $\mathcal{Y}_1,\dots,\mathcal{Y}_K$.
-By Lemma~\ref{lem:merge-dominance}, merging the candidates removes dominated and duplicate
+By \Cref{lem:merge-dominance}, merging the candidates removes dominated and duplicate
 states and yields $\mathscr{H}_{j}$.
 
 \begin{algorithm}[tbp]
@@ -771,10 +781,10 @@ states and yields $\mathscr{H}_{j}$.
 			}
         }
     }
-\textbf{[Elimination]} Elimination $\mathscr{H}_j$ for $j \in \{1,\dots,n\}$ by Lemma~\ref{lem:merge-dominance} \;
+\textbf{[Elimination]} Elimination $\mathscr{H}_j$ for $j \in \{1,\dots,n\}$ by \Cref{lem:merge-dominance} \;
 \textbf{Step 3.} [Calculate] \For{each state $S=(A_1,\dots,A_K; B_1,\dots,B_K; C_1,\dots,C_K; L_1,\dots,L_K)\in\mathscr{H}_n$}{
     \eIf{$L_i\in\{0,W_i\}$ for every $i=1,\dots,K$}{
-        $W C_{\max}\gets$ Algorithm~\ref{alg:Block-concat} applied to $S$ \;
+        $W C_{\max}\gets$ \Cref{alg:Block-concat} applied to $S$ \;
         $Z^{*}\gets\min\{\,Z^{*},\ W C_{\max}\,\}$ \;
     }{
         Discard $S$. \;
@@ -788,11 +798,11 @@ To support Step~4, each state in $\mathscr{H}_j$ stores a pointer to the state i
 from which it was derived, together with the block $i \in \mathcal{E}(J_j)$ into which $J_j$ was
 placed. Starting from a state in $\mathscr{H}_n$ attaining $Z^{*}$, backtracking along these pointers
 recovers the block $\mathcal{B}_i$ containing each job $J_j$. Sequencing the jobs of each block
-according to Johnson's rule (Lemma~\ref{lem:block-johnson}) and concatenating the blocks then yields
+according to Johnson's rule (\Cref{lem:block-johnson}) and concatenating the blocks then yields
 an optimal schedule $\pi^{*}$ with $W C_{\max}(\pi^{*}) = Z^{*}$.
 
 \begin{theorem}\label{thm:complexity}
-Algorithm~\ref{alg:dp} solves $F2 \parallel W C_{\max}$ optimally in
+\Cref{alg:dp} solves $F2 \parallel W C_{\max}$ optimally in
 $O\bigl(n \cdot K \cdot |\mathscr{H}|_{\max}\bigr)$ time, where
 $|\mathscr{H}|_{\max} \le 2^{K}V^{\,3K-3}$ and $V = \sum_{j=1}^{n}a_j + \sum_{j=1}^{n}b_j$.
 For constant $K$, this is $O(nV^{\,3K-3})$.
@@ -827,7 +837,7 @@ duplicates in time proportional to the total number of generated tuples. Iterati
 costs $O(K \cdot |\mathscr{H}_{j-1}|)$, and summing over the $n$ iterations gives
 $O(n \cdot K \cdot |\mathscr{H}|_{\max})$.
 
-The final concatenation by Algorithm~\ref{alg:Block-concat} evaluates each state in
+The final concatenation by \Cref{alg:Block-concat} evaluates each state in
 $\mathscr{H}_{n}$ in $O(K)$ time, which is dominated by the DP phase. For fixed $K$, $2^K$ is
 constant and the bound becomes $O(n \cdot V^{\,3K-3})$.
 \end{proof}
@@ -840,8 +850,8 @@ constant and the bound becomes $O(n \cdot V^{\,3K-3})$.
 \subsection{A 2-Approximation Algorithm}
 \label{sub:approx2}
 
-The exact dynamic program of Section~\ref{sec:dp_algorithm} runs in pseudo-polynomial
-time, and the FPTAS of Section~\ref{sub:fptas} has running time exponential in the
+The exact dynamic program of \Cref{sec:dp_algorithm} runs in pseudo-polynomial
+time, and the FPTAS of \Cref{sub:fptas} has running time exponential in the
 number $K$ of distinct weights. When only a constant-factor guarantee is needed, the
 following elementary rule suffices.
 
@@ -859,16 +869,16 @@ following elementary rule suffices.
 \end{algorithm}
 
 \begin{theorem}\label{thm:approx2}
-Algorithm~\ref{alg:approx2} runs in $O(n\log n)$ time and returns a schedule with
+\Cref{alg:approx2} runs in $O(n\log n)$ time and returns a schedule with
 $W C_{\max}\le 2\,W C_{\max}^{*}$.
 \end{theorem}
 
 \begin{proof}
-Let $\sigma$ be the schedule returned by Algorithm~\ref{alg:approx2}, let $j_k$ be the job
+Let $\sigma$ be the schedule returned by \Cref{alg:approx2}, let $j_k$ be the job
 in position $k$ of $\sigma$, and let $S_k=\{j_1,\dots,j_k\}$. Since the jobs are sorted by
 non-increasing weight, every job of $S_k$ has weight at least $w_{j_k}$.
 
-We first bound the completion times in $\sigma$. By \eqref{eq:completion}, the job in
+We first bound the completion times in $\sigma$. By \cref{eq:completion}, the job in
 position $k$ completes on $M_2$ at time $C_{j_k}(\sigma)$, and each term in the maximum is
 bounded by the full sum:
 \[
@@ -881,7 +891,7 @@ Hence
 \begin{equation}\label{eq:approx2-completion}
 C_{j_k}(\sigma)\ \le\ \sum_{h\in S_k}\bigl(a_h+b_h\bigr).
 \end{equation}
-Since $W C_{\max}(\sigma)=\max_{1\le k\le n}w_{j_k}\,C_{j_k}(\sigma)$, multiplying \eqref{eq:approx2-completion}
+Since $W C_{\max}(\sigma)=\max_{1\le k\le n}w_{j_k}\,C_{j_k}(\sigma)$, multiplying \cref{eq:approx2-completion}
 by $w_{j_k}>0$ and taking the maximum over $k$ gives
 \begin{equation}\label{eq:approx2-upper}
 W C_{\max}(\sigma)=\max_{1\le k\le n}w_{j_k}\,C_{j_k}(\sigma)
@@ -904,14 +914,14 @@ and, similarly, $C^{*}_v\ge\sum_{h\in S_k}b_h$ together with $w_v\ge w_{j_k}$ gi
 \begin{equation}\label{eq:approx2-lower-b}
 W C_{\max}^{*}\ge w_v\,C^{*}_v \ge w_{j_k}\sum_{h\in S_k}b_h.
 \end{equation}
-Combining \eqref{eq:approx2-lower-a} and \eqref{eq:approx2-lower-b} yields
+Combining \cref{eq:approx2-lower-a} and \cref{eq:approx2-lower-b} yields
 \begin{equation}\label{eq:approx2-lower}
 W C_{\max}^{*}\ge w_{j_k}\max\Bigl\{\sum_{h\in S_k}a_h,\ \sum_{h\in S_k}b_h\Bigr\}
 \ge \frac{w_{j_k}}{2}\Bigl(\sum_{h\in S_k}a_h+\sum_{h\in S_k}b_h\Bigr),
 \end{equation}
 where the last inequality uses $\max\{x,y\}\ge(x+y)/2$. Hence
-\eqref{eq:approx2-lower} gives $w_{j_k}\sum_{h\in S_k}(a_h+b_h)\le 2W C_{\max}^{*}$ for every $k$,
-and the claim follows from \eqref{eq:approx2-upper}.
+\cref{eq:approx2-lower} gives $w_{j_k}\sum_{h\in S_k}(a_h+b_h)\le 2W C_{\max}^{*}$ for every $k$,
+and the claim follows from \cref{eq:approx2-upper}.
 \end{proof}
 
 
@@ -925,7 +935,7 @@ and the claim follows from \eqref{eq:approx2-upper}.
 \subsubsection{Rounding the time coordinates}
 \label{subsub:fptas-time}
 
-We now convert the exact dynamic program of Algorithm~\ref{alg:dp} into a fully
+We now convert the exact dynamic program of \Cref{alg:dp} into a fully
 polynomial-time approximation scheme by rounding the input data
 \citep{hall1994}. One key point of this technique is the determination of
 valid lower and upper bounds for the coordinates to be rounded: each time
@@ -934,7 +944,7 @@ of geometrically spaced values keeps the relative error within a single factor
 $\theta$. The total processing times $A_i,B_i$ of block $\mathcal{B}_i$ on $M_1$
 and $M_2$, and its completion time $C_i$, are rounded. The weight $L_i$ of the
 last job of block $\mathcal{B}_i$ is not rounded; following
-Algorithm~\ref{alg:dp}, the positional constraint $L_i\in\{0,W_i\}$ is required
+\Cref{alg:dp}, the positional constraint $L_i\in\{0,W_i\}$ is required
 for every block, and a state violating it is discarded.
 
 Fix $0<\epsilon<1$ and let
@@ -944,7 +954,7 @@ V_A=\sum_{j=1}^{n}a_j,\qquad
 V_B=\sum_{j=1}^{n}b_j,\qquad
 V=V_A+V_B.
 \]
-For every block $\mathcal{B}_i$, the recurrence \eqref{eq:transition}
+For every block $\mathcal{B}_i$, the recurrence \cref{eq:transition}
 preserves $A_i\le V_A$ and $B_i\le V_B$, since block $\mathcal{B}_i$ contains a
 subset of the jobs; moreover $C_i\le A_i+B_i\le V$. We therefore round the $A$
 dimension over $[0,V_A]$, the $B$ dimension over $[0,V_B]$, and the $C$
@@ -1015,15 +1025,15 @@ states never exceeds the number of labels.
             set $\mathscr{H}^{\epsilon}_{j}$ to the kept states. \;
     }
 }
-\textbf{Step 3.} [Calculate] Same as Step~3 of Algorithm~\ref{alg:dp}, applied to $\mathscr{H}^{\epsilon}_{n}$. \;
-\textbf{Step 4.} [Result] Same as Step~4 of Algorithm~\ref{alg:dp}. \;
+\textbf{Step 3.} [Calculate] Same as Step~3 of \Cref{alg:dp}, applied to $\mathscr{H}^{\epsilon}_{n}$. \;
+\textbf{Step 4.} [Result] Same as Step~4 of \Cref{alg:dp}. \;
 \KwOut{An approximate schedule $\sigma$.}
 \end{algorithm}
 
 \begin{lemma}\label{lem:traj-approx}
 Let $\mathscr{H}_{j}=(A_1,\dots,A_K; B_1,\dots,B_K; C_1,\dots,C_K; L_1,\dots,L_K)$, $j=1,\dots,n$, be the
-states along an optimal trajectory of Algorithm~\ref{alg:dp}, that is, the states recovered by
-backtracking from an optimal final state. For every $j$, Algorithm~\ref{alg:fptas} keeps a state
+states along an optimal trajectory of \Cref{alg:dp}, that is, the states recovered by
+backtracking from an optimal final state. For every $j$, \Cref{alg:fptas} keeps a state
 $\hat{\mathscr{H}}^{\epsilon}_{j}=(\hat A_1,\dots,\hat A_K; \hat B_1,\dots,\hat B_K; \hat C_1,\dots,\hat C_K; L_1,\dots, L_K)$
 that carries the same block-end weights $L_1,\dots,L_K$ and satisfies
 \begin{equation}\label{eq:traj-bound}
@@ -1039,10 +1049,10 @@ We argue by induction on $j$, from $1$ to $n$.
 \textbf{Base case $j=1$.} Both algorithms generate their candidates for $J_1$ from the same zero
 state. Two candidates that place $J_1$ in different blocks differ in at least one time coordinate,
 so they carry different labels and no state is deleted. The sets $\mathscr{H}^{\epsilon}_{1}$ and
-$\mathscr{H}_{1}$ therefore coincide, and \eqref{eq:traj-bound} holds with equality at $j=1$.
+$\mathscr{H}_{1}$ therefore coincide, and \cref{eq:traj-bound} holds with equality at $j=1$.
 
-\textbf{Inductive step $j\ge2$.} Assume that \eqref{eq:traj-bound} holds at $j-1$, and let $i$ be the
-block to which $\mathscr{H}_{j-1}$ appends $J_j$ in Algorithm~\ref{alg:dp}. Algorithm~\ref{alg:dp}
+\textbf{Inductive step $j\ge2$.} Assume that \cref{eq:traj-bound} holds at $j-1$, and let $i$ be the
+block to which $\mathscr{H}_{j-1}$ appends $J_j$ in \Cref{alg:dp}. \Cref{alg:dp}
 assigns a job only to a block $i$ with $w\le W_i$, so $w_j\le W_i$. This constraint depends only on
 $J_j$ and the block index, hence appending $J_j$ to block $i$ is available from
 $\hat{\mathscr{H}}^{\epsilon}_{j-1}$ as well. Write $A^{\prime}_i$, $B^{\prime}_i$ and $C^{\prime}_i$
@@ -1066,24 +1076,24 @@ $L_1,\dots,L_K$ of the candidate are those of $\mathscr{H}_{j}$, because $L_i=w_
 remaining block-end weights are unchanged.
 
 The candidate $\tilde{\mathscr{H}}^{\epsilon}_{j}$ carries the label
-$\ell(\tilde{\mathscr{H}}^{\epsilon}_{j})$ assigned in Algorithm~\ref{alg:fptas}, and the algorithm
+$\ell(\tilde{\mathscr{H}}^{\epsilon}_{j})$ assigned in \Cref{alg:fptas}, and the algorithm
 keeps a state $\hat{\mathscr{H}}^{\epsilon}_{j}\in\mathscr{H}^{\epsilon}_{j}$ with that same label.
 Since the label records the block-end weights, $\hat{\mathscr{H}}^{\epsilon}_{j}$ carries
 $L_1,\dots,L_K$ as well. Interval dominance states that two values with the same index $\Delta$
 differ by at most a factor $\theta$, so $y^{x}_{m}\le\theta\,\tilde x_{m}$ for every
 $x\in\{A,B,C\}$ and every block $m=1,\dots,K$, where $y^{x}_{m}$ denotes the coordinates of
 $\hat{\mathscr{H}}^{\epsilon}_{j}$. Together with $\tilde x_m\le x_m\theta^{j-2}$, this yields
-\eqref{eq:traj-bound} at $j$ and completes the induction.
+\cref{eq:traj-bound} at $j$ and completes the induction.
 
 Every state of $\mathscr{H}^{\epsilon}_n$ stores all $3K$ time coordinates, so the induction covers
 the coordinates of the last block $\mathcal{B}_K$ as well. Storing these coordinates for every
-block, exactly as in Algorithm~\ref{alg:dp}, rather than deriving them from the others, preserves
-the factor $\theta^{j-1}$ of \eqref{eq:traj-bound}: a derived value would accumulate the rounding
+block, exactly as in \Cref{alg:dp}, rather than deriving them from the others, preserves
+the factor $\theta^{j-1}$ of \cref{eq:traj-bound}: a derived value would accumulate the rounding
 errors of the remaining blocks.
 \end{proof}
 
 \begin{theorem}\label{thm:fptas}
-For every $0<\epsilon<1$, Algorithm~\ref{alg:fptas} returns a fully polynomial-time approximation scheme with
+For every $0<\epsilon<1$, \Cref{alg:fptas} returns a fully polynomial-time approximation scheme with
 \[
 W C_{\max}\ \le\ (1+\epsilon)\,W C_{\max}^{*}.
 \]
@@ -1097,22 +1107,22 @@ time.
 \begin{proof}
 We first bound the value of the returned schedule, and then its running time.
 
-Let $\mathscr{H}_{n}$ be the final state of the optimal trajectory of Algorithm~\ref{alg:dp}, and let
+Let $\mathscr{H}_{n}$ be the final state of the optimal trajectory of \Cref{alg:dp}, and let
 $\hat{\mathscr{H}}^{\epsilon}_{n}\in\mathscr{H}^{\epsilon}_{n}$ be the state guaranteed by
-Lemma~\ref{lem:traj-approx} at $j=n$. By the lemma, the time coordinates of
+\Cref{lem:traj-approx} at $j=n$. By the lemma, the time coordinates of
 $\hat{\mathscr{H}}^{\epsilon}_{n}$ are within a factor $\theta^{n-1}$ of those of $\mathscr{H}_{n}$,
 and its block-end weights are those of $\mathscr{H}_{n}$, because the weights are not rounded. The
 final state $\mathscr{H}_{n}$ satisfies the positional constraint $L_i\in\{0,W_i\}$ of
-Algorithm~\ref{alg:dp}, so every block of $\hat{\mathscr{H}}^{\epsilon}_{n}$ has block-end weight at
+\Cref{alg:dp}, so every block of $\hat{\mathscr{H}}^{\epsilon}_{n}$ has block-end weight at
 most $W_i$.
 
 Let $\hat\sigma$ and $\sigma^{*}$ be the schedules obtained by concatenating the blocks of
 $\hat{\mathscr{H}}^{\epsilon}_{n}$ and $\mathscr{H}_{n}$, and let $C_i(\sigma)$ denote the completion
 time of the last job of block $\mathcal{B}_i$ in a schedule $\sigma$. By the concatenation
-recurrence of Algorithm~\ref{alg:Block-concat}, $C_i(\sigma)$ is nondecreasing in every coordinate
+recurrence of \Cref{alg:Block-concat}, $C_i(\sigma)$ is nondecreasing in every coordinate
 of the state and positively homogeneous. Hence $C_i(\hat\sigma)\le\theta^{n-1}C_i(\sigma^{*})$ for
 every $i$. Since every block of $\hat{\mathscr{H}}^{\epsilon}_{n}$ has block-end weight at most
-$W_i$, Lemma~\ref{lem:block-johnson} yields
+$W_i$, \Cref{lem:block-johnson} yields
 \[
 W C_{\max}(\hat\sigma)
 =\max_{1\le i\le K}W_i\,C_i(\hat\sigma)
@@ -1135,10 +1145,10 @@ g'(\epsilon)=1-\tfrac12 e^{\epsilon/2}\ge 1-\tfrac12 e^{1/2}>0
 \]
 because $e^{\epsilon/2}\le e^{1/2}<2$ on that interval. Hence $g$ is increasing, so
 $g(\epsilon)\ge0$ and $e^{\epsilon/2}\le1+\epsilon$. Consequently $\theta^{n-1}\le1+\epsilon$, and
-the schedule returned by Algorithm~\ref{alg:fptas}, being no worse than $\hat\sigma$, has a value of
+the schedule returned by \Cref{alg:fptas}, being no worse than $\hat\sigma$, has a value of
 at most $(1+\epsilon)\,W C_{\max}^{*}$.
 
-We now bound the running time. At each level $j$, Algorithm~\ref{alg:fptas} keeps at most one state
+We now bound the running time. At each level $j$, \Cref{alg:fptas} keeps at most one state
 per label, and the number of labels is $(v^{A}+2)^K(v^{B}+2)^K(v^{C}+2)^K(n+1)^K$. The rounded time
 coordinates contribute $(v^{A}+2)^K(v^{B}+2)^K(v^{C}+2)^K$, which is at most $(v^{C}+2)^{3K}$ since
 $v^{A},v^{B}\le v^{C}$, and each of the $K$ block-end weights takes at most $n+1$ values. Each
@@ -1198,7 +1208,7 @@ optimally by $\hat\sigma$, and $\pi^{*}$ is feasible for it, so
 W C_{\max}(\hat\sigma)\le\hat W C_{\max}(\hat\sigma)=\hat W C_{\max}^{*}
 \le\hat W C_{\max}(\pi^{*})\le\theta\,W C_{\max}(\pi^{*})=\theta\,W C_{\max}^{*},
 \]
-which is \eqref{eq:weight-bound}.
+which is \cref{eq:weight-bound}.
 \end{proof}
 
 Hence the weight rounding incurs
@@ -1214,15 +1224,15 @@ completion-time rounding.
 \section{Heuristic Algorithms}
 \label{sec:heuristics}
 
-The exact dynamic program of Section~\ref{sec:dp_algorithm} is pseudo-polynomial, and the
-running time of the FPTAS of Section~\ref{sub:fptas} is exponential in the number $K$ of
+The exact dynamic program of \Cref{sec:dp_algorithm} is pseudo-polynomial, and the
+running time of the FPTAS of \Cref{sub:fptas} is exponential in the number $K$ of
 distinct weights. For large instances, fast heuristics are therefore of practical interest.
 In this section we present three heuristics for $F2 \parallel W C_{\max}$: an adaptation of
 the NEH algorithm \citep{puka2024}, an ant colony optimization (ACO) algorithm
 \citep{zhang2023}, and a genetic algorithm \citep{reeves1995}.
 
 Throughout this section, the objective of a permutation
-$\sigma=(\sigma(1),\dots,\sigma(k))$ of $k$ jobs is evaluated by \eqref{eq:completion}, so that
+$\sigma=(\sigma(1),\dots,\sigma(k))$ of $k$ jobs is evaluated by \cref{eq:completion}, so that
 \[
 W C_{\max}(\sigma)=\max_{1\le t\le k} w_{\sigma(t)}\, C_{\sigma(t)},
 \]
@@ -1249,13 +1259,13 @@ We adapt the NEH framework as follows. The jobs are first sorted by non-increasi
 $a_j+b_j$, breaking ties by non-increasing $w_j$, to obtain an initial sequence
 $J_1,\dots,J_n$. The schedule starts with the single job $J_1$. For each $k=2,\dots,n$, the
 next job $J_k$ is inserted into every one of the $k$ possible positions of the current
-partial schedule. Each candidate sequence is evaluated by \eqref{eq:completion}, and the
+partial schedule. Each candidate sequence is evaluated by \cref{eq:completion}, and the
 position that yields the smallest $W C_{\max}$ is retained. The pseudo-code is given in
-Algorithm~\ref{alg:neh}.
+\Cref{alg:neh}.
 
 Because the partial schedule already contains $k-1$ jobs, the cost of evaluating all $k$
-insertions at step $k$ is $O(k^2)$ using the recurrence \eqref{eq:completion}; the total
-running time is therefore $O(n^3)$ (Theorem~\ref{prop:neh-complexity}). The heuristic also
+insertions at step $k$ is $O(k^2)$ using the recurrence \cref{eq:completion}; the total
+running time is therefore $O(n^3)$ (\Cref{prop:neh-complexity}). The heuristic also
 produces a feasible permutation schedule by construction, requires no hyperparameter
 selection, and can serve either as a fast standalone solver for large instances or as a
 warm-start seed for the population-based heuristics described below.
@@ -1278,7 +1288,7 @@ let $J_{1},\dots,J_{n}$ be the resulting sequence. \;
 \end{algorithm}
 
 \begin{theorem}\label{prop:neh-complexity}
-Algorithm~\ref{alg:neh} runs in $O(n^3)$ time.
+\Cref{alg:neh} runs in $O(n^3)$ time.
 \end{theorem}
 \begin{proof}
 At step $k$, the job $J_{k}$ is inserted into each of the $k$ positions of a partial
@@ -1324,13 +1334,13 @@ trails are updated according to
 \]
 where $\rho\in(0,1)$ is the evaporation rate and $\Delta\tau_{ij}=Q/Z^{*}$ if the edge
 $(i,j)$ appears in $\sigma^{*}$, and $0$ otherwise. The process is repeated until a stopping
-criterion is met. The pseudo-code is given in Algorithm~\ref{alg:aco}.
+criterion is met. The pseudo-code is given in \Cref{alg:aco}.
 
 Because ants construct complete schedules probabilistically, ACO can escape the restricted
 search region of deterministic heuristics. The pheromone mechanism also provides a compact,
 increasingly focused memory of good pairwise orders, so the algorithm naturally intensifies
 around high-quality regions while the stochastic construction preserves diversification.
-Moreover, each schedule is evaluated in $O(n)$ time by \eqref{eq:completion}, making each
+Moreover, each schedule is evaluated in $O(n)$ time by \cref{eq:completion}, making each
 iteration computationally lightweight and well suited to large instances.
 
 \begin{algorithm}[]
@@ -1370,7 +1380,7 @@ improved only by lowering that job's completion time, or by shortening completio
 the board. A genetic algorithm for $F2 \parallel W C_{\max}$ should therefore not treat all
 jobs symmetrically. Following the genetic algorithm \citep{reeves1995} for flow-shop
 sequencing, we design its operators around the weight classes and the block structure
-of Section~\ref{sec:dp_algorithm}: high-weight jobs should occupy early positions (their
+of \Cref{sec:dp_algorithm}: high-weight jobs should occupy early positions (their
 weighted completion must be kept small), while the makespan should stay low so that no job is
 delayed unnecessarily.
 
@@ -1380,7 +1390,7 @@ represents a feasible permutation schedule: every job occurs exactly once, so no
 operator is needed to restore feasibility after crossover or mutation. To decode a
 chromosome, both machines process the jobs in the order $\sigma(1),\dots,\sigma(n)$; the
 completion time $C_{\sigma(t)}$ of the $t$-th job is obtained from the closed form
-\eqref{eq:completion}, which is evaluated in $O(n)$ time using the prefix sums
+\cref{eq:completion}, which is evaluated in $O(n)$ time using the prefix sums
 $A_t=\sum_{h=1}^{t}a_{\sigma(h)}$ and $B_t=\sum_{h=1}^{t}b_{\sigma(h)}$, and the objective
 value is
 \[
@@ -1401,7 +1411,7 @@ structural ingredients of a good schedule---small makespan and early heavy jobs:
           attacks the bottleneck by giving heavy jobs the smallest possible completion
           times;
     \item the schedule $\sigma^{\mathrm{NEH}}$ returned by the NEH heuristic
-          (Algorithm~\ref{alg:neh}).
+          (\Cref{alg:neh}).
 \end{itemize}
 The remaining $N-3$ individuals are uniform random permutations, which supply the diversity
 needed to escape these deterministic starting points and to explore regions of the search
@@ -1426,7 +1436,7 @@ random, and the middle segment $\pi_1[p_1..p_2]$ is copied verbatim into the chi
 remaining positions are filled from the second parent $\pi_2$; whenever a gene of $\pi_2$
 already occurs in the child, it is replaced through the mapping induced by the middle
 segment, so the child is always a valid permutation. PMX transfers contiguous blocks of jobs,
-which realize the front-heavy structure identified in Section~\ref{sec:dp_algorithm}, while
+which realize the front-heavy structure identified in \Cref{sec:dp_algorithm}, while
 still recombining the two parents' orders on the outer positions. Swapping the roles of
 $\pi_1$ and $\pi_2$ yields the second child.
 
@@ -1454,7 +1464,7 @@ job attaining $W C_{\max}(\sigma)$ at position $t^{*}$. Moving $j^{*}$ to an ear
 $r<t^{*}$ can only decrease its own completion time (its machine-$2$ work is unchanged while
 it may start earlier), so the weighted completion $w_{j^{*}}C_{j^{*}}$---currently the
 largest---tends to decrease. The mutation therefore tries every insertion of $j^{*}$ into a
-position $r<t^{*}$, evaluates the resulting permutation by \eqref{eq:completion}, and keeps
+position $r<t^{*}$, evaluates the resulting permutation by \cref{eq:completion}, and keeps
 the best; this is a cheap, targeted hill-climbing step. If no such insertion improves the
 value, a random swap of two jobs from different weight classes is performed with probability
 $p_m$ to maintain diversity. Applied to every offspring, and combined with the elitist
@@ -1469,7 +1479,7 @@ without being trapped by the deterministic seeds.
 \caption{Critical-Job Mutation for $F2 \parallel W C_{\max}$}\label{alg:cm}
 \KwIn{Schedule $\sigma$; mutation probability $p_m$.}
 \BlankLine
-\textbf{Step 1.} [Identify] Evaluate $W C_{\max}(\sigma)$ by \eqref{eq:completion}; let
+\textbf{Step 1.} [Identify] Evaluate $W C_{\max}(\sigma)$ by \cref{eq:completion}; let
 $j^{*}$ be a job attaining the maximum and let $t^{*}$ be its position in $\sigma$. \;
 \textbf{Step 2.} [Insertion search] \For{$r=1$ \KwTo $t^{*}-1$}{
     Form $\sigma^{(r)}$ by moving $j^{*}$ to position $r$; evaluate $W C_{\max}(\sigma^{(r)})$. \;
@@ -1483,7 +1493,7 @@ $j^{*}$ be a job attaining the maximum and let $t^{*}$ be its position in $\sigm
 \end{algorithm}
 
 \paragraph{Genetic Algorithm}
-Combining the ingredients above gives Algorithm~\ref{alg:ga}. Elitism preserves the best
+Combining the ingredients above gives \Cref{alg:ga}. Elitism preserves the best
 $\lambda$ solutions of each generation, and the final critical-job mutation plays the role
 of a local search.
 
@@ -1504,17 +1514,17 @@ permutations; evaluate all individuals; set $\sigma^{*}$ to the best. \;
     selection. \;
     \textbf{Crossover} \While{$|O|<N$}{
         Draw two parents from $M_g$; with probability $p_c$ apply
-        Algorithm~\ref{alg:pmx} to obtain two children, otherwise copy the parents into
+        \Cref{alg:pmx} to obtain two children, otherwise copy the parents into
         the offspring set $O$. \;
     }
-    \textbf{Mutation} Apply Algorithm~\ref{alg:cm} to each offspring with probability
-    $p_m$; evaluate every child by \eqref{eq:completion}. \;
+    \textbf{Mutation} Apply \Cref{alg:cm} to each offspring with probability
+    $p_m$; evaluate every child by \cref{eq:completion}. \;
     \textbf{Replacement} $P_g\gets$ the best $\lambda$ individuals of $P_{g-1}$ plus the
     $N-\lambda$ best offspring. \;
     \textbf{Update} If the best individual of $P_g$ improves on $\sigma^{*}$, replace
     $\sigma^{*}$ by it. \;
 }
-\textbf{Step 3.} [Local search] Apply Algorithm~\ref{alg:cm} to $\sigma^{*}$ until it yields
+\textbf{Step 3.} [Local search] Apply \Cref{alg:cm} to $\sigma^{*}$ until it yields
 no improvement. \;
 \KwOut{Best schedule $\sigma^{*}$.}
 \end{algorithm}
@@ -1536,60 +1546,38 @@ $13.0$ on a single thread, so that the reported times are comparable across conf
 \subsection{Experimental setup}
 
 The algorithms of the previous sections were compared on randomly generated instances of
-three scales, so that each meets the same conditions. The MILP model of
-Section~\ref{sec:formulation}, the dynamic program of Algorithm~\ref{alg:dp} and the three
-heuristics of Section~\ref{sec:heuristics} were applied to every instance, and the
-comparison therefore rests on one sample rather than several. The processing times $a_j$ and
-$b_j$ were drawn independently for every job and every instance from a discrete uniform
-range: $[1,10]$, $[1,20]$ and $[1,40]$ on the small scale, where the range is varied, and
-$[1,10]$ on the medium and the large scales. The weights follow the regime of the
-configuration. They are uniform on $\{1,2\}$ in the narrow regime, so that most jobs share a
-weight. They are uniform on $\{1,2,3\}$ under the independent setting of the wide regime, so
-that they carry no information about the processing times. Under the correlated setting the
-jobs are sorted by $a_j+b_j$ and cut into $9$ classes of equal size, so that the heaviest
-jobs are also the longest. The three scales of Table~\ref{tab:instances} organise these
-factors: $80$ instances on the small scale, four sizes at a single weight setting, and $120$
-on each of the medium and the large scale, three sizes crossed with the two settings of the
-wide regime. Each configuration was replicated over $20$ independent instances, and every
-figure below is the average of those replications.
+three scales. The MILP model of \Cref{sec:formulation} and the dynamic program of
+\Cref{alg:dp} were applied to every small instance, and the three heuristics of
+\Cref{sec:heuristics} to every medium and large one. The processing times $a_j$ and $b_j$
+were drawn independently for every job and
+every instance from a discrete uniform range: $[1,20]$ and $[1,40]$ on the small scale,
+where the range is varied, and $[1,10]$ on the medium and the large scales. The weights are
+uniform on $\{1,\dots,K\}$, and it is $K$ that the configuration fixes: $2$ and $3$ on the
+small scale, $3$, $9$ and $12$ on the medium one. On the large scale they are unrestricted,
+each of them drawn uniformly from $\{1,\dots,n\}$, so that their number is bounded by the
+number of jobs rather than by a fixed $K$. The three scales of \Cref{tab:instances}
+organise these factors: $320$ instances on the small scale, four sizes crossed with the two
+weight settings and the two ranges, $180$ on the medium scale, three sizes crossed with the
+three weight settings, and $60$ on the large scale, three sizes at a single weight regime.
+Each configuration was replicated over $20$ independent instances, and every figure below is
+the average of those replications.
 
-The two exact methods were compared on the small scale, where they can still be pushed to an
-optimum, and three factors of Table~\ref{tab:instances} act on them. The first is the number
-$n$ of jobs, which enters the dynamic program through the total processing time
-$V=\sum_{j=1}^{n}(a_j+b_j)$. That quantity governs the state space and enters the running
-time as $V^{3K-3}$, and the model of Section~\ref{sec:formulation} meets it in the big-$M$
-constants of \eqref{milp:link}. The second is the width of the processing-time range, which
-acts on the same quantity from the other side. With draws from $[1,10]$ the mean processing
-time is $5.5$, so that $V\approx 11n$ grows only linearly in $n$. A range such as $[1,100]$
-inflates $V$ eightfold and, because the state space grows with the third power of $V$
-already for $K=2$, pushes the dynamic program out of reach at far smaller $n$. The range was
-therefore varied at every instance size of the small scale, so that its effect on the
-running time of each method and on the number of instances it settles can be read off
-directly. The third is the number $K$ of distinct weights, which acts in two directions: it
-governs the complexity of the exact methods, and it governs how much of the schedule the
-weight order leaves open. The three regimes carry $K=2$, $K=3$ and $K=9$ for that reason.
+The two exact methods were compared on the small scale, and the tables that report them are
+read for how sensitive they are to the number of jobs and to the number of distinct weights.
+Three factors of \Cref{tab:instances} act on them. The number $n$ of jobs enters the dynamic
+program through the total processing time $V=\sum_{j=1}^{n}(a_j+b_j)$; that quantity governs
+the state space and enters the running time as $V^{3K-3}$, and the model of
+\Cref{sec:formulation} meets it in the big-$M$ constants of \cref{milp:link}. The number $K$
+of distinct weights enters the same running time through the exponent $3K-3$. The width of
+the processing-time range is varied at every instance size of the small scale.
 
-The heuristics were compared on the medium and the large scales, where the exact methods can
-no longer certify an optimum, and the weight regime is the factor read there. A small $K$
-ties most of the jobs in weight and leaves a constructive rule more room, whereas a large
-$K$ fixes more of the order in advance. The correlated setting is the one in which the
-orders of highest priority are also the ones that require the longest processing, so that a
-rule has something left to exploit beyond the weight order. Both metaheuristics use
-parameters fixed by a calibration run before the study, so that they were not chosen after
-seeing the results they produce. The ant colony optimization uses $10$ ants, $\alpha=1$,
-$\beta=30$, $\rho=0.1$ and $100$ iterations; its colony is small because the construction
-loop costs $O(m\cdot\text{iter}\cdot n^2)$, and at an equal budget of
-$m\cdot\text{iter}=1000$ ten ants for a hundred iterations reached a mean objective $0.9$
-per cent lower on the independent setting and $3.0$ per cent lower on the correlated one
-than twenty ants for fifty iterations did, while fifty ants for a hundred iterations, at
-five times the cost, bought only a further $1.7$ and $2.8$ per cent. The genetic algorithm
-uses a population of $N=n$ individuals, $G=10$ generations, $p_c=0.9$, $p_m=0.1$ and an
-elitism size of $\lambda=N/10$; the population reaches the fixed point of the search within
-a few generations, $N=n$ with $G=10$ reproducing the mean objective of $N=2n$ with $G=30$ at
-a quarter of the running time, and halving the population once more left that value
-unchanged. Every method was given the same time limit of $600$\,s, and a method that reaches
-it is recorded with the value it has attained rather than omitted, so that no comparison
-rests on a different sample.
+The heuristics were compared on the medium and the large scales. The weight regime is the
+factor read on the medium scale. Both metaheuristics use parameters fixed by a calibration run before
+the study. The ant colony optimization uses $10$ ants, $\alpha=1$, $\beta=30$, $\rho=0.1$
+and $100$ iterations. The genetic algorithm uses a population of $N=n$ individuals, $G=10$
+generations, $p_c=0.9$, $p_m=0.1$ and an elitism size of $\lambda=N/10$. Every method was
+given the same time limit of $600$\,s, and a method that reaches it is recorded with the
+value it has attained rather than omitted.
 \begin{table}[H]
 \resultstable
 \caption{Each configuration is replicated over $20$ independent instances}
@@ -1599,16 +1587,16 @@ rests on a different sample.
 \toprule
 Scale  & $n$                & Weights                   & Methods compared \\
 \midrule
-Small  & $40,\,50,\,60,\,70$ & $K=2$                     & All algorithms \\
-Medium & $200,\,250,\,300$   & $K=3$, $K=9$ & All algorithms \\
-Large  & $500,\,600,\,700$   & $K=3$, $K=9$ & All algorithms \\
+Small  & $40,\,50,\,60,\,70$ & $K=2$, $K=3$              & MILP, DP \\
+Medium & $200,\,350,\,500$   & $K=3$, $K=9$, $K=12$      & NEH, ACO, GA \\
+Large  & $500,\,600,\,700$   & All weights               & NEH, ACO, GA \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
 Every algorithm was run once on every instance, and no method was handicapped by a smaller
 budget than another: all of them evaluate the objective by the same recurrence
-\eqref{eq:completion}. Two quantities are recorded for every method and configuration, the
+\cref{eq:completion}. Two quantities are recorded for every method and configuration, the
 relative percentage gap against the baseline of the configuration and the CPU time in
 seconds. The gap of method $A$ is
 \begin{equation}\label{eq:gap}
@@ -1616,14 +1604,14 @@ seconds. The gap of method $A$ is
 \end{equation}
 where $z_A$ is the objective value of the schedule it returned and $z_{\text{base}}$ is the
 baseline of the configuration. On the small scale that baseline is the value of the MILP
-model, which is a schedule and indeed the optimum, so that \eqref{eq:gap} is an optimality
+model, which is a schedule and indeed the optimum, so that \cref{eq:gap} is an optimality
 gap: zero means that the method matched the optimum, and a negative gap that it improved on
 the incumbent of the model. On the medium and the large scales, where the model cannot
 certify an optimum, the baseline is the reference value
 \begin{equation}\label{eq:ref}
 B = w_n \max_{i,j}\Big(\sum_{k=1}^{i}A_k+\sum_{k=j}^{K}B_k\Big),
 \end{equation}
-read off the block structure of Section~\ref{sec:dp_algorithm}. The jobs are grouped into
+read off the block structure of \Cref{sec:dp_algorithm}. The jobs are grouped into
 the $K$ weight blocks, and $A_k$ and $B_k$ are the total processing times of block
 $\mathcal{B}_k$ on $M_1$ and on $M_2$. Machine $M_1$ runs without interruption up to some
 block $i$, the last block it processes consecutively, and while it does so $M_2$ is busy
@@ -1632,81 +1620,160 @@ $\sum_{k\le i}A_k+\sum_{k\ge j}B_k$ units of time. Charging the largest of these
 to the last job, whose weight is $w_n$, gives $WC_{\max}\ge B$ for every schedule. The
 reference is not a method: it returns no schedule and is never run. Every gap of those two
 scales is therefore positive, and measures how far above the reference the method lands, the
-smaller the better. Measuring against a baseline rather than against the optimum is
-deliberate, because the questions of this section are whether the dynamic program improves
-on the MILP model and how the heuristics rank where the optimum is out of reach. Because the
-reference is the same for every method of a configuration, the differences between two gaps
-order the methods themselves. For every method and configuration the tables report the
+smaller the better. For every method and configuration the tables report the
 minimum, the mean and the maximum of the gap over the $20$ replications, the mean CPU time,
 and the number of instances on which the method attains the best value found by any method,
 its \emph{hit rate}.
+
+The tables and the figure below carry the results, and each is read for one question.
+\Crefrange{tab:results-small-milp}{tab:results-small-dp-k3} report the small
+scale, one table per exact method and weight setting, and are read for the number
+of instances the method settles, its gap against the optimum and its running time as the processing-time range
+widens. \Crefrange{tab:results-medium-neh}{tab:results-medium-ga} report the medium
+scale and \Crefrange{tab:results-large-neh}{tab:results-large-ga} the large one, one
+table per heuristic in both cases, and are read for the gap and the running time of each
+heuristic, under the weight regimes on the medium scale and under the instance size on the
+large one. \Cref{fig:results-gap} collects the mean gaps
+of every method against the instance size. Every entry of these tables is a placeholder
+until the corresponding run has been made, and the figure is left empty for the same reason.
 
 \subsection{Results}
 
 
 
-The MILP model shows \TBD.
+\Cref{tab:results-small-milp} shows \TBD.
 
 \begin{table}[H]
 \resultstable
-\caption{MILP on the small scale. ``opt.'' count optimality.}
+\caption{MILP on the small scale, $K=2$. ``opt.'' count optimality.}
 \label{tab:results-small-milp}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}
-}clccc@{}}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}cccc@{}}
 \toprule
-Weights & $n$ & $a_j,b_j$ range & opt. & time (s) \\
+$n$ & $a_j,b_j$ range & opt. & time (s) \\
 \midrule
-\multirow{8}{*}{$K=2$}
-                       & $40$ & $[1,20]$ & \TBD & \TBD(\TBD,\TBD) \\
-                       & $40$ & $[1,40]$ & \TBD & \TBD(\TBD,\TBD) \\
-                       & $50$ & $[1,20]$ & \TBD & \TBD(\TBD,\TBD) \\
-                       & $50$ & $[1,40]$ & \TBD & \TBD(\TBD,\TBD) \\
-                       & $60$ & $[1,20]$ & \TBD & \TBD(\TBD,\TBD) \\
-                       & $60$ & $[1,40]$ & \TBD & \TBD(\TBD,\TBD) \\
-                       & $70$ & $[1,10]$ & \TBD & \TBD(\TBD,\TBD) \\
-                       & $70$ & $[1,20]$ & \TBD & \TBD(\TBD,\TBD) \\
-                       & $70$ & $[1,40]$ & \TBD & \TBD(\TBD,\TBD) \\
+\multirow{4}{*}{$40$} & $[1,20]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+\midrule
+\multirow{4}{*}{$50$} & $[1,20]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+\midrule
+\multirow{4}{*}{$60$} & $[1,20]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+\midrule
+\multirow{4}{*}{$70$} & $[1,20]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-The tables and the figure below carry the results, and each is read for one question.
-Table~\ref{tab:results-small-milp} and Table~\ref{tab:results-small-dp} report the small
-scale, one table per exact method, and are read for the number of instances the method
-settles, its gap against the optimum and its running time as the processing-time range
-widens. Tables~\ref{tab:results-medium-neh}--\ref{tab:results-medium-ga} report the medium
-scale and Tables~\ref{tab:results-large-neh}--\ref{tab:results-large-ga} the large one, one
-table per heuristic in both cases, and are read for the gap and the running time of each
-heuristic under the two weight regimes. Figure~\ref{fig:results-gap} collects the mean gaps
-of every method against the instance size. Every entry of these tables is a placeholder
-until the corresponding run has been made, and the figure is left empty for the same reason.
-
-The dynamic program shows \TBD.
+\Cref{tab:results-small-milp-k3} shows \TBD.
 
 \begin{table}[H]
 \resultstable
-\caption{DP on the small scale. ``opt.'' count optimality.}
-\label{tab:results-small-dp}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}
-}clccc@{}}
+\caption{MILP on the small scale, $K=3$. ``opt.'' count optimality.}
+\label{tab:results-small-milp-k3}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}cccc@{}}
 \toprule
-Weights & $n$ & $a_j,b_j$ range & opt. & time (s) \\
+$n$ & $a_j,b_j$ range & opt. & time (s) \\
 \midrule
-\multirow{8}{*}{$K=2$} 
-                       & $40$ & $[1,20]$ & \TBD & \TBD(\TBD,\TBD) \\
-                       & $40$ & $[1,40]$ & \TBD & \TBD \\
-                       & $50$ & $[1,20]$ & \TBD & \TBD \\
-                       & $50$ & $[1,40]$ & \TBD & \TBD \\
-                       & $60$ & $[1,20]$ & \TBD & \TBD \\
-                       & $60$ & $[1,40]$ & \TBD & \TBD \\
-                       & $70$ & $[1,10]$ & \TBD &\TBD  \\
-                       & $70$ & $[1,20]$ & \TBD & \TBD \\
-                       & $70$ & $[1,40]$ & \TBD & \TBD \\
+\multirow{4}{*}{$40$} & $[1,20]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+\midrule
+\multirow{4}{*}{$50$} & $[1,20]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+\midrule
+\multirow{4}{*}{$60$} & $[1,20]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+\midrule
+\multirow{4}{*}{$70$} & $[1,20]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-NEH on the medium scale shows \TBD.
+\Cref{tab:results-small-dp} shows \TBD.
+
+\begin{table}[H]
+\resultstable
+\caption{DP on the small scale, $K=2$. ``opt.'' count optimality.}
+\label{tab:results-small-dp}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}cccc@{}}
+\toprule
+$n$ & $a_j,b_j$ range & opt. & time (s) \\
+\midrule
+\multirow{4}{*}{$40$} & $[1,20]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+\midrule
+\multirow{4}{*}{$50$} & $[1,20]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+\midrule
+\multirow{4}{*}{$60$} & $[1,20]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+\midrule
+\multirow{4}{*}{$70$} & $[1,20]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\Cref{tab:results-small-dp-k3} shows \TBD.
+
+\begin{table}[H]
+\resultstable
+\caption{DP on the small scale, $K=3$. ``opt.'' count optimality.}
+\label{tab:results-small-dp-k3}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}cccc@{}}
+\toprule
+$n$ & $a_j,b_j$ range & opt. & time (s) \\
+\midrule
+\multirow{4}{*}{$40$} & $[1,20]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+\midrule
+\multirow{4}{*}{$50$} & $[1,20]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+\midrule
+\multirow{4}{*}{$60$} & $[1,20]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+\midrule
+\multirow{4}{*}{$70$} & $[1,20]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD \\
+                      &          &      & $(\TBD,\TBD)$ \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\Cref{tab:results-medium-neh} shows \TBD.
 
 \begin{table}[H]
 \resultstable
@@ -1717,23 +1784,30 @@ NEH on the medium scale shows \TBD.
 Weights & $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
 \midrule
 \multirow{6}{*}{$K=3$} & $200$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $250$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $300$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $350$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $500$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
 \midrule
 \multirow{6}{*}{$K=9$} & $200$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $250$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $300$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $350$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $500$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\midrule
+\multirow{6}{*}{$K=12$} & $200$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $350$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $500$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-ACO on the medium scale shows \TBD.
+\Cref{tab:results-medium-aco} shows \TBD.
 
 \begin{table}[H]
 \resultstable
@@ -1744,23 +1818,30 @@ ACO on the medium scale shows \TBD.
 Weights & $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
 \midrule
 \multirow{6}{*}{$K=3$} & $200$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $250$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $300$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $350$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $500$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
 \midrule
 \multirow{6}{*}{$K=9$} & $200$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $250$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $300$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $350$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $500$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\midrule
+\multirow{6}{*}{$K=12$} & $200$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $350$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $500$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-GA on the medium scale shows \TBD.
+\Cref{tab:results-medium-ga} shows \TBD.
 
 \begin{table}[H]
 \resultstable
@@ -1771,99 +1852,85 @@ GA on the medium scale shows \TBD.
 Weights & $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
 \midrule
 \multirow{6}{*}{$K=3$} & $200$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $250$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $300$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $350$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $500$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
 \midrule
 \multirow{6}{*}{$K=9$} & $200$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $250$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $300$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $350$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $500$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\midrule
+\multirow{6}{*}{$K=12$} & $200$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $350$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+ & $500$ & $[1,10]$ & \TBD & \TBD \\
+ & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-NEH on the large scale shows \TBD.
+\Cref{tab:results-large-neh} shows \TBD.
 
 \begin{table}[H]
 \resultstable
 \caption{NEH on the large scale.}
 \label{tab:results-large-neh}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}clccc@{}}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}cccc@{}}
 \toprule
-Weights & $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
+$n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
 \midrule
-\multirow{6}{*}{$K=3$} & $500$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $600$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $700$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
-\midrule
-\multirow{6}{*}{$K=9$} & $500$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $600$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $700$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
+\multirow{2}{*}{$500$} & $[1,10]$ & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{2}{*}{$600$} & $[1,10]$ & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{2}{*}{$700$} & $[1,10]$ & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-ACO on the large scale shows \TBD.
+\Cref{tab:results-large-aco} shows \TBD.
 
 \begin{table}[H]
 \resultstable
 \caption{ACO on the large scale.}
 \label{tab:results-large-aco}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}clccc@{}}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}cccc@{}}
 \toprule
-Weights & $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
+$n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
 \midrule
-\multirow{6}{*}{$K=3$} & $500$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $600$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $700$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
-\midrule
-\multirow{6}{*}{$K=9$} & $500$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $600$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $700$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
+\multirow{2}{*}{$500$} & $[1,10]$ & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{2}{*}{$600$} & $[1,10]$ & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{2}{*}{$700$} & $[1,10]$ & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-GA on the large scale shows \TBD.
+\Cref{tab:results-large-ga} shows \TBD.
 
 \begin{table}[H]
 \resultstable
 \caption{GA on the large scale.}
 \label{tab:results-large-ga}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}clccc@{}}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}cccc@{}}
 \toprule
-Weights & $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
+$n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
 \midrule
-\multirow{6}{*}{$K=3$} & $500$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $600$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $700$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
-\midrule
-\multirow{6}{*}{$K=9$} & $500$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $600$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
- & $700$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & \\
+\multirow{2}{*}{$500$} & $[1,10]$ & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{2}{*}{$600$} & $[1,10]$ & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{2}{*}{$700$} & $[1,10]$ & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1894,7 +1961,7 @@ weight classes and the critical job would be expected to produce, and it is smal
 the running time it costs, $4.1$ times that of the NEH-type rule. The NEH-type rule came
 closest to the genetic algorithm when the weights were positively correlated with the
 processing times, and lost the most ground when they were independent. That ordering follows
-from the design of the two methods: the initial sort of Algorithm~\ref{alg:neh} is by
+from the design of the two methods: the initial sort of \Cref{alg:neh} is by
 processing time and only its tie-breaking uses the weights, so it has an advantage to
 exploit precisely when the two orderings agree.
 

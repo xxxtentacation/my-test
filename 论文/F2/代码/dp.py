@@ -326,13 +326,17 @@ LABEL = Path(__file__).stem.upper()
 #: where the per-instance records go when the caller names no file
 RECORD_DIR = Path(__file__).resolve().parent / "记录"
 
-#: how the weight settings are written in the records: by the number of distinct
-#: weights they produce, which is how the tables of the paper label them.  The
-#: names of WEIGHT_SETTINGS remain the internal keys the generator takes.
-WEIGHT_LABELS = {"narrow": "K=2", "indep": "K=3", "corr": "K=9"}
+#: how a weight setting is written in the records, and in the tables of the
+#: paper: by the number of distinct weights it produces.  K is that number for
+#: every drawn regime -- the narrow one takes it as the parameter K, and the
+#: independent and correlated ones from WIDE_K -- while the unrestricted regime
+#: has no such number and is named instead.
+def weight_label(weights, K):
+    return "all weights" if weights == "free" else "K=%s" % K
 
 
-def record_instance(path, n, weights, seed, idx, total, obj, seconds):
+def record_instance(path, n, weights, seed, idx, total, obj, seconds,
+                    K=None):
     """
     Append one line for a finished instance, and flush it at once.
 
@@ -347,7 +351,7 @@ def record_instance(path, n, weights, seed, idx, total, obj, seconds):
         fh.write("%s  %-5s n=%-4d %-6s seed=%-7d instance %3d/%-3d  obj %-14s"
                  " time %9.4f s\n"
                  % (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), LABEL, n,
-                    WEIGHT_LABELS.get(weights, weights),
+                    weight_label(weights, K),
                     seed, idx, total,
                     "none" if obj is None else "%.1f" % obj, seconds or 0.0))
 
@@ -383,32 +387,41 @@ WIDE_K = {"indep": 3, "corr": 9}
 #:             classes keep the exact methods tractable;
 #:   "indep"   weights uniform on {1, ..., 3}, independent of the processing times;
 #:   "corr"    the jobs split into 9 weight classes by the rank of a_j + b_j, so
-#:             that the heaviest jobs are also the longest.
-WEIGHT_SETTINGS = ("narrow", "indep", "corr")
+#:             that the heaviest jobs are also the longest;
+#:   "free"    weights uniform on {1, ..., n}, the unrestricted regime of the
+#:             large scale of paper Table 1: as many values as there are jobs.
+WEIGHT_SETTINGS = ("narrow", "indep", "corr", "free")
 
 
-def gen_instance(n, K, rng, geometric=False, weights="narrow"):
+def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     """
-    One random instance of the benchmark protocol (paper Section 6.1.1).
+    One random instance of the benchmark protocol (paper Section 6).
 
-    a_j, b_j ~ U{PROC_LO, ..., PROC_HI}.  The weights follow the setting
-    `weights`: the narrow regime draws them uniformly from {1, ..., K}; the
-    independent regime draws them uniformly from {1, ..., 3}; and the correlated
+    a_j, b_j ~ U{PROC_LO, ..., proc_hi}, the upper end of the range being the one
+    paper Section 6.1 gives the scale: [1,20] and [1,40] on the small scale,
+    where it is varied, and [1,10] on the medium and the large one.  The weights
+    follow the setting `weights`: the narrow regime draws them uniformly from
+    {1, ..., K}, so that K is the number of values they can take; the
+    independent regime draws them uniformly from {1, ..., 3}; the correlated
     regime sorts the jobs by a_j + b_j and cuts that order into 9 equal classes,
-    so that the heaviest jobs are also the longest.  `geometric`, the ladder
-    {1, 2, 4, ..., 2^(K-1)} used to stress the weight-rounding argument of
-    Section 4.4.2, is retained for compatibility and takes precedence when set.
+    so that the heaviest jobs are also the longest; and the free regime draws
+    them uniformly from {1, ..., n}, which places no bound on how many values
+    they take.  `geometric`, the ladder {1, 2, 4, ..., 2^(K-1)} used to stress
+    the weight-rounding argument of Section 4.4.2, is retained for compatibility
+    and takes precedence when set.
     """
     if weights not in WEIGHT_SETTINGS:
         raise ValueError("unknown weight setting: %r" % (weights,))
-    a = [rng.randint(PROC_LO, PROC_HI) for _ in range(n)]
-    b = [rng.randint(PROC_LO, PROC_HI) for _ in range(n)]
+    a = [rng.randint(PROC_LO, proc_hi) for _ in range(n)]
+    b = [rng.randint(PROC_LO, proc_hi) for _ in range(n)]
     if geometric:
         w = [1 << rng.randrange(K) for _ in range(n)]
     elif weights == "narrow":
         w = [rng.randint(1, K) for _ in range(n)]
     elif weights == "indep":
         w = [rng.randint(1, WIDE_K["indep"]) for _ in range(n)]
+    elif weights == "free":
+        w = [rng.randint(1, n) for _ in range(n)]
     else:                                   # "corr"
         k = WIDE_K["corr"]
         order = sorted(range(n), key=lambda j: a[j] + b[j])
@@ -420,7 +433,7 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow"):
 
 def benchmark(n=8, K=2, instances=INSTANCES_PER_CONFIG, seed=42,
               geometric=False, weights="narrow", repeats=1, time_limit=None,
-              progress=None, log_path=None):
+              progress=None, proc_hi=PROC_HI, log_path=None):
     """
     Run the exact DP on `instances` random instances and aggregate the result.
 
@@ -451,7 +464,7 @@ def benchmark(n=8, K=2, instances=INSTANCES_PER_CONFIG, seed=42,
     objs, times, bases = [], [], []
     failed = 0
     for idx in range(instances):
-        a, b, w = gen_instance(n, K, rng, geometric, weights)
+        a, b, w = gen_instance(n, K, rng, geometric, weights, proc_hi)
         bases.append(instance_baseline(a, b, w))   # reference value of this instance
         best = float("inf")
         total = 0.0
@@ -467,7 +480,7 @@ def benchmark(n=8, K=2, instances=INSTANCES_PER_CONFIG, seed=42,
         objs.append(best if best < float("inf") else None)
         times.append(total / repeats if best < float("inf") else None)
         record_instance(log_path, n, weights, seed, idx + 1, instances,
-                        objs[-1], times[-1])   # on disk before the next instance
+                        objs[-1], times[-1], K)   # on disk before the next instance
         if progress is not None:          # live line for a long-running study
             progress(idx + 1, instances, objs[-1], times[-1])
 
