@@ -1545,6 +1545,8 @@ $13.0$ on a single thread, so that the reported times are comparable across conf
 
 \subsection{Experimental setup}
 
+
+
 The algorithms of the previous sections were compared on randomly generated instances of
 three scales. The MILP model of \Cref{sec:formulation} and the dynamic program of
 \Cref{alg:dp} were applied to every small instance, and the three heuristics of
@@ -1561,6 +1563,36 @@ weight settings and the two ranges, $180$ on the medium scale, three sizes cross
 three weight settings, and $60$ on the large scale, three sizes at a single weight regime.
 Each configuration was replicated over $20$ independent instances, and every figure below is
 the average of those replications.
+
+Every algorithm was run once on every instance, and no method was handicapped by a smaller
+budget than another: all of them evaluate the objective by the same recurrence
+\cref{eq:completion}. Two quantities are recorded for every method and configuration, the
+relative percentage gap against the baseline of the configuration and the CPU time in
+seconds. The gap of method $A$ is
+\begin{equation}\label{eq:gap}
+\text{gap}_A = 100\cdot\frac{z_A-z_{\text{base}}}{z_{\text{base}}},
+\end{equation}
+where $z_A$ is the objective value of the schedule it returned and $z_{\text{base}}$ is the
+baseline of the configuration. On the small scale that baseline is the value of the MILP
+model, which is a schedule and indeed the optimum, so that \cref{eq:gap} is an optimality
+gap: zero means that the method matched the optimum, and a negative gap that it improved on
+the incumbent of the model. On the medium and the large scales, where the model cannot
+certify an optimum, the baseline is the reference value
+\begin{equation}\label{eq:ref}
+LB = w_n \min_{k}\Big(\sum_{i=1}^{k}A_i+\sum_{j=k+1}^{K}B_i\Big),
+\end{equation}
+read off the block structure of \Cref{sec:dp_algorithm}. The jobs are grouped into
+the $K$ weight blocks, and $A_i$ and $B_i$ are the total processing times of block
+$\mathcal{B}_i$ on $M_1$ and on $M_2$. The index $k$ is the last block that $M_1$ processes
+consecutively: $M_1$ runs the first $k$ blocks back to back, and $M_2$ is left with the last
+$K-k$ of them. The blocks keep their order on both machines, so that on that cut the shop
+spends at least $\sum_{i\le k}A_i+\sum_{i>k}B_i$ units of time. Charging the smallest of these quantities
+to the last job, whose weight is $w_n$, gives $WC_{\max}\ge B$ for every schedule. The
+reference is not a method: it returns no schedule and is never run. Every gap of those two
+scales is therefore positive, and measures how far above the reference the method lands, the
+smaller the better. For every method and configuration the tables report the
+minimum, the mean and the maximum of the gap over the $20$ replications and the mean CPU
+time.
 
 The two exact methods were compared on the small scale, and the tables that report them are
 read for how sensitive they are to the number of jobs and to the number of distinct weights.
@@ -1593,37 +1625,6 @@ Large  & $500,\,600,\,700$   & All weights               & NEH, ACO, GA \\
 \bottomrule
 \end{tabular*}
 \end{table}
-
-Every algorithm was run once on every instance, and no method was handicapped by a smaller
-budget than another: all of them evaluate the objective by the same recurrence
-\cref{eq:completion}. Two quantities are recorded for every method and configuration, the
-relative percentage gap against the baseline of the configuration and the CPU time in
-seconds. The gap of method $A$ is
-\begin{equation}\label{eq:gap}
-\text{gap}_A = 100\cdot\frac{z_A-z_{\text{base}}}{z_{\text{base}}},
-\end{equation}
-where $z_A$ is the objective value of the schedule it returned and $z_{\text{base}}$ is the
-baseline of the configuration. On the small scale that baseline is the value of the MILP
-model, which is a schedule and indeed the optimum, so that \cref{eq:gap} is an optimality
-gap: zero means that the method matched the optimum, and a negative gap that it improved on
-the incumbent of the model. On the medium and the large scales, where the model cannot
-certify an optimum, the baseline is the reference value
-\begin{equation}\label{eq:ref}
-B = w_n \max_{i,j}\Big(\sum_{k=1}^{i}A_k+\sum_{k=j}^{K}B_k\Big),
-\end{equation}
-read off the block structure of \Cref{sec:dp_algorithm}. The jobs are grouped into
-the $K$ weight blocks, and $A_k$ and $B_k$ are the total processing times of block
-$\mathcal{B}_k$ on $M_1$ and on $M_2$. Machine $M_1$ runs without interruption up to some
-block $i$, the last block it processes consecutively, and while it does so $M_2$ is busy
-with some block $j$, so that on any such split the shop spends at least
-$\sum_{k\le i}A_k+\sum_{k\ge j}B_k$ units of time. Charging the largest of these quantities
-to the last job, whose weight is $w_n$, gives $WC_{\max}\ge B$ for every schedule. The
-reference is not a method: it returns no schedule and is never run. Every gap of those two
-scales is therefore positive, and measures how far above the reference the method lands, the
-smaller the better. For every method and configuration the tables report the
-minimum, the mean and the maximum of the gap over the $20$ replications, the mean CPU time,
-and the number of instances on which the method attains the best value found by any method,
-its \emph{hit rate}.
 
 The tables and the figure below carry the results, and each is read for one question.
 \Crefrange{tab:results-small-milp}{tab:results-small-dp-k3} report the small

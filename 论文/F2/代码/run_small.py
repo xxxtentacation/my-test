@@ -16,31 +16,25 @@ The script follows the design of paper Section 6 rather than inventing its own:
   sizes, and each of the 16 configurations is replicated 20 times.
 
 * **Methods.**  MILP and DP, the two exact methods of the paper, which are still
-  within reach at this scale.  The baseline is not a method but the value of the
-  MILP model itself, so the model is run first on every configuration and its
-  values are the denominator of every gap.  Being an optimum, that baseline makes
-  the gap of the small tables an optimality gap: zero means the method matched
-  the optimum, and a negative gap that it improved on the incumbent.
+  within reach at this scale.  Neither of them is given a gap: the reference of
+  this scale is the value of the model itself, so a method is measured against
+  its own answer and there is nothing for a relative figure to say.  What the
+  tables of the paper report for them, and what this script records, is the
+  number of instances each settles to optimality and its running time.
 
 * **Parameters.**  Those of paper Section 6, all of them the defaults of the
   algorithm modules or the constants below: a time limit of 600 s shared by MILP
   and DP, and Gurobi on a single thread.
 
-* **Gap.**  The quantity reported is the relative percentage gap of a method
-  against the baseline of the configuration, computed **per instance** and then
-  aggregated, so the mean, the minimum and the maximum below are the statistics
-  of the same 20 gaps.  A method that hits the time limit without producing a
-  value contributes no gap and is counted separately.
-
-* **Best count.**  Once both methods of a configuration have run, the best value
-  found on each instance is determined, and each method reports the number of
-  instances on which it attains that value.  The MILP model is one of the two,
+* **Optimality count.**  Once both methods of a configuration have run, the best
+  value found on each instance is determined, and each method reports the number
+  of instances on which it attains that value.  The MILP model is one of the two,
   so that value is the optimum and the count is the number of instances solved
-  to optimality.
+  to optimality.  A method that hits the time limit without producing a value
+  counts on none of them and is reported separately.
 
 * **Seed.**  The seed of a configuration depends only on the configuration and
-  never on the method, so both methods see literally the same instances and the
-  gaps are paired.
+  never on the method, so both methods see literally the same instances.
 
 * **Output.**  The run is reported line by line as it happens: one line per
   instance, carrying the value found, the running time of that instance and the
@@ -97,13 +91,6 @@ WEIGHT_SETTINGS = ("K2", "K3")
 #: processing-time ranges of the scale: the label of the table row, and the upper
 #: end of the discrete uniform range both processing times are drawn from
 PROC_RANGES = {"[1,20]": 20, "[1,40]": 40}
-
-#: the baseline of every configuration of this scale is the value of the MILP
-#: model, which is a method of the scale rather than a separate reference value
-BASELINE = "milp"
-
-#: how a baseline is written in the output
-BASELINE_LABEL = {"milp": "MILP", "base": "W_max*sum(a_j+b_j)"}
 
 #: the scale this script runs, and the only place where it is written down
 SCALE = "small"
@@ -206,30 +193,16 @@ def _instance_reporter(label, n, weights, stream):
     return report
 
 
-def gaps_against(objs, base_objs):
-    """
-    Per-instance percentage gaps of `objs` against `base_objs`.
-
-    Both lists are indexed by instance, so the pairing is exact.  An instance on
-    which either side produced no value contributes no gap and is reported as
-    missing instead.
-    """
-    out, missing = [], 0
-    for o, b in zip(objs, base_objs):
-        if o is None or b is None or b == 0:
-            missing += 1
-            continue
-        out.append(100.0 * (o - b) / b)
-    return out, missing
-
-
 def run_scale(methods, args, stream=sys.stdout):
     """
     Run every selected method on every configuration of the scale.
 
+    Neither method is given a gap: the reference of this scale is the value of
+    the model itself, so what is recorded for each of them is how many instances
+    it settles and how long it takes.
+
     Returns a list of records, one per (method, n, weights, range):
-        algo, n, weights, range, instances, gaps, mean_gap, min_gap, max_gap,
-        mean_time, missing, hit
+        algo, n, weights, range, instances, missing, mean_time, hit
     """
     instances = args.instances or INSTANCES
     total = len(CONFIGS) * len(methods)
@@ -240,16 +213,14 @@ def run_scale(methods, args, stream=sys.stdout):
         seed = seed_of(n, weights, rng, args.seed)
         wlabel, rlabel = cfg["weight_label"], cfg["range_label"]
 
-        # The baseline of the configuration is the denominator of every gap of
-        # that configuration, and on this scale it is the value of the MILP
-        # model: the model is run first, and its values are the denominator of
-        # the gaps of both methods.
+        # The model is run first whatever --algos says: the best value found on
+        # an instance is the optimum only when the model is one of the methods
+        # compared on it.
         label, runner = METHODS["milp"]
-        print("  n=%-4d %-6s %-7s | baseline %s (seed %d)"
+        print("  n=%-4d %-6s %-7s | %s (seed %d)"
               % (n, wlabel, rlabel, label, seed), file=stream, flush=True)
-        base_res = runner(n, cfg, instances, seed, args,
+        milp_res = runner(n, cfg, instances, seed, args,
                           _instance_reporter(label, n, wlabel, stream))
-        base_objs = base_res["objs"]
 
         # Every method of the configuration is run first, because the number of
         # instances on which a method finds the best solution cannot be counted
@@ -274,7 +245,7 @@ def run_scale(methods, args, stream=sys.stdout):
         for name in methods:
             label = METHODS[name][0]
             res = results[name]
-            gaps, missing = gaps_against(res["objs"], base_objs)
+            missing = sum(1 for o in res["objs"] if o is None)
             hit = sum(1 for i, o in enumerate(res["objs"])
                       if o is not None and best_of_instance[i] is not None
                       and abs(o - best_of_instance[i]) < 1e-9)
@@ -285,51 +256,44 @@ def run_scale(methods, args, stream=sys.stdout):
                 "K": cfg["K"],
                 "weights": wlabel,
                 "range": rlabel,
-                "baseline": BASELINE,
                 "instances": instances,
-                "paired": len(gaps),
                 "missing": missing,
-                "mean_gap": statistics.fmean(gaps) if gaps else float("nan"),
-                "min_gap": min(gaps) if gaps else float("nan"),
-                "max_gap": max(gaps) if gaps else float("nan"),
                 "mean_time": res["mean_time"],
                 "hit": hit,
                 # the raw per-instance values, so that the file still holds the
-                # run after the driver has moved on: a change of baseline or of
-                # gap formula can then be applied without repeating the run
+                # run after the driver has moved on: another reading of it can
+                # then be applied without repeating the run
                 "objs": res["objs"],
                 "times": res["times"],
-                "bases": res["bases"],
                 "best_of_instance": best_of_instance,
             }
             records.append(rec)
             done += 1
-            print("  [%2d/%2d] %-4s n=%-4d %-6s %-7s | mean gap %+8.3f%% "
-                  "| min %+8.3f%% | max %+9.3f%% | %9.4f s | best %2d/%-2d "
-                  "| unpaired %d"
-                  % (done, total, label, n, wlabel, rlabel, rec["mean_gap"],
-                     rec["min_gap"], rec["max_gap"], rec["mean_time"],
-                     hit, instances, missing),
+            print("  [%2d/%2d] %-4s n=%-4d %-6s %-7s | opt %2d/%-2d "
+                  "| %9.4f s | no value %d"
+                  % (done, total, label, n, wlabel, rlabel, hit, instances,
+                     rec["mean_time"], missing),
                   file=stream, flush=True)
 
     return records
 
 
 def summarise(records):
-    """Mean gap and mean CPU time of each method, over the configurations of the scale."""
+    """Total optimality count and mean CPU time of each method, over the scale."""
     by_algo = {}
     for rec in records:
         by_algo.setdefault(rec["algo"], []).append(rec)
     out = []
     for name in METHODS:
-        recs = [r for r in by_algo.get(name, []) if r["paired"]]
+        recs = by_algo.get(name, [])
         if not recs:
             continue
         out.append({
             "algo": name,
             "label": METHODS[name][0],
             "configurations": len(recs),
-            "mean_gap": statistics.fmean(r["mean_gap"] for r in recs),
+            "instances": sum(r["instances"] for r in recs),
+            "opt": sum(r["hit"] for r in recs),
             "mean_time": statistics.fmean(r["mean_time"] for r in recs),
         })
     return out
@@ -346,8 +310,6 @@ def _header(methods, args):
         "generated     : %s" % datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "methods       : %s" % ", ".join(METHODS[m][0] for m in methods),
         "instances/cfg : %d" % (args.instances or INSTANCES),
-        "gap against   : the baseline of each configuration, which on this scale "
-                        "is the value of the MILP model itself",
         "seed          : %d (+1000*n, + 100*weight setting, + range)" % args.seed,
         "time limit    : %s s" % (args.time_limit if args.time_limit else "none"),
         "records       : %s" % getattr(args, "record_path", "-"),
@@ -363,20 +325,19 @@ def _scale_block(lines, records, summary, args):
                                      for n, wt, rg in CONFIGS)))
     lines.append("# " + "=" * 84)
     lines.append("# per-configuration results")
-    lines.append("# %-5s %5s %-7s %-7s %9s %9s %10s %10s %9s %9s %6s"
-                 % ("algo", "n", "weights", "range", "paired", "unpaired",
-                    "mean_gap", "min_gap", "max_gap", "time(s)", "best"))
+    lines.append("# %-5s %5s %-7s %-7s %9s %6s %11s"
+                 % ("algo", "n", "weights", "range", "instances", "opt",
+                    "time(s)"))
     for r in records:
-        lines.append("  %-5s %5d %-7s %-7s %9d %9d %10.3f %10.3f %9.3f %9.4f %6d"
+        lines.append("  %-5s %5d %-7s %-7s %9d %6d %11.4f"
                      % (r["label"], r["n"], r["weights"], r["range"],
-                        r["paired"], r["missing"], r["mean_gap"], r["min_gap"],
-                        r["max_gap"], r["mean_time"], r["hit"]))
+                        r["instances"], r["hit"], r["mean_time"]))
     lines.append("#")
-    lines.append("# the column 'best' counts the instances on which the method attained the")
+    lines.append("# the column 'opt' counts the instances on which the method attained the")
     lines.append("# best value found on that instance by either method; the model is one of")
     lines.append("# them, so that value is the optimum")
     lines.append("#")
-    lines.append("# per-instance baseline, objective values and CPU times, in instance order")
+    lines.append("# per-instance objective values and CPU times, in instance order")
     seen = set()
     for r in records:
         key = (r["n"], r["weights"], r["range"])
@@ -386,9 +347,6 @@ def _scale_block(lines, records, summary, args):
                          % ("-", r["n"], r["weights"], r["range"],
                             " ".join("none" if b is None else "%.1f" % b
                                      for b in r["best_of_instance"])))
-        lines.append("  %-5s %5d %-7s %-7s base  : %s"
-                     % (r["label"], r["n"], r["weights"], r["range"],
-                        " ".join("%.1f" % b for b in r["bases"])))
         lines.append("  %-5s %5d %-7s %-7s objs  : %s"
                      % (r["label"], r["n"], r["weights"], r["range"],
                         " ".join("none" if o is None else "%.1f" % o
@@ -399,11 +357,11 @@ def _scale_block(lines, records, summary, args):
                                  for t in r["times"])))
     lines.append("#")
     lines.append("# summary, averaged over the configurations of the scale")
-    lines.append("# %-8s %14s %11s %13s"
-                 % ("method", "configurations", "mean_gap", "mean_time(s)"))
+    lines.append("# %-8s %14s %6s %13s"
+                 % ("method", "configurations", "opt", "mean_time(s)"))
     for s in summary:
-        lines.append("  %-8s %14d %11.3f %13.4f"
-                     % (s["label"], s["configurations"], s["mean_gap"],
+        lines.append("  %-8s %14d %6d %13.4f"
+                     % (s["label"], s["configurations"], s["opt"],
                         s["mean_time"]))
 
 
@@ -496,9 +454,8 @@ def main(argv=None):
             print("  %-8s %s" % (name, label))
         print("configurations:")
         for n, wt, rg in CONFIGS:
-            print("  n=%-4d %-7s %-7s  baseline %s"
-                  % (n, config_of(n, wt, rg)["weight_label"], rg,
-                     BASELINE_LABEL[BASELINE]))
+            print("  n=%-4d %-7s %-7s"
+                  % (n, config_of(n, wt, rg)["weight_label"], rg))
         return
 
     methods = resolve_methods(args.algos) or list(METHODS_OF_SCALE)
@@ -545,11 +502,11 @@ def main(argv=None):
 
     print()
     print("summary for %s (averaged over its configurations):" % SCALE)
-    print("  %-8s %14s %11s %13s"
-          % ("method", "configurations", "mean_gap", "mean_time(s)"))
+    print("  %-8s %14s %6s %13s"
+          % ("method", "configurations", "opt", "mean_time(s)"))
     for s in summarise(records):
-        print("  %-8s %14d %11.3f %13.4f"
-              % (s["label"], s["configurations"], s["mean_gap"], s["mean_time"]))
+        print("  %-8s %14d %6d %13.4f"
+              % (s["label"], s["configurations"], s["opt"], s["mean_time"]))
     print()
     print("results written to %s" % out_path)
     print("archived as        %s" % archive_path)

@@ -356,20 +356,6 @@ def record_instance(path, n, weights, seed, idx, total, obj, seconds,
                     "none" if obj is None else "%.1f" % obj, seconds or 0.0))
 
 
-def instance_baseline(a, b, w):
-    """
-    The reference value of one instance:
-
-        B = W_max * sum_j (a_j + b_j),        W_max = max_j w_j.
-
-    It is computed from the instance the method has just been handed, not from a
-    regenerated copy of it, so the denominator of the gap is always the value of
-    the very instance that was solved.  The shop must do sum_j (a_j + b_j) units
-    of work and no weight exceeds W_max, so C_j <= sum_h (a_h + b_h) and
-    W Cmax <= W_max * sum_h (a_h + b_h) = B.
-    """
-    return max(w) * sum(a[j] + b[j] for j in range(len(a)))
-
 #: instance scales of paper Table 1: name -> (values of n, values of K)
 SCALES = {
     "small":  ([6, 8, 10, 12], [2, 3]),
@@ -461,11 +447,10 @@ def benchmark(n=8, K=2, instances=INSTANCES_PER_CONFIG, seed=42,
         log_path = (RECORD_DIR / ("%s_%s.txt"
                                   % (LABEL, datetime.now().strftime("%Y%m%d-%H%M%S"))))
     rng = random.Random(seed)
-    objs, times, bases = [], [], []
+    objs, times = [], []
     failed = 0
     for idx in range(instances):
         a, b, w = gen_instance(n, K, rng, geometric, weights, proc_hi)
-        bases.append(instance_baseline(a, b, w))   # reference value of this instance
         best = float("inf")
         total = 0.0
         for _ in range(repeats):
@@ -495,7 +480,6 @@ def benchmark(n=8, K=2, instances=INSTANCES_PER_CONFIG, seed=42,
         "failed": failed,
         "objs": objs,
         "times": times,
-        "bases": bases,
     }
 
 

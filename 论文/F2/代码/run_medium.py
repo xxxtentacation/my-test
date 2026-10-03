@@ -17,10 +17,12 @@ The script follows the design of paper Section 6 rather than inventing its own:
 
 * **Methods.**  NEH, ACO and GA -- the three heuristics of the paper, the exact
   methods being out of reach at this size.  The baseline is not a method: it is
-  the reference value W_max * sum_j (a_j + b_j), which returns no schedule and is
-  never run.  Each algorithm computes it on the instance it has just been handed
-  (`instance_baseline()` of the algorithm modules), so nothing extra is run and
-  the denominator is always the value of the very instance that was solved.
+  the reference value of the block structure,
+  LB = w_n * max_i (sum_{k<=i} A_k + sum_{k>i} B_k), which returns no schedule and
+  is never run.  Each algorithm computes it on the instance it has just been
+  handed (`instance_baseline()` of the algorithm modules), so nothing extra is
+  run and the denominator is always the value of the very instance that was
+  solved.
   Being a lower bound on the optimum, it makes every gap of this scale positive,
   and the smaller the better.
 
@@ -102,13 +104,13 @@ WEIGHT_SETTINGS = ("K3", "K9", "K12")
 #: scale is run at the narrow range only.
 PROC_RANGES = {"[1,10]": 10}
 
-#: the baseline of every configuration of this scale is the reference value
-#: W_max * sum_j (a_j + b_j), which is a property of the instance rather than a
-#: method and is never run
+#: the baseline of every configuration of this scale is the reference value of the
+#: block structure, LB = w_n * max_i (sum_{k<=i} A_k + sum_{k>i} B_k), which is a
+#: property of the instance rather than a method and is never run
 BASELINE = "base"
 
 #: how a baseline is written in the output
-BASELINE_LABEL = {"milp": "MILP", "base": "W_max*sum(a_j+b_j)"}
+BASELINE_LABEL = {"milp": "MILP", "base": "LB (block cut)"}
 
 #: the scale this script runs, and the only place where it is written down
 SCALE = "medium"
@@ -296,8 +298,9 @@ def run_scale(methods, args, stream=sys.stdout):
         wlabel, rlabel = cfg["weight_label"], cfg["range_label"]
 
         # The baseline of the configuration is the denominator of every gap of
-        # that configuration, and on this scale it is the reference value
-        # W_max * sum_j (a_j + b_j), a property of the instance alone: every
+        # that configuration, and on this scale it is the reference value of the
+        # block structure, LB = w_n * max_i (sum_{k<=i} A_k + sum_{k>i} B_k), a
+        # property of the instance alone: every
         # method computes it from the instance it has just been handed -- see
         # instance_baseline() of the algorithm modules -- so nothing extra has
         # to be run at all.
@@ -400,7 +403,8 @@ def _header(methods, args):
         % (", ".join("%s=%s" % kv for kv in sorted(ACO_SETTINGS.items())),
            ", ".join("%s=%s" % kv for kv in sorted(GA_SETTINGS.items()))),
         "gap against   : the baseline of each configuration, which on this scale "
-                        "is the reference value W_max*sum(a+b)",
+                        "is the reference value of the block structure, "
+                        "LB = w_n*max_i(sum_{k<=i}A_k + sum_{k>i}B_k)",
         "seed          : %d (+1000*n, + 100*weight setting, + range)" % args.seed,
         "records       : %s" % getattr(args, "record_path", "-"),
     ]
@@ -439,7 +443,8 @@ def _scale_block(lines, records, summary, args):
                                      for b in r["best_of_instance"])))
         lines.append("  %-5s %5d %-7s %-7s base  : %s"
                      % (r["label"], r["n"], r["weights"], r["range"],
-                        " ".join("%.1f" % b for b in r["bases"])))
+                        " ".join("none" if b is None else "%.1f" % b
+                                 for b in r["bases"])))
         lines.append("  %-5s %5d %-7s %-7s objs  : %s"
                      % (r["label"], r["n"], r["weights"], r["range"],
                         " ".join("none" if o is None else "%.1f" % o

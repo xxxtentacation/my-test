@@ -236,19 +236,33 @@ def record_instance(path, n, weights, seed, idx, total, obj, seconds,
                     "none" if obj is None else "%.1f" % obj, seconds or 0.0))
 
 
-def instance_baseline(a, b, w):
+def instance_baseline(a, b, w, order):
     """
-    The reference value of one instance:
+    The reference value of one instance, for the schedule `order`:
 
-        B = W_max * sum_j (a_j + b_j),        W_max = max_j w_j.
+        LB = w_n * max_k ( sum_{i<=k} A_i + sum_{i>k} B_i ).
+
+    The jobs are grouped into the K weight blocks of the block structure of the
+    paper: one block per distinct weight, and the blocks are numbered by
+    non-increasing weight, W_1 > ... > W_K, so that block 1 is the heaviest of
+    them -- the same order the dynamic program builds its blocks in.  A_i and B_i
+    are the total processing times of block i on M1 and on M2, and the cut after
+    block k leaves M1 the first k blocks and M2 the remaining ones, so that on
+    any such cut the shop spends at least sum_{i<=k} A_i + sum_{i>k} B_i units
+    of time.  w_n is the weight of the last job of `order`.  That job completes
+    at C_max, so charging the busy time to it gives
+    W Cmax >= w_n * C_max >= w_n times that quantity.
 
     It is computed from the instance the method has just been handed, not from a
     regenerated copy of it, so the denominator of the gap is always the value of
-    the very instance that was solved.  The shop must do sum_j (a_j + b_j) units
-    of work and no weight exceeds W_max, so C_j <= sum_h (a_h + b_h) and
-    W Cmax <= W_max * sum_h (a_h + b_h) = B.
+    the very instance that was solved.
     """
-    return max(w) * sum(a[j] + b[j] for j in range(len(a)))
+    A, B = [], []
+    for value in sorted(set(w), reverse=True):      # W_1 > ... > W_K
+        jobs = [j for j in range(len(w)) if w[j] == value]
+        A.append(sum(a[j] for j in jobs))
+        B.append(sum(b[j] for j in jobs))
+    return w[order[-1]] * max(sum(A[:k]) + sum(B[k:]) for k in range(len(A) + 1))
 
 #: colony size used when `m` is not given (paper Section 6.1.2: "50 ants")
 ACO_ANTS = 50
@@ -349,14 +363,21 @@ def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42,
     objs, times, bases = [], [], []
     for idx in range(instances):
         a, b, w = gen_instance(n, K, rng, geometric, weights, proc_hi)
-        bases.append(instance_baseline(a, b, w))   # reference value of this instance
         best = float("inf")
+        best_order = None
         total = 0.0
         for _ in range(repeats):
             t0 = time.perf_counter()
             order = aco(a, b, w, seed=solver_rng.randrange(1 << 30), **kwargs)
             total += time.perf_counter() - t0
-            best = min(best, wcmax_of_order(order, a, b, w))
+            obj = wcmax_of_order(order, a, b, w)
+            if obj < best:
+                best, best_order = obj, order
+        # the reference value of this instance for the schedule that
+        # is being reported on: its last job is the one that completes at
+        # C_max, and its weight is the w_n of the bound
+        bases.append(None if best_order is None
+                     else instance_baseline(a, b, w, best_order))
         objs.append(best)
         times.append(total / repeats)
         record_instance(log_path, n, weights, seed, idx + 1, instances,

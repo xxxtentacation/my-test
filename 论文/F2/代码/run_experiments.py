@@ -30,7 +30,8 @@ The driver follows the design of that section rather than inventing its own:
 * **Gap.**  The quantity reported is the relative percentage gap of a method
   against the *baseline of the configuration*, which is fixed instance by
   instance: the value of the MILP model on the small configurations, and the
-  reference value W_max * sum_j (a_j + b_j) on the rest.  The latter is not a
+  reference value LB = w_n * max_i (sum_{k<=i} A_k + sum_{k>i} B_k) on the
+  rest.  The latter is not a
   schedule but a number, and it is computed by each algorithm on the instance it
   has just been handed (`instance_baseline()` of the algorithm modules), so
   nothing extra is run and the denominator is always the value of the very
@@ -109,7 +110,7 @@ WEIGHTS_LABEL = {"narrow": "K=2", "indep": "K=3", "corr": "K=9"}
 
 #: how the baseline of a configuration is written in the output: "milp" is the
 #: value of the model itself, "base" the reference value of the instance
-BASELINE_LABEL = {"milp": "MILP", "base": "W_max*sum(a_j+b_j)"}
+BASELINE_LABEL = {"milp": "MILP", "base": "LB (block cut)"}
 
 #: The configuration of paper Section 6 and Table 1, and the only place where it
 #: is written down: 16 configurations over three scales, 20 instances each, for
@@ -310,7 +311,8 @@ def run_scale(scale, methods, args, stream=sys.stdout):
         # that configuration, and it is obtained in one of two ways.  On the
         # small scale it is the value of the MILP model, so the model is run
         # first and its values are the denominator.  On the other two scales it
-        # is the reference value W_max * sum_j (a_j + b_j), which is a property of
+        # is the reference value LB = w_n * max_i (sum_{k<=i} A_k + sum_{k>i} B_k),
+        # which is a property of
         # the instance alone: every method computes it from the instance it has
         # just been handed -- see instance_baseline() of the algorithm modules --
         # so nothing extra has to be run at all.
@@ -352,7 +354,7 @@ def run_scale(scale, methods, args, stream=sys.stdout):
         for name in methods:
             label = METHODS[name][0]
             res = results[name]
-            denom = base_objs if base_objs is not None else res["bases"]
+            denom = base_objs if base_objs is not None else res.get("bases")
             gaps, missing = gaps_against(res["objs"], denom)
             hit = sum(1 for i, o in enumerate(res["objs"])
                       if o is not None and best_of_instance[i] is not None
@@ -376,7 +378,7 @@ def run_scale(scale, methods, args, stream=sys.stdout):
                 # gap formula can then be applied without repeating the run
                 "objs": res["objs"],
                 "times": res["times"],
-                "bases": res["bases"],
+                "bases": res.get("bases"),
                 "best_of_instance": best_of_instance,
             }
             records.append(rec)
@@ -430,7 +432,7 @@ def _header(scales, methods, args):
            ", ".join("%s=%s" % kv for kv in sorted(GA_SETTINGS.items()))),
         "gap against   : the baseline of each configuration "
                         "(MILP on the small scale, the reference value "
-                        "W_max*sum(a+b) elsewhere)",
+                        "LB = w_n*max_i(sum_{k<=i}A_k + sum_{k>i}B_k) elsewhere)",
         "seed          : %d (+1000*n, + weight setting)" % args.seed,
         "time limit    : %s s" % (args.time_limit if args.time_limit else "none"),
         "records       : %s" % getattr(args, "record_path", "-"),
@@ -470,9 +472,10 @@ def _scale_block(lines, scale, records, summary, args):
                          % ("-", r["n"], wl,
                             " ".join("none" if b is None else "%.1f" % b
                                      for b in r["best_of_instance"])))
-        lines.append("  %-5s %5d %-7s base  : %s"
-                     % (r["label"], r["n"], wl,
-                        " ".join("%.1f" % b for b in r["bases"])))
+        if r.get("bases") is not None:      # the exact methods carry no baseline
+            lines.append("  %-5s %5d %-7s base  : %s"
+                         % (r["label"], r["n"], wl,
+                            " ".join("%.1f" % b for b in r["bases"])))
         lines.append("  %-5s %5d %-7s objs  : %s"
                      % (r["label"], r["n"], wl,
                         " ".join("none" if o is None else "%.1f" % o
