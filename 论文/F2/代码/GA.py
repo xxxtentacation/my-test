@@ -13,8 +13,19 @@ no repair operator.  Decoding evaluates
     WCmax(sigma) = max_t w_{sigma(t)} C_{sigma(t)}
 
 in O(n) time with a single forward pass over the two machines (paper
-eq:completion).  Fitness is 1 / WCmax; only the ranking of fitness values is ever
-used, so its absolute scale is irrelevant.
+eq:completion).
+
+Objectives.  A schedule is judged by the pair
+
+    ( C_max(sigma), w_last(sigma) ),
+
+its makespan and the weight of the job that closes it, both to be minimized.
+The pair bounds the criterion from below, WCmax >= w_last * C_max, so the
+trade-off between the two is exactly the one the criterion rewards, and the
+population is carried forward by the non-dominated sorting and crowding
+distance of NSGA-II rather than by a single scalar fitness.  The schedule the
+algorithm reports is the one of smallest WCmax over the final population, which
+is also what the benchmark of the paper measures.
 
 Initial population.  N individuals: the three structured seeds, which already
 carry the two ingredients of a good schedule (small makespan, heavy jobs early),
@@ -233,11 +244,208 @@ def critical_job_mutation(sigma: Sequence[int], a: Sequence[float],
     return list(sigma)
 
 
+# ---------------------------------------------------------------------------
+# Bi-objective machinery
+#
+# A schedule carries two objectives, both to be minimized: its makespan C_max
+# and the weight w_last of the job that closes it.  They bound the criterion of
+# the paper from below, WCmax = max_j w_j C_j >= w_last * C_max, and the two
+# together carry its scale: the criterion is a weighted completion, so a search
+# that only pressed the makespan would leave the weights out of the account.
+# ---------------------------------------------------------------------------
+
+def objectives(order: Sequence[int], a: Sequence[float], b: Sequence[float],
+               w: Sequence[float]):
+    """The pair (C_max, w_last): makespan, and weight of the job closing it."""
+    c1 = c2 = 0.0
+    for j in order:
+        c1 += a[j]
+        c2 = max(c1, c2) + b[j]
+    return c2, w[order[-1]]
+
+
+def _dominates(p, q) -> bool:
+    """True when the pair p dominates q: no worse in both, better in one."""
+    return (p[0] <= q[0] and p[1] <= q[1]) and (p[0] < q[0] or p[1] < q[1])
+
+
+def _pareto_fronts(objs: Sequence[tuple]) -> List[List[int]]:
+    """
+    Fast non-dominated sorting of `objs`, the best front first.
+
+    Returns the index lists of the Pareto fronts; an individual of a front is
+    dominated by no individual of the fronts before it.
+    """
+    n = len(objs)
+    dominated_by = [0] * n
+    beats: List[List[int]] = [[] for _ in range(n)]
+    first: List[int] = []
+    for p in range(n):
+        for q in range(p + 1, n):
+            if _dominates(objs[p], objs[q]):
+                beats[p].append(q)
+                dominated_by[q] += 1
+            elif _dominates(objs[q], objs[p]):
+                beats[q].append(p)
+                dominated_by[p] += 1
+        if dominated_by[p] == 0:
+            first.append(p)
+    fronts, cur = [], first
+    while cur:
+        fronts.append(cur)
+        nxt: List[int] = []
+        for p in cur:
+            for q in beats[p]:
+                dominated_by[q] -= 1
+                if dominated_by[q] == 0:
+                    nxt.append(q)
+        cur = nxt
+    return fronts
+
+
+def _crowding(objs: Sequence[tuple], front: Sequence[int]) -> dict:
+    """Crowding distance of one front; the extremes of each objective are infinite."""
+    dist = {p: 0.0 for p in front}
+    if len(front) <= 2:
+        return {p: float("inf") for p in front}
+    for k in (0, 1):
+        line = sorted(front, key=lambda p: objs[p][k])
+        lo, hi = objs[line[0]][k], objs[line[-1]][k]
+        dist[line[0]] = dist[line[-1]] = float("inf")
+        if hi <= lo:
+            continue
+        for t in range(1, len(line) - 1):
+            dist[line[t]] += ((objs[line[t + 1]][k] - objs[line[t - 1]][k])
+                              / (hi - lo))
+    return dist
+
+
+def _rank_crowding(objs: Sequence[tuple]):
+    """Pareto rank and crowding distance of every individual, and the fronts."""
+    rank, crowd = {}, {}
+    fronts = _pareto_fronts(objs)
+    for f, front in enumerate(fronts):
+        dist = _crowding(objs, front)
+        for p in front:
+            rank[p] = f
+            crowd[p] = dist[p]
+    return rank, crowd, fronts
+
+
+def _nsga2_survive(objs: Sequence[tuple], N: int) -> List[int]:
+    """
+    Environmental selection of NSGA-II: the indices of the N survivors.
+
+    Whole fronts are kept while they fit; the front that overflows the budget is
+    cut by crowding distance, its least crowded individuals first.
+    """
+    _rank, crowd, fronts = _rank_crowding(objs)
+    keep: List[int] = []
+    for front in fronts:
+        if len(keep) + len(front) <= N:
+            keep.extend(front)
+        else:
+            need = N - len(keep)
+            keep.extend(sorted(front, key=lambda p: -crowd[p])[:need])
+            break
+    return keep
+
+
+def _initial_population(a: Sequence[float], b: Sequence[float],
+                        w: Sequence[float], N: int,
+                        rng: random.Random) -> List[List[int]]:
+    """The three structured seeds, then random permutations up to N individuals."""
+    n = len(a)
+    pop: List[List[int]] = [
+        johnson_order(a, b),                       # sigma^J
+        weight_descending_order(a, b, w),          # sigma^W
+        list(neh_heuristic(a, b, w)),              # sigma^NEH
+    ]
+    while len(pop) < N:
+        perm = list(range(n))
+        rng.shuffle(perm)
+        pop.append(perm)
+    return pop[:N]
+
+
+def _evolve(pop: List[List[int]], a: Sequence[float], b: Sequence[float],
+            w: Sequence[float], N: int, G: int, pc: float, pm: float,
+            rng: random.Random):
+    """
+    The NSGA-II loop: tournament on (rank, crowding), PMX, critical-job mutation,
+    and (mu + lambda) survival by non-dominated sorting.
+
+    Returns the population reached after G generations, its objective pairs, and
+    the best schedule on the criterion itself -- WCmax -- met along the way.  The
+    criterion is not one of the two objectives the survival ranks, so a schedule
+    that is excellent on it need not survive; tracking it separately is what lets
+    the algorithm report the best WCmax it saw rather than the best of the last
+    population.
+    """
+    n = len(a)
+    objs = [objectives(s, a, b, w) for s in pop]
+    elite = min(pop, key=lambda s: _wcmax_fast(s, a, b, w))
+    elite_val = _wcmax_fast(elite, a, b, w)
+    elite = list(elite)
+
+    for _ in range(G):
+        rank, crowd, _ = _rank_crowding(objs)
+
+        # Selection: binary tournament; the better (rank, crowding) wins.
+        pool: List[List[int]] = []
+        for _ in range(N):
+            i, j = rng.randrange(N), rng.randrange(N)
+            pick = i if (rank[i], -crowd[i]) <= (rank[j], -crowd[j]) else j
+            pool.append(pop[pick])
+
+        # Crossover: PMX, or the two parents copied.
+        offspring: List[List[int]] = []
+        while len(offspring) < N:
+            p1 = pool[rng.randrange(len(pool))]
+            p2 = pool[rng.randrange(len(pool))]
+            if n >= 2 and rng.random() < pc:
+                cut1, cut2 = rng.randrange(n), rng.randrange(n)
+                kids = [pmx(p1, p2, cut1, cut2), pmx(p2, p1, cut1, cut2)]
+            else:
+                kids = [list(p1), list(p2)]
+            for kid in kids:
+                if len(offspring) < N:
+                    offspring.append(kid)
+
+        # Mutation: Algorithm alg:cm on each offspring with probability pm.
+        for k in range(len(offspring)):
+            if rng.random() < pm:
+                offspring[k] = critical_job_mutation(offspring[k], a, b, w, pm, rng)
+
+        # The criterion of the paper, tracked on every offspring.
+        for s in offspring:
+            val = _wcmax_fast(s, a, b, w)
+            if val < elite_val:
+                elite, elite_val = list(s), val
+
+        # Survival: parents and offspring together, the best N of them.
+        combined = pop + offspring
+        all_objs = objs + [objectives(s, a, b, w) for s in offspring]
+        keep = _nsga2_survive(all_objs, N)
+        pop = [combined[i] for i in keep]
+        objs = [all_objs[i] for i in keep]
+    return pop, objs, elite, elite_val
+
+
 def ga(a: Sequence[float], b: Sequence[float], w: Sequence[float],
        N: Optional[int] = None, G: int = 30, pc: float = 0.9, pm: float = 0.1,
        lam: Optional[int] = None, seed: Optional[int] = None) -> List[int]:
     """
-    Genetic algorithm for F2 || WCmax  (Algorithm alg:ga).
+    Genetic algorithm for F2 || WCmax, second generation (Algorithm alg:ga).
+
+    The search is bi-objective: an individual is the pair made of its makespan
+    C_max and the weight w_last of its last job, and the population is carried
+    forward by the non-dominated sorting and crowding distance of NSGA-II, so
+    that the whole trade-off between the two is explored rather than a single
+    weighted value.  The two objectives bound the criterion of the paper from
+    below, WCmax >= w_last * C_max, and the schedule the algorithm reports is the
+    one minimizing WCmax over the final population, refined by the critical-job
+    local search of Step 3.
 
     Parameters
     ----------
@@ -246,14 +454,15 @@ def ga(a: Sequence[float], b: Sequence[float], w: Sequence[float],
     N       : population size (default 2n; the paper sets N = Theta(n)).
     G       : number of generations (default 30).  Calibrated in Section 6.1.2:
               raising G to 120 leaves the mean gap unchanged on every tested
-              configuration, so 30 generations already reach the GA's fixed point.
+              configuration, so 30 generations already reach the fixed point.
     pc      : crossover probability; with probability 1 - pc the two parents are
               copied into the offspring set unchanged.
     pm      : mutation probability.  Used twice, as in the paper: Algorithm
               alg:cm is applied to each offspring with probability pm, and its
               Step 3 fallback swap also uses pm.
-    lam     : elitism size (default N // 10): the best lam individuals of the
-              previous population survive into the next one.
+    lam     : elitism size.  Kept for the callers of the paper's run; the
+              survivors are now chosen by non-dominated sorting, which is
+              elitist by construction, so the argument no longer acts.
     seed    : optional random seed.
 
     Returns
@@ -275,70 +484,12 @@ def ga(a: Sequence[float], b: Sequence[float], w: Sequence[float],
 
     # ---- Step 1: initialization -------------------------------------------
     # The three structured seeds, then N - 3 uniform random permutations.
-    pop: List[List[int]] = [
-        johnson_order(a, b),                       # sigma^J
-        weight_descending_order(a, b, w),          # sigma^W
-        list(neh_heuristic(a, b, w)),              # sigma^NEH
-    ]
-    while len(pop) < N:
-        perm = list(range(n))
-        rng.shuffle(perm)
-        pop.append(perm)
-    pop = pop[:N]
-
-    fit = [_wcmax_fast(s, a, b, w) for s in pop]   # smaller is better
-    best_idx = min(range(len(pop)), key=lambda i: fit[i])
-    sigma_star: List[int] = list(pop[best_idx])
-    best_val = fit[best_idx]
+    pop = _initial_population(a, b, w, N, rng)
 
     # ---- Step 2: evolution -------------------------------------------------
-    for _g in range(G):
-        # Selection: binary tournament, pool of size N.  Only the ranking of
-        # fitness matters, so the pool stays selective as the population
-        # converges and the WCmax values of near-optimal schedules get close.
-        pool: List[List[int]] = []
-        for _ in range(N):
-            i1 = rng.randrange(len(pop))
-            i2 = rng.randrange(len(pop))
-            pool.append(pop[i1] if fit[i1] <= fit[i2] else pop[i2])
-
-        # Crossover.
-        offspring: List[List[int]] = []
-        while len(offspring) < N:
-            p1 = pool[rng.randrange(len(pool))]
-            p2 = pool[rng.randrange(len(pool))]
-            if n >= 2 and rng.random() < pc:
-                cut1 = rng.randrange(n)
-                cut2 = rng.randrange(n)
-                kids = [pmx(p1, p2, cut1, cut2), pmx(p2, p1, cut1, cut2)]
-            else:
-                kids = [list(p1), list(p2)]
-            for kid in kids:
-                if len(offspring) < N:
-                    offspring.append(kid)
-
-        # Mutation: Algorithm alg:cm on each offspring with probability pm.
-        for k in range(len(offspring)):
-            if rng.random() < pm:
-                offspring[k] = critical_job_mutation(
-                    offspring[k], a, b, w, pm, rng)
-        off_fit = [_wcmax_fast(s, a, b, w) for s in offspring]
-
-        # Replacement: the best lam of P_{g-1} plus the N - lam best offspring.
-        prev_best = sorted(range(len(pop)), key=lambda i: fit[i])[:lam]
-        off_best = sorted(range(len(offspring)), key=lambda i: off_fit[i])
-        new_pop = [list(pop[i]) for i in prev_best]
-        new_fit = [fit[i] for i in prev_best]
-        for i in off_best[:max(0, N - lam)]:
-            new_pop.append(offspring[i])
-            new_fit.append(off_fit[i])
-        pop, fit = new_pop, new_fit
-
-        # Update the incumbent.
-        best_idx = min(range(len(pop)), key=lambda i: fit[i])
-        if fit[best_idx] < best_val:
-            best_val = fit[best_idx]
-            sigma_star = list(pop[best_idx])
+    # NSGA-II on (C_max, w_last): fronts and crowding carry the selection, while
+    # the best schedule on the criterion itself is tracked alongside them.
+    pop, _objs, sigma_star, best_val = _evolve(pop, a, b, w, N, G, pc, pm, rng)
 
     # ---- Step 3: local search ---------------------------------------------
     # Apply Algorithm alg:cm to sigma* until it yields no improvement.  Passing
@@ -388,54 +539,75 @@ def weight_label(weights, K):
     return "all weights" if weights == "free" else "K=%s" % K
 
 
+#: what the record says about optimality, in the words of the live output of the
+#: drivers: True when the method closed the instance, False when it ran into the
+#: time limit, and None for a heuristic, which proves nothing about optimality
+STATUS = {True: "optimal", False: "time limit", None: "-"}
+
+
 def record_instance(path, n, weights, seed, idx, total, obj, seconds,
-                    K=None):
+                    K=None, proc_hi=PROC_HI, proved=None, base=None):
     """
     Append one line for a finished instance, and flush it at once.
 
     The line is written as soon as that instance is done, not when the whole
     benchmark is over, so that a run which is interrupted or killed still holds
     every instance it has already solved.  `path` may be a str or a Path; its
-    parent directory is created if it does not exist.
+    parent directory is created if it does not exist.  The fields are those of
+    the live line of the drivers -- label, n, weight setting, processing-time
+    range, instance, value, gap, status and running time -- preceded by the seed
+    of the instance and the moment it finished.  The gap is the one the method
+    reports on, `base` being the reference it computed for the instance; a
+    method that hands none, as the exact ones do, shows a dash there.
     """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as fh:
-        fh.write("%s  %-5s n=%-4d %-6s seed=%-7d instance %3d/%-3d  obj %-14s"
-                 " time %9.4f s\n"
+        fh.write("%s  %-5s n=%-4d %-6s %-7s | seed=%-7d | instance %2d/%-2d "
+                 "| value %-12s | gap %9s | %-10s %9s\n"
                  % (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), LABEL, n,
-                    weight_label(weights, K),
+                    weight_label(weights, K), "[%d,%d]" % (PROC_LO, proc_hi),
                     seed, idx, total,
-                    "none" if obj is None else "%.1f" % obj, seconds or 0.0))
+                    "none" if obj is None else "%.1f" % obj,
+                    "-" if obj is None or base is None or base == 0
+                    else "%+.2f%%" % (100.0 * (obj - base) / base),
+                    STATUS.get(proved, "-"), "%.2f s" % (seconds or 0.0)))
 
 
-def instance_baseline(a, b, w, order):
+def instance_baseline(a, b, w, order=None):
     """
-    The reference value of one instance, for the schedule `order`:
+    The reference value of one instance, the lower bound
 
-        LB = w_n * max_k ( sum_{i<=k} A_i + sum_{i>k} B_i ).
+        LB = max { LB_1, LB_2, LB_3 }
 
-    The jobs are grouped into the K weight blocks of the block structure of the
-    paper: one block per distinct weight, and the blocks are numbered by
-    non-increasing weight, W_1 > ... > W_K, so that block 1 is the heaviest of
-    them -- the same order the dynamic program builds its blocks in.  A_i and B_i
-    are the total processing times of block i on M1 and on M2, and the cut after
-    block k leaves M1 the first k blocks and M2 the remaining ones, so that on
-    any such cut the shop spends at least sum_{i<=k} A_i + sum_{i>k} B_i units
-    of time.  w_n is the weight of the last job of `order`.  That job completes
-    at C_max, so charging the busy time to it gives
-    W Cmax >= w_n * C_max >= w_n times that quantity.
+    of paper Section 4.3.  The jobs are taken in non-increasing order of weight,
+    so that no prefix S = {J_1, ..., J_j} of that order holds a weight below w_j,
+    and the three bounds read
 
-    It is computed from the instance the method has just been handed, not from a
-    regenerated copy of it, so the denominator of the gap is always the value of
-    the very instance that was solved.
+        LB_1 = max_j w_j * sum_{h in S} a_h,     the M1 work of the prefix,
+        LB_2 = max_j w_j * sum_{h in S} b_h,     its M2 counterpart,
+        LB_3 = max_j w_j * (a_j + b_j),          a single job on its own.
+
+    Each of them bounds WCmax from below.  For LB_1, the job of S that finishes
+    last on M1 completes no earlier than the M1 work of S and carries a weight of
+    at least w_j; LB_2 reads the same on M2; and no job completes before its own
+    two operations are done.  LB is therefore at most the optimum, which is what
+    makes every gap of the benchmark non-negative.
+
+    The value is a property of the instance alone: `order` is accepted for the
+    callers that still hand one in, and ignored, so that every method measured on
+    an instance is measured against the same reference.
     """
-    A, B = [], []
-    for value in sorted(set(w), reverse=True):      # W_1 > ... > W_K
-        jobs = [j for j in range(len(w)) if w[j] == value]
-        A.append(sum(a[j] for j in jobs))
-        B.append(sum(b[j] for j in jobs))
-    return w[order[-1]] * max(sum(A[:k]) + sum(B[k:]) for k in range(len(A) + 1))
+    jobs = sorted(range(len(w)), key=lambda j: -w[j])   # w_1 >= ... >= w_n
+    sa = sb = 0.0
+    lb1 = lb2 = lb3 = 0.0
+    for j in jobs:                                      # prefix S grows by J_j
+        sa += a[j]
+        sb += b[j]
+        lb1 = max(lb1, w[j] * sa)
+        lb2 = max(lb2, w[j] * sb)
+        lb3 = max(lb3, w[j] * (a[j] + b[j]))
+    return max(lb1, lb2, lb3)
 
 #: instance scales of paper Table 1: name -> (values of n, values of K)
 SCALES = {
@@ -473,16 +645,17 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     regime sorts the jobs by a_j + b_j and cuts that order into 9 equal classes,
     so that the heaviest jobs are also the longest; and the free regime draws
     them uniformly from {1, ..., n}, which places no bound on how many values
-    they take.  `geometric`, the ladder {1, 2, 4, ..., 2^(K-1)} used to stress
-    the weight-rounding argument of Section 4.4.2, is retained for compatibility
-    and takes precedence when set.
+    they take.  `geometric` draws them from the ladder {1, 10, ..., 10^(K-1)},
+    the rule of the small scale of paper Section 6.1, so that the K weight
+    classes are decades apart rather than neighbouring integers; it takes
+    precedence over `weights` when set.
     """
     if weights not in WEIGHT_SETTINGS:
         raise ValueError("unknown weight setting: %r" % (weights,))
     a = [rng.randint(PROC_LO, proc_hi) for _ in range(n)]
     b = [rng.randint(PROC_LO, proc_hi) for _ in range(n)]
     if geometric:
-        w = [1 << rng.randrange(K) for _ in range(n)]
+        w = [10 ** rng.randrange(K) for _ in range(n)]
     elif weights == "narrow":
         w = [rng.randint(1, K) for _ in range(n)]
     elif weights == "indep":
@@ -554,17 +727,19 @@ def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42,
             obj = _wcmax_fast(order, a, b, w)
             if obj < best:
                 best, best_order = obj, order
-        # the reference value of this instance for the schedule that
-        # is being reported on: its last job is the one that completes at
-        # C_max, and its weight is the w_n of the bound
+        # the reference value of this instance: the lower bound LB of paper
+        # Section 4.3, which the instance alone determines
         bases.append(None if best_order is None
                      else instance_baseline(a, b, w, best_order))
         objs.append(best)
         times.append(total / repeats)
         record_instance(log_path, n, weights, seed, idx + 1, instances,
-                        objs[-1], times[-1], K)   # on disk before the next instance
+                        objs[-1], times[-1], K,          # on disk before the next
+                        proc_hi=proc_hi, base=bases[-1])
         if progress is not None:          # live line for a long-running study
-            progress(idx + 1, instances, objs[-1], times[-1])
+            # a heuristic proves nothing about optimality, so the flag is None;
+            # the reference is the one the driver estimated for the instance
+            progress(idx + 1, instances, objs[-1], times[-1], None, bases[-1])
 
     return {
         "n": n, "K": K, "instances": instances,

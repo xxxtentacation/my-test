@@ -158,25 +158,39 @@ def weight_label(weights, K):
     return "all weights" if weights == "free" else "K=%s" % K
 
 
+#: what the record says about optimality, in the words of the live output of the
+#: drivers: True when the method closed the instance, False when it ran into the
+#: time limit, and None for a heuristic, which proves nothing about optimality
+STATUS = {True: "optimal", False: "time limit", None: "-"}
+
+
 def record_instance(path, n, weights, seed, idx, total, obj, seconds,
-                    K=None):
+                    K=None, proc_hi=PROC_HI, proved=None, base=None):
     """
     Append one line for a finished instance, and flush it at once.
 
     The line is written as soon as that instance is done, not when the whole
     benchmark is over, so that a run which is interrupted or killed still holds
     every instance it has already solved.  `path` may be a str or a Path; its
-    parent directory is created if it does not exist.
+    parent directory is created if it does not exist.  The fields are those of
+    the live line of the drivers -- label, n, weight setting, processing-time
+    range, instance, value, gap, status and running time -- preceded by the seed
+    of the instance and the moment it finished.  The gap is the one the method
+    reports on, `base` being the reference it computed for the instance; a
+    method that hands none, as the exact ones do, shows a dash there.
     """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as fh:
-        fh.write("%s  %-5s n=%-4d %-6s seed=%-7d instance %3d/%-3d  obj %-14s"
-                 " time %9.4f s\n"
+        fh.write("%s  %-5s n=%-4d %-6s %-7s | seed=%-7d | instance %2d/%-2d "
+                 "| value %-12s | gap %9s | %-10s %9s\n"
                  % (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), LABEL, n,
-                    weight_label(weights, K),
+                    weight_label(weights, K), "[%d,%d]" % (PROC_LO, proc_hi),
                     seed, idx, total,
-                    "none" if obj is None else "%.1f" % obj, seconds or 0.0))
+                    "none" if obj is None else "%.1f" % obj,
+                    "-" if obj is None or base is None or base == 0
+                    else "%+.2f%%" % (100.0 * (obj - base) / base),
+                    STATUS.get(proved, "-"), "%.2f s" % (seconds or 0.0)))
 
 
 #: instance scales of paper Table 1: name -> (values of n, values of K)
@@ -215,16 +229,17 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     regime sorts the jobs by a_j + b_j and cuts that order into 9 equal classes,
     so that the heaviest jobs are also the longest; and the free regime draws
     them uniformly from {1, ..., n}, which places no bound on how many values
-    they take.  `geometric`, the ladder {1, 2, 4, ..., 2^(K-1)} used to stress
-    the weight-rounding argument of Section 4.4.2, is retained for compatibility
-    and takes precedence when set.
+    they take.  `geometric` draws them from the ladder {1, 10, ..., 10^(K-1)},
+    the rule of the small scale of paper Section 6.1, so that the K weight
+    classes are decades apart rather than neighbouring integers; it takes
+    precedence over `weights` when set.
     """
     if weights not in WEIGHT_SETTINGS:
         raise ValueError("unknown weight setting: %r" % (weights,))
     a = [rng.randint(PROC_LO, proc_hi) for _ in range(n)]
     b = [rng.randint(PROC_LO, proc_hi) for _ in range(n)]
     if geometric:
-        w = [1 << rng.randrange(K) for _ in range(n)]
+        w = [10 ** rng.randrange(K) for _ in range(n)]
     elif weights == "narrow":
         w = [rng.randint(1, K) for _ in range(n)]
     elif weights == "indep":
@@ -276,22 +291,26 @@ def benchmark(n=8, K=2, instances=INSTANCES_PER_CONFIG, seed=42,
         a, b, w = gen_instance(n, K, rng, geometric, weights, proc_hi)
         best = float("inf")
         total = 0.0
+        proved = False                    # whether this instance was closed
         for _ in range(repeats):
             t0 = time.perf_counter()
             res = solve_milp(a, b, w, time_limit=time_limit, threads=threads)
             total += time.perf_counter() - t0
             if res["obj"] is None:
                 failed += 1
+                proved = False
                 break
-            if res["status_str"] == "OPTIMAL":
+            proved = (res["status_str"] == "OPTIMAL")
+            if proved:
                 optimal += 1
             best = min(best, res["obj"])
         objs.append(best if best < float("inf") else None)
         times.append(total / repeats if best < float("inf") else None)
         record_instance(log_path, n, weights, seed, idx + 1, instances,
-                        objs[-1], times[-1], K)   # on disk before the next instance
+                        objs[-1], times[-1], K,          # on disk before the next
+                        proc_hi=proc_hi, proved=proved)
         if progress is not None:          # live line for a long-running study
-            progress(idx + 1, instances, objs[-1], times[-1])
+            progress(idx + 1, instances, objs[-1], times[-1], proved)
 
     vals = [o for o in objs if o is not None]
     secs = [t for t in times if t is not None]

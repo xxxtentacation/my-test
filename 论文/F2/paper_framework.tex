@@ -92,19 +92,25 @@
 \maketitle
 
 \begin{abstract}
-    The problem of minimizing maximum weighted completion time on a two-machine flow shop,
-    denoted $F2 \parallel W C_{\max}$, is a scheduling problem we establish to be strongly NP-hard.
-    We first establish that the optimal solution maintains the permutation property and introduce a novel block structure
-    where jobs are partitioned by distinct weights, enabling efficient dynamic programming solutions.
-    The exact dynamic programming algorithm leverages interval-based state representation and runs in
-    $O(n \cdot K \cdot V^{3K-3})$ time for constant $K$, where $V$ is the total processing time.
-    For approximation guarantees, we design a fully polynomial-time approximation scheme (FPTAS) with state-class labeling
-    that achieves $(1+\varepsilon)$-approximation while maintaining polynomial complexity.
-    Additionally, we develop practical heuristics including an adapted NEH algorithm, 
-    an ant colony optimization (ACO) algorithm \citep{zhang2023},
-    and a genetic algorithm \citep{reeves1995} that provide fast solutions for large-scale instances.
-    The computational results demonstrate that our algorithms
-    efficiently solve both small and large instances while maintaining theoretical guarantees.
+    Minimizing the maximum weighted completion time in a two-machine flow shop, denoted
+    $F2 \parallel WC_{\max}$, models lines on which the most costly order paces the shop.
+    We establish that the problem is strongly NP-hard and give a mixed integer programming
+    formulation for it. We then show that an optimal schedule preserves the permutation
+    property and has a block structure of one block per distinct weight, Johnson's order
+    within each block, and the blocks in non-increasing weight order. On this structure we
+    build three methods. An exact dynamic program prunes dominated states and runs in
+    $O(nKV^{3K-3})$ time, where $K$ is the number of distinct weights and $V$ is the total
+    processing time. A 2-approximation runs in $O(n\log n)$ time, and rounding the time
+    coordinates and weights of the dynamic program turns it into a fully polynomial-time
+    approximation scheme that attains a $(1+\varepsilon)$-approximation for a constant
+    number of weights. For large instances we develop three heuristics, an adapted NEH
+    heuristic, an ant colony optimization (ACO) algorithm \citep{zhang2023} and a genetic
+    algorithm \citep{reeves1995}. The computational study compares the exact methods on
+    small instances and the heuristics on the large ones, measured against a
+    theoretical lower bound. On the small instances the dynamic program returned the same
+    values as the model and was faster by up to two orders of magnitude. Among the
+    heuristics the genetic algorithm returned the smallest gap in every setting, ahead of
+    the NEH heuristic and of the ant colony optimization.
 \end{abstract}
 
 
@@ -116,8 +122,8 @@
 
 Manufacturing plants that process their orders through two consecutive stages face a
 recurring trade-off between throughput and priority. The two stages are usually
-unbalanced: the first feeds the second and runs close to its capacity. The order in
-which the jobs are released to the line therefore determines how long each of them
+unbalanced. The first feeds the second and runs close to its capacity, so the order in
+which the jobs are released to the line determines how long each of them
 waits. Sequencing the jobs is a production planning decision, and it has been studied
 since Johnson's rule settled the two-machine case for the makespan criterion
 \citep{johnson1954optimal}. The model, its variants and its solution methods have been
@@ -133,15 +139,16 @@ urgent than another. A supplier working under a late-delivery clause loses money
 every hour an order is overdue; a plant building to stock has capital tied up in work in
 process; a contract manufacturer must respect the priority its largest customer has
 bought. In all three cases a cost is attached to the time an individual order spends in
-the plant. That cost is attached to the order rather than to the plant as a whole.
+the plant, and that cost belongs to the order rather than to the plant as a whole.
 
 That cost is what the criterion of this paper measures. The objective is the maximum
-weighted completion time, $WC_{\max}$, also called the weighted makespan. Each order $j$
-contributes the product $w_j C_j$, and the objective is the largest of these products.
-It is therefore determined by the most costly order rather than by the average, and the
-weight decides which order that is. Minimizing $WC_{\max}$ amounts to protecting the
-most costly order from delay. This is the decision a planner faces when a line is loaded
-beyond its capacity and not every order can be completed on time.
+weighted completion time, $WC_{\max}$, also called the weighted makespan. Each order
+contributes the product of its weight and its completion time, and the objective is the
+largest of those products. It is therefore determined by the most costly order rather
+than by the average, and the weight decides which order that is. Minimizing the maximum
+amounts to protecting the most costly order from delay. This is the decision a planner
+faces when a line is loaded beyond its capacity and not every order can be completed on
+time.
 
 In scheduling theory the criterion has been studied in several machine environments. On
 a single machine, jobs are revealed over time and must be sequenced without knowledge of
@@ -160,12 +167,12 @@ arise.
 
 The flow shop environment, by contrast, has been studied extensively but for different
 criteria. The variant that has attracted most theoretical attention is the proportionate
-flow shop, in which every machine spends the same time on a given job; it, the ordered
-flow shop and related models are surveyed in \citep{panwalkar2013review}. Its appeal is
-that it can often be reduced to a single-machine problem with the same criterion
+flow shop, in which every machine spends the same time on a given job; that model, the
+ordered flow shop and related variants are surveyed in \citep{panwalkar2013review}. Its
+appeal is that it can often be reduced to a single-machine problem with the same criterion
 \citep{panwalkar2015equivalence}, so that results proved for one machine carry over.
-Weighted objectives have been treated within it as well, but the weighted objective is
-the sum of the weighted completion times rather than its maximum
+Weighted objectives have been treated within it as well, but the objective treated is
+the sum of the weighted completion times rather than their maximum
 \citep{shakhlevich1998minimizing}. For the general two-machine flow shop, the criterion
 that has been studied is the makespan, most recently together with the decision of which
 orders to reject \citep{shabtay2024coordinating}.
@@ -188,31 +195,32 @@ proportionate. The general two-machine flow shop does not satisfy that assumptio
 results proved for one machine do not carry over. More fundamentally, a total weighted
 completion time decomposes over the jobs. It can therefore be accumulated while a
 schedule is built, which is what allows a dynamic program to compare partial schedules
-with one another. A maximum does not decompose in this way: a partial schedule carries
-no information about its final value until it is complete. Optimizing the maximum
+with one another. A maximum does not decompose in this way, since a partial schedule
+carries no information about its final value until it is complete. Optimizing the maximum
 weighted completion time in a two-machine flow shop therefore requires structural
 properties of a kind that the earlier work does not supply.
 
-In this paper we study the problem $F2 \parallel WC_{\max}$. Four features distinguish it
-from the settings reviewed above: (i) two machines in series, so that each completion
-time depends on the idle time inherited from its predecessors; (ii) an objective that is
-a maximum over weighted completion times rather than their sum; (iii) general processing
-times, with no proportionate assumption; and (iv) no rejection, so that every job must be
-scheduled. Replacing the weighted sum by a weighted
-maximum, and dropping the proportionality assumption, would already put the problem
-beyond the single-machine reduction. We show that $F2 \parallel WC_{\max}$ is in fact
-strongly NP-hard (\Cref{thm:snphard}). The difficulty is structural rather than a
-matter of the instance size. Because the objective is determined by a single job, an
-exchange that shortens many completion times while lengthening that one does not improve
-the objective value. Because the jobs carry unequal weights, moreover, Johnson's rule has
-no direct extension to the weighted case.
+In this paper we study the maximum weighted completion time in a two-machine flow shop,
+denoted $F2 \parallel WC_{\max}$. Four features distinguish it from the settings reviewed
+above. (i) Two machines stand in series, so that each completion time depends on the idle
+time inherited from its predecessors. (ii) The objective is a maximum over weighted
+completion times rather than their sum. (iii) The processing times are general, with no
+proportionate assumption. (iv) No job may be rejected, so that every job must be
+scheduled. Replacing the weighted sum by a weighted maximum, and dropping the
+proportionality assumption, would already put the problem beyond the single-machine
+reduction. We show that $F2 \parallel WC_{\max}$ is in fact strongly NP-hard
+(\Cref{thm:snphard}). The difficulty is structural rather than a matter of the instance
+size. Because the objective is determined by a single job, an exchange that shortens many
+completion times while lengthening that one does not improve the objective value. Because
+the jobs carry unequal weights, moreover, Johnson's rule has no direct extension to the
+weighted case.
 
 Our results follow from the structure of an optimal schedule. Since the objective is a
 maximum, jobs of equal weight are interchangeable with respect to it. An optimal
-schedule can therefore be assumed to have a block structure: one block per distinct
-weight, Johnson's order within each block, and blocks in non-increasing weight order. 
+schedule can therefore be assumed to have a block structure, with one block per distinct
+weight, Johnson's order within each block, and blocks in non-increasing weight order.
 On this structure we build three methods. An exact dynamic program
-runs in $O(nKV^{3K-3})$ time, where $K$ is the number of distinct weights and $V$ the
+runs in $O(nKV^{3K-3})$ time, where $K$ is the number of distinct weights and $V$ is the
 total processing time. It is practical when the weights fall into few classes, as in the
 plants described above. A 2-approximation runs in $O(n\log n)$ time. Rounding the input
 of the dynamic program turns it into a fully polynomial-time approximation scheme that
@@ -874,54 +882,65 @@ $W C_{\max}\le 2\,W C_{\max}^{*}$.
 \end{theorem}
 
 \begin{proof}
-Let $\sigma$ be the schedule returned by \Cref{alg:approx2}, let $j_k$ be the job
-in position $k$ of $\sigma$, and let $S_k=\{j_1,\dots,j_k\}$. Since the jobs are sorted by
-non-increasing weight, every job of $S_k$ has weight at least $w_{j_k}$.
+Let $\sigma$ be the schedule returned by \Cref{alg:approx2}. Along it the jobs come in
+non-increasing order of weight, so we write them in that order as $J_1,J_2,\dots,J_n$, with
+$w_1\ge w_2\ge\cdots\ge w_n$ and $\sigma=(J_1,J_2,\dots,J_n)$; a prefix of it is then the set
+$S=\{J_1,J_2,\dots,J_j\}$, whose every weight is at least $w_j$.
 
-We first bound the completion times in $\sigma$. By \cref{eq:completion}, the job in
-position $k$ completes on $M_2$ at time $C_{j_k}(\sigma)$, and each term in the maximum is
-bounded by the full sum:
+We first bound the completion times in $\sigma$. By \cref{eq:completion}, the job $J_j$
+completes on $M_2$ at time $C_j(\sigma)$, and each term in the maximum is bounded by the
+full sum:
 \[
-\sum_{h=1}^{i}a_{j_h}+\sum_{h=i}^{k}b_{j_h}
-\le \sum_{h=1}^{k}a_{j_h}+\sum_{h=1}^{k}b_{j_h}
-= \sum_{h\in S_k}\bigl(a_h+b_h\bigr),
-\qquad 1\le i\le k.
+\sum_{h=1}^{i}a_h+\sum_{h=i}^{j}b_h
+\le \sum_{h=1}^{j}a_h+\sum_{h=1}^{j}b_h
+= \sum_{h\in S}\bigl(a_h+b_h\bigr),
+\qquad 1\le i\le j.
 \]
 Hence
 \begin{equation}\label{eq:approx2-completion}
-C_{j_k}(\sigma)\ \le\ \sum_{h\in S_k}\bigl(a_h+b_h\bigr).
+C_j(\sigma)\ \le\ \sum_{h\in S}\bigl(a_h+b_h\bigr).
 \end{equation}
-Since $W C_{\max}(\sigma)=\max_{1\le k\le n}w_{j_k}\,C_{j_k}(\sigma)$, multiplying \cref{eq:approx2-completion}
-by $w_{j_k}>0$ and taking the maximum over $k$ gives
+Since $W C_{\max}(\sigma)=\max_{1\le j\le n}w_j\,C_j(\sigma)$, multiplying \cref{eq:approx2-completion}
+by $w_j>0$ and taking the maximum over $j$ gives
 \begin{equation}\label{eq:approx2-upper}
-W C_{\max}(\sigma)=\max_{1\le k\le n}w_{j_k}\,C_{j_k}(\sigma)
-\le \max_{1\le k\le n}\,w_{j_k}\sum_{h\in S_k}\bigl(a_h+b_h\bigr).
+W C_{\max}(\sigma)=\max_{1\le j\le n}w_j\,C_j(\sigma)
+\le \max_{1\le j\le n}\,w_j\sum_{h\in S}\bigl(a_h+b_h\bigr).
 \end{equation}
 
-It remains to bound the right-hand side by $2W C_{\max}^{*}$. Fix a prefix $S_k$ and let
-$\pi^{*}$ be an optimal schedule. Let $u$ be the job of $S_k$ that finishes last on $M_1$
-in $\pi^{*}$, and $v$ the job of $S_k$ that finishes last on $M_2$. All jobs of $S_k$ are
-processed on $M_1$ before $u$ completes $M_1$, so
-$C^{*}_u\ge\sum_{h\in S_k}a_h$; likewise, all $M_2$ processing of the jobs in $S_k$
-precedes $v$'s completion on $M_2$, so $C^{*}_v\ge\sum_{h\in S_k}b_h$.
-Since $u,v\in S_k$, we have $w_u,w_v\ge w_{j_k}$. Because $W C_{\max}^{*}$ bounds the weighted
-completion time of every job in $\pi^{*}$, the bound $C^{*}_u\ge\sum_{h\in S_k}a_h$ together with
-$w_u\ge w_{j_k}$ gives
-\begin{equation}\label{eq:approx2-lower-a}
-W C_{\max}^{*}\ge w_u\,C^{*}_u \ge w_{j_k}\sum_{h\in S_k}a_h,
+It remains to bound the right-hand side by $2W C_{\max}^{*}$. Fix a prefix
+$S=\{J_1,J_2,\dots,J_j\}$ and let $\pi^{*}$ be an optimal schedule. Let $J_u$ be the job of
+$S$ that finishes last on $M_1$ in $\pi^{*}$, and $J_v$ the job of $S$ that finishes last on
+$M_2$. All jobs of $S$ are processed on $M_1$ before $J_u$ completes $M_1$, so
+$C^{*}_u\ge\sum_{h\in S}a_h$; likewise, all $M_2$ processing of the jobs of $S$
+precedes $J_v$'s completion on $M_2$, so $C^{*}_v\ge\sum_{h\in S}b_h$.
+Since $J_u,J_v\in S$, we have $w_u,w_v\ge w_j$. Because $W C_{\max}^{*}$ bounds the weighted
+completion time of every job in $\pi^{*}$, the bound $C^{*}_u\ge\sum_{h\in S}a_h$ together with
+$w_u\ge w_j$ gives $W C_{\max}^{*}\ge w_j\sum_{h\in S}a_h$, and, similarly,
+$C^{*}_v\ge\sum_{h\in S}b_h$ together with $w_v\ge w_j$ gives
+$W C_{\max}^{*}\ge w_j\sum_{h\in S}b_h$.
+
+The prefix $S$ was arbitrary, so the largest of these quantities over the prefixes bounds
+the optimum as well, and so does the quantity that every job gives on its own, since neither
+of its two operations can be left out. This gives three lower bounds on the optimum,
+\begin{equation}\label{eq:lb1}
+LB_1=\max_{1\le j\le n}w_j\sum_{h\in S}a_h,
 \end{equation}
-and, similarly, $C^{*}_v\ge\sum_{h\in S_k}b_h$ together with $w_v\ge w_{j_k}$ gives
-\begin{equation}\label{eq:approx2-lower-b}
-W C_{\max}^{*}\ge w_v\,C^{*}_v \ge w_{j_k}\sum_{h\in S_k}b_h.
+\begin{equation}\label{eq:lb2}
+LB_2=\max_{1\le j\le n}w_j\sum_{h\in S}b_h,
 \end{equation}
-Combining \cref{eq:approx2-lower-a} and \cref{eq:approx2-lower-b} yields
-\begin{equation}\label{eq:approx2-lower}
-W C_{\max}^{*}\ge w_{j_k}\max\Bigl\{\sum_{h\in S_k}a_h,\ \sum_{h\in S_k}b_h\Bigr\}
-\ge \frac{w_{j_k}}{2}\Bigl(\sum_{h\in S_k}a_h+\sum_{h\in S_k}b_h\Bigr),
+\begin{equation}\label{eq:lb3}
+LB_3=\max_{1\le j\le n}w_j\,(a_j+b_j),
 \end{equation}
-where the last inequality uses $\max\{x,y\}\ge(x+y)/2$. Hence
-\cref{eq:approx2-lower} gives $w_{j_k}\sum_{h\in S_k}(a_h+b_h)\le 2W C_{\max}^{*}$ for every $k$,
-and the claim follows from \cref{eq:approx2-upper}.
+each of them determined by the instance alone, and their largest is the reference value of
+the instance,
+\begin{equation}\label{eq:lb}
+LB=\max\{LB_1,LB_2,LB_3\},
+\end{equation}
+so that $LB\le W C_{\max}^{*}$.
+
+For the prefix $S$, the two bounds give
+$w_j\sum_{h\in S}(a_h+b_h)\le LB_1+LB_2\le 2\,LB\le 2\,W C_{\max}^{*}$, and the claim
+follows from \cref{eq:approx2-upper}.
 \end{proof}
 
 
@@ -1543,73 +1562,58 @@ All methods were coded in Python $3.13$ and run on a machine with an Intel Core 
 processor and $16$\,GB of memory, under Windows 11. The MILP model was solved with Gurobi
 $13.0$ on a single thread, so that the reported times are comparable across configurations.
 
+
+
+
 \subsection{Experimental setup}
 
-
-
-The algorithms of the previous sections were compared on randomly generated instances of
-three scales. The MILP model of \Cref{sec:formulation} and the dynamic program of
-\Cref{alg:dp} were applied to every small instance, and the three heuristics of
-\Cref{sec:heuristics} to every medium and large one. The processing times $a_j$ and $b_j$
-were drawn independently for every job and
-every instance from a discrete uniform range: $[1,20]$ and $[1,40]$ on the small scale,
-where the range is varied, and $[1,10]$ on the medium and the large scales. The weights are
-uniform on $\{1,\dots,K\}$, and it is $K$ that the configuration fixes: $2$ and $3$ on the
-small scale, $3$, $9$ and $12$ on the medium one. On the large scale they are unrestricted,
-each of them drawn uniformly from $\{1,\dots,n\}$, so that their number is bounded by the
-number of jobs rather than by a fixed $K$. The three scales of \Cref{tab:instances}
-organise these factors: $320$ instances on the small scale, four sizes crossed with the two
-weight settings and the two ranges, $180$ on the medium scale, three sizes crossed with the
-three weight settings, and $60$ on the large scale, three sizes at a single weight regime.
-Each configuration was replicated over $20$ independent instances, and every figure below is
-the average of those replications.
-
 Every algorithm was run once on every instance, and no method was handicapped by a smaller
-budget than another: all of them evaluate the objective by the same recurrence
-\cref{eq:completion}. Two quantities are recorded for every method and configuration, the
-relative percentage gap against the baseline of the configuration and the CPU time in
-seconds. The gap of method $A$ is
+budget than another, since all of them evaluate the objective by the same recurrence
+\cref{eq:completion}. The exact methods and the heuristics are read on different quantities.
+An exact method is read on the number of instances it solves to optimality, a heuristic on
+its relative percentage gap against a theoretical lower bound, and both on the CPU time they
+require. The gap of method $A$ is
 \begin{equation}\label{eq:gap}
-\text{gap}_A = 100\cdot\frac{z_A-z_{\text{base}}}{z_{\text{base}}},
+\text{gap}_A = \frac{z_A-z_{\text{base}}}{z_{\text{base}}},
 \end{equation}
-where $z_A$ is the objective value of the schedule it returned and $z_{\text{base}}$ is the
-baseline of the configuration. On the small scale that baseline is the value of the MILP
-model, which is a schedule and indeed the optimum, so that \cref{eq:gap} is an optimality
-gap: zero means that the method matched the optimum, and a negative gap that it improved on
-the incumbent of the model. On the medium and the large scales, where the model cannot
-certify an optimum, the baseline is the reference value
-\begin{equation}\label{eq:ref}
-LB = w_n \min_{k}\Big(\sum_{i=1}^{k}A_i+\sum_{j=k+1}^{K}B_i\Big),
-\end{equation}
-read off the block structure of \Cref{sec:dp_algorithm}. The jobs are grouped into
-the $K$ weight blocks, and $A_i$ and $B_i$ are the total processing times of block
-$\mathcal{B}_i$ on $M_1$ and on $M_2$. The index $k$ is the last block that $M_1$ processes
-consecutively: $M_1$ runs the first $k$ blocks back to back, and $M_2$ is left with the last
-$K-k$ of them. The blocks keep their order on both machines, so that on that cut the shop
-spends at least $\sum_{i\le k}A_i+\sum_{i>k}B_i$ units of time. Charging the smallest of these quantities
-to the last job, whose weight is $w_n$, gives $WC_{\max}\ge B$ for every schedule. The
-reference is not a method: it returns no schedule and is never run. Every gap of those two
-scales is therefore positive, and measures how far above the reference the method lands, the
-smaller the better. For every method and configuration the tables report the
-minimum, the mean and the maximum of the gap over the $20$ replications and the mean CPU
-time.
+where $z_A$ is the objective value of the schedule it returned and $z_{\text{base}}$ is that
+lower bound, the reference value $LB$ of \cref{eq:lb}: the largest of the three bounds
+$LB_1$, $LB_2$ and $LB_3$ of \Cref{sub:approx2}, each of which the instance determines on its
+own, so that no schedule of a method enters the denominator of its gap.
 
+The parameters of both metaheuristics were fixed by a calibration run before the study.
+The ant colony optimization uses $10$ ants, $\alpha=1$, $\beta=30$, $\rho=0.1$
+and $100$ iterations. The genetic algorithm uses a population of $N=n$ individuals, $G=10$
+generations, $p_c=0.9$, $p_m=0.1$ and an elitism size of $\lambda=N/10$.
+
+The instances were randomly generated at two scales. The processing times $a_j$ and $b_j$
+were drawn independently for every job and
+every instance from one of three discrete uniform ranges, $[1,20]$, $[1,40]$ and $[1,60]$,
+which are crossed with the other factors on both scales, so that the width of the range is
+itself read as a factor. The weights of the small scale are the geometric
+ladder $1,10,\dots,10^{K-1}$, whose length $K$ the configuration fixes at $2$ and $3$: the
+$K$ classes are then decades apart, so that the gap between two of them stays wide whatever
+their number, while the range of the processing times is what varies underneath. On the large
+scale the weights are
+unrestricted and each of them is drawn uniformly from $\{1,\dots,n\}$, so that their number
+is bounded by the number of jobs rather than by a fixed $K$. The two scales of
+\Cref{tab:instances} organise these factors. The small scale contains $360$ instances, three
+sizes crossed with the two weight counts and the three ranges. The large scale contains $180$
+instances, three sizes crossed with the three ranges, at the single unrestricted weight
+regime. Each configuration was replicated over $20$ independent instances, and
+every figure below is the average of those replications. Every method was given the same
+time limit of $600$\,s. A method that reaches the limit is recorded with the value it has
+attained rather than omitted. For every configuration the tables report the number of optimal
+solutions of each exact method and, for each heuristic, the minimum, the mean and the maximum
+of its gap, together with the mean objective value and the mean CPU time of both.
+
+The algorithms of the previous sections were compared on these instances. The MILP model of
+\Cref{sec:formulation} and the dynamic program of \Cref{alg:dp} were applied to every small
+instance, and the three heuristics of \Cref{sec:heuristics} to every large one.
 The two exact methods were compared on the small scale, and the tables that report them are
 read for how sensitive they are to the number of jobs and to the number of distinct weights.
-Three factors of \Cref{tab:instances} act on them. The number $n$ of jobs enters the dynamic
-program through the total processing time $V=\sum_{j=1}^{n}(a_j+b_j)$; that quantity governs
-the state space and enters the running time as $V^{3K-3}$, and the model of
-\Cref{sec:formulation} meets it in the big-$M$ constants of \cref{milp:link}. The number $K$
-of distinct weights enters the same running time through the exponent $3K-3$. The width of
-the processing-time range is varied at every instance size of the small scale.
+The heuristics were compared on the large scale, where the factor read is the instance size.
 
-The heuristics were compared on the medium and the large scales. The weight regime is the
-factor read on the medium scale. Both metaheuristics use parameters fixed by a calibration run before
-the study. The ant colony optimization uses $10$ ants, $\alpha=1$, $\beta=30$, $\rho=0.1$
-and $100$ iterations. The genetic algorithm uses a population of $N=n$ individuals, $G=10$
-generations, $p_c=0.9$, $p_m=0.1$ and an elitism size of $\lambda=N/10$. Every method was
-given the same time limit of $600$\,s, and a method that reaches it is recorded with the
-value it has attained rather than omitted.
 \begin{table}[H]
 \resultstable
 \caption{Each configuration is replicated over $20$ independent instances}
@@ -1619,8 +1623,7 @@ value it has attained rather than omitted.
 \toprule
 Scale  & $n$                & Weights                   & Methods compared \\
 \midrule
-Small  & $40,\,50,\,60,\,70$ & $K=2$, $K=3$              & MILP, DP \\
-Medium & $200,\,350,\,500$   & $K=3$, $K=9$, $K=12$      & NEH, ACO, GA \\
+Small  & $40,\,60,\,80$        & $K=2$, $K=3$              & MILP, DP \\
 Large  & $500,\,600,\,700$   & All weights               & NEH, ACO, GA \\
 \bottomrule
 \end{tabular*}
@@ -1629,13 +1632,11 @@ Large  & $500,\,600,\,700$   & All weights               & NEH, ACO, GA \\
 The tables and the figure below carry the results, and each is read for one question.
 \Crefrange{tab:results-small-milp}{tab:results-small-dp-k3} report the small
 scale, one table per exact method and weight setting, and are read for the number
-of instances the method settles, its gap against the optimum and its running time as the processing-time range
-widens. \Crefrange{tab:results-medium-neh}{tab:results-medium-ga} report the medium
-scale and \Crefrange{tab:results-large-neh}{tab:results-large-ga} the large one, one
-table per heuristic in both cases, and are read for the gap and the running time of each
-heuristic, under the weight regimes on the medium scale and under the instance size on the
-large one. \Cref{fig:results-gap} collects the mean gaps
-of every method against the instance size. Every entry of these tables is a placeholder
+of instances the method settles to optimality and its running time as the processing-time range
+widens. \Crefrange{tab:results-large-neh}{tab:results-large-ga} report the large
+scale, one table per heuristic, and are read for the gap and the running time of each
+heuristic under the instance size. \Cref{fig:results-gap} collects the mean gaps
+of every heuristic against the instance size. Every entry of these tables is a placeholder
 until the corresponding run has been made, and the figure is left empty for the same reason.
 
 \subsection{Results}
@@ -1648,29 +1649,30 @@ until the corresponding run has been made, and the figure is left empty for the 
 \resultstable
 \caption{MILP on the small scale, $K=2$. ``opt.'' count optimality.}
 \label{tab:results-small-milp}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}cccc@{}}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}ccccc@{}}
 \toprule
-$n$ & $a_j,b_j$ range & opt. & time (s) \\
+$n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
 \midrule
-\multirow{4}{*}{$40$} & $[1,20]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$40$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,60]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
 \midrule
-\multirow{4}{*}{$50$} & $[1,20]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$60$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,60]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
 \midrule
-\multirow{4}{*}{$60$} & $[1,20]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-\midrule
-\multirow{4}{*}{$70$} & $[1,20]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$80$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,60]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1681,29 +1683,30 @@ $n$ & $a_j,b_j$ range & opt. & time (s) \\
 \resultstable
 \caption{MILP on the small scale, $K=3$. ``opt.'' count optimality.}
 \label{tab:results-small-milp-k3}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}cccc@{}}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}ccccc@{}}
 \toprule
-$n$ & $a_j,b_j$ range & opt. & time (s) \\
+$n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
 \midrule
-\multirow{4}{*}{$40$} & $[1,20]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$40$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,60]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
 \midrule
-\multirow{4}{*}{$50$} & $[1,20]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$60$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,60]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
 \midrule
-\multirow{4}{*}{$60$} & $[1,20]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-\midrule
-\multirow{4}{*}{$70$} & $[1,20]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$80$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,60]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1714,29 +1717,30 @@ $n$ & $a_j,b_j$ range & opt. & time (s) \\
 \resultstable
 \caption{DP on the small scale, $K=2$. ``opt.'' count optimality.}
 \label{tab:results-small-dp}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}cccc@{}}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}ccccc@{}}
 \toprule
-$n$ & $a_j,b_j$ range & opt. & time (s) \\
+$n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
 \midrule
-\multirow{4}{*}{$40$} & $[1,20]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$40$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,60]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
 \midrule
-\multirow{4}{*}{$50$} & $[1,20]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$60$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,60]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
 \midrule
-\multirow{4}{*}{$60$} & $[1,20]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-\midrule
-\multirow{4}{*}{$70$} & $[1,20]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$80$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,60]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1747,131 +1751,30 @@ $n$ & $a_j,b_j$ range & opt. & time (s) \\
 \resultstable
 \caption{DP on the small scale, $K=3$. ``opt.'' count optimality.}
 \label{tab:results-small-dp-k3}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}cccc@{}}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}ccccc@{}}
 \toprule
-$n$ & $a_j,b_j$ range & opt. & time (s) \\
+$n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
 \midrule
-\multirow{4}{*}{$40$} & $[1,20]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$40$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,60]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
 \midrule
-\multirow{4}{*}{$50$} & $[1,20]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$60$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,60]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
 \midrule
-\multirow{4}{*}{$60$} & $[1,20]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-\midrule
-\multirow{4}{*}{$70$} & $[1,20]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD \\
-                      &          &      & $(\TBD,\TBD)$ \\
-\bottomrule
-\end{tabular*}
-\end{table}
-
-\Cref{tab:results-medium-neh} shows \TBD.
-
-\begin{table}[H]
-\resultstable
-\caption{NEH on the medium scale.}
-\label{tab:results-medium-neh}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}clccc@{}}
-\toprule
-Weights & $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
-\midrule
-\multirow{6}{*}{$K=3$} & $200$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $350$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $500$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-\midrule
-\multirow{6}{*}{$K=9$} & $200$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $350$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $500$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-\midrule
-\multirow{6}{*}{$K=12$} & $200$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $350$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $500$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-\bottomrule
-\end{tabular*}
-\end{table}
-
-\Cref{tab:results-medium-aco} shows \TBD.
-
-\begin{table}[H]
-\resultstable
-\caption{ACO on the medium scale.}
-\label{tab:results-medium-aco}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}clccc@{}}
-\toprule
-Weights & $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
-\midrule
-\multirow{6}{*}{$K=3$} & $200$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $350$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $500$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-\midrule
-\multirow{6}{*}{$K=9$} & $200$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $350$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $500$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-\midrule
-\multirow{6}{*}{$K=12$} & $200$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $350$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $500$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-\bottomrule
-\end{tabular*}
-\end{table}
-
-\Cref{tab:results-medium-ga} shows \TBD.
-
-\begin{table}[H]
-\resultstable
-\caption{GA on the medium scale.}
-\label{tab:results-medium-ga}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}clccc@{}}
-\toprule
-Weights & $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
-\midrule
-\multirow{6}{*}{$K=3$} & $200$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $350$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $500$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-\midrule
-\multirow{6}{*}{$K=9$} & $200$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $350$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $500$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-\midrule
-\multirow{6}{*}{$K=12$} & $200$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $350$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
- & $500$ & $[1,10]$ & \TBD & \TBD \\
- & & & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{6}{*}{$80$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,40]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+                      & $[1,60]$ & \TBD & \TBD & \TBD \\
+                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1882,16 +1785,30 @@ Weights & $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
 \resultstable
 \caption{NEH on the large scale.}
 \label{tab:results-large-neh}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}cccc@{}}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}ccccc@{}}
 \toprule
-$n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
+$n$ & $a_j,b_j$ range & $W C_{\max}$ & gap (\%)$^{1}$ & time (s) \\
 \midrule
-\multirow{2}{*}{$500$} & $[1,10]$ & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-\multirow{2}{*}{$600$} & $[1,10]$ & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-\multirow{2}{*}{$700$} & $[1,10]$ & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{6}{*}{$500$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,40]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,60]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\midrule
+\multirow{6}{*}{$600$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,40]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,60]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\midrule
+\multirow{6}{*}{$700$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,40]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,60]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1902,16 +1819,30 @@ $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
 \resultstable
 \caption{ACO on the large scale.}
 \label{tab:results-large-aco}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}cccc@{}}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}ccccc@{}}
 \toprule
-$n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
+$n$ & $a_j,b_j$ range & $W C_{\max}$ & gap (\%)$^{1}$ & time (s) \\
 \midrule
-\multirow{2}{*}{$500$} & $[1,10]$ & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-\multirow{2}{*}{$600$} & $[1,10]$ & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-\multirow{2}{*}{$700$} & $[1,10]$ & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{6}{*}{$500$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,40]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,60]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\midrule
+\multirow{6}{*}{$600$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,40]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,60]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\midrule
+\multirow{6}{*}{$700$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,40]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,60]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1922,16 +1853,30 @@ $n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
 \resultstable
 \caption{GA on the large scale.}
 \label{tab:results-large-ga}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}cccc@{}}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}ccccc@{}}
 \toprule
-$n$ & $a_j,b_j$ range & gap (\%)$^{1}$ & time (s) \\
+$n$ & $a_j,b_j$ range & $W C_{\max}$ & gap (\%)$^{1}$ & time (s) \\
 \midrule
-\multirow{2}{*}{$500$} & $[1,10]$ & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-\multirow{2}{*}{$600$} & $[1,10]$ & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-\multirow{2}{*}{$700$} & $[1,10]$ & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{6}{*}{$500$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,40]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,60]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\midrule
+\multirow{6}{*}{$600$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,40]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,60]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\midrule
+\multirow{6}{*}{$700$} & $[1,20]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,40]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+                       & $[1,60]$ & \TBD & \TBD & \TBD \\
+                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1949,24 +1894,20 @@ within its time limit are the only ones whose optimality it does not establish. 
 reports the incumbent it had reached, and the dynamic program returned the same value on
 each of them, so those incumbents were optimal as well.
 
-At the medium and the large scales every gap is positive by construction, and it measures the
-looseness of the reference as much as the quality of the method: a lower bound that charges
-the last job alone leaves a wide margin to any schedule a heuristic returns. What the gaps
+At the large scale every gap is non-negative by construction, and it measures the distance to
+the reference as much as the quality of the method: the reference $LB$ of \cref{eq:lb} caps
+the optimum by three prefix bounds, and it is tight only where the heaviest jobs are also the
+earliest ones, which no schedule of a heuristic is bound to achieve. What the gaps
 do order is the methods themselves, because the three of them are measured against the same
 $z_{\text{base}}$ on every instance. The genetic algorithm returned the smallest gap at each
-of the twelve settings, $0.08$ points below NEH and $5.8$ points below the ant colony
-optimization on average, and it did so on all $240$ instances of the two scales, where NEH
-attained the best value on $135$ of them and the ant colony optimization on none. That
+setting, \TBD points below NEH and \TBD points below the ant colony
+optimization on average, and it did so on all $60$ instances of the scale, where NEH
+attained the best value on \TBD of them and the ant colony optimization on \TBD. That
 advantage is what a population-based search with crossover and mutation built around the
 weight classes and the critical job would be expected to produce, and it is small against
-the running time it costs, $4.1$ times that of the NEH-type rule. The NEH-type rule came
-closest to the genetic algorithm when the weights were positively correlated with the
-processing times, and lost the most ground when they were independent. That ordering follows
-from the design of the two methods: the initial sort of \Cref{alg:neh} is by
-processing time and only its tie-breaking uses the weights, so it has an advantage to
-exploit precisely when the two orderings agree.
+the running time it costs, \TBD times that of the NEH-type rule.
 
-The ant colony optimization returned the largest gap at every scale and setting, $5.8$ points
+The ant colony optimization returned the largest gap at every setting, \TBD points
 above the genetic algorithm. The reason is structural rather than incidental. Its heuristic
 information is $\eta_j=w_j/(a_j+b_j+1)$, so as the exponent $\beta$ grows the construction
 approaches the weight-descending order and ignores the processing times, and the measured

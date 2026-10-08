@@ -111,54 +111,75 @@ def weight_label(weights, K):
     return "all weights" if weights == "free" else "K=%s" % K
 
 
+#: what the record says about optimality, in the words of the live output of the
+#: drivers: True when the method closed the instance, False when it ran into the
+#: time limit, and None for a heuristic, which proves nothing about optimality
+STATUS = {True: "optimal", False: "time limit", None: "-"}
+
+
 def record_instance(path, n, weights, seed, idx, total, obj, seconds,
-                    K=None):
+                    K=None, proc_hi=PROC_HI, proved=None, base=None):
     """
     Append one line for a finished instance, and flush it at once.
 
     The line is written as soon as that instance is done, not when the whole
     benchmark is over, so that a run which is interrupted or killed still holds
     every instance it has already solved.  `path` may be a str or a Path; its
-    parent directory is created if it does not exist.
+    parent directory is created if it does not exist.  The fields are those of
+    the live line of the drivers -- label, n, weight setting, processing-time
+    range, instance, value, gap, status and running time -- preceded by the seed
+    of the instance and the moment it finished.  The gap is the one the method
+    reports on, `base` being the reference it computed for the instance; a
+    method that hands none, as the exact ones do, shows a dash there.
     """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as fh:
-        fh.write("%s  %-5s n=%-4d %-6s seed=%-7d instance %3d/%-3d  obj %-14s"
-                 " time %9.4f s\n"
+        fh.write("%s  %-5s n=%-4d %-6s %-7s | seed=%-7d | instance %2d/%-2d "
+                 "| value %-12s | gap %9s | %-10s %9s\n"
                  % (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), LABEL, n,
-                    weight_label(weights, K),
+                    weight_label(weights, K), "[%d,%d]" % (PROC_LO, proc_hi),
                     seed, idx, total,
-                    "none" if obj is None else "%.1f" % obj, seconds or 0.0))
+                    "none" if obj is None else "%.1f" % obj,
+                    "-" if obj is None or base is None or base == 0
+                    else "%+.2f%%" % (100.0 * (obj - base) / base),
+                    STATUS.get(proved, "-"), "%.2f s" % (seconds or 0.0)))
 
 
-def instance_baseline(a, b, w, order):
+def instance_baseline(a, b, w, order=None):
     """
-    The reference value of one instance, for the schedule `order`:
+    The reference value of one instance, the lower bound
 
-        LB = w_n * max_k ( sum_{i<=k} A_i + sum_{i>k} B_i ).
+        LB = max { LB_1, LB_2, LB_3 }
 
-    The jobs are grouped into the K weight blocks of the block structure of the
-    paper: one block per distinct weight, and the blocks are numbered by
-    non-increasing weight, W_1 > ... > W_K, so that block 1 is the heaviest of
-    them -- the same order the dynamic program builds its blocks in.  A_i and B_i
-    are the total processing times of block i on M1 and on M2, and the cut after
-    block k leaves M1 the first k blocks and M2 the remaining ones, so that on
-    any such cut the shop spends at least sum_{i<=k} A_i + sum_{i>k} B_i units
-    of time.  w_n is the weight of the last job of `order`.  That job completes
-    at C_max, so charging the busy time to it gives
-    W Cmax >= w_n * C_max >= w_n times that quantity.
+    of paper Section 4.3.  The jobs are taken in non-increasing order of weight,
+    so that no prefix S = {J_1, ..., J_j} of that order holds a weight below w_j,
+    and the three bounds read
 
-    It is computed from the instance the method has just been handed, not from a
-    regenerated copy of it, so the denominator of the gap is always the value of
-    the very instance that was solved.
+        LB_1 = max_j w_j * sum_{h in S} a_h,     the M1 work of the prefix,
+        LB_2 = max_j w_j * sum_{h in S} b_h,     its M2 counterpart,
+        LB_3 = max_j w_j * (a_j + b_j),          a single job on its own.
+
+    Each of them bounds WCmax from below.  For LB_1, the job of S that finishes
+    last on M1 completes no earlier than the M1 work of S and carries a weight of
+    at least w_j; LB_2 reads the same on M2; and no job completes before its own
+    two operations are done.  LB is therefore at most the optimum, which is what
+    makes every gap of the benchmark non-negative.
+
+    The value is a property of the instance alone: `order` is accepted for the
+    callers that still hand one in, and ignored, so that every method measured on
+    an instance is measured against the same reference.
     """
-    A, B = [], []
-    for value in sorted(set(w), reverse=True):      # W_1 > ... > W_K
-        jobs = [j for j in range(len(w)) if w[j] == value]
-        A.append(sum(a[j] for j in jobs))
-        B.append(sum(b[j] for j in jobs))
-    return w[order[-1]] * max(sum(A[:k]) + sum(B[k:]) for k in range(len(A) + 1))
+    jobs = sorted(range(len(w)), key=lambda j: -w[j])   # w_1 >= ... >= w_n
+    sa = sb = 0.0
+    lb1 = lb2 = lb3 = 0.0
+    for j in jobs:                                      # prefix S grows by J_j
+        sa += a[j]
+        sb += b[j]
+        lb1 = max(lb1, w[j] * sa)
+        lb2 = max(lb2, w[j] * sb)
+        lb3 = max(lb3, w[j] * (a[j] + b[j]))
+    return max(lb1, lb2, lb3)
 
 #: instance scales of paper Table 1: name -> (values of n, values of K)
 SCALES = {
@@ -196,16 +217,17 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     regime sorts the jobs by a_j + b_j and cuts that order into 9 equal classes,
     so that the heaviest jobs are also the longest; and the free regime draws
     them uniformly from {1, ..., n}, which places no bound on how many values
-    they take.  `geometric`, the ladder {1, 2, 4, ..., 2^(K-1)} used to stress
-    the weight-rounding argument of Section 4.4.2, is retained for compatibility
-    and takes precedence when set.
+    they take.  `geometric` draws them from the ladder {1, 10, ..., 10^(K-1)},
+    the rule of the small scale of paper Section 6.1, so that the K weight
+    classes are decades apart rather than neighbouring integers; it takes
+    precedence over `weights` when set.
     """
     if weights not in WEIGHT_SETTINGS:
         raise ValueError("unknown weight setting: %r" % (weights,))
     a = [rng.randint(PROC_LO, proc_hi) for _ in range(n)]
     b = [rng.randint(PROC_LO, proc_hi) for _ in range(n)]
     if geometric:
-        w = [1 << rng.randrange(K) for _ in range(n)]
+        w = [10 ** rng.randrange(K) for _ in range(n)]
     elif weights == "narrow":
         w = [rng.randint(1, K) for _ in range(n)]
     elif weights == "indep":
@@ -261,17 +283,19 @@ def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42,
             obj = wcmax_of_order(order, a, b, w)
             if obj < best:
                 best, best_order = obj, order
-        # the reference value of this instance for the schedule that
-        # is being reported on: its last job is the one that completes at
-        # C_max, and its weight is the w_n of the bound
+        # the reference value of this instance: the lower bound LB of paper
+        # Section 4.3, which the instance alone determines
         bases.append(None if best_order is None
                      else instance_baseline(a, b, w, best_order))
         objs.append(best)
         times.append(total / repeats)
         record_instance(log_path, n, weights, seed, idx + 1, instances,
-                        objs[-1], times[-1], K)   # on disk before the next instance
+                        objs[-1], times[-1], K,          # on disk before the next
+                        proc_hi=proc_hi, base=bases[-1])
         if progress is not None:          # live line for a long-running study
-            progress(idx + 1, instances, objs[-1], times[-1])
+            # a heuristic proves nothing about optimality, so the flag is None;
+            # the reference is the one the driver estimated for the instance
+            progress(idx + 1, instances, objs[-1], times[-1], None, bases[-1])
 
     return {
         "n": n, "K": K, "instances": instances,

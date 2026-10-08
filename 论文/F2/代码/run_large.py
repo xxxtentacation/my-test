@@ -17,14 +17,15 @@ The script follows the design of paper Section 6 rather than inventing its own:
 
 * **Methods.**  NEH, ACO and GA -- the three heuristics of the paper, the exact
   methods being out of reach at this size.  The baseline is not a method: it is
-  the reference value of the block structure,
-  LB = w_n * max_i (sum_{k<=i} A_k + sum_{k>i} B_k), which returns no schedule and
-  is never run.  Each algorithm computes it on the instance it has just been
-  handed (`instance_baseline()` of the algorithm modules), so nothing extra is
+  the reference value LB = max{LB_1, LB_2, LB_3} of paper Section 4.3 -- the
+  largest of three prefix bounds on the optimum, a number the instance alone
+  determines -- which returns no schedule and is never run.  Each algorithm
+  computes it on the instance it has just been handed
+  (`instance_baseline()` of the algorithm modules), so nothing extra is
   run and the denominator is always the value of the very instance that was
   solved.
-  Being a lower bound on the optimum, it makes every gap of this scale positive,
-  and the smaller the better.
+  Being below the value of the schedule it is read from, it makes every gap of
+  this scale non-negative, and the smaller the better.
 
 * **Parameters.**  Those of paper Section 6, fixed by the calibration run that
   paragraph reports and held in the two constants below: ACO with 10 ants,
@@ -103,15 +104,15 @@ WEIGHT_SETTINGS = ("free",)
 #: processing-time ranges of the scale: the label of the table row, and the upper
 #: end of the discrete uniform range both processing times are drawn from.  This
 #: scale is run at the narrow range only.
-PROC_RANGES = {"[1,10]": 10}
+PROC_RANGES = {"[1,20]": 20, "[1,40]": 40, "[1,60]": 60}
 
-#: the baseline of every configuration of this scale is the reference value of the
-#: block structure, LB = w_n * max_i (sum_{k<=i} A_k + sum_{k>i} B_k), which is a
-#: property of the instance rather than a method and is never run
+#: the baseline of every configuration of this scale is the reference value
+#: LB = max{LB_1, LB_2, LB_3} of paper Section 4.3, which the instance alone
+#: determines; it is computed rather than run
 BASELINE = "base"
 
 #: how a baseline is written in the output
-BASELINE_LABEL = {"milp": "MILP", "base": "LB (block cut)"}
+BASELINE_LABEL = {"milp": "MILP", "base": "LB"}
 
 #: the scale this script runs, and the only place where it is written down
 SCALE = "large"
@@ -124,7 +125,7 @@ METHODS_OF_SCALE = ("neh", "aco", "ga")
 CONFIGS = tuple((n, wt, rg)
                 for n in (500, 600, 700)
                 for wt in WEIGHT_SETTINGS
-                for rg in ("[1,10]",))
+                for rg in PROC_RANGES)
 
 
 def config_of(n, weights, rng):
@@ -212,8 +213,8 @@ GA_SETTINGS = {"N_factor": 1, "G": 10}
 
 
 #: output order of the methods, and the runner of each.  The baseline is not
-#: among them: it is a property of the instance rather than a method, and each
-#: algorithm computes it on the instance it is handed (see instance_baseline()
+#: among them: it is the reference value of the schedule a method reports, which
+#: each algorithm computes on the instance it is handed (see instance_baseline()
 #: in the algorithm modules).
 METHODS = {
     "neh":  ("NEH",  _run_neh),
@@ -240,7 +241,36 @@ def _hms(seconds):
     return ("%d:%02d:%02d" % (h, m, s)) if h else ("%d:%02d" % (m, s))
 
 
-def _instance_reporter(label, n, weights, stream):
+#: what the per-instance line says about optimality: True when the method closed
+#: the instance, False when it ran into the time limit, None when the method is a
+#: heuristic and proves nothing
+STATUS = {True: "optimal", False: "time limit", None: "-"}
+
+#: separates one configuration from the next in the live output, so that each
+#: block of instances stands apart in a long run
+RULE = "-" * 100
+
+
+def _record(path, line):
+    """
+    Append one line of the live output to the record file of the run.
+
+    The file then reads as the terminal did: the header of a configuration, the
+    line of each of its instances -- written by the algorithm itself, with the
+    seed and without the elapsed column -- and the summary line of the
+    configuration.  The line is written word for word as it is printed, so that
+    the file and the terminal can be read side by side.  `path` may be None, in
+    which case the run keeps no record.
+    """
+    if path is None:
+        return
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as fh:
+        fh.write(line + "\n")
+
+
+def _instance_reporter(label, n, weights, rlabel, stream):
     """
     One line per instance, printed as soon as that instance is done.
 
@@ -248,15 +278,22 @@ def _instance_reporter(label, n, weights, stream):
     the largest size of the scale runs for a couple of minutes on each of twenty
     instances -- so the driver would otherwise be silent for the whole of it.
     The reporter carries the running time of the instance and the time elapsed
-    since the method started on this configuration.
+    since the method started on this configuration, and the gap of the instance
+    against the reference of the instance, which the method passes along with
+    the value.  A method that reports none, as the exact ones do, shows a dash in
+    that column.
     """
     started = time.perf_counter()
 
-    def report(done, total, obj, seconds):
-        print("      %-4s n=%-4d %-6s | instance %2d/%-2d | value %-14s"
-              " %9s | elapsed %s"
-              % (label, n, weights, done, total,
+    def report(done, total, obj, seconds, proved=None, base=None):
+        gap = ("-" if obj is None or base is None or base == 0
+               else "%+.2f%%" % (100.0 * (obj - base) / base))
+        print("      %-4s n=%-4d %-6s %-7s | instance %2d/%-2d | value %-12s"
+              " | gap %9s | %-10s %9s | elapsed %s"
+              % (label, n, weights, rlabel, done, total,
                  "none" if obj is None else "%.1f" % obj,
+                 gap,
+                 STATUS.get(proved, "-"),
                  "%.2f s" % (seconds or 0.0),
                  _hms(time.perf_counter() - started)),
               file=stream, flush=True)
@@ -292,6 +329,10 @@ def run_scale(methods, args, stream=sys.stdout):
     instances = args.instances or INSTANCES
     total = len(CONFIGS) * len(methods)
     records, done = [], 0
+    # The record file of the run, written by the algorithms instance by instance
+    # and by this driver for the header and the summary of each configuration,
+    # so that it reads as the live output did.
+    record_path = getattr(args, "record_path", None)
 
     for (n, weights, rng) in CONFIGS:
         cfg = config_of(n, weights, rng)
@@ -299,39 +340,37 @@ def run_scale(methods, args, stream=sys.stdout):
         wlabel, rlabel = cfg["weight_label"], cfg["range_label"]
 
         # The baseline of the configuration is the denominator of every gap of
-        # that configuration, and on this scale it is the reference value of the
-        # block structure, LB = w_n * max_i (sum_{k<=i} A_k + sum_{k>i} B_k), a
-        # property of the instance alone: every
-        # method computes it from the instance it has just been handed -- see
-        # instance_baseline() of the algorithm modules -- so nothing extra has
-        # to be run at all.
-        print("  n=%-4d %-6s %-7s | baseline %s (seed %d)"
-              % (n, wlabel, rlabel, BASELINE_LABEL[BASELINE], seed),
-              file=stream, flush=True)
+        # that configuration, and on this scale it is the reference value
+        # LB = max{LB_1, LB_2, LB_3} of paper Section 4.3, which the instance
+        # alone determines: every method computes it from the instance it has
+        # just been handed -- see instance_baseline() of the algorithm modules
+        # -- so nothing extra has to be run at all.
+        if done:                          # separate the configurations
+            print(RULE, file=stream, flush=True)
 
-        # Every method of the configuration is run first, because the number of
-        # instances on which a method finds the best solution cannot be counted
-        # until all of them have reported on the same instances.
-        results = {}
+        # Every method of the configuration runs under its own header and is
+        # followed by the summary of its own instances, so that the live output
+        # and the record file with it read group by group, as the small scale
+        # does.
+        results, group = {}, []
         for name in methods:
             label, runner = METHODS[name]
-            results[name] = runner(n, cfg, instances, seed, args,
-                                   _instance_reporter(label, n, wlabel, stream))
+            head = ("  n=%-4d %-6s %-7s | %s (seed %d) | baseline %s"
+                    % (n, wlabel, rlabel, label, seed, BASELINE_LABEL[BASELINE]))
+            print(head, file=stream, flush=True)
+            _record(record_path, head)
+            res = runner(n, cfg, instances, seed, args,
+                         _instance_reporter(label, n, wlabel, rlabel, stream))
+            results[name] = res
 
-        # The best value found on each instance by any of the methods run here.
-        best_of_instance = []
-        for i in range(instances):
-            vals = [results[m]["objs"][i] for m in methods
-                    if results[m]["objs"][i] is not None]
-            best_of_instance.append(min(vals) if vals else None)
-
-        for name in methods:
-            label = METHODS[name][0]
-            res = results[name]
             gaps, missing = gaps_against(res["objs"], res["bases"])
-            hit = sum(1 for i, o in enumerate(res["objs"])
-                      if o is not None and best_of_instance[i] is not None
-                      and abs(o - best_of_instance[i]) < 1e-9)
+            # The objective values and the running times of the configuration,
+            # summarised by their smallest, their mean and their largest.
+            vals = [o for o in res["objs"] if o is not None]
+            secs = [t for t in res["times"] if t is not None]
+            stat_obj = (statistics.fmean(vals), min(vals), max(vals)) if vals else None
+            stat_time = ((statistics.fmean(secs), min(secs), max(secs))
+                         if secs else None)
             rec = {
                 "algo": name,
                 "label": label,
@@ -347,24 +386,50 @@ def run_scale(methods, args, stream=sys.stdout):
                 "min_gap": min(gaps) if gaps else float("nan"),
                 "max_gap": max(gaps) if gaps else float("nan"),
                 "mean_time": res["mean_time"],
-                "hit": hit,
+                "obj": stat_obj,
+                "time": stat_time,
+                "hit": 0,       # counted below, once every method has reported
                 # the raw per-instance values, so that the file still holds the
                 # run after the driver has moved on: a change of baseline or of
                 # gap formula can then be applied without repeating the run
                 "objs": res["objs"],
                 "times": res["times"],
                 "bases": res["bases"],
-                "best_of_instance": best_of_instance,
             }
             records.append(rec)
+            group.append(rec)
             done += 1
-            print("  [%2d/%2d] %-4s n=%-4d %-6s %-7s | mean gap %+8.3f%% "
-                  "| min %+8.3f%% | max %+9.3f%% | %9.4f s | best %2d/%-2d "
-                  "| unpaired %d"
-                  % (done, total, label, n, wlabel, rlabel, rec["mean_gap"],
-                     rec["min_gap"], rec["max_gap"], rec["mean_time"],
-                     hit, instances, missing),
-                  file=stream, flush=True)
+            o_mean, o_min, o_max = stat_obj or (float("nan"),) * 3
+            t_mean, t_min, t_max = stat_time or (float("nan"),) * 3
+            # The summary of the group, written to the record file as it is
+            # printed, so that the file carries the totals of every group of
+            # instances as well as the instances themselves.
+            summary = ("  [%2d/%2d] %-4s n=%-4d %-6s %-7s "
+                       "| gap %+8.3f%% (%+8.3f%%, %+9.3f%%) "
+                       "| obj %9.1f (%8.1f, %9.1f) "
+                       "| time %9.4f s (%8.4f, %10.4f) | unpaired %d"
+                       % (done, total, label, n, wlabel, rlabel, rec["mean_gap"],
+                          rec["min_gap"], rec["max_gap"], o_mean, o_min, o_max,
+                          t_mean, t_min, t_max, missing))
+            print(summary, file=stream, flush=True)
+            _record(record_path, summary)
+
+        # The best value found on each instance by any of the methods run here,
+        # and the number of instances on which each of them attained it.  That
+        # count needs every method of the configuration, so it is taken here,
+        # after the groups, and reaches the results file rather than the summary
+        # line of the group it belongs to.
+        best_of_instance = []
+        for i in range(instances):
+            vals = [results[m]["objs"][i] for m in methods
+                    if results[m]["objs"][i] is not None]
+            best_of_instance.append(min(vals) if vals else None)
+        for rec in group:
+            objs = results[rec["algo"]]["objs"]
+            rec["hit"] = sum(1 for i, o in enumerate(objs)
+                             if o is not None and best_of_instance[i] is not None
+                             and abs(o - best_of_instance[i]) < 1e-9)
+            rec["best_of_instance"] = best_of_instance
 
     return records
 
@@ -404,8 +469,8 @@ def _header(methods, args):
         % (", ".join("%s=%s" % kv for kv in sorted(ACO_SETTINGS.items())),
            ", ".join("%s=%s" % kv for kv in sorted(GA_SETTINGS.items()))),
         "gap against   : the baseline of each configuration, which on this scale "
-                        "is the reference value of the block structure, "
-                        "LB = w_n*max_i(sum_{k<=i}A_k + sum_{k>i}B_k)",
+                        "is the reference value LB = max{LB_1,LB_2,LB_3} of "
+                        "paper Section 4.3, a property of the instance",
         "seed          : %d (+1000*n, + 100*weight setting, + range)" % args.seed,
         "records       : %s" % getattr(args, "record_path", "-"),
     ]
@@ -420,14 +485,19 @@ def _scale_block(lines, records, summary, args):
                                      for n, wt, rg in CONFIGS)))
     lines.append("# " + "=" * 84)
     lines.append("# per-configuration results")
-    lines.append("# %-5s %5s %-7s %-7s %9s %9s %10s %10s %9s %9s %6s"
+    lines.append("# %-5s %5s %-7s %-7s %9s %9s %27s %31s %23s %6s"
                  % ("algo", "n", "weights", "range", "paired", "unpaired",
-                    "mean_gap", "min_gap", "max_gap", "time(s)", "best"))
+                    "gap % mean (min, max)", "time(s) mean (min, max)",
+                    "objective mean (min, max)", "best"))
     for r in records:
-        lines.append("  %-5s %5d %-7s %-7s %9d %9d %10.3f %10.3f %9.3f %9.4f %6d"
+        o = r.get("obj") or (float("nan"),) * 3
+        t = r.get("time") or (float("nan"),) * 3
+        lines.append("  %-5s %5d %-7s %-7s %9d %9d %+9.3f (%+8.3f, %+9.3f)"
+                     " %12.4f (%8.4f, %10.4f) %11.1f (%8.1f, %9.1f) %6d"
                      % (r["label"], r["n"], r["weights"], r["range"],
                         r["paired"], r["missing"], r["mean_gap"], r["min_gap"],
-                        r["max_gap"], r["mean_time"], r["hit"]))
+                        r["max_gap"], t[0], t[1], t[2],
+                        o[0], o[1], o[2], r["hit"]))
     lines.append("#")
     lines.append("# the column 'best' counts the instances on which the method attained the")
     lines.append("# best value found on that instance by any method run there")
