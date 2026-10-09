@@ -120,54 +120,62 @@
 \section{Introduction}
 \label{sec:intro}
 
-Manufacturing plants that process their orders through two consecutive stages face a
-recurring trade-off between throughput and priority. The two stages are usually
-unbalanced. The first feeds the second and runs close to its capacity, so the order in
-which the jobs are released to the line determines how long each of them
-waits. Sequencing the jobs is a production planning decision, and it has been studied
-since Johnson's rule settled the two-machine case for the makespan criterion
-\citep{johnson1954optimal}. The model, its variants and its solution methods have been
-surveyed extensively since \citep{pinedo2022scheduling}.
+The two-machine flow shop, $F2$ in the standard notation, is one of the best known models
+in scheduling. Its structure is that of a plant whose jobs are machined on one machine and
+finished on another. Metal parts are cut and then coated, and a casting is rolled after it
+is poured. A web is printed and then bound, and a granulate is compressed after it is
+mixed. A job must leave the first stage before it can enter the second, and each stage
+carries one job at a time. Johnson settled the sequencing decision for this model as early as 1954
+\citep{johnson1954optimal}. The two-stage structure has been a standard subject of
+sequencing theory ever since, and its variants and solution methods are surveyed in
+\citep{pinedo2022scheduling}. The criterion of this paper is the maximum weighted
+completion time, also called the weighted makespan. Written $WC_{\max}$, it charges each
+job the product of its weight and its completion time and takes the largest of those
+products. Where the makespan asks when the shop falls idle, the weighted makespan asks
+which job is left waiting and what that wait costs. The weight belongs to the order rather
+than to the plant as a whole, and in a plant it is rarely a continuum. A contractual
+penalty for lateness, the capital tied up in work in process and the priority a large
+customer has bought are three classes rather than a spectrum. The most costly order is the
+one carrying the largest of them.
 
-The configuration is common in manufacturing and appears in a variety of process
-industries. A metal-parts plant machines components and then passes them to a coating or
-heat-treatment line; a foundry casts and then rolls; a print shop runs a press and then a
-bindery; a pharmaceutical plant granulates a powder and then compresses it into tablets.
-In each case a job must finish its first operation before its second can begin, and each
-machine can process one job at a time. The plants differ in what makes one order more
-urgent than another. A supplier working under a late-delivery clause loses money for
-every hour an order is overdue; a plant building to stock has capital tied up in work in
-process; a contract manufacturer must respect the priority its largest customer has
-bought. In all three cases a cost is attached to the time an individual order spends in
-the plant, and that cost belongs to the order rather than to the plant as a whole.
+Much the same structure has appeared outside the factory: a system that serves large
+language model agents has two such stages. A step is reasoned about in the chain of thought
+\citep{wei2022chain}, and acted upon, by calling a tool or running code, in the chain of
+execution \citep{yao2023react}. Reasoning and acting are interleaved in practice, but they
+occupy distinct resources. The order in which the steps are admitted to them settles their
+completion times.
 
-That cost is what the criterion of this paper measures. The objective is the maximum
-weighted completion time, $WC_{\max}$, also called the weighted makespan. Each order
-contributes the product of its weight and its completion time, and the objective is the
-largest of those products. It is therefore determined by the most costly order rather
-than by the average, and the weight decides which order that is. Minimizing the maximum
-amounts to protecting the most costly order from delay. This is the decision a planner
-faces when a line is loaded beyond its capacity and not every order can be completed on
-time.
+Serving a task takes many such steps, such as a retrieved document, a tool call or a
+sub-query. The order in which the steps are admitted settles when the task as a whole
+finishes. The steps are not equal: one bought by a paid tier, or one whose failure is
+costly, weighs more than the rest. With the reasoning and the acting as the two machines
+and the steps as the jobs, the two-machine flow shop follows. Each stage carries one job at
+a time, and what decides whether the service is acceptable is the completion time of the
+most costly step. That completion time is weighted by the cost of the step, so the
+criterion is the maximum weighted completion time rather than the average.
 
-In scheduling theory the criterion has been studied in several machine environments. On
-a single machine, jobs are revealed over time and must be sequenced without knowledge of
-the future; for this online setting, best-possible algorithms are known for the maximum
+That criterion, on that machine environment, is what this paper studies under the name
+$F2 \parallel WC_{\max}$. It matters for the systems above, where a wrong sequence delays
+the most costly step rather than the average one. It matters for scheduling theory as well,
+where a maximum weighted criterion has not been placed in the two-machine flow shop.
+
+In scheduling theory the criterion has been studied in several machine environments. On a
+single machine, jobs are revealed over time and must be sequenced without knowledge of the
+future. For this online setting, best-possible algorithms are known for the maximum
 weighted completion time \citep{li2015best}. A single machine carrying one restricted
 rate-modifying activity has also been treated for the same criterion
-\citep{zuo2026single}. On identical parallel machines, randomized approximation schemes
-for the weighted makespan have been developed \citep{sun2024randomized}, and the
-criterion has been combined with the decision of which orders to accept
-\citep{lu2025order}. Maximum-type criteria have been studied in other forms as well. For
-a single machine, the maximum earliness/tardiness cost has been minimized when jobs may
-be rejected \citep{guo2026maximum}. In all of these settings,
-however, a job occupies one machine for its entire processing time. The interaction
-between two consecutive stages, which is what defines the flow shop, therefore does not
-arise.
+\citep{zuo2026single}. On identical parallel machines, randomized approximation schemes for
+the weighted makespan have been developed \citep{sun2024randomized}. The criterion has also
+been combined with the decision of which orders to accept \citep{lu2025order}.
+Maximum-type criteria have been studied in other forms as well. For a single machine, the
+maximum earliness/tardiness cost has been minimized when jobs may be rejected
+\citep{guo2026maximum}. In all of these settings, however, a job occupies one machine for
+its entire processing time. The interaction between two consecutive stages, which is what
+defines the flow shop, therefore does not arise.
 
 The flow shop environment, by contrast, has been studied extensively but for different
 criteria. The variant that has attracted most theoretical attention is the proportionate
-flow shop, in which every machine spends the same time on a given job; that model, the
+flow shop, in which every machine spends the same time on a given job. That model, the
 ordered flow shop and related variants are surveyed in \citep{panwalkar2013review}. Its
 appeal is that it can often be reduced to a single-machine problem with the same criterion
 \citep{panwalkar2015equivalence}, so that results proved for one machine carry over.
@@ -177,17 +185,16 @@ the sum of the weighted completion times rather than their maximum
 that has been studied is the makespan, most recently together with the decision of which
 orders to reject \citep{shabtay2024coordinating}.
 
-The criterion and the machine environment are therefore each well established, but their
-combination is not, and the works closest to this paper show how far apart the two
-remain. In the criterion group, every setting reviewed above keeps each job on a single
+The criterion and the machine environment are therefore each well established. Their
+combination is not, and the works closest to this paper show how far apart the two remain.
+In the criterion group, every setting reviewed above keeps each job on a single
 machine for its whole processing time. This holds for the online single-machine results
 \citep{li2015best}, the rate-modifying variant \citep{zuo2026single}, the
 parallel-machine approximation schemes \citep{sun2024randomized} and the
 order-acceptance model \citep{lu2025order}. In the environment group, the weighted
 objective that has been treated is a sum rather than a maximum
 \citep{shakhlevich1998minimizing}. For the general two-machine flow shop, the criterion
-treated is the makespan \citep{shabtay2024coordinating}. The maximum weighted completion
-time in a two-machine flow shop appears in none of them.
+treated is the makespan \citep{shabtay2024coordinating}.
 
 The problem is not solved by combining these results, for two reasons. The reductions
 that make the proportionate flow shop tractable require the processing times to be
@@ -219,14 +226,15 @@ Our results follow from the structure of an optimal schedule. Since the objectiv
 maximum, jobs of equal weight are interchangeable with respect to it. An optimal
 schedule can therefore be assumed to have a block structure, with one block per distinct
 weight, Johnson's order within each block, and blocks in non-increasing weight order.
-On this structure we build three methods. An exact dynamic program
-runs in $O(nKV^{3K-3})$ time, where $K$ is the number of distinct weights and $V$ is the
-total processing time. It is practical when the weights fall into few classes, as in the
-plants described above. A 2-approximation runs in $O(n\log n)$ time. Rounding the input
-of the dynamic program turns it into a fully polynomial-time approximation scheme that
-attains a $(1+\varepsilon)$-approximation for constant $K$. Because the exact methods
-remain exponential in $K$, we also develop three heuristics for large instances and
-report a computational study that compares them with the 2-approximation.
+On this structure we build three methods, an exact dynamic program, a 2-approximation and
+an approximation scheme. The dynamic program runs in $O(nKV^{3K-3})$ time, where $K$ is the
+number of distinct weights and $V$ is the total processing time. It is practical when the
+weights fall into few classes, as in the plants described above. A 2-approximation runs in
+$O(n\log n)$ time, and rounding the input of the dynamic program gives a fully
+polynomial-time approximation scheme. The scheme attains a $(1+\varepsilon)$-approximation
+for constant $K$. Because the exact methods remain exponential in $K$, we also develop three
+heuristics for large instances and report a computational study that compares them with the
+2-approximation.
 
 The rest of the paper is organized as follows. \Cref{sec:preliminaries} fixes
 the notation and states the completion-time recurrence.
