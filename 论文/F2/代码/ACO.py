@@ -349,11 +349,14 @@ def instance_baseline(a, b, w, order=None):
 #: colony size used when `m` is not given (paper Section 6.1.2: "50 ants")
 ACO_ANTS = 50
 
-#: instance scales of paper Table 1: name -> (values of n, values of K)
+#: instance scales: name -> (values of n, values of K).  The small and the large
+#: scale are the two of paper Table 1; on the large one the weights are
+#: unrestricted, so K is taken as the number of jobs.  The medium scale is the
+#: one run_medium.py keeps as a test, the paper reporting no results at it.
 SCALES = {
-    "small":  ([6, 8, 10, 12], [2, 3]),
-    "medium": ([20, 50, 100], [3, 5]),
-    "large":  ([200, 500, 1000], [5, 10, 20]),
+    "small":  ([20, 40, 60], [2, 3]),
+    "medium": ([200, 350, 500], [3, 9, 12]),
+    "large":  ([500, 600, 700], [500, 600, 700]),
 }
 
 
@@ -376,9 +379,9 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     """
     One random instance of the benchmark protocol (paper Section 6).
 
-    a_j, b_j ~ U{PROC_LO, ..., proc_hi}, the upper end of the range being the one
-    paper Section 6.1 gives the scale: [1,20] and [1,40] on the small scale,
-    where it is varied, and [1,10] on the medium and the large one.  The weights
+    a_j, b_j ~ U{PROC_LO, ..., proc_hi}, the upper end of the range being one of
+    the three of paper Section 6.1, [1,20], [1,40] and [1,60], which both scales
+    cross with their other factors.  The weights
     follow the setting `weights`: the narrow regime draws them uniformly from
     {1, ..., K}, so that K is the number of values they can take; the
     independent regime draws them uniformly from {1, ..., 3}; the correlated

@@ -6,11 +6,11 @@ This is run_experiments.py for the small scale alone, with the same code and the
 same output; only the configurations and the methods below differ, so that the
 scale can be run, interrupted and repeated on its own.
 
-* **Instances.**  The small scale varies two factors.  The weights are uniform on
-  {1, ..., K} with K = 2 and K = 3, and the processing times are drawn from the
-  ranges [1,10], [1,20] and [1,40]; the widest of them is run at K = 2 only, K = 3
-  stopping at [1,20].  Both are crossed with four instance sizes, and each of the
-  20 configurations is replicated 20 times.
+* **Instances.**  The small scale varies two factors.  The weights are the
+  geometric ladder 1, 10, ..., 10^(K-1), whose length K the configuration fixes
+  at 2 and 3, and the processing times are drawn from the ranges [1,20], [1,40]
+  and [1,60], which both weight counts take.  The two are crossed with three
+  instance sizes, and each of the 18 configurations is replicated 20 times.
 
 * **Methods.**  MILP and DP, the two exact methods of the paper, which are still
   within reach at this scale.  Neither of them is given a gap: the reference of
@@ -19,9 +19,9 @@ scale can be run, interrupted and repeated on its own.
   Every method runs once on every instance, so no comparison rests on a
   different sample.
 
-* **Parameters.**  Those of paper Section 6: processing times U(1,20) and
-  U(1,40); a time limit of 600 s shared by MILP and DP; and Gurobi on a single
-  thread.
+* **Parameters.**  Those of paper Section 6: processing times U(1,20), U(1,40)
+  and U(1,60); a time limit of 600 s shared by MILP and DP; and Gurobi on a
+  single thread.
 
 * **Best count.**  Once both methods of a configuration have run, the best value
   found on each instance is determined.  The model is one of the two, so that
@@ -80,15 +80,6 @@ DEFAULT_OUT = RECORD_DIR / "结果_small_最新.txt"
 #: overwrites the results of an earlier one
 ARCHIVE_DIR = RECORD_DIR / "结果存档"
 
-#: weight settings of paper Section 6.1.1, in the order used to derive the seed
-WEIGHT_SETTINGS = ("narrow", "indep", "corr")
-
-#: how a weight setting is written in the output and in the files: by the number
-#: of distinct weights it produces, which is how the tables of the paper label
-#: their rows.  The names above remain the internal keys, and the ones the
-#: instance generator takes.
-WEIGHTS_LABEL = {"narrow": "K=2", "indep": "K=3", "corr": "K=9"}
-
 #: how the baseline of a configuration is written in the output: "milp" is the
 #: value of the model itself, "base" the reference value of the instance
 BASELINE_LABEL = {"milp": "MILP", "base": "LB"}
@@ -114,7 +105,7 @@ SCALES = {
         "baseline": "milp",
         "configs": tuple((n, K, proc_hi)
                          for K in (2, 3)          # K first, as in the runs
-                         for n in (40, 60, 80)
+                         for n in (20, 40, 60)
                          for proc_hi in RANGES_OF_K[K]),
     },
 }
@@ -208,9 +199,9 @@ GA_SETTINGS = {"N_factor": 1, "G": 10}
 
 
 #: output order of the methods, and the runner of each.  The baseline of the
-#: medium and large scales is not among them: it is the reference value of the
-#: schedule a method reports, which each algorithm computes on the instance it is
-#: handed (see instance_baseline() in the algorithm modules).
+#: heuristic scale is not among them: it is the reference value of the schedule a
+#: method reports, which each algorithm computes on the instance it is handed
+#: (see instance_baseline() in the algorithm modules).
 METHODS = {
     "milp": ("MILP", _run_milp),
     "dp":   ("DP",   _run_dp),

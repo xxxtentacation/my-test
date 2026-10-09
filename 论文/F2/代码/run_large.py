@@ -9,11 +9,11 @@ so a scale can be run, interrupted and repeated on its own.
 
 The script follows the design of paper Section 6 rather than inventing its own:
 
-* **Instances.**  The large scale of paper Table 1 varies the instance size, at
-  a single processing-time range of [1,10], and places no bound on the weights:
-  they are drawn uniformly from {1, ..., n_jobs}, which is why paper Table 1
-  records them as "all weights".  The three instance sizes give 3 configurations,
-  each of them replicated 20 times.
+* **Instances.**  The large scale of paper Table 1 varies the instance size and
+  the processing-time range, and places no bound on the weights: they are drawn
+  uniformly from {1, ..., n_jobs}, which is why paper Table 1 records them as
+  "all weights".  The three sizes crossed with the three ranges give the 9
+  configurations of the scale, each of them replicated 20 times.
 
 * **Methods.**  NEH, ACO and GA -- the three heuristics of the paper, the exact
   methods being out of reach at this size.  The baseline is not a method: it is
@@ -102,8 +102,8 @@ ARCHIVE_DIR = RECORD_DIR / "结果存档"
 WEIGHT_SETTINGS = ("free",)
 
 #: processing-time ranges of the scale: the label of the table row, and the upper
-#: end of the discrete uniform range both processing times are drawn from.  This
-#: scale is run at the narrow range only.
+#: end of the discrete uniform range both processing times are drawn from.  The
+#: three of them are crossed with the sizes of the scale.
 PROC_RANGES = {"[1,20]": 20, "[1,40]": 40, "[1,60]": 60}
 
 #: the baseline of every configuration of this scale is the reference value
@@ -121,7 +121,7 @@ INSTANCES = 20
 #: the methods the paper reports at this scale
 METHODS_OF_SCALE = ("neh", "aco", "ga")
 #: the configurations of paper Section 6 and Table 1: the three instance sizes
-#: crossed with the three weight settings, at the single range of the scale
+#: crossed with the weight setting of the scale and the three ranges
 CONFIGS = tuple((n, wt, rg)
                 for n in (500, 600, 700)
                 for wt in WEIGHT_SETTINGS
