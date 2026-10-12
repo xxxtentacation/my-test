@@ -12,7 +12,7 @@ The script follows the design of paper Section 6 rather than inventing its own:
 * **Instances.**  The large scale of paper Table 1 varies the instance size and
   the processing-time range, and places no bound on the weights: they are drawn
   uniformly from {1, ..., n_jobs}, which is why paper Table 1 records them as
-  "all weights".  The three sizes crossed with the three ranges give the 9
+  "all weights".  The three sizes crossed with the two ranges give the 6
   configurations of the scale, each of them replicated 20 times.
 
 * **Methods.**  NEH, ACO and GA -- the three heuristics of the paper, the exact
@@ -42,6 +42,13 @@ The script follows the design of paper Section 6 rather than inventing its own:
   found on each instance by any of them is determined, and each method reports
   the number of instances on which it attains that value.
 
+* **Continuation.**  The record file is written instance by instance, so an
+  interrupted run is continued rather than repeated: started again, the driver
+  takes up the newest unfinished record file of the scale, reads back the groups
+  of instances it already holds and runs only what is missing.  --fresh starts a
+  new file whatever the earlier runs left behind, and --resume takes one up by
+  name.
+
 * **Seed.**  The seed of a configuration depends only on the configuration and
   never on the method, so the three methods see literally the same instances and
   the gaps are paired.
@@ -69,12 +76,15 @@ Usage
     python run_large.py --algos neh ga       # two of the three
     python run_large.py --instances 2        # a quick check
     python run_large.py --aco-ants 4 --aco-iter 20 --ga-gen 3
+    python run_large.py --fresh                     # start over, do not continue
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
+import random
+import re
 import statistics
 import sys
 import time
@@ -104,7 +114,7 @@ WEIGHT_SETTINGS = ("free",)
 #: processing-time ranges of the scale: the label of the table row, and the upper
 #: end of the discrete uniform range both processing times are drawn from.  The
 #: three of them are crossed with the sizes of the scale.
-PROC_RANGES = {"[1,20]": 20, "[1,40]": 40, "[1,60]": 60}
+PROC_RANGES = {"[1,100]": 100, "[1,200]": 200}
 
 #: the baseline of every configuration of this scale is the reference value
 #: LB = max{LB_1, LB_2, LB_3} of paper Section 4.3, which the instance alone
@@ -123,7 +133,7 @@ METHODS_OF_SCALE = ("neh", "aco", "ga")
 #: the configurations of paper Section 6 and Table 1: the three instance sizes
 #: crossed with the weight setting of the scale and the three ranges
 CONFIGS = tuple((n, wt, rg)
-                for n in (500, 600, 700)
+                for n in (600, 800, 1000)
                 for wt in WEIGHT_SETTINGS
                 for rg in PROC_RANGES)
 
@@ -151,14 +161,14 @@ def config_of(n, weights, rng):
 # runners: one thin adapter per algorithm, each calling that module's benchmark
 # ---------------------------------------------------------------------------
 
-def _run_neh(n, cfg, instances, seed, opts, progress=None):
+def _run_neh(n, cfg, instances, seed, opts, progress=None, first=1):
     from NEH import benchmark
-    return benchmark(n=n, K=cfg["K"], instances=instances, seed=seed,
+    return benchmark(n=n, K=cfg["K"], instances=instances, seed=seed, first=first,
                      weights=cfg["weights"], proc_hi=cfg["proc_hi"],
                      progress=progress, log_path=getattr(opts, "record_path", None))
 
 
-def _run_aco(n, cfg, instances, seed, opts, progress=None):
+def _run_aco(n, cfg, instances, seed, opts, progress=None, first=1):
     from ACO import benchmark
     kwargs = dict(ACO_SETTINGS)                 # test mode, or the paper values
     if opts.aco_ants is not None:
@@ -167,13 +177,13 @@ def _run_aco(n, cfg, instances, seed, opts, progress=None):
         kwargs["max_iter"] = opts.aco_iter
     if opts.aco_rho is not None:
         kwargs["rho"] = opts.aco_rho
-    return benchmark(n=n, K=cfg["K"], instances=instances, seed=seed,
+    return benchmark(n=n, K=cfg["K"], instances=instances, seed=seed, first=first,
                      weights=cfg["weights"], proc_hi=cfg["proc_hi"],
                      progress=progress, log_path=getattr(opts, "record_path", None),
                      **kwargs)
 
 
-def _run_ga(n, cfg, instances, seed, opts, progress=None):
+def _run_ga(n, cfg, instances, seed, opts, progress=None, first=1):
     from GA import benchmark
     kwargs = {"N": max(8, GA_SETTINGS["N_factor"] * n),   # test mode, or the paper
               "G": GA_SETTINGS["G"]}                      # values of Section 6
@@ -181,7 +191,7 @@ def _run_ga(n, cfg, instances, seed, opts, progress=None):
         kwargs["N"] = opts.ga_pop
     if opts.ga_gen is not None:
         kwargs["G"] = opts.ga_gen
-    return benchmark(n=n, K=cfg["K"], instances=instances, seed=seed,
+    return benchmark(n=n, K=cfg["K"], instances=instances, seed=seed, first=first,
                      weights=cfg["weights"], proc_hi=cfg["proc_hi"],
                      progress=progress, log_path=getattr(opts, "record_path", None),
                      **kwargs)
@@ -249,6 +259,192 @@ STATUS = {True: "optimal", False: "time limit", None: "-"}
 #: separates one configuration from the next in the live output, so that each
 #: block of instances stands apart in a long run
 RULE = "-" * 100
+
+#: the per-instance line of the record file, as the algorithm modules write it:
+#: the moment the instance finished, the method, the configuration, the seed, the
+#: number of the instance, the value, the gap against the baseline of that
+#: instance, the status and the running time
+INSTANCE_RE = re.compile(
+    r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\s+(\S+)\s+n=(\d+)\s+(.+?)\s+"
+    r"\[1,(\d+)\]\s+\|\s+seed=(\d+)\s+\|\s+instance\s+(\d+)/(\d+)\s+\|\s+"
+    r"value\s+(\S+)\s+\|\s+gap\s+(\S+)\s+\|\s+(.+?)\s+([\d.]+) s$")
+
+#: the summary line this driver writes once a group of instances is over; it is
+#: what marks that group as run to the end, and hence as not to be run again
+SUMMARY_RE = re.compile(
+    r"^\s*\[\s*(\d+)/(\d+)\]\s+(\S+)\s+n=(\d+)\s+(.+?)\s+\[1,(\d+)\]\s+\|\s+gap")
+
+#: method name of each label, and weight setting of each label, so that the lines
+#: of a record file can be traced back to the group that wrote them: the algorithm
+#: modules label the narrow regime "K=k" and the unrestricted one "all weights"
+NAME_OF_LABEL = {label: name for name, (label, _) in METHODS.items()}
+WEIGHTS_OF_LABEL = dict([("K=%s" % w[1:], w) for w in WEIGHT_SETTINGS
+                         if w != "free"] + [("all weights", "free")])
+
+
+def key_of(label, n, wlabel, proc_hi):
+    """
+    The configuration a line of the record file belongs to, or None.
+
+    None means this run has no such configuration -- a line of another scale, or
+    of a configuration that has been taken out of this one -- and the line is then
+    ignored rather than taken up again.
+    """
+    name = NAME_OF_LABEL.get(label)
+    weights = WEIGHTS_OF_LABEL.get(wlabel)
+    rng = "[1,%d]" % proc_hi
+    if name is None or weights is None or (n, weights, rng) not in CONFIGS:
+        return None
+    return (name, n, weights, rng)
+
+
+def replay_record(path):
+    """
+    The groups of instances a record file already holds, read back from it.
+
+    A record file is written instance by instance, so an interrupted run is
+    continued rather than repeated at the grain the file keeps: every instance a
+    group has already solved is taken from it, and the run starts at the first
+    instance of that group the file does not hold -- the one the earlier run was
+    in the middle of, if it was.  An instance the file holds twice, because a run
+    was taken up again after solving part of the group, is read from its last
+    line, the one the run that was taken up again wrote.
+
+    Returns a dict keyed by (method, n, weights, range) whose values are, for
+    every instance of the group, its value and its running time; together with
+    the replication count of the group, the number of the first instance the file
+    does not hold, and whether the group is finished.  A group whose lines are
+    unknown here is left out.
+    """
+    done, order = {}, []
+    for line in Path(path).read_text(encoding="utf-8").splitlines():
+        m = INSTANCE_RE.match(line)
+        if m:
+            key = key_of(m.group(1), int(m.group(2)), m.group(3), int(m.group(4)))
+            if key is None:
+                continue
+            entry = done.get(key)
+            if entry is None:
+                entry = done[key] = {"instances": int(m.group(7)),
+                                     "rows": [None] * int(m.group(7)),
+                                     "summarised": False}
+                order.append(key)
+            # A method reports a value only when it found a schedule, and a
+            # running time only for the instances it found one on.
+            value = m.group(8)
+            entry["rows"][int(m.group(6)) - 1] = {
+                "obj": None if value == "none" else float(value),
+                "time": float(m.group(11)) if value != "none" else None,
+                "optimal": m.group(10) == "optimal",
+            }
+            continue
+        m = SUMMARY_RE.match(line)
+        if m:
+            key = key_of(m.group(3), int(m.group(4)), m.group(5), int(m.group(6)))
+            if key is not None and key in done:
+                done[key]["summarised"] = True
+    for entry in done.values():
+        entry["first"] = next((i + 1 for i, row in enumerate(entry["rows"])
+                               if row is None), entry["instances"] + 1)
+        entry["complete"] = (entry["summarised"]
+                             and entry["first"] > entry["instances"])
+    return {k: done[k] for k in order}
+
+
+def unfinished_record(record_dir, scale, instances):
+    """
+    The record file of the newest unfinished run of a scale, or None.
+
+    Each run writes its record into a file of its own, named after the scale and
+    the moment it began, so the newest of them is the one an interrupted run was
+    writing.  A file says whether it is finished itself, in the numbering of its
+    summary lines: the last of them reads "[k/n]", and k < n means the run it
+    belongs to was cut short.  A file whose last summary closes its own total
+    belongs to a run that went through, and is left alone -- the next run starts
+    a file of its own rather than adding to it.  A file written by a shorter run,
+    a pilot of a few instances per configuration, is left alone as well: it is
+    not the run this one would be continuing.
+    """
+    if not record_dir.is_dir():
+        return None
+    files = sorted(record_dir.glob("实例记录_%s_*.txt" % scale))
+    for path in reversed(files):          # newest first: the names are dated
+        last, count = None, None
+        for line in path.read_text(encoding="utf-8").splitlines():
+            m = SUMMARY_RE.match(line)
+            if m:
+                last = (int(m.group(1)), int(m.group(2)))
+            m = INSTANCE_RE.match(line)
+            if m:
+                count = int(m.group(7))
+        if count is not None and count != instances:
+            continue
+        if last is None or last[0] < last[1]:
+            return path
+    return None
+
+
+def bases_of(n, cfg, instances, seed):
+    """
+    The reference value of every instance of a configuration, recomputed.
+
+    The record file reports the gap of each instance but not the baseline it was
+    measured against, and the results file reports that baseline.  The instances
+    themselves are what the seed generates, so the values are recomputed from
+    them -- the very call the algorithm modules make on the instances they solve,
+    their copies of the generator agreeing -- instead of being recovered from the
+    gaps, which the file rounds to two decimals.
+    """
+    from NEH import gen_instance, instance_baseline
+    rng = random.Random(seed)
+    bases = []
+    for _ in range(instances):
+        a, b, w = gen_instance(n, cfg["K"], rng, False, cfg["weights"],
+                               cfg["proc_hi"])
+        bases.append(instance_baseline(a, b, w))
+    return bases
+
+
+def _from_rows(run, instances, bases=None):
+    """
+    The result of a group of instances a record file holds, as the benchmark of
+    the method would have returned it.
+    """
+    objs = [row["obj"] for row in run["rows"]]
+    times = [row["time"] for row in run["rows"]]
+    secs = [t for t in times if t is not None]
+    out = {
+        "objs": objs,
+        "times": times,
+        "mean_time": statistics.fmean(secs) if secs else float("nan"),
+        "solved": len([o for o in objs if o is not None]),
+        # the heuristics of this scale prove nothing about optimality, and the
+        # exact methods, which do, are reported at the small scale
+        "optimal": 0,
+    }
+    if bases is not None:
+        out["bases"] = bases
+    return out
+
+
+def _continued(run, res, first, bases=None):
+    """
+    The result of a group whose first instances an earlier run solved.
+
+    The instances before `first` are taken from that run's record file and put in
+    front of the ones just solved, so that the group is reported as if it had
+    been run in one go.
+    """
+    prefix = run["rows"][:first - 1]
+    objs = [row["obj"] for row in prefix] + list(res["objs"])
+    times = [row["time"] for row in prefix] + list(res["times"])
+    secs = [t for t in times if t is not None]
+    out = dict(res, objs=objs, times=times,
+               mean_time=statistics.fmean(secs) if secs else float("nan"),
+               solved=len([o for o in objs if o is not None]))
+    if bases is not None:
+        out["bases"] = bases
+    return out
 
 
 def _record(path, line):
@@ -333,6 +529,10 @@ def run_scale(methods, args, stream=sys.stdout):
     # and by this driver for the header and the summary of each configuration,
     # so that it reads as the live output did.
     record_path = getattr(args, "record_path", None)
+    # The groups an earlier, interrupted run finished, read back from the record
+    # file it left behind: they are not run again, and this run starts at the
+    # first group that file has no summary for.
+    earlier = getattr(args, "resumed", None) or {}
 
     for (n, weights, rng) in CONFIGS:
         cfg = config_of(n, weights, rng)
@@ -345,7 +545,10 @@ def run_scale(methods, args, stream=sys.stdout):
         # alone determines: every method computes it from the instance it has
         # just been handed -- see instance_baseline() of the algorithm modules
         # -- so nothing extra has to be run at all.
-        if done:                          # separate the configurations
+        todo = [name for name in methods
+                if not (earlier.get((name, n, weights, rng)) or {})
+                .get("complete")]
+        if done and todo:                 # separate the configurations
             print(RULE, file=stream, flush=True)
 
         # Every method of the configuration runs under its own header and is
@@ -355,12 +558,35 @@ def run_scale(methods, args, stream=sys.stdout):
         results, group = {}, []
         for name in methods:
             label, runner = METHODS[name]
-            head = ("  n=%-4d %-6s %-7s | %s (seed %d) | baseline %s"
-                    % (n, wlabel, rlabel, label, seed, BASELINE_LABEL[BASELINE]))
-            print(head, file=stream, flush=True)
-            _record(record_path, head)
-            res = runner(n, cfg, instances, seed, args,
-                         _instance_reporter(label, n, wlabel, rlabel, stream))
+            run = earlier.get((name, n, weights, rng))
+            if run is not None and run["instances"] != instances:
+                raise SystemExit(
+                    "record file %s holds %d instances of n=%d %s, not %d: take "
+                    "the run up again with the replication count it was started "
+                    "with"
+                    % (record_path, run["instances"], n, wlabel, instances))
+            if run is not None and run["complete"]:
+                # Run to the end by the run this one continues: the instances come
+                # from its record file, which is not written to again, and the
+                # baselines, which the file does not carry, are recomputed from
+                # the instances the seed regenerates.
+                res = _from_rows(run, instances,
+                                 bases_of(n, cfg, instances, seed))
+            else:
+                # The group is run on from the first instance the file does not
+                # hold, so that an interruption inside a group costs only the
+                # instance the run was solving when it stopped
+                head = ("  n=%-4d %-6s %-7s | %s (seed %d) | baseline %s"
+                        % (n, wlabel, rlabel, label, seed,
+                           BASELINE_LABEL[BASELINE]))
+                print(head, file=stream, flush=True)
+                _record(record_path, head)
+                res = runner(n, cfg, instances, seed, args,
+                             _instance_reporter(label, n, wlabel, rlabel, stream),
+                             first=1 if run is None else run["first"])
+                if run is not None:
+                    res = _continued(run, res, run["first"],
+                                     bases_of(n, cfg, instances, seed))
             results[name] = res
 
             gaps, missing = gaps_against(res["objs"], res["bases"])
@@ -411,8 +637,9 @@ def run_scale(methods, args, stream=sys.stdout):
                        % (done, total, label, n, wlabel, rlabel, rec["mean_gap"],
                           rec["min_gap"], rec["max_gap"], o_mean, o_min, o_max,
                           t_mean, t_min, t_max, missing))
-            print(summary, file=stream, flush=True)
-            _record(record_path, summary)
+            if run is None or not run["complete"]:
+                print(summary, file=stream, flush=True)
+                _record(record_path, summary)
 
         # The best value found on each instance by any of the methods run here,
         # and the number of instances on which each of them attained it.  That
@@ -473,6 +700,7 @@ def _header(methods, args):
                         "paper Section 4.3, a property of the instance",
         "seed          : %d (+1000*n, + 100*weight setting, + range)" % args.seed,
         "records       : %s" % getattr(args, "record_path", "-"),
+        "resumed       : %s" % (getattr(args, "resume", None) or "-"),
     ]
 
 
@@ -581,6 +809,16 @@ def parse_args(argv=None):
     p.add_argument("--out", default=str(DEFAULT_OUT),
                    help="results file (default: %s; a .csv suffix writes CSV)"
                         % DEFAULT_OUT)
+    p.add_argument("--resume", default=None, metavar="RECORD",
+                   help="continue the run whose record file is RECORD: the "
+                        "groups of instances that file already holds are read "
+                        "back from it instead of being run again, and everything "
+                        "this run produces is appended to the same file.  By "
+                        "default the newest unfinished record file of the scale "
+                        "is taken up, if there is one")
+    p.add_argument("--fresh", action="store_true",
+                   help="start a new run and a new record file, ignoring what "
+                        "earlier runs left behind")
     p.add_argument("--list", action="store_true",
                    help="list the available methods and configurations, then exit")
     return p.parse_args(argv)
@@ -639,8 +877,36 @@ def main(argv=None):
     # everything it has already solved.
     started = datetime.now()
     stamp = started.strftime("%Y-%m-%d_%H-%M-%S")
-    RECORD_DIR.mkdir(parents=True, exist_ok=True)
-    args.record_path = RECORD_DIR / ("实例记录_%s_%s.txt" % (SCALE, stamp))
+    # An interrupted run is continued rather than repeated: the file this run
+    # appends to is the one named on the command line, or else the newest record
+    # file of the scale, provided that run was cut short.  A run that went
+    # through is left as it is, and a new file is started -- as it always is
+    # under --fresh.
+    if args.resume:
+        resume_path = Path(args.resume)
+    elif args.fresh:
+        resume_path = None
+    else:
+        resume_path = unfinished_record(RECORD_DIR, SCALE,
+                                        args.instances or INSTANCES)
+    if resume_path is not None:
+        if not resume_path.is_file():
+            raise SystemExit("no record file at %s" % resume_path)
+        args.resumed = replay_record(resume_path)
+        if not args.resumed and resume_path.stat().st_size:
+            # The file holds no group of the scale as it now stands: it was
+            # written by a run of another design, whose configurations this run
+            # cannot continue.  It is left where it is, and a record file of this
+            # run is started beside it.
+            print("  note      : %s holds no configuration of this scale;"
+                  " starting a new record file" % resume_path.name)
+            resume_path = None
+    if resume_path is None:
+        args.resumed = {}
+        RECORD_DIR.mkdir(parents=True, exist_ok=True)
+        args.record_path = RECORD_DIR / ("实例记录_%s_%s.txt" % (SCALE, stamp))
+    else:
+        args.record_path = resume_path
 
     print("F2 || WCmax -- computational study (paper Section 6)")
     print("  scale     : %s" % SCALE)
@@ -652,6 +918,15 @@ def main(argv=None):
     print("  output    : %s" % out_path)
     print("  archive   : %s" % ARCHIVE_DIR)
     print("  records   : %s" % args.record_path)
+    if args.resumed:
+        left = [(key, run) for key, run in sorted(args.resumed.items())
+                if not run["complete"]]
+        print("  resuming  : %d groups already in that file%s"
+              % (len(args.resumed) - len(left),
+                 "" if not left else "; to continue: %s"
+                 % ", ".join("%s n=%d/%s/%s from instance %d"
+                             % (METHODS[m][0], n, w, rg, run["first"])
+                             for (m, n, w, rg), run in left)))
     print(flush=True)
 
     print("=== scale %s ===" % SCALE)

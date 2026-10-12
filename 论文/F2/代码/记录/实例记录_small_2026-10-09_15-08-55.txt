@@ -137,3 +137,530 @@
 2026-10-09 19:49:32  MILP  n=60   K=2    [1,20]  | seed=60262   | instance  4/20 | value 2650.0       | gap         - | time limit  600.09 s
 2026-10-09 19:59:32  MILP  n=60   K=2    [1,20]  | seed=60262   | instance  5/20 | value 3100.0       | gap         - | time limit  600.09 s
 2026-10-09 20:09:32  MILP  n=60   K=2    [1,20]  | seed=60262   | instance  6/20 | value 2910.0       | gap         - | time limit  600.07 s
+2026-10-09 20:19:32  MILP  n=60   K=2    [1,20]  | seed=60262   | instance  7/20 | value 3370.0       | gap         - | time limit  600.08 s
+2026-10-09 20:29:32  MILP  n=60   K=2    [1,20]  | seed=60262   | instance  8/20 | value 2260.0       | gap         - | time limit  600.07 s
+2026-10-09 20:39:32  MILP  n=60   K=2    [1,20]  | seed=60262   | instance  9/20 | value 3940.0       | gap         - | time limit  600.09 s
+2026-10-09 20:49:32  MILP  n=60   K=2    [1,20]  | seed=60262   | instance 10/20 | value 3060.0       | gap         - | time limit  600.07 s
+2026-10-09 20:56:39  MILP  n=60   K=2    [1,20]  | seed=60262   | instance 11/20 | value 2590.0       | gap         - | optimal     427.19 s
+2026-10-09 21:06:39  MILP  n=60   K=2    [1,20]  | seed=60262   | instance 12/20 | value 2950.0       | gap         - | time limit  600.07 s
+2026-10-09 21:16:39  MILP  n=60   K=2    [1,20]  | seed=60262   | instance 13/20 | value 3120.0       | gap         - | time limit  600.07 s
+2026-10-09 21:26:39  MILP  n=60   K=2    [1,20]  | seed=60262   | instance 14/20 | value 4280.0       | gap         - | time limit  600.07 s
+2026-10-09 21:34:33  MILP  n=60   K=2    [1,20]  | seed=60262   | instance 15/20 | value 3060.0       | gap         - | optimal     473.21 s
+2026-10-09 21:37:34  MILP  n=60   K=2    [1,20]  | seed=60262   | instance 16/20 | value 4430.0       | gap         - | optimal     181.46 s
+2026-10-09 21:47:34  MILP  n=60   K=2    [1,20]  | seed=60262   | instance 17/20 | value 3310.0       | gap         - | time limit  600.07 s
+2026-10-09 21:57:34  MILP  n=60   K=2    [1,20]  | seed=60262   | instance 18/20 | value 4070.0       | gap         - | time limit  600.07 s
+2026-10-09 22:07:34  MILP  n=60   K=2    [1,20]  | seed=60262   | instance 19/20 | value 2550.0       | gap         - | time limit  600.07 s
+2026-10-09 22:11:34  MILP  n=60   K=2    [1,20]  | seed=60262   | instance 20/20 | value 2630.0       | gap         - | optimal     240.11 s
+  [ 7/36] MILP n=60   K=2    [1,20]  | opt 4/20    | obj    3155.5 (  2260.0,    4430.0) | time  546.1626 s (181.4595,   600.1223) | no value 0
+  n=60   K=2    [1,40]  | MILP (seed 60282)
+2026-10-09 22:21:35  MILP  n=60   K=2    [1,40]  | seed=60282   | instance  1/20 | value 6710.0       | gap         - | time limit  600.08 s
+2026-10-09 22:31:35  MILP  n=60   K=2    [1,40]  | seed=60282   | instance  2/20 | value 4650.0       | gap         - | time limit  600.07 s
+2026-10-09 22:41:35  MILP  n=60   K=2    [1,40]  | seed=60282   | instance  3/20 | value 4760.0       | gap         - | time limit  600.07 s
+2026-10-09 22:51:35  MILP  n=60   K=2    [1,40]  | seed=60282   | instance  4/20 | value 5720.0       | gap         - | time limit  600.07 s
+2026-10-09 23:01:35  MILP  n=60   K=2    [1,40]  | seed=60282   | instance  5/20 | value 6640.0       | gap         - | time limit  600.09 s
+2026-10-09 23:11:35  MILP  n=60   K=2    [1,40]  | seed=60282   | instance  6/20 | value 5930.0       | gap         - | time limit  600.09 s
+2026-10-09 23:21:35  MILP  n=60   K=2    [1,40]  | seed=60282   | instance  7/20 | value 6900.0       | gap         - | time limit  600.08 s
+2026-10-09 23:31:35  MILP  n=60   K=2    [1,40]  | seed=60282   | instance  8/20 | value 5190.0       | gap         - | time limit  600.08 s
+2026-10-09 23:41:35  MILP  n=60   K=2    [1,40]  | seed=60282   | instance  9/20 | value 6230.0       | gap         - | time limit  600.09 s
+2026-10-09 23:51:35  MILP  n=60   K=2    [1,40]  | seed=60282   | instance 10/20 | value 7130.0       | gap         - | time limit  600.09 s
+2026-10-10 00:01:35  MILP  n=60   K=2    [1,40]  | seed=60282   | instance 11/20 | value 8370.0       | gap         - | time limit  600.10 s
+2026-10-10 00:11:36  MILP  n=60   K=2    [1,40]  | seed=60282   | instance 12/20 | value 7690.0       | gap         - | time limit  600.12 s
+2026-10-10 00:21:36  MILP  n=60   K=2    [1,40]  | seed=60282   | instance 13/20 | value 7430.0       | gap         - | time limit  600.08 s
+2026-10-10 00:26:13  MILP  n=60   K=2    [1,40]  | seed=60282   | instance 14/20 | value 6490.0       | gap         - | optimal     277.87 s
+2026-10-10 00:36:14  MILP  n=60   K=2    [1,40]  | seed=60282   | instance 15/20 | value 5820.0       | gap         - | time limit  600.10 s
+2026-10-10 00:46:14  MILP  n=60   K=2    [1,40]  | seed=60282   | instance 16/20 | value 4860.0       | gap         - | time limit  600.08 s
+2026-10-10 00:56:14  MILP  n=60   K=2    [1,40]  | seed=60282   | instance 17/20 | value 6400.0       | gap         - | time limit  600.10 s
+2026-10-10 01:04:42  MILP  n=60   K=2    [1,40]  | seed=60282   | instance 18/20 | value 8480.0       | gap         - | optimal     508.51 s
+2026-10-10 01:14:42  MILP  n=60   K=2    [1,40]  | seed=60282   | instance 19/20 | value 7690.0       | gap         - | time limit  600.10 s
+2026-10-10 01:24:42  MILP  n=60   K=2    [1,40]  | seed=60282   | instance 20/20 | value 6510.0       | gap         - | time limit  600.08 s
+  [ 8/36] MILP n=60   K=2    [1,40]  | opt 2/20    | obj    6480.0 (  4650.0,    8480.0) | time  579.3976 s (277.8711,   600.1219) | no value 0
+  n=60   K=2    [1,60]  | MILP (seed 60302)
+2026-10-10 01:34:43  MILP  n=60   K=2    [1,60]  | seed=60302   | instance  1/20 | value 7540.0       | gap         - | time limit  600.10 s
+2026-10-10 01:44:43  MILP  n=60   K=2    [1,60]  | seed=60302   | instance  2/20 | value 8630.0       | gap         - | time limit  600.07 s
+2026-10-10 01:54:43  MILP  n=60   K=2    [1,60]  | seed=60302   | instance  3/20 | value 9990.0       | gap         - | time limit  600.09 s
+2026-10-10 02:04:43  MILP  n=60   K=2    [1,60]  | seed=60302   | instance  4/20 | value 8810.0       | gap         - | time limit  600.07 s
+2026-10-10 02:14:43  MILP  n=60   K=2    [1,60]  | seed=60302   | instance  5/20 | value 8870.0       | gap         - | time limit  600.08 s
+2026-10-10 02:24:43  MILP  n=60   K=2    [1,60]  | seed=60302   | instance  6/20 | value 11200.0      | gap         - | time limit  600.09 s
+2026-10-10 02:33:40  MILP  n=60   K=2    [1,60]  | seed=60302   | instance  7/20 | value 10890.0      | gap         - | optimal     536.91 s
+2026-10-10 02:43:40  MILP  n=60   K=2    [1,60]  | seed=60302   | instance  8/20 | value 6880.0       | gap         - | time limit  600.07 s
+2026-10-10 02:53:40  MILP  n=60   K=2    [1,60]  | seed=60302   | instance  9/20 | value 12230.0      | gap         - | time limit  600.07 s
+2026-10-10 03:03:40  MILP  n=60   K=2    [1,60]  | seed=60302   | instance 10/20 | value 8460.0       | gap         - | time limit  600.07 s
+2026-10-10 03:13:40  MILP  n=60   K=2    [1,60]  | seed=60302   | instance 11/20 | value 7850.0       | gap         - | time limit  600.07 s
+2026-10-10 03:23:40  MILP  n=60   K=2    [1,60]  | seed=60302   | instance 12/20 | value 8730.0       | gap         - | time limit  600.07 s
+2026-10-10 03:33:40  MILP  n=60   K=2    [1,60]  | seed=60302   | instance 13/20 | value 8560.0       | gap         - | time limit  600.07 s
+2026-10-10 03:43:40  MILP  n=60   K=2    [1,60]  | seed=60302   | instance 14/20 | value 9170.0       | gap         - | time limit  600.08 s
+2026-10-10 03:53:40  MILP  n=60   K=2    [1,60]  | seed=60302   | instance 15/20 | value 9740.0       | gap         - | time limit  600.07 s
+2026-10-10 04:03:40  MILP  n=60   K=2    [1,60]  | seed=60302   | instance 16/20 | value 10310.0      | gap         - | time limit  600.07 s
+2026-10-10 04:13:41  MILP  n=60   K=2    [1,60]  | seed=60302   | instance 17/20 | value 10060.0      | gap         - | time limit  600.08 s
+2026-10-10 04:23:41  MILP  n=60   K=2    [1,60]  | seed=60302   | instance 18/20 | value 10630.0      | gap         - | time limit  600.08 s
+2026-10-10 04:32:38  MILP  n=60   K=2    [1,60]  | seed=60302   | instance 19/20 | value 10890.0      | gap         - | optimal     537.25 s
+2026-10-10 04:42:38  MILP  n=60   K=2    [1,60]  | seed=60302   | instance 20/20 | value 8620.0       | gap         - | time limit  600.07 s
+  [ 9/36] MILP n=60   K=2    [1,60]  | opt 2/20    | obj    9403.0 (  6880.0,   12230.0) | time  593.7763 s (536.9075,   600.0963) | no value 0
+  n=20   K=3    [1,20]  | MILP (seed 20362)
+2026-10-10 04:42:40  MILP  n=20   K=3    [1,20]  | seed=20362   | instance  1/20 | value 7000.0       | gap         - | optimal       1.94 s
+2026-10-10 04:42:42  MILP  n=20   K=3    [1,20]  | seed=20362   | instance  2/20 | value 8300.0       | gap         - | optimal       1.96 s
+2026-10-10 04:42:45  MILP  n=20   K=3    [1,20]  | seed=20362   | instance  3/20 | value 7500.0       | gap         - | optimal       3.30 s
+2026-10-10 04:42:45  MILP  n=20   K=3    [1,20]  | seed=20362   | instance  4/20 | value 2700.0       | gap         - | optimal       0.09 s
+2026-10-10 04:42:46  MILP  n=20   K=3    [1,20]  | seed=20362   | instance  5/20 | value 10400.0      | gap         - | optimal       1.20 s
+2026-10-10 04:42:51  MILP  n=20   K=3    [1,20]  | seed=20362   | instance  6/20 | value 15800.0      | gap         - | optimal       4.68 s
+2026-10-10 04:42:52  MILP  n=20   K=3    [1,20]  | seed=20362   | instance  7/20 | value 5400.0       | gap         - | optimal       0.44 s
+2026-10-10 04:43:00  MILP  n=20   K=3    [1,20]  | seed=20362   | instance  8/20 | value 7600.0       | gap         - | optimal       8.62 s
+2026-10-10 04:43:02  MILP  n=20   K=3    [1,20]  | seed=20362   | instance  9/20 | value 9900.0       | gap         - | optimal       1.97 s
+2026-10-10 04:43:18  MILP  n=20   K=3    [1,20]  | seed=20362   | instance 10/20 | value 12200.0      | gap         - | optimal      15.62 s
+2026-10-10 04:43:21  MILP  n=20   K=3    [1,20]  | seed=20362   | instance 11/20 | value 13300.0      | gap         - | optimal       3.23 s
+2026-10-10 04:43:39  MILP  n=20   K=3    [1,20]  | seed=20362   | instance 12/20 | value 11800.0      | gap         - | optimal      18.06 s
+2026-10-10 04:43:43  MILP  n=20   K=3    [1,20]  | seed=20362   | instance 13/20 | value 12500.0      | gap         - | optimal       3.97 s
+2026-10-10 04:43:44  MILP  n=20   K=3    [1,20]  | seed=20362   | instance 14/20 | value 6600.0       | gap         - | optimal       1.37 s
+2026-10-10 04:43:46  MILP  n=20   K=3    [1,20]  | seed=20362   | instance 15/20 | value 10700.0      | gap         - | optimal       1.12 s
+2026-10-10 04:43:47  MILP  n=20   K=3    [1,20]  | seed=20362   | instance 16/20 | value 8900.0       | gap         - | optimal       1.64 s
+2026-10-10 04:43:48  MILP  n=20   K=3    [1,20]  | seed=20362   | instance 17/20 | value 6300.0       | gap         - | optimal       0.68 s
+2026-10-10 04:43:53  MILP  n=20   K=3    [1,20]  | seed=20362   | instance 18/20 | value 4600.0       | gap         - | optimal       4.89 s
+2026-10-10 04:43:53  MILP  n=20   K=3    [1,20]  | seed=20362   | instance 19/20 | value 6600.0       | gap         - | optimal       0.53 s
+2026-10-10 04:43:56  MILP  n=20   K=3    [1,20]  | seed=20362   | instance 20/20 | value 6200.0       | gap         - | optimal       2.68 s
+  [10/36] MILP n=20   K=3    [1,20]  | opt 20/20   | obj    8715.0 (  2700.0,   15800.0) | time    3.8996 s (  0.0926,    18.0639) | no value 0
+  n=20   K=3    [1,40]  | MILP (seed 20382)
+2026-10-10 04:43:56  MILP  n=20   K=3    [1,40]  | seed=20382   | instance  1/20 | value 12200.0      | gap         - | optimal       0.47 s
+2026-10-10 04:44:01  MILP  n=20   K=3    [1,40]  | seed=20382   | instance  2/20 | value 34900.0      | gap         - | optimal       4.78 s
+2026-10-10 04:44:05  MILP  n=20   K=3    [1,40]  | seed=20382   | instance  3/20 | value 25100.0      | gap         - | optimal       3.70 s
+2026-10-10 04:44:07  MILP  n=20   K=3    [1,40]  | seed=20382   | instance  4/20 | value 17700.0      | gap         - | optimal       2.38 s
+2026-10-10 04:44:10  MILP  n=20   K=3    [1,40]  | seed=20382   | instance  5/20 | value 22300.0      | gap         - | optimal       2.70 s
+2026-10-10 04:44:20  MILP  n=20   K=3    [1,40]  | seed=20382   | instance  6/20 | value 17000.0      | gap         - | optimal       9.66 s
+2026-10-10 04:44:24  MILP  n=20   K=3    [1,40]  | seed=20382   | instance  7/20 | value 19600.0      | gap         - | optimal       4.43 s
+2026-10-10 04:44:27  MILP  n=20   K=3    [1,40]  | seed=20382   | instance  8/20 | value 15600.0      | gap         - | optimal       2.82 s
+2026-10-10 04:44:35  MILP  n=20   K=3    [1,40]  | seed=20382   | instance  9/20 | value 15700.0      | gap         - | optimal       8.50 s
+2026-10-10 04:44:38  MILP  n=20   K=3    [1,40]  | seed=20382   | instance 10/20 | value 13700.0      | gap         - | optimal       2.73 s
+2026-10-10 04:44:41  MILP  n=20   K=3    [1,40]  | seed=20382   | instance 11/20 | value 18400.0      | gap         - | optimal       2.76 s
+2026-10-10 04:44:47  MILP  n=20   K=3    [1,40]  | seed=20382   | instance 12/20 | value 15500.0      | gap         - | optimal       6.15 s
+2026-10-10 04:44:48  MILP  n=20   K=3    [1,40]  | seed=20382   | instance 13/20 | value 14400.0      | gap         - | optimal       0.49 s
+2026-10-10 04:44:59  MILP  n=20   K=3    [1,40]  | seed=20382   | instance 14/20 | value 15000.0      | gap         - | optimal      11.55 s
+2026-10-10 04:45:00  MILP  n=20   K=3    [1,40]  | seed=20382   | instance 15/20 | value 13700.0      | gap         - | optimal       1.10 s
+2026-10-10 04:45:02  MILP  n=20   K=3    [1,40]  | seed=20382   | instance 16/20 | value 15600.0      | gap         - | optimal       1.69 s
+2026-10-10 04:45:02  MILP  n=20   K=3    [1,40]  | seed=20382   | instance 17/20 | value 7300.0       | gap         - | optimal       0.18 s
+2026-10-10 04:45:14  MILP  n=20   K=3    [1,40]  | seed=20382   | instance 18/20 | value 22200.0      | gap         - | optimal      12.14 s
+2026-10-10 04:45:21  MILP  n=20   K=3    [1,40]  | seed=20382   | instance 19/20 | value 12800.0      | gap         - | optimal       7.12 s
+2026-10-10 04:45:26  MILP  n=20   K=3    [1,40]  | seed=20382   | instance 20/20 | value 16200.0      | gap         - | optimal       4.89 s
+  [11/36] MILP n=20   K=3    [1,40]  | opt 20/20   | obj   17245.0 (  7300.0,   34900.0) | time    4.5117 s (  0.1808,    12.1416) | no value 0
+  n=20   K=3    [1,60]  | MILP (seed 20402)
+2026-10-10 04:45:56  MILP  n=20   K=3    [1,60]  | seed=20402   | instance  1/20 | value 28500.0      | gap         - | optimal      29.39 s
+2026-10-10 04:45:57  MILP  n=20   K=3    [1,60]  | seed=20402   | instance  2/20 | value 20100.0      | gap         - | optimal       0.92 s
+2026-10-10 04:46:08  MILP  n=20   K=3    [1,60]  | seed=20402   | instance  3/20 | value 38700.0      | gap         - | optimal      11.65 s
+2026-10-10 04:46:10  MILP  n=20   K=3    [1,60]  | seed=20402   | instance  4/20 | value 17000.0      | gap         - | optimal       1.42 s
+2026-10-10 04:46:10  MILP  n=20   K=3    [1,60]  | seed=20402   | instance  5/20 | value 19600.0      | gap         - | optimal       0.46 s
+2026-10-10 04:46:11  MILP  n=20   K=3    [1,60]  | seed=20402   | instance  6/20 | value 16500.0      | gap         - | optimal       0.80 s
+2026-10-10 04:46:17  MILP  n=20   K=3    [1,60]  | seed=20402   | instance  7/20 | value 26400.0      | gap         - | optimal       6.53 s
+2026-10-10 04:46:36  MILP  n=20   K=3    [1,60]  | seed=20402   | instance  8/20 | value 17400.0      | gap         - | optimal      18.78 s
+2026-10-10 04:46:55  MILP  n=20   K=3    [1,60]  | seed=20402   | instance  9/20 | value 23600.0      | gap         - | optimal      18.69 s
+2026-10-10 04:47:17  MILP  n=20   K=3    [1,60]  | seed=20402   | instance 10/20 | value 37000.0      | gap         - | optimal      22.20 s
+2026-10-10 04:47:24  MILP  n=20   K=3    [1,60]  | seed=20402   | instance 11/20 | value 24800.0      | gap         - | optimal       7.10 s
+2026-10-10 04:47:25  MILP  n=20   K=3    [1,60]  | seed=20402   | instance 12/20 | value 10500.0      | gap         - | optimal       0.46 s
+2026-10-10 04:47:25  MILP  n=20   K=3    [1,60]  | seed=20402   | instance 13/20 | value 35300.0      | gap         - | optimal       0.48 s
+2026-10-10 04:47:25  MILP  n=20   K=3    [1,60]  | seed=20402   | instance 14/20 | value 13000.0      | gap         - | optimal       0.10 s
+2026-10-10 04:47:48  MILP  n=20   K=3    [1,60]  | seed=20402   | instance 15/20 | value 23900.0      | gap         - | optimal      22.43 s
+2026-10-10 04:47:53  MILP  n=20   K=3    [1,60]  | seed=20402   | instance 16/20 | value 31700.0      | gap         - | optimal       5.73 s
+2026-10-10 04:47:57  MILP  n=20   K=3    [1,60]  | seed=20402   | instance 17/20 | value 22700.0      | gap         - | optimal       4.03 s
+2026-10-10 04:48:15  MILP  n=20   K=3    [1,60]  | seed=20402   | instance 18/20 | value 29700.0      | gap         - | optimal      17.14 s
+2026-10-10 04:48:20  MILP  n=20   K=3    [1,60]  | seed=20402   | instance 19/20 | value 29500.0      | gap         - | optimal       5.36 s
+2026-10-10 04:48:23  MILP  n=20   K=3    [1,60]  | seed=20402   | instance 20/20 | value 32600.0      | gap         - | optimal       3.07 s
+  [12/36] MILP n=20   K=3    [1,60]  | opt 20/20   | obj   24925.0 ( 10500.0,   38700.0) | time    8.8363 s (  0.1010,    29.3893) | no value 0
+  n=40   K=3    [1,20]  | MILP (seed 40362)
+2026-10-10 04:49:27  MILP  n=40   K=3    [1,20]  | seed=40362   | instance  1/20 | value 15600.0      | gap         - | optimal      63.53 s
+2026-10-10 04:51:32  MILP  n=40   K=3    [1,20]  | seed=40362   | instance  2/20 | value 10500.0      | gap         - | optimal     125.93 s
+2026-10-10 04:54:26  MILP  n=40   K=3    [1,20]  | seed=40362   | instance  3/20 | value 12500.0      | gap         - | optimal     173.15 s
+2026-10-10 04:56:31  MILP  n=40   K=3    [1,20]  | seed=40362   | instance  4/20 | value 20400.0      | gap         - | optimal     125.56 s
+2026-10-10 05:05:45  MILP  n=40   K=3    [1,20]  | seed=40362   | instance  5/20 | value 12300.0      | gap         - | optimal     553.61 s
+2026-10-10 05:06:11  MILP  n=40   K=3    [1,20]  | seed=40362   | instance  6/20 | value 19000.0      | gap         - | optimal      26.44 s
+2026-10-10 05:07:01  MILP  n=40   K=3    [1,20]  | seed=40362   | instance  7/20 | value 17400.0      | gap         - | optimal      49.65 s
+2026-10-10 05:09:09  MILP  n=40   K=3    [1,20]  | seed=40362   | instance  8/20 | value 11600.0      | gap         - | optimal     127.88 s
+2026-10-10 05:11:39  MILP  n=40   K=3    [1,20]  | seed=40362   | instance  9/20 | value 17800.0      | gap         - | optimal     150.18 s
+2026-10-10 05:21:39  MILP  n=40   K=3    [1,20]  | seed=40362   | instance 10/20 | value 18400.0      | gap         - | time limit  600.04 s
+2026-10-10 05:31:39  MILP  n=40   K=3    [1,20]  | seed=40362   | instance 11/20 | value 13200.0      | gap         - | time limit  600.05 s
+2026-10-10 05:37:33  MILP  n=40   K=3    [1,20]  | seed=40362   | instance 12/20 | value 19900.0      | gap         - | optimal     354.35 s
+2026-10-10 05:39:14  MILP  n=40   K=3    [1,20]  | seed=40362   | instance 13/20 | value 13000.0      | gap         - | optimal     100.30 s
+2026-10-10 05:42:47  MILP  n=40   K=3    [1,20]  | seed=40362   | instance 14/20 | value 15500.0      | gap         - | optimal     213.37 s
+2026-10-10 05:43:14  MILP  n=40   K=3    [1,20]  | seed=40362   | instance 15/20 | value 22900.0      | gap         - | optimal      27.04 s
+2026-10-10 05:53:14  MILP  n=40   K=3    [1,20]  | seed=40362   | instance 16/20 | value 15200.0      | gap         - | time limit  600.05 s
+2026-10-10 06:03:03  MILP  n=40   K=3    [1,20]  | seed=40362   | instance 17/20 | value 19100.0      | gap         - | optimal     588.68 s
+2026-10-10 06:04:00  MILP  n=40   K=3    [1,20]  | seed=40362   | instance 18/20 | value 14900.0      | gap         - | optimal      57.13 s
+2026-10-10 06:05:28  MILP  n=40   K=3    [1,20]  | seed=40362   | instance 19/20 | value 12000.0      | gap         - | optimal      88.17 s
+2026-10-10 06:07:23  MILP  n=40   K=3    [1,20]  | seed=40362   | instance 20/20 | value 19600.0      | gap         - | optimal     115.35 s
+  [13/36] MILP n=40   K=3    [1,20]  | opt 17/20   | obj   16040.0 ( 10500.0,   22900.0) | time  237.0232 s ( 26.4380,   600.0481) | no value 0
+  n=40   K=3    [1,40]  | MILP (seed 40382)
+2026-10-10 06:10:07  MILP  n=40   K=3    [1,40]  | seed=40382   | instance  1/20 | value 30000.0      | gap         - | optimal     164.04 s
+2026-10-10 06:17:57  MILP  n=40   K=3    [1,40]  | seed=40382   | instance  2/20 | value 39000.0      | gap         - | optimal     469.17 s
+2026-10-10 06:20:21  MILP  n=40   K=3    [1,40]  | seed=40382   | instance  3/20 | value 26800.0      | gap         - | optimal     144.45 s
+2026-10-10 06:30:21  MILP  n=40   K=3    [1,40]  | seed=40382   | instance  4/20 | value 16800.0      | gap         - | time limit  600.03 s
+2026-10-10 06:40:21  MILP  n=40   K=3    [1,40]  | seed=40382   | instance  5/20 | value 30900.0      | gap         - | time limit  600.04 s
+2026-10-10 06:41:56  MILP  n=40   K=3    [1,40]  | seed=40382   | instance  6/20 | value 28700.0      | gap         - | optimal      95.20 s
+2026-10-10 06:44:27  MILP  n=40   K=3    [1,40]  | seed=40382   | instance  7/20 | value 27000.0      | gap         - | optimal     150.32 s
+2026-10-10 06:47:40  MILP  n=40   K=3    [1,40]  | seed=40382   | instance  8/20 | value 29800.0      | gap         - | optimal     193.11 s
+2026-10-10 06:49:11  MILP  n=40   K=3    [1,40]  | seed=40382   | instance  9/20 | value 33700.0      | gap         - | optimal      91.21 s
+2026-10-10 06:51:07  MILP  n=40   K=3    [1,40]  | seed=40382   | instance 10/20 | value 34700.0      | gap         - | optimal     116.27 s
+2026-10-10 07:00:02  MILP  n=40   K=3    [1,40]  | seed=40382   | instance 11/20 | value 29700.0      | gap         - | optimal     535.14 s
+2026-10-10 07:02:30  MILP  n=40   K=3    [1,40]  | seed=40382   | instance 12/20 | value 22600.0      | gap         - | optimal     147.38 s
+2026-10-10 07:09:47  MILP  n=40   K=3    [1,40]  | seed=40382   | instance 13/20 | value 47900.0      | gap         - | optimal     437.46 s
+2026-10-10 07:19:47  MILP  n=40   K=3    [1,40]  | seed=40382   | instance 14/20 | value 28700.0      | gap         - | time limit  600.04 s
+2026-10-10 07:22:16  MILP  n=40   K=3    [1,40]  | seed=40382   | instance 15/20 | value 26000.0      | gap         - | optimal     148.74 s
+2026-10-10 07:32:16  MILP  n=40   K=3    [1,40]  | seed=40382   | instance 16/20 | value 32600.0      | gap         - | time limit  600.05 s
+2026-10-10 07:36:59  MILP  n=40   K=3    [1,40]  | seed=40382   | instance 17/20 | value 25900.0      | gap         - | optimal     282.60 s
+2026-10-10 07:43:53  MILP  n=40   K=3    [1,40]  | seed=40382   | instance 18/20 | value 37600.0      | gap         - | optimal     414.34 s
+2026-10-10 07:44:34  MILP  n=40   K=3    [1,40]  | seed=40382   | instance 19/20 | value 42300.0      | gap         - | optimal      40.90 s
+2026-10-10 07:50:18  MILP  n=40   K=3    [1,40]  | seed=40382   | instance 20/20 | value 24000.0      | gap         - | optimal     343.64 s
+  [14/36] MILP n=40   K=3    [1,40]  | opt 16/20   | obj   30735.0 ( 16800.0,   47900.0) | time  308.7079 s ( 40.8983,   600.0493) | no value 0
+  n=40   K=3    [1,60]  | MILP (seed 40402)
+2026-10-10 08:00:18  MILP  n=40   K=3    [1,60]  | seed=40402   | instance  1/20 | value 45800.0      | gap         - | time limit  600.06 s
+2026-10-10 08:04:09  MILP  n=40   K=3    [1,60]  | seed=40402   | instance  2/20 | value 41000.0      | gap         - | optimal     230.91 s
+2026-10-10 08:07:01  MILP  n=40   K=3    [1,60]  | seed=40402   | instance  3/20 | value 45500.0      | gap         - | optimal     171.99 s
+2026-10-10 08:15:58  MILP  n=40   K=3    [1,60]  | seed=40402   | instance  4/20 | value 40600.0      | gap         - | optimal     537.52 s
+2026-10-10 08:25:58  MILP  n=40   K=3    [1,60]  | seed=40402   | instance  5/20 | value 53400.0      | gap         - | time limit  600.05 s
+2026-10-10 08:28:29  MILP  n=40   K=3    [1,60]  | seed=40402   | instance  6/20 | value 28000.0      | gap         - | optimal     151.02 s
+2026-10-10 08:29:36  MILP  n=40   K=3    [1,60]  | seed=40402   | instance  7/20 | value 38800.0      | gap         - | optimal      66.45 s
+2026-10-10 08:33:32  MILP  n=40   K=3    [1,60]  | seed=40402   | instance  8/20 | value 54700.0      | gap         - | optimal     235.97 s
+2026-10-10 08:39:00  MILP  n=40   K=3    [1,60]  | seed=40402   | instance  9/20 | value 59800.0      | gap         - | optimal     327.97 s
+2026-10-10 08:49:00  MILP  n=40   K=3    [1,60]  | seed=40402   | instance 10/20 | value 60000.0      | gap         - | time limit  600.04 s
+2026-10-10 08:58:32  MILP  n=40   K=3    [1,60]  | seed=40402   | instance 11/20 | value 41600.0      | gap         - | optimal     572.87 s
+2026-10-10 09:04:37  MILP  n=40   K=3    [1,60]  | seed=40402   | instance 12/20 | value 45100.0      | gap         - | optimal     364.79 s
+2026-10-10 09:12:15  MILP  n=40   K=3    [1,60]  | seed=40402   | instance 13/20 | value 48900.0      | gap         - | optimal     457.95 s
+2026-10-10 09:22:15  MILP  n=40   K=3    [1,60]  | seed=40402   | instance 14/20 | value 42900.0      | gap         - | time limit  600.04 s
+2026-10-10 09:32:15  MILP  n=40   K=3    [1,60]  | seed=40402   | instance 15/20 | value 50200.0      | gap         - | time limit  600.04 s
+2026-10-10 09:42:15  MILP  n=40   K=3    [1,60]  | seed=40402   | instance 16/20 | value 45400.0      | gap         - | time limit  600.06 s
+2026-10-10 09:46:13  MILP  n=40   K=3    [1,60]  | seed=40402   | instance 17/20 | value 33000.0      | gap         - | optimal     238.07 s
+2026-10-10 09:56:13  MILP  n=40   K=3    [1,60]  | seed=40402   | instance 18/20 | value 40100.0      | gap         - | time limit  600.05 s
+2026-10-10 10:06:14  MILP  n=40   K=3    [1,60]  | seed=40402   | instance 19/20 | value 44700.0      | gap         - | time limit  600.05 s
+2026-10-10 10:09:02  MILP  n=40   K=3    [1,60]  | seed=40402   | instance 20/20 | value 46400.0      | gap         - | optimal     168.64 s
+  [15/36] MILP n=40   K=3    [1,60]  | opt 12/20   | obj   45295.0 ( 28000.0,   60000.0) | time  416.2265 s ( 66.4544,   600.0643) | no value 0
+  n=60   K=3    [1,20]  | MILP (seed 60362)
+2026-10-10 10:19:02  MILP  n=60   K=3    [1,20]  | seed=60362   | instance  1/20 | value 15900.0      | gap         - | time limit  600.07 s
+2026-10-10 10:29:02  MILP  n=60   K=3    [1,20]  | seed=60362   | instance  2/20 | value 21100.0      | gap         - | time limit  600.07 s
+2026-10-10 10:39:02  MILP  n=60   K=3    [1,20]  | seed=60362   | instance  3/20 | value 19500.0      | gap         - | time limit  600.07 s
+2026-10-10 10:49:02  MILP  n=60   K=3    [1,20]  | seed=60362   | instance  4/20 | value 23700.0      | gap         - | time limit  600.08 s
+2026-10-10 10:59:03  MILP  n=60   K=3    [1,20]  | seed=60362   | instance  5/20 | value 23800.0      | gap         - | time limit  600.08 s
+2026-10-10 11:09:03  MILP  n=60   K=3    [1,20]  | seed=60362   | instance  6/20 | value 29300.0      | gap         - | time limit  600.08 s
+2026-10-10 11:19:03  MILP  n=60   K=3    [1,20]  | seed=60362   | instance  7/20 | value 20900.0      | gap         - | time limit  600.08 s
+2026-10-10 11:29:03  MILP  n=60   K=3    [1,20]  | seed=60362   | instance  8/20 | value 18300.0      | gap         - | time limit  600.07 s
+2026-10-10 11:39:03  MILP  n=60   K=3    [1,20]  | seed=60362   | instance  9/20 | value 30900.0      | gap         - | time limit  600.11 s
+2026-10-10 11:49:03  MILP  n=60   K=3    [1,20]  | seed=60362   | instance 10/20 | value 14900.0      | gap         - | time limit  600.07 s
+2026-10-10 11:59:03  MILP  n=60   K=3    [1,20]  | seed=60362   | instance 11/20 | value 25000.0      | gap         - | time limit  600.07 s
+2026-10-10 12:09:03  MILP  n=60   K=3    [1,20]  | seed=60362   | instance 12/20 | value 22400.0      | gap         - | time limit  600.07 s
+2026-10-10 12:19:03  MILP  n=60   K=3    [1,20]  | seed=60362   | instance 13/20 | value 30800.0      | gap         - | time limit  600.08 s
+2026-10-10 12:29:03  MILP  n=60   K=3    [1,20]  | seed=60362   | instance 14/20 | value 16500.0      | gap         - | time limit  600.07 s
+2026-10-10 12:39:03  MILP  n=60   K=3    [1,20]  | seed=60362   | instance 15/20 | value 20800.0      | gap         - | time limit  600.07 s
+2026-10-10 12:49:03  MILP  n=60   K=3    [1,20]  | seed=60362   | instance 16/20 | value 30900.0      | gap         - | time limit  600.07 s
+2026-10-10 12:59:03  MILP  n=60   K=3    [1,20]  | seed=60362   | instance 17/20 | value 24900.0      | gap         - | time limit  597.54 s
+2026-10-10 12:59:19  MILP  n=60   K=3    [1,20]  | seed=60362   | instance 18/20 | value 28000.0      | gap         - | optimal      15.83 s
+2026-10-10 13:09:19  MILP  n=60   K=3    [1,20]  | seed=60362   | instance 19/20 | value 19200.0      | gap         - | time limit  600.10 s
+2026-10-10 13:19:19  MILP  n=60   K=3    [1,20]  | seed=60362   | instance 20/20 | value 14600.0      | gap         - | time limit  600.10 s
+  [16/36] MILP n=60   K=3    [1,20]  | opt 1/20    | obj   22570.0 ( 14600.0,   30900.0) | time  570.7376 s ( 15.8250,   600.1061) | no value 0
+  n=60   K=3    [1,40]  | MILP (seed 60382)
+  n=60   K=3    [1,40]  | MILP (seed 60382)
+2026-10-10 14:24:24  MILP  n=60   K=3    [1,40]  | seed=60382   | instance  1/20 | value 47500.0      | gap         - | time limit  600.09 s
+2026-10-10 14:34:24  MILP  n=60   K=3    [1,40]  | seed=60382   | instance  2/20 | value 42200.0      | gap         - | time limit  600.08 s
+  n=60   K=3    [1,40]  | MILP (seed 60382)
+2026-10-10 14:52:10  MILP  n=60   K=3    [1,40]  | seed=60382   | instance  1/20 | value 47500.0      | gap         - | time limit  600.07 s
+  n=60   K=3    [1,40]  | MILP (seed 60382)
+  n=60   K=3    [1,40]  | MILP (seed 60382)
+2026-10-10 15:18:28  MILP  n=60   K=3    [1,40]  | seed=60382   | instance  3/20 | value 57700.0      | gap         - | time limit  600.08 s
+2026-10-10 15:28:28  MILP  n=60   K=3    [1,40]  | seed=60382   | instance  4/20 | value 43100.0      | gap         - | time limit  600.08 s
+2026-10-10 15:38:28  MILP  n=60   K=3    [1,40]  | seed=60382   | instance  5/20 | value 35500.0      | gap         - | time limit  600.10 s
+2026-10-10 15:48:28  MILP  n=60   K=3    [1,40]  | seed=60382   | instance  6/20 | value 44600.0      | gap         - | time limit  600.09 s
+2026-10-10 15:58:28  MILP  n=60   K=3    [1,40]  | seed=60382   | instance  7/20 | value 36600.0      | gap         - | time limit  600.07 s
+2026-10-10 16:08:28  MILP  n=60   K=3    [1,40]  | seed=60382   | instance  8/20 | value 43700.0      | gap         - | time limit  600.09 s
+2026-10-10 16:18:28  MILP  n=60   K=3    [1,40]  | seed=60382   | instance  9/20 | value 31400.0      | gap         - | time limit  600.08 s
+2026-10-10 16:28:28  MILP  n=60   K=3    [1,40]  | seed=60382   | instance 10/20 | value 41400.0      | gap         - | time limit  600.08 s
+2026-10-10 16:38:28  MILP  n=60   K=3    [1,40]  | seed=60382   | instance 11/20 | value 54400.0      | gap         - | time limit  600.08 s
+2026-10-10 16:48:28  MILP  n=60   K=3    [1,40]  | seed=60382   | instance 12/20 | value 43800.0      | gap         - | time limit  600.08 s
+2026-10-10 16:58:29  MILP  n=60   K=3    [1,40]  | seed=60382   | instance 13/20 | value 42500.0      | gap         - | time limit  600.08 s
+2026-10-10 17:08:29  MILP  n=60   K=3    [1,40]  | seed=60382   | instance 14/20 | value 42300.0      | gap         - | time limit  600.09 s
+2026-10-10 17:18:29  MILP  n=60   K=3    [1,40]  | seed=60382   | instance 15/20 | value 54900.0      | gap         - | time limit  600.14 s
+2026-10-10 17:28:29  MILP  n=60   K=3    [1,40]  | seed=60382   | instance 16/20 | value 57200.0      | gap         - | time limit  600.10 s
+2026-10-10 17:38:29  MILP  n=60   K=3    [1,40]  | seed=60382   | instance 17/20 | value 52500.0      | gap         - | time limit  600.08 s
+2026-10-10 17:48:29  MILP  n=60   K=3    [1,40]  | seed=60382   | instance 18/20 | value 45800.0      | gap         - | time limit  600.07 s
+2026-10-10 17:58:29  MILP  n=60   K=3    [1,40]  | seed=60382   | instance 19/20 | value 38900.0      | gap         - | time limit  600.07 s
+2026-10-10 18:06:52  MILP  n=60   K=3    [1,40]  | seed=60382   | instance 20/20 | value 45600.0      | gap         - | optimal     502.64 s
+  [17/36] MILP n=60   K=3    [1,40]  | opt 1/20    | obj   45080.0 ( 31400.0,   57700.0) | time  595.2135 s (502.6418,   600.1437) | no value 0
+  n=60   K=3    [1,60]  | MILP (seed 60402)
+2026-10-10 18:16:52  MILP  n=60   K=3    [1,60]  | seed=60402   | instance  1/20 | value 82700.0      | gap         - | time limit  600.07 s
+2026-10-10 18:21:23  MILP  n=60   K=3    [1,60]  | seed=60402   | instance  2/20 | value 83300.0      | gap         - | optimal     271.61 s
+2026-10-10 18:31:24  MILP  n=60   K=3    [1,60]  | seed=60402   | instance  3/20 | value 60900.0      | gap         - | time limit  600.09 s
+2026-10-10 18:41:24  MILP  n=60   K=3    [1,60]  | seed=60402   | instance  4/20 | value 70800.0      | gap         - | time limit  600.07 s
+2026-10-10 18:51:24  MILP  n=60   K=3    [1,60]  | seed=60402   | instance  5/20 | value 78300.0      | gap         - | time limit  600.07 s
+2026-10-10 19:01:24  MILP  n=60   K=3    [1,60]  | seed=60402   | instance  6/20 | value 60600.0      | gap         - | time limit  600.07 s
+2026-10-10 19:11:24  MILP  n=60   K=3    [1,60]  | seed=60402   | instance  7/20 | value 48100.0      | gap         - | time limit  600.08 s
+2026-10-10 19:21:24  MILP  n=60   K=3    [1,60]  | seed=60402   | instance  8/20 | value 65800.0      | gap         - | time limit  600.07 s
+2026-10-10 19:31:24  MILP  n=60   K=3    [1,60]  | seed=60402   | instance  9/20 | value 56300.0      | gap         - | time limit  600.10 s
+2026-10-10 19:41:24  MILP  n=60   K=3    [1,60]  | seed=60402   | instance 10/20 | value 78600.0      | gap         - | time limit  600.07 s
+2026-10-10 19:51:24  MILP  n=60   K=3    [1,60]  | seed=60402   | instance 11/20 | value 54700.0      | gap         - | time limit  600.08 s
+2026-10-10 20:01:24  MILP  n=60   K=3    [1,60]  | seed=60402   | instance 12/20 | value 49700.0      | gap         - | time limit  600.10 s
+2026-10-10 20:11:24  MILP  n=60   K=3    [1,60]  | seed=60402   | instance 13/20 | value 84500.0      | gap         - | time limit  600.08 s
+2026-10-10 20:21:24  MILP  n=60   K=3    [1,60]  | seed=60402   | instance 14/20 | value 57000.0      | gap         - | time limit  600.10 s
+2026-10-10 20:31:25  MILP  n=60   K=3    [1,60]  | seed=60402   | instance 15/20 | value 88600.0      | gap         - | time limit  600.11 s
+2026-10-10 20:41:25  MILP  n=60   K=3    [1,60]  | seed=60402   | instance 16/20 | value 72200.0      | gap         - | time limit  600.10 s
+2026-10-10 20:51:25  MILP  n=60   K=3    [1,60]  | seed=60402   | instance 17/20 | value 50200.0      | gap         - | time limit  600.09 s
+2026-10-10 21:01:25  MILP  n=60   K=3    [1,60]  | seed=60402   | instance 18/20 | value 52200.0      | gap         - | time limit  600.09 s
+2026-10-10 21:11:25  MILP  n=60   K=3    [1,60]  | seed=60402   | instance 19/20 | value 62400.0      | gap         - | time limit  600.09 s
+2026-10-10 21:21:25  MILP  n=60   K=3    [1,60]  | seed=60402   | instance 20/20 | value 72000.0      | gap         - | time limit  600.10 s
+  [18/36] MILP n=60   K=3    [1,60]  | opt 1/20    | obj   66445.0 ( 48100.0,   88600.0) | time  583.6617 s (271.6063,   600.1119) | no value 0
+  n=20   K=2    [1,20]  | DP (seed 20262)
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance  1/20 | value 960.0        | gap         - | optimal       0.03 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance  2/20 | value 1480.0       | gap         - | optimal       0.01 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance  3/20 | value 640.0        | gap         - | optimal       0.07 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance  4/20 | value 1810.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance  5/20 | value 1380.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance  6/20 | value 970.0        | gap         - | optimal       0.03 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance  7/20 | value 1620.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance  8/20 | value 1360.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance  9/20 | value 1270.0       | gap         - | optimal       0.01 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance 10/20 | value 950.0        | gap         - | optimal       0.01 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance 11/20 | value 1220.0       | gap         - | optimal       0.01 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance 12/20 | value 850.0        | gap         - | optimal       0.01 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance 13/20 | value 1060.0       | gap         - | optimal       0.02 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance 14/20 | value 1270.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance 15/20 | value 1190.0       | gap         - | optimal       0.01 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance 16/20 | value 1550.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance 17/20 | value 1350.0       | gap         - | optimal       0.01 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance 18/20 | value 1260.0       | gap         - | optimal       0.02 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance 19/20 | value 1570.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,20]  | seed=20262   | instance 20/20 | value 1100.0       | gap         - | optimal       0.01 s
+  [19/36] DP   n=20   K=2    [1,20]  | opt 20/20   | obj    1243.0 (   640.0,    1810.0) | time    0.0119 s (  0.0003,     0.0721) | no value 0
+  n=20   K=2    [1,40]  | DP (seed 20282)
+2026-10-10 21:21:25  DP    n=20   K=2    [1,40]  | seed=20282   | instance  1/20 | value 1900.0       | gap         - | optimal       0.01 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,40]  | seed=20282   | instance  2/20 | value 1930.0       | gap         - | optimal       0.03 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,40]  | seed=20282   | instance  3/20 | value 1850.0       | gap         - | optimal       0.01 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,40]  | seed=20282   | instance  4/20 | value 2740.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,40]  | seed=20282   | instance  5/20 | value 2190.0       | gap         - | optimal       0.01 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,40]  | seed=20282   | instance  6/20 | value 2990.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,40]  | seed=20282   | instance  7/20 | value 2670.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,40]  | seed=20282   | instance  8/20 | value 1740.0       | gap         - | optimal       0.04 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,40]  | seed=20282   | instance  9/20 | value 1850.0       | gap         - | optimal       0.08 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,40]  | seed=20282   | instance 10/20 | value 3240.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:25  DP    n=20   K=2    [1,40]  | seed=20282   | instance 11/20 | value 1780.0       | gap         - | optimal       0.02 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,40]  | seed=20282   | instance 12/20 | value 2050.0       | gap         - | optimal       0.02 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,40]  | seed=20282   | instance 13/20 | value 1680.0       | gap         - | optimal       0.02 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,40]  | seed=20282   | instance 14/20 | value 1920.0       | gap         - | optimal       0.01 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,40]  | seed=20282   | instance 15/20 | value 1780.0       | gap         - | optimal       0.04 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,40]  | seed=20282   | instance 16/20 | value 2150.0       | gap         - | optimal       0.01 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,40]  | seed=20282   | instance 17/20 | value 2340.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,40]  | seed=20282   | instance 18/20 | value 2390.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,40]  | seed=20282   | instance 19/20 | value 2740.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,40]  | seed=20282   | instance 20/20 | value 2420.0       | gap         - | optimal       0.01 s
+  [20/36] DP   n=20   K=2    [1,40]  | opt 20/20   | obj    2217.5 (  1680.0,    3240.0) | time    0.0152 s (  0.0004,     0.0769) | no value 0
+  n=20   K=2    [1,60]  | DP (seed 20302)
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance  1/20 | value 2720.0       | gap         - | optimal       0.03 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance  2/20 | value 2840.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance  3/20 | value 3380.0       | gap         - | optimal       0.02 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance  4/20 | value 3060.0       | gap         - | optimal       0.03 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance  5/20 | value 4310.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance  6/20 | value 4220.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance  7/20 | value 3790.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance  8/20 | value 4760.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance  9/20 | value 3520.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance 10/20 | value 2530.0       | gap         - | optimal       0.02 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance 11/20 | value 3250.0       | gap         - | optimal       0.01 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance 12/20 | value 2510.0       | gap         - | optimal       0.03 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance 13/20 | value 3430.0       | gap         - | optimal       0.00 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance 14/20 | value 2400.0       | gap         - | optimal       0.11 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance 15/20 | value 2850.0       | gap         - | optimal       0.02 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance 16/20 | value 3220.0       | gap         - | optimal       0.01 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance 17/20 | value 3390.0       | gap         - | optimal       0.01 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance 18/20 | value 2480.0       | gap         - | optimal       0.02 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance 19/20 | value 2560.0       | gap         - | optimal       0.01 s
+2026-10-10 21:21:26  DP    n=20   K=2    [1,60]  | seed=20302   | instance 20/20 | value 3040.0       | gap         - | optimal       0.00 s
+  [21/36] DP   n=20   K=2    [1,60]  | opt 20/20   | obj    3213.0 (  2400.0,    4760.0) | time    0.0174 s (  0.0007,     0.1118) | no value 0
+  n=40   K=2    [1,20]  | DP (seed 40262)
+2026-10-10 21:21:26  DP    n=40   K=2    [1,20]  | seed=40262   | instance  1/20 | value 2490.0       | gap         - | optimal       0.25 s
+2026-10-10 21:21:26  DP    n=40   K=2    [1,20]  | seed=40262   | instance  2/20 | value 2720.0       | gap         - | optimal       0.11 s
+2026-10-10 21:21:27  DP    n=40   K=2    [1,20]  | seed=40262   | instance  3/20 | value 2100.0       | gap         - | optimal       1.09 s
+2026-10-10 21:21:28  DP    n=40   K=2    [1,20]  | seed=40262   | instance  4/20 | value 2700.0       | gap         - | optimal       0.69 s
+2026-10-10 21:21:29  DP    n=40   K=2    [1,20]  | seed=40262   | instance  5/20 | value 2310.0       | gap         - | optimal       0.46 s
+2026-10-10 21:21:29  DP    n=40   K=2    [1,20]  | seed=40262   | instance  6/20 | value 2260.0       | gap         - | optimal       0.61 s
+2026-10-10 21:21:31  DP    n=40   K=2    [1,20]  | seed=40262   | instance  7/20 | value 1860.0       | gap         - | optimal       1.35 s
+2026-10-10 21:21:31  DP    n=40   K=2    [1,20]  | seed=40262   | instance  8/20 | value 1850.0       | gap         - | optimal       0.80 s
+2026-10-10 21:21:32  DP    n=40   K=2    [1,20]  | seed=40262   | instance  9/20 | value 2010.0       | gap         - | optimal       0.60 s
+2026-10-10 21:21:33  DP    n=40   K=2    [1,20]  | seed=40262   | instance 10/20 | value 1900.0       | gap         - | optimal       1.24 s
+2026-10-10 21:21:34  DP    n=40   K=2    [1,20]  | seed=40262   | instance 11/20 | value 2450.0       | gap         - | optimal       0.38 s
+2026-10-10 21:21:34  DP    n=40   K=2    [1,20]  | seed=40262   | instance 12/20 | value 2340.0       | gap         - | optimal       0.45 s
+2026-10-10 21:21:35  DP    n=40   K=2    [1,20]  | seed=40262   | instance 13/20 | value 2210.0       | gap         - | optimal       0.64 s
+2026-10-10 21:21:36  DP    n=40   K=2    [1,20]  | seed=40262   | instance 14/20 | value 2270.0       | gap         - | optimal       0.86 s
+2026-10-10 21:21:36  DP    n=40   K=2    [1,20]  | seed=40262   | instance 15/20 | value 2190.0       | gap         - | optimal       0.62 s
+2026-10-10 21:21:37  DP    n=40   K=2    [1,20]  | seed=40262   | instance 16/20 | value 2550.0       | gap         - | optimal       0.37 s
+2026-10-10 21:21:40  DP    n=40   K=2    [1,20]  | seed=40262   | instance 17/20 | value 1530.0       | gap         - | optimal       3.26 s
+2026-10-10 21:21:41  DP    n=40   K=2    [1,20]  | seed=40262   | instance 18/20 | value 2190.0       | gap         - | optimal       1.08 s
+2026-10-10 21:21:41  DP    n=40   K=2    [1,20]  | seed=40262   | instance 19/20 | value 2460.0       | gap         - | optimal       0.31 s
+2026-10-10 21:21:43  DP    n=40   K=2    [1,20]  | seed=40262   | instance 20/20 | value 2110.0       | gap         - | optimal       1.69 s
+  [22/36] DP   n=40   K=2    [1,20]  | opt 20/20   | obj    2225.0 (  1530.0,    2720.0) | time    0.8434 s (  0.1112,     3.2608) | no value 0
+  n=40   K=2    [1,40]  | DP (seed 40282)
+2026-10-10 21:21:43  DP    n=40   K=2    [1,40]  | seed=40282   | instance  1/20 | value 6860.0       | gap         - | optimal       0.03 s
+2026-10-10 21:21:49  DP    n=40   K=2    [1,40]  | seed=40282   | instance  2/20 | value 3540.0       | gap         - | optimal       6.43 s
+2026-10-10 21:21:54  DP    n=40   K=2    [1,40]  | seed=40282   | instance  3/20 | value 3420.0       | gap         - | optimal       4.86 s
+2026-10-10 21:21:59  DP    n=40   K=2    [1,40]  | seed=40282   | instance  4/20 | value 4010.0       | gap         - | optimal       5.09 s
+2026-10-10 21:22:01  DP    n=40   K=2    [1,40]  | seed=40282   | instance  5/20 | value 4250.0       | gap         - | optimal       1.30 s
+2026-10-10 21:22:03  DP    n=40   K=2    [1,40]  | seed=40282   | instance  6/20 | value 3890.0       | gap         - | optimal       2.56 s
+2026-10-10 21:22:08  DP    n=40   K=2    [1,40]  | seed=40282   | instance  7/20 | value 4020.0       | gap         - | optimal       4.92 s
+2026-10-10 21:22:09  DP    n=40   K=2    [1,40]  | seed=40282   | instance  8/20 | value 4460.0       | gap         - | optimal       0.97 s
+2026-10-10 21:22:11  DP    n=40   K=2    [1,40]  | seed=40282   | instance  9/20 | value 4920.0       | gap         - | optimal       2.22 s
+2026-10-10 21:22:13  DP    n=40   K=2    [1,40]  | seed=40282   | instance 10/20 | value 4770.0       | gap         - | optimal       2.04 s
+2026-10-10 21:22:19  DP    n=40   K=2    [1,40]  | seed=40282   | instance 11/20 | value 4020.0       | gap         - | optimal       5.60 s
+2026-10-10 21:22:20  DP    n=40   K=2    [1,40]  | seed=40282   | instance 12/20 | value 4710.0       | gap         - | optimal       1.44 s
+2026-10-10 21:22:41  DP    n=40   K=2    [1,40]  | seed=40282   | instance 13/20 | value 2780.0       | gap         - | optimal      20.43 s
+2026-10-10 21:22:52  DP    n=40   K=2    [1,40]  | seed=40282   | instance 14/20 | value 3310.0       | gap         - | optimal      10.90 s
+2026-10-10 21:23:05  DP    n=40   K=2    [1,40]  | seed=40282   | instance 15/20 | value 3080.0       | gap         - | optimal      13.06 s
+2026-10-10 21:23:07  DP    n=40   K=2    [1,40]  | seed=40282   | instance 16/20 | value 5340.0       | gap         - | optimal       2.04 s
+2026-10-10 21:23:07  DP    n=40   K=2    [1,40]  | seed=40282   | instance 17/20 | value 6100.0       | gap         - | optimal       0.03 s
+2026-10-10 21:23:09  DP    n=40   K=2    [1,40]  | seed=40282   | instance 18/20 | value 4430.0       | gap         - | optimal       2.24 s
+2026-10-10 21:23:14  DP    n=40   K=2    [1,40]  | seed=40282   | instance 19/20 | value 3990.0       | gap         - | optimal       4.90 s
+2026-10-10 21:23:18  DP    n=40   K=2    [1,40]  | seed=40282   | instance 20/20 | value 3840.0       | gap         - | optimal       3.58 s
+  [23/36] DP   n=40   K=2    [1,40]  | opt 20/20   | obj    4287.0 (  2780.0,    6860.0) | time    4.7314 s (  0.0294,    20.4342) | no value 0
+  n=40   K=2    [1,60]  | DP (seed 40302)
+2026-10-10 21:23:21  DP    n=40   K=2    [1,60]  | seed=40302   | instance  1/20 | value 6710.0       | gap         - | optimal       3.94 s
+2026-10-10 21:23:41  DP    n=40   K=2    [1,60]  | seed=40302   | instance  2/20 | value 5360.0       | gap         - | optimal      19.60 s
+2026-10-10 21:23:45  DP    n=40   K=2    [1,60]  | seed=40302   | instance  3/20 | value 7260.0       | gap         - | optimal       3.64 s
+2026-10-10 21:23:48  DP    n=40   K=2    [1,60]  | seed=40302   | instance  4/20 | value 6500.0       | gap         - | optimal       2.99 s
+2026-10-10 21:24:05  DP    n=40   K=2    [1,60]  | seed=40302   | instance  5/20 | value 5570.0       | gap         - | optimal      17.70 s
+2026-10-10 21:24:10  DP    n=40   K=2    [1,60]  | seed=40302   | instance  6/20 | value 6620.0       | gap         - | optimal       4.34 s
+2026-10-10 21:24:13  DP    n=40   K=2    [1,60]  | seed=40302   | instance  7/20 | value 6120.0       | gap         - | optimal       3.47 s
+2026-10-10 21:24:15  DP    n=40   K=2    [1,60]  | seed=40302   | instance  8/20 | value 8280.0       | gap         - | optimal       1.71 s
+2026-10-10 21:24:19  DP    n=40   K=2    [1,60]  | seed=40302   | instance  9/20 | value 6910.0       | gap         - | optimal       3.76 s
+2026-10-10 21:24:19  DP    n=40   K=2    [1,60]  | seed=40302   | instance 10/20 | value 6980.0       | gap         - | optimal       0.74 s
+2026-10-10 21:24:37  DP    n=40   K=2    [1,60]  | seed=40302   | instance 11/20 | value 4690.0       | gap         - | optimal      17.72 s
+2026-10-10 21:24:38  DP    n=40   K=2    [1,60]  | seed=40302   | instance 12/20 | value 9190.0       | gap         - | optimal       0.61 s
+2026-10-10 21:24:39  DP    n=40   K=2    [1,60]  | seed=40302   | instance 13/20 | value 6600.0       | gap         - | optimal       1.02 s
+2026-10-10 21:24:41  DP    n=40   K=2    [1,60]  | seed=40302   | instance 14/20 | value 7340.0       | gap         - | optimal       2.01 s
+2026-10-10 21:24:42  DP    n=40   K=2    [1,60]  | seed=40302   | instance 15/20 | value 8410.0       | gap         - | optimal       1.66 s
+2026-10-10 21:24:44  DP    n=40   K=2    [1,60]  | seed=40302   | instance 16/20 | value 6180.0       | gap         - | optimal       1.19 s
+2026-10-10 21:24:47  DP    n=40   K=2    [1,60]  | seed=40302   | instance 17/20 | value 6570.0       | gap         - | optimal       2.95 s
+2026-10-10 21:24:49  DP    n=40   K=2    [1,60]  | seed=40302   | instance 18/20 | value 7610.0       | gap         - | optimal       2.03 s
+2026-10-10 21:24:53  DP    n=40   K=2    [1,60]  | seed=40302   | instance 19/20 | value 6970.0       | gap         - | optimal       4.75 s
+2026-10-10 21:24:54  DP    n=40   K=2    [1,60]  | seed=40302   | instance 20/20 | value 8710.0       | gap         - | optimal       0.29 s
+  [24/36] DP   n=40   K=2    [1,60]  | opt 20/20   | obj    6929.0 (  4690.0,    9190.0) | time    4.8061 s (  0.2881,    19.5966) | no value 0
+  n=60   K=2    [1,20]  | DP (seed 60262)
+2026-10-10 21:25:14  DP    n=60   K=2    [1,20]  | seed=60262   | instance  1/20 | value 2440.0       | gap         - | optimal      20.45 s
+2026-10-10 21:25:20  DP    n=60   K=2    [1,20]  | seed=60262   | instance  2/20 | value 3150.0       | gap         - | optimal       5.68 s
+2026-10-10 21:25:23  DP    n=60   K=2    [1,20]  | seed=60262   | instance  3/20 | value 3240.0       | gap         - | optimal       3.72 s
+2026-10-10 21:25:38  DP    n=60   K=2    [1,20]  | seed=60262   | instance  4/20 | value 2650.0       | gap         - | optimal      14.26 s
+2026-10-10 21:25:44  DP    n=60   K=2    [1,20]  | seed=60262   | instance  5/20 | value 3100.0       | gap         - | optimal       6.59 s
+2026-10-10 21:25:53  DP    n=60   K=2    [1,20]  | seed=60262   | instance  6/20 | value 2910.0       | gap         - | optimal       9.10 s
+2026-10-10 21:25:59  DP    n=60   K=2    [1,20]  | seed=60262   | instance  7/20 | value 3370.0       | gap         - | optimal       5.22 s
+2026-10-10 21:26:06  DP    n=60   K=2    [1,20]  | seed=60262   | instance  8/20 | value 2260.0       | gap         - | optimal       7.46 s
+2026-10-10 21:26:12  DP    n=60   K=2    [1,20]  | seed=60262   | instance  9/20 | value 3940.0       | gap         - | optimal       6.22 s
+2026-10-10 21:26:25  DP    n=60   K=2    [1,20]  | seed=60262   | instance 10/20 | value 3060.0       | gap         - | optimal      12.30 s
+2026-10-10 21:26:38  DP    n=60   K=2    [1,20]  | seed=60262   | instance 11/20 | value 2590.0       | gap         - | optimal      12.92 s
+2026-10-10 21:26:46  DP    n=60   K=2    [1,20]  | seed=60262   | instance 12/20 | value 2950.0       | gap         - | optimal       8.06 s
+2026-10-10 21:26:49  DP    n=60   K=2    [1,20]  | seed=60262   | instance 13/20 | value 3120.0       | gap         - | optimal       3.33 s
+2026-10-10 21:26:51  DP    n=60   K=2    [1,20]  | seed=60262   | instance 14/20 | value 4280.0       | gap         - | optimal       2.07 s
+2026-10-10 21:27:02  DP    n=60   K=2    [1,20]  | seed=60262   | instance 15/20 | value 3060.0       | gap         - | optimal      10.49 s
+2026-10-10 21:27:04  DP    n=60   K=2    [1,20]  | seed=60262   | instance 16/20 | value 4430.0       | gap         - | optimal       2.89 s
+2026-10-10 21:27:10  DP    n=60   K=2    [1,20]  | seed=60262   | instance 17/20 | value 3310.0       | gap         - | optimal       5.32 s
+2026-10-10 21:27:12  DP    n=60   K=2    [1,20]  | seed=60262   | instance 18/20 | value 4070.0       | gap         - | optimal       1.94 s
+2026-10-10 21:27:22  DP    n=60   K=2    [1,20]  | seed=60262   | instance 19/20 | value 2550.0       | gap         - | optimal      10.00 s
+2026-10-10 21:27:32  DP    n=60   K=2    [1,20]  | seed=60262   | instance 20/20 | value 2630.0       | gap         - | optimal      10.50 s
+  [25/36] DP   n=60   K=2    [1,20]  | opt 20/20   | obj    3155.5 (  2260.0,    4430.0) | time    7.9261 s (  1.9401,    20.4469) | no value 0
+  n=60   K=2    [1,40]  | DP (seed 60282)
+2026-10-10 21:27:50  DP    n=60   K=2    [1,40]  | seed=60282   | instance  1/20 | value 6710.0       | gap         - | optimal      17.70 s
+2026-10-10 21:28:44  DP    n=60   K=2    [1,40]  | seed=60282   | instance  2/20 | value 4650.0       | gap         - | optimal      53.65 s
+2026-10-10 21:30:05  DP    n=60   K=2    [1,40]  | seed=60282   | instance  3/20 | value 4760.0       | gap         - | optimal      81.64 s
+2026-10-10 21:30:50  DP    n=60   K=2    [1,40]  | seed=60282   | instance  4/20 | value 5720.0       | gap         - | optimal      44.93 s
+2026-10-10 21:31:22  DP    n=60   K=2    [1,40]  | seed=60282   | instance  5/20 | value 6640.0       | gap         - | optimal      32.13 s
+2026-10-10 21:31:44  DP    n=60   K=2    [1,40]  | seed=60282   | instance  6/20 | value 5930.0       | gap         - | optimal      21.45 s
+2026-10-10 21:32:06  DP    n=60   K=2    [1,40]  | seed=60282   | instance  7/20 | value 6900.0       | gap         - | optimal      22.16 s
+2026-10-10 21:32:57  DP    n=60   K=2    [1,40]  | seed=60282   | instance  8/20 | value 5190.0       | gap         - | optimal      51.36 s
+2026-10-10 21:33:37  DP    n=60   K=2    [1,40]  | seed=60282   | instance  9/20 | value 6230.0       | gap         - | optimal      39.33 s
+2026-10-10 21:34:03  DP    n=60   K=2    [1,40]  | seed=60282   | instance 10/20 | value 7130.0       | gap         - | optimal      26.38 s
+2026-10-10 21:34:18  DP    n=60   K=2    [1,40]  | seed=60282   | instance 11/20 | value 8370.0       | gap         - | optimal      14.86 s
+2026-10-10 21:34:23  DP    n=60   K=2    [1,40]  | seed=60282   | instance 12/20 | value 7690.0       | gap         - | optimal       5.36 s
+2026-10-10 21:34:34  DP    n=60   K=2    [1,40]  | seed=60282   | instance 13/20 | value 7430.0       | gap         - | optimal      11.22 s
+2026-10-10 21:34:46  DP    n=60   K=2    [1,40]  | seed=60282   | instance 14/20 | value 6490.0       | gap         - | optimal      11.92 s
+2026-10-10 21:35:06  DP    n=60   K=2    [1,40]  | seed=60282   | instance 15/20 | value 5820.0       | gap         - | optimal      19.79 s
+2026-10-10 21:36:10  DP    n=60   K=2    [1,40]  | seed=60282   | instance 16/20 | value 4860.0       | gap         - | optimal      64.37 s
+2026-10-10 21:36:42  DP    n=60   K=2    [1,40]  | seed=60282   | instance 17/20 | value 6400.0       | gap         - | optimal      31.61 s
+2026-10-10 21:36:43  DP    n=60   K=2    [1,40]  | seed=60282   | instance 18/20 | value 8480.0       | gap         - | optimal       1.38 s
+2026-10-10 21:36:55  DP    n=60   K=2    [1,40]  | seed=60282   | instance 19/20 | value 7690.0       | gap         - | optimal      11.78 s
+2026-10-10 21:37:26  DP    n=60   K=2    [1,40]  | seed=60282   | instance 20/20 | value 6510.0       | gap         - | optimal      30.35 s
+  [26/36] DP   n=60   K=2    [1,40]  | opt 20/20   | obj    6480.0 (  4650.0,    8480.0) | time   29.6683 s (  1.3823,    81.6379) | no value 0
+  n=60   K=2    [1,60]  | DP (seed 60302)
+2026-10-10 21:38:41  DP    n=60   K=2    [1,60]  | seed=60302   | instance  1/20 | value 7540.0       | gap         - | optimal      75.30 s
+2026-10-10 21:39:39  DP    n=60   K=2    [1,60]  | seed=60302   | instance  2/20 | value 8630.0       | gap         - | optimal      58.22 s
+2026-10-10 21:40:09  DP    n=60   K=2    [1,60]  | seed=60302   | instance  3/20 | value 9990.0       | gap         - | optimal      29.46 s
+2026-10-10 21:40:50  DP    n=60   K=2    [1,60]  | seed=60302   | instance  4/20 | value 8800.0       | gap         - | optimal      41.49 s
+2026-10-10 21:42:13  DP    n=60   K=2    [1,60]  | seed=60302   | instance  5/20 | value 8870.0       | gap         - | optimal      82.74 s
+2026-10-10 21:42:24  DP    n=60   K=2    [1,60]  | seed=60302   | instance  6/20 | value 11200.0      | gap         - | optimal      11.67 s
+2026-10-10 21:43:18  DP    n=60   K=2    [1,60]  | seed=60302   | instance  7/20 | value 10890.0      | gap         - | optimal      53.76 s
+2026-10-10 21:46:54  DP    n=60   K=2    [1,60]  | seed=60302   | instance  8/20 | value 6880.0       | gap         - | optimal     215.43 s
+2026-10-10 21:47:17  DP    n=60   K=2    [1,60]  | seed=60302   | instance  9/20 | value 12230.0      | gap         - | optimal      23.16 s
+2026-10-10 21:48:51  DP    n=60   K=2    [1,60]  | seed=60302   | instance 10/20 | value 8460.0       | gap         - | optimal      93.87 s
+2026-10-10 21:50:30  DP    n=60   K=2    [1,60]  | seed=60302   | instance 11/20 | value 7850.0       | gap         - | optimal      99.75 s
+2026-10-10 21:51:32  DP    n=60   K=2    [1,60]  | seed=60302   | instance 12/20 | value 8730.0       | gap         - | optimal      61.30 s
+2026-10-10 21:53:02  DP    n=60   K=2    [1,60]  | seed=60302   | instance 13/20 | value 8560.0       | gap         - | optimal      90.08 s
+2026-10-10 21:53:51  DP    n=60   K=2    [1,60]  | seed=60302   | instance 14/20 | value 9170.0       | gap         - | optimal      49.53 s
+2026-10-10 21:54:16  DP    n=60   K=2    [1,60]  | seed=60302   | instance 15/20 | value 9740.0       | gap         - | optimal      24.34 s
+2026-10-10 21:54:54  DP    n=60   K=2    [1,60]  | seed=60302   | instance 16/20 | value 10310.0      | gap         - | optimal      38.28 s
+2026-10-10 21:55:24  DP    n=60   K=2    [1,60]  | seed=60302   | instance 17/20 | value 10060.0      | gap         - | optimal      30.03 s
+2026-10-10 21:56:10  DP    n=60   K=2    [1,60]  | seed=60302   | instance 18/20 | value 10630.0      | gap         - | optimal      45.61 s
+2026-10-10 21:56:33  DP    n=60   K=2    [1,60]  | seed=60302   | instance 19/20 | value 10890.0      | gap         - | optimal      22.97 s
+2026-10-10 21:57:51  DP    n=60   K=2    [1,60]  | seed=60302   | instance 20/20 | value 8620.0       | gap         - | optimal      78.11 s
+  [27/36] DP   n=60   K=2    [1,60]  | opt 20/20   | obj    9402.5 (  6880.0,   12230.0) | time   61.2544 s ( 11.6663,   215.4285) | no value 0
+  n=20   K=3    [1,20]  | DP (seed 20362)
+2026-10-10 21:57:53  DP    n=20   K=3    [1,20]  | seed=20362   | instance  1/20 | value 7000.0       | gap         - | optimal       2.05 s
+2026-10-10 21:58:03  DP    n=20   K=3    [1,20]  | seed=20362   | instance  2/20 | value 8300.0       | gap         - | optimal      10.49 s
+2026-10-10 21:58:04  DP    n=20   K=3    [1,20]  | seed=20362   | instance  3/20 | value 7500.0       | gap         - | optimal       0.95 s
+2026-10-10 21:58:24  DP    n=20   K=3    [1,20]  | seed=20362   | instance  4/20 | value 2700.0       | gap         - | optimal      19.51 s
+2026-10-10 21:58:24  DP    n=20   K=3    [1,20]  | seed=20362   | instance  5/20 | value 10400.0      | gap         - | optimal       0.28 s
+2026-10-10 21:58:24  DP    n=20   K=3    [1,20]  | seed=20362   | instance  6/20 | value 15800.0      | gap         - | optimal       0.01 s
+2026-10-10 21:58:32  DP    n=20   K=3    [1,20]  | seed=20362   | instance  7/20 | value 5400.0       | gap         - | optimal       7.75 s
+2026-10-10 21:58:32  DP    n=20   K=3    [1,20]  | seed=20362   | instance  8/20 | value 7600.0       | gap         - | optimal       0.04 s
+2026-10-10 21:58:32  DP    n=20   K=3    [1,20]  | seed=20362   | instance  9/20 | value 9900.0       | gap         - | optimal       0.62 s
+2026-10-10 21:58:32  DP    n=20   K=3    [1,20]  | seed=20362   | instance 10/20 | value 12200.0      | gap         - | optimal       0.09 s
+2026-10-10 21:58:33  DP    n=20   K=3    [1,20]  | seed=20362   | instance 11/20 | value 13300.0      | gap         - | optimal       0.05 s
+2026-10-10 21:58:33  DP    n=20   K=3    [1,20]  | seed=20362   | instance 12/20 | value 11800.0      | gap         - | optimal       0.05 s
+2026-10-10 21:58:33  DP    n=20   K=3    [1,20]  | seed=20362   | instance 13/20 | value 12500.0      | gap         - | optimal       0.01 s
+2026-10-10 21:58:36  DP    n=20   K=3    [1,20]  | seed=20362   | instance 14/20 | value 6600.0       | gap         - | optimal       3.66 s
+2026-10-10 21:58:37  DP    n=20   K=3    [1,20]  | seed=20362   | instance 15/20 | value 10700.0      | gap         - | optimal       0.65 s
+2026-10-10 21:58:38  DP    n=20   K=3    [1,20]  | seed=20362   | instance 16/20 | value 8900.0       | gap         - | optimal       0.72 s
+2026-10-10 21:58:40  DP    n=20   K=3    [1,20]  | seed=20362   | instance 17/20 | value 6300.0       | gap         - | optimal       2.30 s
+2026-10-10 21:58:44  DP    n=20   K=3    [1,20]  | seed=20362   | instance 18/20 | value 4600.0       | gap         - | optimal       4.21 s
+2026-10-10 21:58:46  DP    n=20   K=3    [1,20]  | seed=20362   | instance 19/20 | value 6600.0       | gap         - | optimal       2.03 s
+2026-10-10 21:58:47  DP    n=20   K=3    [1,20]  | seed=20362   | instance 20/20 | value 6200.0       | gap         - | optimal       0.66 s
+  [28/36] DP   n=20   K=3    [1,20]  | opt 20/20   | obj    8715.0 (  2700.0,   15800.0) | time    2.8076 s (  0.0092,    19.5091) | no value 0
+  n=20   K=3    [1,40]  | DP (seed 20382)
+2026-10-10 21:58:59  DP    n=20   K=3    [1,40]  | seed=20382   | instance  1/20 | value 12200.0      | gap         - | optimal      11.73 s
+2026-10-10 21:58:59  DP    n=20   K=3    [1,40]  | seed=20382   | instance  2/20 | value 34900.0      | gap         - | optimal       0.00 s
+2026-10-10 21:58:59  DP    n=20   K=3    [1,40]  | seed=20382   | instance  3/20 | value 25100.0      | gap         - | optimal       0.06 s
+2026-10-10 21:59:05  DP    n=20   K=3    [1,40]  | seed=20382   | instance  4/20 | value 17700.0      | gap         - | optimal       6.10 s
+2026-10-10 21:59:05  DP    n=20   K=3    [1,40]  | seed=20382   | instance  5/20 | value 22300.0      | gap         - | optimal       0.07 s
+2026-10-10 21:59:07  DP    n=20   K=3    [1,40]  | seed=20382   | instance  6/20 | value 17000.0      | gap         - | optimal       2.14 s
+2026-10-10 21:59:08  DP    n=20   K=3    [1,40]  | seed=20382   | instance  7/20 | value 19600.0      | gap         - | optimal       1.32 s
+2026-10-10 21:59:14  DP    n=20   K=3    [1,40]  | seed=20382   | instance  8/20 | value 15600.0      | gap         - | optimal       5.51 s
+2026-10-10 21:59:14  DP    n=20   K=3    [1,40]  | seed=20382   | instance  9/20 | value 15700.0      | gap         - | optimal       0.25 s
+2026-10-10 21:59:15  DP    n=20   K=3    [1,40]  | seed=20382   | instance 10/20 | value 13700.0      | gap         - | optimal       1.17 s
+2026-10-10 21:59:16  DP    n=20   K=3    [1,40]  | seed=20382   | instance 11/20 | value 18400.0      | gap         - | optimal       0.36 s
+2026-10-10 21:59:16  DP    n=20   K=3    [1,40]  | seed=20382   | instance 12/20 | value 15500.0      | gap         - | optimal       0.46 s
+2026-10-10 21:59:21  DP    n=20   K=3    [1,40]  | seed=20382   | instance 13/20 | value 14400.0      | gap         - | optimal       5.37 s
+2026-10-10 21:59:33  DP    n=20   K=3    [1,40]  | seed=20382   | instance 14/20 | value 15000.0      | gap         - | optimal      11.11 s
+2026-10-10 21:59:34  DP    n=20   K=3    [1,40]  | seed=20382   | instance 15/20 | value 13700.0      | gap         - | optimal       1.53 s
+2026-10-10 21:59:35  DP    n=20   K=3    [1,40]  | seed=20382   | instance 16/20 | value 15600.0      | gap         - | optimal       0.62 s
+2026-10-10 22:00:08  DP    n=20   K=3    [1,40]  | seed=20382   | instance 17/20 | value 7300.0       | gap         - | optimal      33.16 s
+2026-10-10 22:00:08  DP    n=20   K=3    [1,40]  | seed=20382   | instance 18/20 | value 22200.0      | gap         - | optimal       0.04 s
+2026-10-10 22:00:09  DP    n=20   K=3    [1,40]  | seed=20382   | instance 19/20 | value 12800.0      | gap         - | optimal       1.16 s
+2026-10-10 22:00:09  DP    n=20   K=3    [1,40]  | seed=20382   | instance 20/20 | value 16200.0      | gap         - | optimal       0.19 s
+  [29/36] DP   n=20   K=3    [1,40]  | opt 20/20   | obj   17245.0 (  7300.0,   34900.0) | time    4.1176 s (  0.0027,    33.1585) | no value 0
+  n=20   K=3    [1,60]  | DP (seed 20402)
+2026-10-10 22:00:09  DP    n=20   K=3    [1,60]  | seed=20402   | instance  1/20 | value 28500.0      | gap         - | optimal       0.04 s
+2026-10-10 22:00:26  DP    n=20   K=3    [1,60]  | seed=20402   | instance  2/20 | value 20100.0      | gap         - | optimal      16.44 s
+2026-10-10 22:00:26  DP    n=20   K=3    [1,60]  | seed=20402   | instance  3/20 | value 38700.0      | gap         - | optimal       0.04 s
+2026-10-10 22:00:29  DP    n=20   K=3    [1,60]  | seed=20402   | instance  4/20 | value 17000.0      | gap         - | optimal       3.61 s
+2026-10-10 22:00:53  DP    n=20   K=3    [1,60]  | seed=20402   | instance  5/20 | value 19600.0      | gap         - | optimal      23.42 s
+2026-10-10 22:01:02  DP    n=20   K=3    [1,60]  | seed=20402   | instance  6/20 | value 16500.0      | gap         - | optimal       9.73 s
+2026-10-10 22:01:03  DP    n=20   K=3    [1,60]  | seed=20402   | instance  7/20 | value 26400.0      | gap         - | optimal       0.23 s
+2026-10-10 22:01:03  DP    n=20   K=3    [1,60]  | seed=20402   | instance  8/20 | value 17400.0      | gap         - | optimal       0.42 s
+2026-10-10 22:01:04  DP    n=20   K=3    [1,60]  | seed=20402   | instance  9/20 | value 23600.0      | gap         - | optimal       1.14 s
+2026-10-10 22:01:04  DP    n=20   K=3    [1,60]  | seed=20402   | instance 10/20 | value 37000.0      | gap         - | optimal       0.22 s
+2026-10-10 22:01:07  DP    n=20   K=3    [1,60]  | seed=20402   | instance 11/20 | value 24800.0      | gap         - | optimal       2.87 s
+2026-10-10 22:01:08  DP    n=20   K=3    [1,60]  | seed=20402   | instance 12/20 | value 10500.0      | gap         - | optimal       0.82 s
+2026-10-10 22:01:08  DP    n=20   K=3    [1,60]  | seed=20402   | instance 13/20 | value 35300.0      | gap         - | optimal       0.08 s
+2026-10-10 22:01:16  DP    n=20   K=3    [1,60]  | seed=20402   | instance 14/20 | value 13000.0      | gap         - | optimal       8.19 s
+2026-10-10 22:01:18  DP    n=20   K=3    [1,60]  | seed=20402   | instance 15/20 | value 23900.0      | gap         - | optimal       1.31 s
+2026-10-10 22:01:18  DP    n=20   K=3    [1,60]  | seed=20402   | instance 16/20 | value 31700.0      | gap         - | optimal       0.10 s
+2026-10-10 22:01:18  DP    n=20   K=3    [1,60]  | seed=20402   | instance 17/20 | value 22700.0      | gap         - | optimal       0.30 s
+2026-10-10 22:01:19  DP    n=20   K=3    [1,60]  | seed=20402   | instance 18/20 | value 29700.0      | gap         - | optimal       0.50 s
+2026-10-10 22:01:22  DP    n=20   K=3    [1,60]  | seed=20402   | instance 19/20 | value 29500.0      | gap         - | optimal       3.20 s
+2026-10-10 22:01:23  DP    n=20   K=3    [1,60]  | seed=20402   | instance 20/20 | value 32600.0      | gap         - | optimal       0.86 s
+  [30/36] DP   n=20   K=3    [1,60]  | opt 20/20   | obj   24925.0 ( 10500.0,   38700.0) | time    3.6754 s (  0.0385,    23.4185) | no value 0
+  n=40   K=3    [1,20]  | DP (seed 40362)

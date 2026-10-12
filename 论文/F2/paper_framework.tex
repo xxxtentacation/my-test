@@ -890,13 +890,13 @@ $W C_{\max}\le 2\,W C_{\max}^{*}$.
 \end{theorem}
 
 \begin{proof}
-Let $\sigma$ be the schedule returned by \Cref{alg:approx2}. Along it the jobs come in
-non-increasing order of weight, so we write them in that order as $J_1,J_2,\dots,J_n$, with
-$w_1\ge w_2\ge\cdots\ge w_n$ and $\sigma=(J_1,J_2,\dots,J_n)$; a prefix of it is then the set
-$S=\{J_1,J_2,\dots,J_j\}$, whose every weight is at least $w_j$.
+Let $\sigma$ be the schedule returned by \Cref{alg:approx2}. Its jobs appear in non-increasing
+order of weight, so we name them $J_1,J_2,\dots,J_n$, with $w_1\ge w_2\ge\cdots\ge w_n$ and
+$\sigma=(J_1,J_2,\dots,J_n)$. Every job of the prefix $S=\{J_1,J_2,\dots,J_j\}$ then carries
+a weight of at least $w_j$.
 
 We first bound the completion times in $\sigma$. By \cref{eq:completion}, the job $J_j$
-completes on $M_2$ at time $C_j(\sigma)$, and each term in the maximum is bounded by the
+completes on $M_2$ at time $C_j(\sigma)$, and every term of that maximum is bounded by the
 full sum:
 \[
 \sum_{h=1}^{i}a_h+\sum_{h=i}^{j}b_h
@@ -919,17 +919,16 @@ It remains to bound the right-hand side by $2W C_{\max}^{*}$. Fix a prefix
 $S=\{J_1,J_2,\dots,J_j\}$ and let $\pi^{*}$ be an optimal schedule. Let $J_u$ be the job of
 $S$ that finishes last on $M_1$ in $\pi^{*}$, and $J_v$ the job of $S$ that finishes last on
 $M_2$. All jobs of $S$ are processed on $M_1$ before $J_u$ completes $M_1$, so
-$C^{*}_u\ge\sum_{h\in S}a_h$; likewise, all $M_2$ processing of the jobs of $S$
-precedes $J_v$'s completion on $M_2$, so $C^{*}_v\ge\sum_{h\in S}b_h$.
-Since $J_u,J_v\in S$, we have $w_u,w_v\ge w_j$. Because $W C_{\max}^{*}$ bounds the weighted
-completion time of every job in $\pi^{*}$, the bound $C^{*}_u\ge\sum_{h\in S}a_h$ together with
-$w_u\ge w_j$ gives $W C_{\max}^{*}\ge w_j\sum_{h\in S}a_h$, and, similarly,
-$C^{*}_v\ge\sum_{h\in S}b_h$ together with $w_v\ge w_j$ gives
-$W C_{\max}^{*}\ge w_j\sum_{h\in S}b_h$.
+$C^{*}_u\ge\sum_{h\in S}a_h$. In the same way, all $M_2$ processing of the jobs of $S$
+precedes the completion of $J_v$ on $M_2$, so $C^{*}_v\ge\sum_{h\in S}b_h$.
+Since both $J_u$ and $J_v$ lie in $S$, their weights satisfy $w_u,w_v\ge w_j$. The value
+$W C_{\max}^{*}$ bounds the weighted completion time of every job of $\pi^{*}$, so
+$W C_{\max}^{*}\ge w_u C^{*}_u\ge w_j\sum_{h\in S}a_h$ and
+$W C_{\max}^{*}\ge w_v C^{*}_v\ge w_j\sum_{h\in S}b_h$.
 
 The prefix $S$ was arbitrary, so the largest of these quantities over the prefixes bounds
-the optimum as well, and so does the quantity that every job gives on its own, since neither
-of its two operations can be left out. This gives three lower bounds on the optimum,
+the optimum as well, and a single job bounds it from below on its own. Three lower bounds
+on the optimum follow,
 \begin{equation}\label{eq:lb1}
 LB_1=\max_{1\le j\le n}w_j\sum_{h\in S}a_h,
 \end{equation}
@@ -939,8 +938,16 @@ LB_2=\max_{1\le j\le n}w_j\sum_{h\in S}b_h,
 \begin{equation}\label{eq:lb3}
 LB_3=\max_{1\le j\le n}w_j\,(a_j+b_j),
 \end{equation}
-each of them determined by the instance alone, and their largest is the reference value of
-the instance,
+each of the three holding for a reason of its own. We call them the $M_1$ threshold $LB_1$,
+the $M_2$ threshold $LB_2$ and the job threshold $LB_3$. The first two charge the workload of
+the prefix to the job of the prefix that leaves its machine last. That job carries
+a weight of at least $w_j$, and it completes its machine only after the whole workload of $S$
+has been processed there. Hence $W C_{\max}^{*}\ge w_j\sum_{h\in S}a_h$ and
+$W C_{\max}^{*}\ge w_j\sum_{h\in S}b_h$. The job threshold charges one job its own two
+operations, which run one after the other and neither of which can be left out, so
+$C^{*}_j\ge a_j+b_j$. As $J_j$ carries the weight $w_j$ itself, $w_j(a_j+b_j)$ is a lower
+bound on the optimum as well. Each bound is determined by the instance alone, and their
+largest is the reference value of the instance,
 \begin{equation}\label{eq:lb}
 LB=\max\{LB_1,LB_2,LB_3\},
 \end{equation}
@@ -1585,7 +1592,7 @@ require. The gap of method $A$ is
 \text{gap}_A = \frac{z_A-z_{\text{base}}}{z_{\text{base}}},
 \end{equation}
 where $z_A$ is the objective value of the schedule it returned and $z_{\text{base}}$ is that
-lower bound, the reference value $LB$ of \cref{eq:lb}: the largest of the three bounds
+lower bound, the reference value $LB$ of \cref{eq:lb}: the largest of the three thresholds
 $LB_1$, $LB_2$ and $LB_3$ of \Cref{sub:approx2}, each of which the instance determines on its
 own, so that no schedule of a method enters the denominator of its gap.
 
@@ -1595,10 +1602,11 @@ and $100$ iterations. The genetic algorithm uses a population of $N=n$ individua
 generations, $p_c=0.9$, $p_m=0.1$ and an elitism size of $\lambda=N/10$.
 
 The instances were randomly generated at two scales. The processing times $a_j$ and $b_j$
-were drawn independently for every job and
-every instance from one of three discrete uniform ranges, $[1,20]$, $[1,40]$ and $[1,60]$,
-which are crossed with the other factors on both scales, so that the width of the range is
-itself read as a factor. The weights of the small scale are the geometric
+were drawn independently for every job and every instance from a discrete uniform range,
+whose upper end the configuration fixes. The small scale takes the three narrow ranges
+$[1,20]$, $[1,40]$ and $[1,60]$, the large one the two wide ranges $[1,100]$ and $[1,200]$,
+so that the width of the range is itself read as a factor at both scales. The weights of the
+small scale are the geometric
 ladder $1,10,\dots,10^{K-1}$, whose length $K$ the configuration fixes at $2$ and $3$: the
 $K$ classes are then decades apart, so that the gap between two of them stays wide whatever
 their number, while the range of the processing times is what varies underneath. On the large
@@ -1606,8 +1614,8 @@ scale the weights are
 unrestricted and each of them is drawn uniformly from $\{1,\dots,n\}$, so that their number
 is bounded by the number of jobs rather than by a fixed $K$. The two scales of
 \Cref{tab:instances} organise these factors. The small scale contains $360$ instances, three
-sizes crossed with the two weight counts and the three ranges. The large scale contains $180$
-instances, three sizes crossed with the three ranges, at the single unrestricted weight
+sizes crossed with the two weight counts and the three ranges. The large scale contains $120$
+instances, three sizes crossed with the two ranges, at the single unrestricted weight
 regime. Each configuration was replicated over $20$ independent instances, and
 every figure below is the average of those replications. Every method was given the same
 time limit of $600$\,s. A method that reaches the limit is recorded with the value it has
@@ -1632,7 +1640,7 @@ The heuristics were compared on the large scale, where the factor read is the in
 Scale  & $n$                & Weights                   & Methods compared \\
 \midrule
 Small  & $20,\,40,\,60$        & $K=2$, $K=3$              & MILP, DP \\
-Large  & $500,\,600,\,700$   & All weights               & NEH, ACO, GA \\
+Large  & $600,\,800,\,1000$   & All weights               & NEH, ACO, GA \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1661,26 +1669,26 @@ until the corresponding run has been made, and the figure is left empty for the 
 \toprule
 $n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
 \midrule
-\multirow{6}{*}{$20$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,60]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$20$} & $[1,20]$ & $1243.0$ & $20/20$ & $4.63$ \\
+                      &          & $(640.0,1810.0)$ &       & $(0.68,16.91)$ \\
+                      & $[1,40]$ & $2217.5$ & $20/20$ & $9.98$ \\
+                      &          & $(1680.0,3240.0)$ &       & $(1.24,70.69)$ \\
+                      & $[1,60]$ & $3213.0$ & $20/20$ & $8.29$ \\
+                      &          & $(2400.0,4760.0)$ &       & $(0.53,35.87)$ \\
 \midrule
-\multirow{6}{*}{$40$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,60]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$40$} & $[1,20]$ & $2225.0$ & $20/20$ & $116.14$ \\
+                      &          & $(1530.0,2720.0)$ &       & $(8.66,432.18)$ \\
+                      & $[1,40]$ & $4287.0$ & $18/20$ & $285.83$ \\
+                      &          & $(2780.0,6860.0)$ &       & $(20.56,600.04)$ \\
+                      & $[1,60]$ & $6929.0$ & $16/20$ & $296.91$ \\
+                      &          & $(4690.0,9190.0)$ &       & $(12.76,600.07)$ \\
 \midrule
-\multirow{6}{*}{$60$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,60]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$60$} & $[1,20]$ & $3155.5$ & $4/20$ & $546.16$ \\
+                      &          & $(2260.0,4430.0)$ &       & $(181.46,600.12)$ \\
+                      & $[1,40]$ & $6480.0$ & $2/20$ & $579.40$ \\
+                      &          & $(4650.0,8480.0)$ &       & $(277.87,600.12)$ \\
+                      & $[1,60]$ & $9403.0$ & $2/20$ & $593.78$ \\
+                      &          & $(6880.0,12230.0)$ &       & $(536.91,600.10)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1695,26 +1703,26 @@ $n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
 \toprule
 $n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
 \midrule
-\multirow{6}{*}{$20$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,60]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$20$} & $[1,20]$ & $8715.0$ & $20/20$ & $3.90$ \\
+                      &          & $(2700.0,15800.0)$ &       & $(0.09,18.06)$ \\
+                      & $[1,40]$ & $17245.0$ & $20/20$ & $4.51$ \\
+                      &          & $(7300.0,34900.0)$ &       & $(0.18,12.14)$ \\
+                      & $[1,60]$ & $24925.0$ & $20/20$ & $8.84$ \\
+                      &          & $(10500.0,38700.0)$ &       & $(0.10,29.39)$ \\
 \midrule
-\multirow{6}{*}{$40$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,60]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$40$} & $[1,20]$ & $16040.0$ & $17/20$ & $237.02$ \\
+                      &          & $(10500.0,22900.0)$ &       & $(26.44,600.05)$ \\
+                      & $[1,40]$ & $30735.0$ & $16/20$ & $308.71$ \\
+                      &          & $(16800.0,47900.0)$ &       & $(40.90,600.05)$ \\
+                      & $[1,60]$ & $45295.0$ & $12/20$ & $416.23$ \\
+                      &          & $(28000.0,60000.0)$ &       & $(66.45,600.06)$ \\
 \midrule
-\multirow{6}{*}{$60$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,60]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$60$} & $[1,20]$ & $22570.0$ & $1/20$ & $570.74$ \\
+                      &          & $(14600.0,30900.0)$ &       & $(15.82,600.11)$ \\
+                      & $[1,40]$ & $45080.0$ & $1/20$ & $595.21$ \\
+                      &          & $(31400.0,57700.0)$ &       & $(502.64,600.14)$ \\
+                      & $[1,60]$ & $66445.0$ & $1/20$ & $583.66$ \\
+                      &          & $(48100.0,88600.0)$ &       & $(271.61,600.11)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1729,26 +1737,26 @@ $n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
 \toprule
 $n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
 \midrule
-\multirow{6}{*}{$20$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,60]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$20$} & $[1,20]$ & $1243.0$ & $20/20$ & $0.01$ \\
+                      &          & $(640.0,1810.0)$ &       & $(0.00,0.07)$ \\
+                      & $[1,40]$ & $2217.5$ & $20/20$ & $0.02$ \\
+                      &          & $(1680.0,3240.0)$ &       & $(0.00,0.08)$ \\
+                      & $[1,60]$ & $3213.0$ & $20/20$ & $0.02$ \\
+                      &          & $(2400.0,4760.0)$ &       & $(0.00,0.11)$ \\
 \midrule
-\multirow{6}{*}{$40$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,60]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$40$} & $[1,20]$ & $2225.0$ & $20/20$ & $0.84$ \\
+                      &          & $(1530.0,2720.0)$ &       & $(0.11,3.26)$ \\
+                      & $[1,40]$ & $4287.0$ & $20/20$ & $4.73$ \\
+                      &          & $(2780.0,6860.0)$ &       & $(0.03,20.43)$ \\
+                      & $[1,60]$ & $6929.0$ & $20/20$ & $4.81$ \\
+                      &          & $(4690.0,9190.0)$ &       & $(0.29,19.60)$ \\
 \midrule
-\multirow{6}{*}{$60$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,60]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$60$} & $[1,20]$ & $3155.5$ & $20/20$ & $7.93$ \\
+                      &          & $(2260.0,4430.0)$ &       & $(1.94,20.45)$ \\
+                      & $[1,40]$ & $6480.0$ & $20/20$ & $29.67$ \\
+                      &          & $(4650.0,8480.0)$ &       & $(1.38,81.64)$ \\
+                      & $[1,60]$ & $9402.5$ & $20/20$ & $61.25$ \\
+                      &          & $(6880.0,12230.0)$ &       & $(11.67,215.43)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1763,12 +1771,12 @@ $n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
 \toprule
 $n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
 \midrule
-\multirow{6}{*}{$20$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,40]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
-                      & $[1,60]$ & \TBD & \TBD & \TBD \\
-                      &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
+\multirow{6}{*}{$20$} & $[1,20]$ & $8715.0$ & $20/20$ & $2.81$ \\
+                      &          & $(2700.0,15800.0)$ &       & $(0.01,19.51)$ \\
+                      & $[1,40]$ & $17245.0$ & $20/20$ & $4.12$ \\
+                      &          & $(7300.0,34900.0)$ &       & $(0.00,33.16)$ \\
+                      & $[1,60]$ & $24925.0$ & $20/20$ & $3.68$ \\
+                      &          & $(10500.0,38700.0)$ &       & $(0.04,23.42)$ \\
 \midrule
 \multirow{6}{*}{$40$} & $[1,20]$ & \TBD & \TBD & \TBD \\
                       &          & $(\TBD,\TBD)$ &       & $(\TBD,\TBD)$ \\
@@ -1797,26 +1805,20 @@ $n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
 \toprule
 $n$ & $a_j,b_j$ range & $W C_{\max}$ & gap (\%)$^{1}$ & time (s) \\
 \midrule
-\multirow{6}{*}{$500$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,40]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,60]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{4}{*}{$600$} & $[1,100]$ & $5299345.8$ & $13.70$ & $7.75$ \\
+                        &           & $(4915356.0, 5763520.0)$ & $(9.77, 18.41)$ & $(7.66, 7.91)$ \\
+                        & $[1,200]$ & $10773490.0$ & $15.40$ & $7.57$ \\
+                        &           & $(10041360.0, 11733118.0)$ & $(11.12, 19.38)$ & $(7.51, 7.67)$ \\
 \midrule
-\multirow{6}{*}{$600$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,40]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,60]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{4}{*}{$800$} & $[1,100]$ & $9340046.4$ & $13.07$ & $17.95$ \\
+                        &           & $(8507700.0, 9939672.0)$ & $(9.26, 16.22)$ & $(17.74, 18.18)$ \\
+                        & $[1,200]$ & $19285449.1$ & $15.25$ & $18.08$ \\
+                        &           & $(17865632.0, 20488644.0)$ & $(10.16, 19.98)$ & $(17.90, 18.49)$ \\
 \midrule
-\multirow{6}{*}{$700$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,40]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,60]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{4}{*}{$1000$} & $[1,100]$ & $14499435.8$ & $12.84$ & $33.25$ \\
+                        &           & $(13467423.0, 15722994.0)$ & $(10.08, 15.70)$ & $(32.95, 33.98)$ \\
+                        & $[1,200]$ & $30026955.6$ & $14.24$ & $33.24$ \\
+                        &           & $(28436556.0, 31595004.0)$ & $(9.62, 16.84)$ & $(33.01, 33.62)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1831,26 +1833,20 @@ $n$ & $a_j,b_j$ range & $W C_{\max}$ & gap (\%)$^{1}$ & time (s) \\
 \toprule
 $n$ & $a_j,b_j$ range & $W C_{\max}$ & gap (\%)$^{1}$ & time (s) \\
 \midrule
-\multirow{6}{*}{$500$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,40]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,60]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{4}{*}{$600$} & $[1,100]$ & $7263859.7$ & $55.81$ & $42.89$ \\
+                        &           & $(6296500.0, 8083060.0)$ & $(46.21, 65.80)$ & $(42.28, 43.70)$ \\
+                        & $[1,200]$ & $14511034.8$ & $55.49$ & $45.67$ \\
+                        &           & $(13726396.0, 15800155.0)$ & $(44.56, 67.14)$ & $(43.27, 47.35)$ \\
 \midrule
-\multirow{6}{*}{$600$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,40]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,60]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{4}{*}{$800$} & $[1,100]$ & $12950359.2$ & $56.80$ & $81.47$ \\
+                        &           & $(11901736.0, 13693286.0)$ & $(50.03, 68.35)$ & $(79.33, 83.14)$ \\
+                        & $[1,200]$ & $26079832.5$ & $55.85$ & $82.46$ \\
+                        &           & $(23635392.0, 28648320.0)$ & $(47.26, 64.07)$ & $(80.04, 83.79)$ \\
 \midrule
-\multirow{6}{*}{$700$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,40]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,60]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{4}{*}{$1000$} & $[1,100]$ & $20232817.4$ & $57.43$ & $117.63$ \\
+                        &           & $(18225336.0, 21700875.0)$ & $(49.36, 64.60)$ & $(117.15, 118.17)$ \\
+                        & $[1,200]$ & $41142901.0$ & $56.54$ & $119.09$ \\
+                        &           & $(38543352.0, 44123938.0)$ & $(48.20, 64.97)$ & $(118.76, 119.68)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1865,26 +1861,20 @@ $n$ & $a_j,b_j$ range & $W C_{\max}$ & gap (\%)$^{1}$ & time (s) \\
 \toprule
 $n$ & $a_j,b_j$ range & $W C_{\max}$ & gap (\%)$^{1}$ & time (s) \\
 \midrule
-\multirow{6}{*}{$500$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,40]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,60]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{4}{*}{$600$} & $[1,100]$ & $4734261.2$ & $1.50$ & $33.15$ \\
+                        &           & $(4323798.0, 5229332.0)$ & $(0.20, 3.80)$ & $(31.07, 34.90)$ \\
+                        & $[1,200]$ & $9558743.8$ & $2.32$ & $34.30$ \\
+                        &           & $(8767084.0, 10833685.0)$ & $(0.55, 6.16)$ & $(32.83, 35.26)$ \\
 \midrule
-\multirow{6}{*}{$600$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,40]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,60]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{4}{*}{$800$} & $[1,100]$ & $8407268.4$ & $1.77$ & $78.75$ \\
+                        &           & $(7815087.0, 9098128.0)$ & $(0.01, 4.15)$ & $(76.08, 83.06)$ \\
+                        & $[1,200]$ & $17058653.9$ & $1.90$ & $75.93$ \\
+                        &           & $(15595944.0, 18219495.0)$ & $(0.08, 5.34)$ & $(72.64, 77.76)$ \\
 \midrule
-\multirow{6}{*}{$700$} & $[1,20]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,40]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
-                       & $[1,60]$ & \TBD & \TBD & \TBD \\
-                       &          & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ & $(\TBD, \TBD)$ \\
+\multirow{4}{*}{$1000$} & $[1,100]$ & $13021374.1$ & $1.31$ & $140.01$ \\
+                        &           & $(11681496.0, 14290368.0)$ & $(0.05, 3.34)$ & $(134.22, 147.10)$ \\
+                        & $[1,200]$ & $26618259.1$ & $1.23$ & $141.60$ \\
+                        &           & $(24864444.0, 28932453.0)$ & $(0.12, 3.42)$ & $(134.46, 145.03)$ \\
 \bottomrule
 \end{tabular*}
 \end{table}

@@ -188,7 +188,7 @@ def instance_baseline(a, b, w, order=None):
 SCALES = {
     "small":  ([20, 40, 60], [2, 3]),
     "medium": ([200, 350, 500], [3, 9, 12]),
-    "large":  ([500, 600, 700], [500, 600, 700]),
+    "large":  ([600, 800, 1000], [600, 800, 1000]),
 }
 
 
@@ -211,9 +211,9 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     """
     One random instance of the benchmark protocol (paper Section 6).
 
-    a_j, b_j ~ U{PROC_LO, ..., proc_hi}, the upper end of the range being one of
-    the three of paper Section 6.1, [1,20], [1,40] and [1,60], which both scales
-    cross with their other factors.  The weights
+    a_j, b_j ~ U{PROC_LO, ..., proc_hi}, the upper end of the range being the one
+    paper Section 6.1 gives the scale: [1,20], [1,40] and [1,60] on the small
+    scale, and [1,100] and [1,200] on the large one.  The weights
     follow the setting `weights`: the narrow regime draws them uniformly from
     {1, ..., K}, so that K is the number of values they can take; the
     independent regime draws them uniformly from {1, ..., 3}; the correlated
@@ -248,7 +248,7 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
 
 
 
-def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42,
+def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42, first=1,
               geometric=False, weights="narrow", repeats=1, progress=None,
               proc_hi=PROC_HI, log_path=None):
     """
@@ -256,6 +256,13 @@ def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42,
 
     For every instance the method is run `repeats` times; the best objective
     value found is recorded together with the mean CPU time of a single run.
+    `first` is the number of the first instance to run, 1 by default.  The
+    instances before it are still drawn from the stream the seed gives, so that
+    every instance keeps the sample it is meant to have, but they are not solved;
+    the values returned cover the instances from `first` on, and so does the
+    record file.  A run that was interrupted can then be continued at the
+    instance after the last one it solved.
+
     NEH is deterministic, so `repeats` > 1 changes nothing but the timing.
 
     Returns
@@ -273,8 +280,12 @@ def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42,
         log_path = (RECORD_DIR / ("%s_%s.txt"
                                   % (LABEL, datetime.now().strftime("%Y%m%d-%H%M%S"))))
     rng = random.Random(seed)
+    # The instances before `first` are drawn and dropped, so that the stream
+    # reaches instance `first` where it would have, had the run never stopped.
+    for _ in range(first - 1):
+        gen_instance(n, K, rng, geometric, weights, proc_hi)
     objs, times, bases = [], [], []
-    for idx in range(instances):
+    for idx in range(first - 1, instances):
         a, b, w = gen_instance(n, K, rng, geometric, weights, proc_hi)
         best = float("inf")
         best_order = None
