@@ -193,14 +193,16 @@ def record_instance(path, n, weights, seed, idx, total, obj, seconds,
                     STATUS.get(proved, "-"), "%.2f s" % (seconds or 0.0)))
 
 
-#: instance scales: name -> (values of n, values of K).  The small and the large
-#: scale are the two of paper Table 1; on the large one the weights are
-#: unrestricted, so K is taken as the number of jobs.  The medium scale is the
-#: one run_medium.py keeps as a test, the paper reporting no results at it.
+#: instance scales of paper Section 6.1: name -> (values of n, values of K).
+#: The dynamic program is reported on the first of them, whose weights are the
+#: geometric ladder {1, 10, ..., 10^(K-1)}; the comparison of Section 6.2 runs on
+#: the other two, which draw the weights uniformly from {1, ..., K} with K = 30,
+#: so that the number of weight classes is arbitrary below that bound.
 SCALES = {
-    "small":  ([20, 40, 60], [2, 3]),
-    "medium": ([200, 350, 500], [3, 9, 12]),
-    "large":  ([600, 800, 1000], [600, 800, 1000]),
+    "dp":     ([20, 40, 60], [2, 3]),
+    "small":  ([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60], [30]),
+    "large":  ([100, 120, 140, 160, 180, 200, 220, 240, 260, 280,
+                300, 320, 340, 360, 380, 400], [30]),
 }
 
 
@@ -224,8 +226,8 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     One random instance of the benchmark protocol (paper Section 6).
 
     a_j, b_j ~ U{PROC_LO, ..., proc_hi}, the upper end of the range being the one
-    paper Section 6.1 gives the scale: [1,20], [1,40] and [1,60] on the small
-    scale, and [1,100] and [1,200] on the large one.  The weights
+    paper Section 6.1 gives the scale: [1,40] and [1,80] on the two comparison
+    scales, and [1,20], [1,40] and [1,60] on the geometric one.  The weights
     follow the setting `weights`: the narrow regime draws them uniformly from
     {1, ..., K}, so that K is the number of values they can take; the
     independent regime draws them uniformly from {1, ..., 3}; the correlated
@@ -233,7 +235,7 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     so that the heaviest jobs are also the longest; and the free regime draws
     them uniformly from {1, ..., n}, which places no bound on how many values
     they take.  `geometric` draws them from the ladder {1, 10, ..., 10^(K-1)},
-    the rule of the small scale of paper Section 6.1, so that the K weight
+    the rule of the first scale of paper Section 6.1, so that the K weight
     classes are decades apart rather than neighbouring integers; it takes
     precedence over `weights` when set.
     """
@@ -266,8 +268,8 @@ def benchmark(n=8, K=2, instances=INSTANCES_PER_CONFIG, seed=42, first=1,
 
     The model is deterministic (`repeats` > 1 changes nothing) and exact, so the
     mean objective it reports is the mean optimum of the sampled instances --
-    the reference value z_ref of paper Section 6.1.  On the medium and large
-    scales the solver may hit `time_limit`, in which case the instance is
+    the reference value z_ref of paper Section 6.1.  On the comparison scales
+    the solver may hit `time_limit`, in which case the instance is
     counted in `failed` when no incumbent was found, and its value is not a
     `first` is the number of the first instance to run, 1 by default.  The
     instances before it are still drawn from the stream the seed gives, so that
@@ -288,6 +290,8 @@ def benchmark(n=8, K=2, instances=INSTANCES_PER_CONFIG, seed=42, first=1,
         optimal   : number of instances whose optimality was proved
         failed    : number of instances left without a solution
         objs, times : the per-instance values
+        bases     : the reference value of each instance, against which the gap
+                    of every method of the comparison is taken
     """
     # Records go to the file the caller names, or to one of our own tagged with
     # the time this benchmark started.
@@ -299,7 +303,7 @@ def benchmark(n=8, K=2, instances=INSTANCES_PER_CONFIG, seed=42, first=1,
     # reaches instance `first` where it would have, had the run never stopped.
     for _ in range(first - 1):
         gen_instance(n, K, rng, geometric, weights, proc_hi)
-    objs, times = [], []
+    objs, times, bases = [], [], []
     optimal = failed = 0
     for idx in range(first - 1, instances):
         a, b, w = gen_instance(n, K, rng, geometric, weights, proc_hi)
@@ -320,11 +324,17 @@ def benchmark(n=8, K=2, instances=INSTANCES_PER_CONFIG, seed=42, first=1,
             best = min(best, res["obj"])
         objs.append(best if best < float("inf") else None)
         times.append(total / repeats if best < float("inf") else None)
+        # The reference value of the instance, the denominator of the gap every
+        # method of the comparison is read on.  The model establishes the optimum
+        # itself, but is read on the same gap as the heuristics, so that the two
+        # are comparable; on an instance it closes that gap is the one of the
+        # optimum against the bound of the instance.
+        bases.append(instance_baseline(a, b, w))
         record_instance(log_path, n, weights, seed, idx + 1, instances,
                         objs[-1], times[-1], K,          # on disk before the next
-                        proc_hi=proc_hi, proved=proved)
+                        proc_hi=proc_hi, proved=proved, base=bases[-1])
         if progress is not None:          # live line for a long-running study
-            progress(idx + 1, instances, objs[-1], times[-1], proved)
+            progress(idx + 1, instances, objs[-1], times[-1], proved, bases[-1])
 
     vals = [o for o in objs if o is not None]
     secs = [t for t in times if t is not None]
@@ -338,6 +348,7 @@ def benchmark(n=8, K=2, instances=INSTANCES_PER_CONFIG, seed=42, first=1,
         "failed": failed,
         "objs": objs,
         "times": times,
+        "bases": bases,
     }
 
 

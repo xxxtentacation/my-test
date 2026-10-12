@@ -546,7 +546,7 @@ STATUS = {True: "optimal", False: "time limit", None: "-"}
 
 
 def record_instance(path, n, weights, seed, idx, total, obj, seconds,
-                    K=None, proc_hi=PROC_HI, proved=None, base=None):
+                    K=None, proc_hi=PROC_HI, proved=None, base=None, label=None):
     """
     Append one line for a finished instance, and flush it at once.
 
@@ -556,8 +556,10 @@ def record_instance(path, n, weights, seed, idx, total, obj, seconds,
     parent directory is created if it does not exist.  The fields are those of
     the live line of the drivers -- label, n, weight setting, processing-time
     range, instance, value, gap, status and running time -- preceded by the seed
-    of the instance and the moment it finished.  The gap is the one the method
-    reports on, `base` being the reference it computed for the instance; a
+    of the instance and the moment it finished.  `label` is the name the method
+    is recorded under, GA by default, which the driver overrides for the
+    2-approximation, whose benchmark lives here as well.  The gap is the one the
+    method reports on, `base` being the reference it computed for the instance; a
     method that hands none, as the exact ones do, shows a dash there.
     """
     path = Path(path)
@@ -565,7 +567,7 @@ def record_instance(path, n, weights, seed, idx, total, obj, seconds,
     with path.open("a", encoding="utf-8") as fh:
         fh.write("%s  %-5s n=%-4d %-6s %-7s | seed=%-7d | instance %2d/%-2d "
                  "| value %-12s | gap %9s | %-10s %9s\n"
-                 % (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), LABEL, n,
+                 % (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), label or LABEL, n,
                     weight_label(weights, K), "[%d,%d]" % (PROC_LO, proc_hi),
                     seed, idx, total,
                     "none" if obj is None else "%.1f" % obj,
@@ -609,14 +611,16 @@ def instance_baseline(a, b, w, order=None):
         lb3 = max(lb3, w[j] * (a[j] + b[j]))
     return max(lb1, lb2, lb3)
 
-#: instance scales: name -> (values of n, values of K).  The small and the large
-#: scale are the two of paper Table 1; on the large one the weights are
-#: unrestricted, so K is taken as the number of jobs.  The medium scale is the
-#: one run_medium.py keeps as a test, the paper reporting no results at it.
+#: instance scales of paper Section 6.1: name -> (values of n, values of K).
+#: The dynamic program is reported on the first of them, whose weights are the
+#: geometric ladder {1, 10, ..., 10^(K-1)}; the comparison of Section 6.2 runs on
+#: the other two, which draw the weights uniformly from {1, ..., K} with K = 30,
+#: so that the number of weight classes is arbitrary below that bound.
 SCALES = {
-    "small":  ([20, 40, 60], [2, 3]),
-    "medium": ([200, 350, 500], [3, 9, 12]),
-    "large":  ([600, 800, 1000], [600, 800, 1000]),
+    "dp":     ([20, 40, 60], [2, 3]),
+    "small":  ([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60], [30]),
+    "large":  ([100, 120, 140, 160, 180, 200, 220, 240, 260, 280,
+                300, 320, 340, 360, 380, 400], [30]),
 }
 
 
@@ -640,8 +644,8 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     One random instance of the benchmark protocol (paper Section 6).
 
     a_j, b_j ~ U{PROC_LO, ..., proc_hi}, the upper end of the range being the one
-    paper Section 6.1 gives the scale: [1,20], [1,40] and [1,60] on the small
-    scale, and [1,100] and [1,200] on the large one.  The weights
+    paper Section 6.1 gives the scale: [1,40] and [1,80] on the two comparison
+    scales, and [1,20], [1,40] and [1,60] on the geometric one.  The weights
     follow the setting `weights`: the narrow regime draws them uniformly from
     {1, ..., K}, so that K is the number of values they can take; the
     independent regime draws them uniformly from {1, ..., 3}; the correlated
@@ -649,7 +653,7 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     so that the heaviest jobs are also the longest; and the free regime draws
     them uniformly from {1, ..., n}, which places no bound on how many values
     they take.  `geometric` draws them from the ladder {1, 10, ..., 10^(K-1)},
-    the rule of the small scale of paper Section 6.1, so that the K weight
+    the rule of the first scale of paper Section 6.1, so that the K weight
     classes are decades apart rather than neighbouring integers; it takes
     precedence over `weights` when set.
     """
@@ -675,7 +679,7 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
 
 
 def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42, first=1,
-              geometric=False, weights="narrow", repeats=1, method="ga",
+              geometric=False, weights="narrow", repeats=1, method="ga", label=None,
               progress=None, proc_hi=PROC_HI, log_path=None, **kwargs):
     """
     Run one method on `instances` random instances and aggregate the result.
@@ -748,7 +752,7 @@ def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42, first=1,
         times.append(total / repeats)
         record_instance(log_path, n, weights, seed, idx + 1, instances,
                         objs[-1], times[-1], K,          # on disk before the next
-                        proc_hi=proc_hi, base=bases[-1])
+                        proc_hi=proc_hi, base=bases[-1], label=label)
         if progress is not None:          # live line for a long-running study
             # a heuristic proves nothing about optimality, so the flag is None;
             # the reference is the one the driver estimated for the instance
@@ -804,13 +808,6 @@ def main() -> None:  # pragma: no cover
                         ("Weight ", weight_descending_order(a, b, w)),
                         ("NEH    ", neh_heuristic(a, b, w))):
         print(f"  {name}:", wcmax_of_order(order, a, b, w))
-    try:
-        from ACO import aco
-        aco_order = aco(a, b, w, m=20, max_iter=50, seed=seed)
-        print("  ACO    :", wcmax_of_order(aco_order, a, b, w))
-    except Exception as exc:  # noqa: BLE001
-        print("  ACO comparison skipped:", exc)
-
     # ---- benchmark: INSTANCES_PER_CONFIG instances per configuration -------
     print()
     print("Benchmark, %d instances per configuration (paper Section 6.1):"

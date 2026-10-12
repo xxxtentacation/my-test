@@ -370,14 +370,16 @@ def record_instance(path, n, weights, seed, idx, total, obj, seconds,
                     STATUS.get(proved, "-"), "%.2f s" % (seconds or 0.0)))
 
 
-#: instance scales: name -> (values of n, values of K).  The small and the large
-#: scale are the two of paper Table 1; on the large one the weights are
-#: unrestricted, so K is taken as the number of jobs.  The medium scale is the
-#: one run_medium.py keeps as a test, the paper reporting no results at it.
+#: instance scales of paper Section 6.1: name -> (values of n, values of K).
+#: The dynamic program is reported on the first of them, whose weights are the
+#: geometric ladder {1, 10, ..., 10^(K-1)}; the comparison of Section 6.2 runs on
+#: the other two, which draw the weights uniformly from {1, ..., K} with K = 30,
+#: so that the number of weight classes is arbitrary below that bound.
 SCALES = {
-    "small":  ([20, 40, 60], [2, 3]),
-    "medium": ([200, 350, 500], [3, 9, 12]),
-    "large":  ([600, 800, 1000], [600, 800, 1000]),
+    "dp":     ([20, 40, 60], [2, 3]),
+    "small":  ([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60], [30]),
+    "large":  ([100, 120, 140, 160, 180, 200, 220, 240, 260, 280,
+                300, 320, 340, 360, 380, 400], [30]),
 }
 
 
@@ -401,8 +403,8 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     One random instance of the benchmark protocol (paper Section 6).
 
     a_j, b_j ~ U{PROC_LO, ..., proc_hi}, the upper end of the range being the one
-    paper Section 6.1 gives the scale: [1,20], [1,40] and [1,60] on the small
-    scale, and [1,100] and [1,200] on the large one.  The weights
+    paper Section 6.1 gives the scale: [1,40] and [1,80] on the two comparison
+    scales, and [1,20], [1,40] and [1,60] on the geometric one.  The weights
     follow the setting `weights`: the narrow regime draws them uniformly from
     {1, ..., K}, so that K is the number of values they can take; the
     independent regime draws them uniformly from {1, ..., 3}; the correlated
@@ -410,7 +412,7 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     so that the heaviest jobs are also the longest; and the free regime draws
     them uniformly from {1, ..., n}, which places no bound on how many values
     they take.  `geometric` draws them from the ladder {1, 10, ..., 10^(K-1)},
-    the rule of the small scale of paper Section 6.1, so that the K weight
+    the rule of the first scale of paper Section 6.1, so that the K weight
     classes are decades apart rather than neighbouring integers; it takes
     precedence over `weights` when set.
     """

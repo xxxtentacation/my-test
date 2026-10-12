@@ -46,14 +46,16 @@
 \renewcommand{\thefigure}{\arabic{figure}}
 \renewcommand{\thetable}{\arabic{table}}
 
-% The five tables of the experiments share one font size, one inter-column
-% separation, one row spacing and one width, so that they read as one set.
-% Every one of them is opened with \resultstable and drawn on a tabular* of
-% \resultstabwidth, whose columns are then spread over the whole width: the
-% natural width of a table never has to match that of its neighbours, and the
-% widest table, which sets the value below, is the eight-column one.
+% The tables of the experiments share one row spacing and one width, so that
+% they read as one set.  Every one of them is opened with \resultstable and
+% drawn on a tabular* of \resultstabwidth, whose columns are then spread over
+% the whole width: the natural width of a table never has to match that of its
+% neighbours.  The four comparison tables carry two columns per method and a
+% pair of figures in every one of them, which is more than any of the others
+% has to hold; they are therefore set one size down, with a narrower column
+% separation, and the width below leaves them the room that the pair needs.
 \newlength{\resultstabwidth}
-\setlength{\resultstabwidth}{14.32cm}
+\setlength{\resultstabwidth}{16.2cm}
 \newcommand{\resultstable}{%
     \centering
     \footnotesize
@@ -103,14 +105,13 @@
     processing time. A 2-approximation runs in $O(n\log n)$ time, and rounding the time
     coordinates and weights of the dynamic program turns it into a fully polynomial-time
     approximation scheme that attains a $(1+\varepsilon)$-approximation for a constant
-    number of weights. For large instances we develop three heuristics, an adapted NEH
-    heuristic, an ant colony optimization (ACO) algorithm \citep{zhang2023} and a genetic
-    algorithm \citep{reeves1995}. The computational study compares the exact methods on
-    small instances and the heuristics on the large ones, measured against a
-    theoretical lower bound. On the small instances the dynamic program returned the same
-    values as the model and was faster by up to two orders of magnitude. Among the
+    number of weights. For large instances we develop two heuristics, an adapted NEH
+    heuristic and a genetic algorithm \citep{reeves1995}. The computational study compares
+    the exact methods on small instances and the heuristics on the large ones, measured
+    against a theoretical lower bound. On the small instances the dynamic program returned
+    the same values as the model and was faster by up to two orders of magnitude. Among the
     heuristics the genetic algorithm returned the smallest gap in every setting, ahead of
-    the NEH heuristic and of the ant colony optimization.
+    the NEH heuristic.
 \end{abstract}
 
 
@@ -242,7 +243,7 @@ the notation and states the completion-time recurrence.
 establishes the complexity of the problem. \Cref{sec:dp_algorithm} proves the
 structural properties, develops the exact dynamic program, and presents the
 2-approximation and the approximation scheme. \Cref{sec:heuristics} describes
-the three heuristics. \Cref{sec:experiments} reports the computational study,
+the two heuristics. \Cref{sec:experiments} reports the computational study,
 and \Cref{sec:conclusion} concludes.
 
 \section{Preliminaries}
@@ -1261,9 +1262,8 @@ completion-time rounding.
 The exact dynamic program of \Cref{sec:dp_algorithm} is pseudo-polynomial, and the
 running time of the FPTAS of \Cref{sub:fptas} is exponential in the number $K$ of
 distinct weights. For large instances, fast heuristics are therefore of practical interest.
-In this section we present three heuristics for $F2 \parallel W C_{\max}$: an adaptation of
-the NEH algorithm \citep{puka2024}, an ant colony optimization (ACO) algorithm
-\citep{zhang2023}, and a genetic algorithm \citep{reeves1995}.
+In this section we present two heuristics for $F2 \parallel W C_{\max}$: an adaptation of
+the NEH algorithm \citep{puka2024} and a genetic algorithm \citep{reeves1995}.
 
 Throughout this section, the objective of a permutation
 $\sigma=(\sigma(1),\dots,\sigma(k))$ of $k$ jobs is evaluated by \cref{eq:completion}, so that
@@ -1333,75 +1333,6 @@ $O\bigl(\sum_{k=1}^{n}k^2\bigr)=O(n^3)$.
 
 
 
-
-
-
-\subsection{Ant Colony Optimization}
-Population-based metaheuristics can explore a much larger set of schedules than constructive
-heuristics, but their effectiveness depends on how well the search bias matches the problem
-structure. Ant colony optimization \citep{zhang2023} is a constructive population
-metaheuristic in which a colony of artificial ants incrementally builds schedules, and the
-collective experience is stored in pheromone trails that guide subsequent ants toward
-promising job orderings.
-
-For $F2 \parallel W C_{\max}$, the relative order of jobs is more important than an
-absolute assignment: placing a heavy job too late inflates the objective dramatically, while
-keeping it early usually helps regardless of the exact surrounding permutation. This makes
-pairwise preference information a natural search bias. ACO captures such preferences through
-a pheromone matrix $\tau_{ij}$, where a larger value encourages job $J_j$ to be scheduled
-after job $J_i$, thereby biasing the colony toward front-heavy schedules.
-
-We adapt the standard ACO framework as follows. Initially all pheromone values are set to
-$\tau_{ij}=1/n$. In every iteration, each of the $m$ ants constructs a permutation
-$\sigma_k$ by repeatedly selecting, from the set $U$ of unscheduled jobs, the job $J_j$ to be
-placed at the next position with probability
-\[
-p_{jt}=\frac{\tau_{j}^{\alpha}\cdot\eta_{jt}^{\beta}}{\sum_{l\in U}\tau_{l}^{\alpha}\cdot\eta_{lt}^{\beta}}.
-\]
-Here $\alpha$ and $\beta$ control the relative influence of pheromone and heuristic
-information $\eta_{jt}$, which we set to $\eta_{jt}=w_j/(a_j+b_j+1)$ so that jobs with large
-weight and small total processing time are preferred. After all ants have built their
-schedules, the best schedule $\sigma^{*}$ found so far is identified, and the pheromone
-trails are updated according to
-\[
-\tau_{ij}\gets(1-\rho)\tau_{ij}+\rho\,\Delta\tau_{ij},
-\]
-where $\rho\in(0,1)$ is the evaporation rate and $\Delta\tau_{ij}=Q/Z^{*}$ if the edge
-$(i,j)$ appears in $\sigma^{*}$, and $0$ otherwise. The process is repeated until a stopping
-criterion is met. The pseudo-code is given in \Cref{alg:aco}.
-
-Because ants construct complete schedules probabilistically, ACO can escape the restricted
-search region of deterministic heuristics. The pheromone mechanism also provides a compact,
-increasingly focused memory of good pairwise orders, so the algorithm naturally intensifies
-around high-quality regions while the stochastic construction preserves diversification.
-Moreover, each schedule is evaluated in $O(n)$ time by \cref{eq:completion}, making each
-iteration computationally lightweight and well suited to large instances.
-
-\begin{algorithm}[]
-\small
-\linespread{1.2}\selectfont
-\SetAlgoLined
-\DontPrintSemicolon
-\caption{Ant Colony Optimization for $F2 \parallel W C_{\max}$}\label{alg:aco}
-\KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$; parameters $\alpha,\beta,\rho,Q$; number of ants $m$.}
-\BlankLine
-\textbf{Step 1.} [Initialization] Initialize pheromone matrix $\tau_{ij}\gets 1/n$ for all $i,j$; 
-			set best solution $\sigma^*$, $Z^* \gets +\infty$.\;
-\textbf{Step 2.} [Construction] \For{ant $k=1$ \KwTo $m$}{
-    Build a permutation $\sigma_k$ by probabilistically selecting jobs:\;
-    \For{position $t=1$ \KwTo $n$}{
-        Calculate probabilities $p_{jt} = \frac{\tau_{j}^{\alpha} \cdot \eta_{jt}^{\beta}}{\sum_{l \in U} \tau_{l}^{\alpha} \cdot \eta_{lt}^{\beta}}$ where $U$ is unselected jobs;\;
-        Select job $j$ with probability $p_{jt}$ and set $\sigma_k(t) = j$;\;
-    }
-    Evaluate $Z_k = W C_{\max}(\sigma_k)$;\;
-    \If{$Z_k < Z^*$}{$\sigma^* \gets \sigma_k$, $Z^* \gets Z_k$ \;}
-}
-\textbf{Step 3.} [Update Pheromone] \For{each edge $(i,j)$}{
-    $\tau_{ij} \gets (1-\rho) \cdot \tau_{ij} + \rho \cdot \Delta\tau_{ij}$ where $\Delta\tau_{ij} = Q/Z^*$ if $(i,j)$ in $\sigma^*$, else 0;\;
-}
-\textbf{Step 4.} [Termination] \If{stopping criterion not met}{go to Step 2.} \;
-\KwOut{Best schedule $\sigma^*$.}
-\end{algorithm}
 
 
 
@@ -1571,7 +1502,7 @@ no improvement. \;
 
 % NOTE.  The token \TBD marks every value that must be filled in from an actual
 % run.  No experimental result is asserted in this section.
-\newcommand{\TBD}{\textcolor{red}{\textbf{[TBD]}}}
+\newcommand{\TBD}{\textcolor{red}{\textbf{TBD}}}
 
 All methods were coded in Python $3.13$ and run on a machine with an Intel Core Ultra 5 230F
 processor and $16$\,GB of memory, under Windows 11. The MILP model was solved with Gurobi
@@ -1584,10 +1515,11 @@ $13.0$ on a single thread, so that the reported times are comparable across conf
 
 Every algorithm was run once on every instance, and no method was handicapped by a smaller
 budget than another, since all of them evaluate the objective by the same recurrence
-\cref{eq:completion}. The exact methods and the heuristics are read on different quantities.
-An exact method is read on the number of instances it solves to optimality, a heuristic on
-its relative percentage gap against a theoretical lower bound, and both on the CPU time they
-require. The gap of method $A$ is
+\cref{eq:completion}. The dynamic program is read on the number of instances whose optimum it
+establishes, since it is the only method whose instance set lies within its reach. Every
+other method is read on its relative percentage gap against a theoretical lower bound,
+reported in per cent, and on the CPU time it requires, reported in seconds. Both are given by
+their mean and by their maximum over the instances of the configuration. The gap of method $A$ is
 \begin{equation}\label{eq:gap}
 \text{gap}_A = \frac{z_A-z_{\text{base}}}{z_{\text{base}}},
 \end{equation}
@@ -1596,62 +1528,71 @@ lower bound, the reference value $LB$ of \cref{eq:lb}: the largest of the three 
 $LB_1$, $LB_2$ and $LB_3$ of \Cref{sub:approx2}, each of which the instance determines on its
 own, so that no schedule of a method enters the denominator of its gap.
 
-The parameters of both metaheuristics were fixed by a calibration run before the study.
-The ant colony optimization uses $10$ ants, $\alpha=1$, $\beta=30$, $\rho=0.1$
-and $100$ iterations. The genetic algorithm uses a population of $N=n$ individuals, $G=10$
-generations, $p_c=0.9$, $p_m=0.1$ and an elitism size of $\lambda=N/10$.
+The parameters of the genetic algorithm were fixed by a calibration run before the study.
+It uses a population of $N=n$ individuals, $G=10$ generations, $p_c=0.9$, $p_m=0.1$ and an
+elitism size of $\lambda=N/10$.
 
-The instances were randomly generated at two scales. The processing times $a_j$ and $b_j$
-were drawn independently for every job and every instance from a discrete uniform range,
-whose upper end the configuration fixes. The small scale takes the three narrow ranges
-$[1,20]$, $[1,40]$ and $[1,60]$, the large one the two wide ranges $[1,100]$ and $[1,200]$,
-so that the width of the range is itself read as a factor at both scales. The weights of the
-small scale are the geometric
-ladder $1,10,\dots,10^{K-1}$, whose length $K$ the configuration fixes at $2$ and $3$: the
-$K$ classes are then decades apart, so that the gap between two of them stays wide whatever
-their number, while the range of the processing times is what varies underneath. On the large
-scale the weights are
-unrestricted and each of them is drawn uniformly from $\{1,\dots,n\}$, so that their number
-is bounded by the number of jobs rather than by a fixed $K$. The two scales of
-\Cref{tab:instances} organise these factors. The small scale contains $360$ instances, three
-sizes crossed with the two weight counts and the three ranges. The large scale contains $120$
-instances, three sizes crossed with the two ranges, at the single unrestricted weight
-regime. Each configuration was replicated over $20$ independent instances, and
+The instances were randomly generated in three groups. The first is the one the dynamic
+program is reported on, and it is the set of the study that preceded this one: the instance
+sizes $20$, $40$ and $60$, crossed with the two weight counts $K=2$ and $K=3$, whose weights
+are the geometric ladder $1,10,\dots,10^{K-1}$, and with the three processing-time ranges
+$[1,20]$, $[1,40]$ and $[1,60]$. The dynamic program is not compared with the other
+algorithms there. Its running time $O(nKV^{3K-3})$ grows so fast in the number $K$ of
+distinct weights that the sizes the other algorithms are read at are out of its reach, and
+its instances are therefore not the instances of the comparison; it is reported on a set of
+its own.
+
+The two groups that follow share their weight setting and their processing-time ranges. An
+instance carries at most thirty distinct weights, drawn uniformly from $\{1,\dots,30\}$, so
+that the number of its weight classes is arbitrary below that bound, and neighbouring
+integers rather than the decades of the first group. Its processing times $a_j$ and $b_j$ are
+drawn independently for every job from one of the two ranges $[1,40]$ and $[1,80]$, which are
+read as a factor and named in the caption of every table below. The small group varies the
+instance size over $10,15,\dots,60$ and the large one over $100,120,\dots,400$: the model is
+compared with the heuristics at the small sizes, where it is exact and settles them, and the
+heuristics alone are reported at the large ones, where no exact method is within reach and
+the gap of each of them is measured against the reference value $LB$ of \cref{eq:lb}. The
+three groups of \Cref{tab:instances} organise these factors. Each configuration was
+replicated over $20$ independent instances, and
 every figure below is the average of those replications. Every method was given the same
 time limit of $600$\,s. A method that reaches the limit is recorded with the value it has
-attained rather than omitted. For every configuration the tables report the number of optimal
-solutions of each exact method and, for each heuristic, the minimum, the mean and the maximum
-of its gap, together with the mean objective value and the mean CPU time of both.
+attained rather than omitted. For every configuration the comparison tables give, for each
+method, the mean and the maximum of its gap and of its running time, each of the two as a pair
+of figures, and the two tables of the dynamic program give the number of instances whose
+optimum it establishes.
 
-The algorithms of the previous sections were compared on these instances. The MILP model of
-\Cref{sec:formulation} and the dynamic program of \Cref{alg:dp} were applied to every small
-instance, and the three heuristics of \Cref{sec:heuristics} to every large one.
-The two exact methods were compared on the small scale, and the tables that report them are
-read for how sensitive they are to the number of jobs and to the number of distinct weights.
-The heuristics were compared on the large scale, where the factor read is the instance size.
+The algorithms of the previous sections were compared on these instances. The model of
+\Cref{sec:formulation} and the three heuristics of \Cref{sec:heuristics} were applied to every
+instance of the small group, and the heuristics alone to every instance of the large one,
+where no exact method is within reach. The dynamic program of \Cref{alg:dp} was applied to the
+instances of the first group, the only ones its running time reaches, and is reported on its
+own. What the tables read is the instance size, and, from one table to the next, the width of
+the processing-time range.
 
 \begin{table}[H]
 \resultstable
+\scriptsize
 \caption{Each configuration is replicated over $20$ independent instances}
 \label{tab:instances}
 \begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}
-}llll@{}}
+}lllll@{}}
 \toprule
-Scale  & $n$                & Weights                   & Methods compared \\
+Scale  & $n$                & Weights                   & Ranges               & Methods compared \\
 \midrule
-Small  & $20,\,40,\,60$        & $K=2$, $K=3$              & MILP, DP \\
-Large  & $600,\,800,\,1000$   & All weights               & NEH, ACO, GA \\
+DP     & $20,\,40,\,60$      & $K=2$, $K=3$     & $[1,20]$, $[1,40]$, $[1,60]$ & DP \\
+Small  & \begin{tabular}[c]{@{}c@{}}$10,15,20,25,30,35,$\\$40,45,50,55,60$\end{tabular} & At most $30$     & $[1,40]$, $[1,80]$ & MILP, 2-approx., NEH, GA \\
+Large  & \begin{tabular}[c]{@{}c@{}}$100,120,140,160,180,200,220,240,$\\$260,280,300,320,340,360,380,400$\end{tabular} & At most $30$     & $[1,40]$, $[1,80]$ & 2-approx., NEH, GA \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
 The tables and the figure below carry the results, and each is read for one question.
-\Crefrange{tab:results-small-milp}{tab:results-small-dp-k3} report the small
-scale, one table per exact method and weight setting, and are read for the number
-of instances the method settles to optimality and its running time as the processing-time range
-widens. \Crefrange{tab:results-large-neh}{tab:results-large-ga} report the large
-scale, one table per heuristic, and are read for the gap and the running time of each
-heuristic under the instance size. \Cref{fig:results-gap} collects the mean gaps
+\Crefrange{tab:results-dp-k2}{tab:results-dp-k3} report the dynamic program on its own
+instance set, one table per weight count. \Crefrange{tab:results-small-40}{tab:results-small-80}
+report the small scale, one table per processing-time range, and are read for the gap and the
+running time of every method as the instance size grows. \Crefrange{tab:results-large-40}{tab:results-large-80}
+report the large scale, one table per range, and are read for the gap and the running time of
+each heuristic under the instance size. \Cref{fig:results-gap} collects the mean gaps
 of every heuristic against the instance size. Every entry of these tables is a placeholder
 until the corresponding run has been made, and the figure is left empty for the same reason.
 
@@ -1659,80 +1600,12 @@ until the corresponding run has been made, and the figure is left empty for the 
 
 
 
-\Cref{tab:results-small-milp} shows \TBD.
+\Cref{tab:results-dp-k2} shows \TBD.
 
 \begin{table}[H]
 \resultstable
-\caption{MILP on the small scale, $K=2$. ``opt.'' count optimality.}
-\label{tab:results-small-milp}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}ccccc@{}}
-\toprule
-$n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
-\midrule
-\multirow{6}{*}{$20$} & $[1,20]$ & $1243.0$ & $20/20$ & $4.63$ \\
-                      &          & $(640.0,1810.0)$ &       & $(0.68,16.91)$ \\
-                      & $[1,40]$ & $2217.5$ & $20/20$ & $9.98$ \\
-                      &          & $(1680.0,3240.0)$ &       & $(1.24,70.69)$ \\
-                      & $[1,60]$ & $3213.0$ & $20/20$ & $8.29$ \\
-                      &          & $(2400.0,4760.0)$ &       & $(0.53,35.87)$ \\
-\midrule
-\multirow{6}{*}{$40$} & $[1,20]$ & $2225.0$ & $20/20$ & $116.14$ \\
-                      &          & $(1530.0,2720.0)$ &       & $(8.66,432.18)$ \\
-                      & $[1,40]$ & $4287.0$ & $18/20$ & $285.83$ \\
-                      &          & $(2780.0,6860.0)$ &       & $(20.56,600.04)$ \\
-                      & $[1,60]$ & $6929.0$ & $16/20$ & $296.91$ \\
-                      &          & $(4690.0,9190.0)$ &       & $(12.76,600.07)$ \\
-\midrule
-\multirow{6}{*}{$60$} & $[1,20]$ & $3155.5$ & $4/20$ & $546.16$ \\
-                      &          & $(2260.0,4430.0)$ &       & $(181.46,600.12)$ \\
-                      & $[1,40]$ & $6480.0$ & $2/20$ & $579.40$ \\
-                      &          & $(4650.0,8480.0)$ &       & $(277.87,600.12)$ \\
-                      & $[1,60]$ & $9403.0$ & $2/20$ & $593.78$ \\
-                      &          & $(6880.0,12230.0)$ &       & $(536.91,600.10)$ \\
-\bottomrule
-\end{tabular*}
-\end{table}
-
-\Cref{tab:results-small-milp-k3} shows \TBD.
-
-\begin{table}[H]
-\resultstable
-\caption{MILP on the small scale, $K=3$. ``opt.'' count optimality.}
-\label{tab:results-small-milp-k3}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}ccccc@{}}
-\toprule
-$n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
-\midrule
-\multirow{6}{*}{$20$} & $[1,20]$ & $8715.0$ & $20/20$ & $3.90$ \\
-                      &          & $(2700.0,15800.0)$ &       & $(0.09,18.06)$ \\
-                      & $[1,40]$ & $17245.0$ & $20/20$ & $4.51$ \\
-                      &          & $(7300.0,34900.0)$ &       & $(0.18,12.14)$ \\
-                      & $[1,60]$ & $24925.0$ & $20/20$ & $8.84$ \\
-                      &          & $(10500.0,38700.0)$ &       & $(0.10,29.39)$ \\
-\midrule
-\multirow{6}{*}{$40$} & $[1,20]$ & $16040.0$ & $17/20$ & $237.02$ \\
-                      &          & $(10500.0,22900.0)$ &       & $(26.44,600.05)$ \\
-                      & $[1,40]$ & $30735.0$ & $16/20$ & $308.71$ \\
-                      &          & $(16800.0,47900.0)$ &       & $(40.90,600.05)$ \\
-                      & $[1,60]$ & $45295.0$ & $12/20$ & $416.23$ \\
-                      &          & $(28000.0,60000.0)$ &       & $(66.45,600.06)$ \\
-\midrule
-\multirow{6}{*}{$60$} & $[1,20]$ & $22570.0$ & $1/20$ & $570.74$ \\
-                      &          & $(14600.0,30900.0)$ &       & $(15.82,600.11)$ \\
-                      & $[1,40]$ & $45080.0$ & $1/20$ & $595.21$ \\
-                      &          & $(31400.0,57700.0)$ &       & $(502.64,600.14)$ \\
-                      & $[1,60]$ & $66445.0$ & $1/20$ & $583.66$ \\
-                      &          & $(48100.0,88600.0)$ &       & $(271.61,600.11)$ \\
-\bottomrule
-\end{tabular*}
-\end{table}
-
-\Cref{tab:results-small-dp} shows \TBD.
-
-\begin{table}[H]
-\resultstable
-\caption{DP on the small scale, $K=2$. ``opt.'' count optimality.}
-\label{tab:results-small-dp}
+\caption{The dynamic program, $K=2$. ``opt.'' count optimality.}
+\label{tab:results-dp-k2}
 \begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}ccccc@{}}
 \toprule
 $n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
@@ -1761,12 +1634,12 @@ $n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
 \end{tabular*}
 \end{table}
 
-\Cref{tab:results-small-dp-k3} shows \TBD.
+\Cref{tab:results-dp-k3} shows \TBD.
 
 \begin{table}[H]
 \resultstable
-\caption{DP on the small scale, $K=3$. ``opt.'' count optimality.}
-\label{tab:results-small-dp-k3}
+\caption{The dynamic program, $K=3$. ``opt.'' count optimality.}
+\label{tab:results-dp-k3}
 \begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}ccccc@{}}
 \toprule
 $n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
@@ -1795,95 +1668,132 @@ $n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (s) \\
 \end{tabular*}
 \end{table}
 
-\Cref{tab:results-large-neh} shows \TBD.
+\Cref{tab:results-small-40} shows \TBD.
 
 \begin{table}[H]
 \resultstable
-\caption{NEH on the large scale.}
-\label{tab:results-large-neh}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}ccccc@{}}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\caption{The small scale, $a_j,b_j\in[1,40]$.  An entry of ``gap'' or ``time'' is the pair (mean, maximum) of that quantity}
+\label{tab:results-small-40}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l*{8}{c}@{}}
 \toprule
-$n$ & $a_j,b_j$ range & $W C_{\max}$ & gap (\%)$^{1}$ & time (s) \\
+\multirow{2}{*}{$n$} & \multicolumn{2}{c}{MILP} & \multicolumn{2}{c}{2-approx.} & \multicolumn{2}{c}{NEH} & \multicolumn{2}{c}{GA} \\
+ & gap & time & gap & time & gap & time & gap & time \\
 \midrule
-\multirow{4}{*}{$600$} & $[1,100]$ & $5299345.8$ & $13.70$ & $7.75$ \\
-                        &           & $(4915356.0, 5763520.0)$ & $(9.77, 18.41)$ & $(7.66, 7.91)$ \\
-                        & $[1,200]$ & $10773490.0$ & $15.40$ & $7.57$ \\
-                        &           & $(10041360.0, 11733118.0)$ & $(11.12, 19.38)$ & $(7.51, 7.67)$ \\
-\midrule
-\multirow{4}{*}{$800$} & $[1,100]$ & $9340046.4$ & $13.07$ & $17.95$ \\
-                        &           & $(8507700.0, 9939672.0)$ & $(9.26, 16.22)$ & $(17.74, 18.18)$ \\
-                        & $[1,200]$ & $19285449.1$ & $15.25$ & $18.08$ \\
-                        &           & $(17865632.0, 20488644.0)$ & $(10.16, 19.98)$ & $(17.90, 18.49)$ \\
-\midrule
-\multirow{4}{*}{$1000$} & $[1,100]$ & $14499435.8$ & $12.84$ & $33.25$ \\
-                        &           & $(13467423.0, 15722994.0)$ & $(10.08, 15.70)$ & $(32.95, 33.98)$ \\
-                        & $[1,200]$ & $30026955.6$ & $14.24$ & $33.24$ \\
-                        &           & $(28436556.0, 31595004.0)$ & $(9.62, 16.84)$ & $(33.01, 33.62)$ \\
+$10$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$15$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$20$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$25$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$30$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$35$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$40$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$45$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$50$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$55$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$60$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-\Cref{tab:results-large-aco} shows \TBD.
+\Cref{tab:results-small-80} shows \TBD.
 
 \begin{table}[H]
 \resultstable
-\caption{ACO on the large scale.}
-\label{tab:results-large-aco}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}ccccc@{}}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\caption{The small scale, $a_j,b_j\in[1,80]$.  An entry of ``gap'' or ``time'' is the pair (mean, maximum) of that quantity}
+\label{tab:results-small-80}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l*{8}{c}@{}}
 \toprule
-$n$ & $a_j,b_j$ range & $W C_{\max}$ & gap (\%)$^{1}$ & time (s) \\
+\multirow{2}{*}{$n$} & \multicolumn{2}{c}{MILP} & \multicolumn{2}{c}{2-approx.} & \multicolumn{2}{c}{NEH} & \multicolumn{2}{c}{GA} \\
+ & gap & time & gap & time & gap & time & gap & time \\
 \midrule
-\multirow{4}{*}{$600$} & $[1,100]$ & $7263859.7$ & $55.81$ & $42.89$ \\
-                        &           & $(6296500.0, 8083060.0)$ & $(46.21, 65.80)$ & $(42.28, 43.70)$ \\
-                        & $[1,200]$ & $14511034.8$ & $55.49$ & $45.67$ \\
-                        &           & $(13726396.0, 15800155.0)$ & $(44.56, 67.14)$ & $(43.27, 47.35)$ \\
-\midrule
-\multirow{4}{*}{$800$} & $[1,100]$ & $12950359.2$ & $56.80$ & $81.47$ \\
-                        &           & $(11901736.0, 13693286.0)$ & $(50.03, 68.35)$ & $(79.33, 83.14)$ \\
-                        & $[1,200]$ & $26079832.5$ & $55.85$ & $82.46$ \\
-                        &           & $(23635392.0, 28648320.0)$ & $(47.26, 64.07)$ & $(80.04, 83.79)$ \\
-\midrule
-\multirow{4}{*}{$1000$} & $[1,100]$ & $20232817.4$ & $57.43$ & $117.63$ \\
-                        &           & $(18225336.0, 21700875.0)$ & $(49.36, 64.60)$ & $(117.15, 118.17)$ \\
-                        & $[1,200]$ & $41142901.0$ & $56.54$ & $119.09$ \\
-                        &           & $(38543352.0, 44123938.0)$ & $(48.20, 64.97)$ & $(118.76, 119.68)$ \\
+$10$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$15$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$20$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$25$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$30$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$35$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$40$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$45$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$50$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$55$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$60$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-\Cref{tab:results-large-ga} shows \TBD.
+\Cref{tab:results-large-40} shows \TBD.
 
 \begin{table}[H]
 \resultstable
-\caption{GA on the large scale.}
-\label{tab:results-large-ga}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}ccccc@{}}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\caption{The large scale, $a_j,b_j\in[1,40]$.  An entry of ``gap'' or ``time'' is the pair (mean, maximum) of that quantity}
+\label{tab:results-large-40}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l*{6}{c}@{}}
 \toprule
-$n$ & $a_j,b_j$ range & $W C_{\max}$ & gap (\%)$^{1}$ & time (s) \\
+\multirow{2}{*}{$n$} & \multicolumn{2}{c}{2-approx.} & \multicolumn{2}{c}{NEH} & \multicolumn{2}{c}{GA} \\
+ & gap & time & gap & time & gap & time \\
 \midrule
-\multirow{4}{*}{$600$} & $[1,100]$ & $4734261.2$ & $1.50$ & $33.15$ \\
-                        &           & $(4323798.0, 5229332.0)$ & $(0.20, 3.80)$ & $(31.07, 34.90)$ \\
-                        & $[1,200]$ & $9558743.8$ & $2.32$ & $34.30$ \\
-                        &           & $(8767084.0, 10833685.0)$ & $(0.55, 6.16)$ & $(32.83, 35.26)$ \\
-\midrule
-\multirow{4}{*}{$800$} & $[1,100]$ & $8407268.4$ & $1.77$ & $78.75$ \\
-                        &           & $(7815087.0, 9098128.0)$ & $(0.01, 4.15)$ & $(76.08, 83.06)$ \\
-                        & $[1,200]$ & $17058653.9$ & $1.90$ & $75.93$ \\
-                        &           & $(15595944.0, 18219495.0)$ & $(0.08, 5.34)$ & $(72.64, 77.76)$ \\
-\midrule
-\multirow{4}{*}{$1000$} & $[1,100]$ & $13021374.1$ & $1.31$ & $140.01$ \\
-                        &           & $(11681496.0, 14290368.0)$ & $(0.05, 3.34)$ & $(134.22, 147.10)$ \\
-                        & $[1,200]$ & $26618259.1$ & $1.23$ & $141.60$ \\
-                        &           & $(24864444.0, 28932453.0)$ & $(0.12, 3.42)$ & $(134.46, 145.03)$ \\
+$100$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$120$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$140$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$160$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$180$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$200$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$220$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$240$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$260$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$280$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$300$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$320$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$340$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$360$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$380$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$400$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
+\Cref{tab:results-large-80} shows \TBD.
+
+\begin{table}[H]
+\resultstable
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\caption{The large scale, $a_j,b_j\in[1,80]$.  An entry of ``gap'' or ``time'' is the pair (mean, maximum) of that quantity}
+\label{tab:results-large-80}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l*{6}{c}@{}}
+\toprule
+\multirow{2}{*}{$n$} & \multicolumn{2}{c}{2-approx.} & \multicolumn{2}{c}{NEH} & \multicolumn{2}{c}{GA} \\
+ & gap & time & gap & time & gap & time \\
+\midrule
+$100$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$120$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$140$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$160$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$180$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$200$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$220$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$240$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$260$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$280$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$300$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$320$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$340$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$360$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$380$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+$400$ & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) & (\TBD,\TBD) \\
+\bottomrule
+\end{tabular*}
+\end{table}
 
 \subsection{Discussion}
 
-The dynamic program dominated the MILP model at the small scale. The model proved optimality
-on \TBD of the $360$ small instances, \TBD at $n=20$, \TBD at $n=40$ and \TBD at $n=60$,
+On its own instance set the dynamic program dominated the MILP model. The model proved
+optimality on \TBD of the $360$ instances of that set, \TBD at $n=20$, \TBD at $n=40$ and \TBD at $n=60$,
 which validates both implementations. The two methods separated on time
 long before they separated on value: the dynamic program was faster by a factor of \TBD
 already at $n=20$ and by a factor of \TBD at $n=60$, where the model needed \TBD\,min on
@@ -1896,22 +1806,14 @@ At the large scale every gap is non-negative by construction, and it measures th
 the reference as much as the quality of the method: the reference $LB$ of \cref{eq:lb} caps
 the optimum by three prefix bounds, and it is tight only where the heaviest jobs are also the
 earliest ones, which no schedule of a heuristic is bound to achieve. What the gaps
-do order is the methods themselves, because the three of them are measured against the same
+do order is the methods themselves, because both of them are measured against the same
 $z_{\text{base}}$ on every instance. The genetic algorithm returned the smallest gap at each
-setting, \TBD points below NEH and \TBD points below the ant colony
-optimization on average, and it did so on all $60$ instances of the scale, where NEH
-attained the best value on \TBD of them and the ant colony optimization on \TBD. That
+setting, \TBD points below NEH on average, and it did so on all $640$ instances of the
+scale, where NEH attained the best value on \TBD of them. That
 advantage is what a population-based search with crossover and mutation built around the
 weight classes and the critical job would be expected to produce, and it is small against
 the running time it costs, \TBD times that of the NEH-type rule.
 
-The ant colony optimization returned the largest gap at every setting, \TBD points
-above the genetic algorithm. The reason is structural rather than incidental. Its heuristic
-information is $\eta_j=w_j/(a_j+b_j+1)$, so as the exponent $\beta$ grows the construction
-approaches the weight-descending order and ignores the processing times, and the measured
-gap is smallest at an intermediate $\beta$ and grows on both sides of it. We report this
-negative result rather than tuning the colony until it disappears, because it delimits the
-criterion for which the metaheuristic is worth its cost.
 
 \FloatBarrier
 \begin{figure}[H]

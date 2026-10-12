@@ -3,20 +3,22 @@
 Driver for the **large** scale of the computational study of paper Section 6.
 
 This is the large-scale third of the study: the small scale is run by
-``run_small.py`` and the medium one by ``run_medium.py``.  The three scripts share
-the driver below and differ only in the configurations and the methods they run,
-so a scale can be run, interrupted and repeated on its own.
+``run_small.py`` and the set the dynamic program is reported on by ``run_dp.py``.
+The three scripts share the driver below and differ only in the configurations
+and the methods they run, so a group can be run, interrupted and repeated on
+its own.
 
 The script follows the design of paper Section 6 rather than inventing its own:
 
 * **Instances.**  The large scale of paper Table 1 varies the instance size and
-  the processing-time range, and places no bound on the weights: they are drawn
-  uniformly from {1, ..., n_jobs}, which is why paper Table 1 records them as
-  "all weights".  The three sizes crossed with the two ranges give the 6
-  configurations of the scale, each of them replicated 20 times.
+  the processing-time range, at the weight setting of the small scale: every
+  instance carries at most 30 distinct weights, drawn uniformly from
+  {1, ..., 30}.  Its processing times are drawn from one of the two ranges
+  [1,40] and [1,80].  The sixteen instance sizes crossed with the two ranges give
+  the 32 configurations of the scale, each of them replicated 20 times.
 
-* **Methods.**  NEH, ACO and GA -- the three heuristics of the paper, the exact
-  methods being out of reach at this size.  The baseline is not a method: it is
+* **Methods.**  The 2-approximation of paper Section 4.3 and the two heuristics of
+  Section 5, the exact methods being out of reach at this size.  The baseline is not a method: it is
   the reference value LB = max{LB_1, LB_2, LB_3} of paper Section 4.3 -- the
   largest of three prefix bounds on the optimum, a number the instance alone
   determines -- which returns no schedule and is never run.  Each algorithm
@@ -28,8 +30,7 @@ The script follows the design of paper Section 6 rather than inventing its own:
   this scale non-negative, and the smaller the better.
 
 * **Parameters.**  Those of paper Section 6, fixed by the calibration run that
-  paragraph reports and held in the two constants below: ACO with 10 ants,
-  alpha=1, beta=30, rho=0.1 and 100 iterations; GA with N=n individuals, G=10
+  paragraph reports and held in the constant below: GA with N=n individuals, G=10
   generations, p_c=0.9, p_m=0.1 and an elitism size of N/10.
 
 * **Gap.**  The quantity reported is the relative percentage gap of a method
@@ -67,15 +68,15 @@ an earlier run::
     论文/F2/代码/记录/结果存档/<date>_large.txt       <- one file per run, kept
     论文/F2/代码/记录/实例记录_large_<date>.txt       <- one line per instance, live
     论文/F2/代码/run_large.py                        <- this script
-    论文/F2/代码/{NEH,ACO,GA}.py                      <- the three heuristics
+    论文/F2/代码/{NEH,GA}.py                          <- the two heuristics
 
 Usage
 -----
     python run_large.py                      # the whole scale
     python run_large.py --list               # what would be run
-    python run_large.py --algos neh ga       # two of the three
+    python run_large.py --algos ga           # one of the two
     python run_large.py --instances 2        # a quick check
-    python run_large.py --aco-ants 4 --aco-iter 20 --ga-gen 3
+    python run_large.py --ga-pop 20 --ga-gen 3
     python run_large.py --fresh                     # start over, do not continue
 """
 
@@ -104,17 +105,16 @@ DEFAULT_OUT = RECORD_DIR / "结果_large_最新.txt"
 ARCHIVE_DIR = RECORD_DIR / "结果存档"
 
 #: weight settings of paper Table 1.  A setting named K<k> is the narrow regime,
-#: which draws the weights uniformly from {1, ..., k}, so that k is the number of
-#: values they can take and the number the tables of the paper label the row
-#: with.  "free" is the unrestricted regime of this scale, which draws them
-#: uniformly from {1, ..., n_jobs} instead; a setting named K<k> is used by
-#: run_medium.py rather than here.
-WEIGHT_SETTINGS = ("free",)
+#: which draws the weights uniformly from {1, ..., k}, so that an instance takes
+#: at most k distinct values and the tables of the paper label the row with the
+#: count.  This scale runs at the same setting as the small one: the weights are
+#: arbitrary in number, and no more than 30.
+WEIGHT_SETTINGS = ("K30",)
 
 #: processing-time ranges of the scale: the label of the table row, and the upper
 #: end of the discrete uniform range both processing times are drawn from.  The
 #: three of them are crossed with the sizes of the scale.
-PROC_RANGES = {"[1,100]": 100, "[1,200]": 200}
+PROC_RANGES = {"[1,40]": 40, "[1,80]": 80}
 
 #: the baseline of every configuration of this scale is the reference value
 #: LB = max{LB_1, LB_2, LB_3} of paper Section 4.3, which the instance alone
@@ -124,16 +124,22 @@ BASELINE = "base"
 #: how a baseline is written in the output
 BASELINE_LABEL = {"milp": "MILP", "base": "LB"}
 
+#: the name the 2-approximation of paper Section 4.3 is reported under: its
+#: benchmark lives in the module of the genetic algorithm, which records it under
+#: a label of its own so that the two are told apart in the record file
+APPROX2_LABEL = "2-APX"
+
 #: the scale this script runs, and the only place where it is written down
 SCALE = "large"
 #: instances per configuration
 INSTANCES = 20
 #: the methods the paper reports at this scale
-METHODS_OF_SCALE = ("neh", "aco", "ga")
-#: the configurations of paper Section 6 and Table 1: the three instance sizes
-#: crossed with the weight setting of the scale and the three ranges
+METHODS_OF_SCALE = ("approx2", "neh", "ga")
+#: the configurations of paper Section 6 and Table 1: the sixteen instance sizes
+#: crossed with the weight setting of the scale and the two ranges
 CONFIGS = tuple((n, wt, rg)
-                for n in (600, 800, 1000)
+                for n in (100, 120, 140, 160, 180, 200, 220, 240,
+                          260, 280, 300, 320, 340, 360, 380, 400)
                 for wt in WEIGHT_SETTINGS
                 for rg in PROC_RANGES)
 
@@ -168,19 +174,12 @@ def _run_neh(n, cfg, instances, seed, opts, progress=None, first=1):
                      progress=progress, log_path=getattr(opts, "record_path", None))
 
 
-def _run_aco(n, cfg, instances, seed, opts, progress=None, first=1):
-    from ACO import benchmark
-    kwargs = dict(ACO_SETTINGS)                 # test mode, or the paper values
-    if opts.aco_ants is not None:
-        kwargs["m"] = opts.aco_ants
-    if opts.aco_iter is not None:
-        kwargs["max_iter"] = opts.aco_iter
-    if opts.aco_rho is not None:
-        kwargs["rho"] = opts.aco_rho
+def _run_approx2(n, cfg, instances, seed, opts, progress=None, first=1):
+    from GA import benchmark
     return benchmark(n=n, K=cfg["K"], instances=instances, seed=seed, first=first,
                      weights=cfg["weights"], proc_hi=cfg["proc_hi"],
-                     progress=progress, log_path=getattr(opts, "record_path", None),
-                     **kwargs)
+                     method="2-approx", label=APPROX2_LABEL,
+                     progress=progress, log_path=getattr(opts, "record_path", None))
 
 
 def _run_ga(n, cfg, instances, seed, opts, progress=None, first=1):
@@ -198,26 +197,18 @@ def _run_ga(n, cfg, instances, seed, opts, progress=None, first=1):
 
 
 # ---------------------------------------------------------------------------
-# settings of the two metaheuristics
+# settings of the metaheuristic
 # ---------------------------------------------------------------------------
 #
 # The parameters of paper Section 6, fixed by the calibration run that paragraph
 # reports.  A quicker check of the pipeline is a matter of the command line --
-# fewer instances (--instances), or a smaller budget for a method (--aco-ants,
-# --aco-iter, --aco-rho, --ga-pop, --ga-gen), which override what is below:
+# fewer instances (--instances), or a smaller budget for a method (--ga-pop,
+# --ga-gen), which override what is below:
 #
 #   GA   N = n, G = 10 reproduces the mean objective of N = 2n, G = 30 on both
 #        weight regimes, at a quarter of the running time: the population reaches
 #        its fixed point within a few generations, and even N = n/2, G = 10
 #        still matches.
-#   ACO  at an equal budget of m * max_iter = 1000, ten ants for a hundred
-#        iterations beat twenty for fifty -- 1718.7 against 1734.7 on the
-#        independent setting and 5018.7 against 5175.0 on the correlated one --
-#        so the budget is spent on iterations rather than on ants.  Against
-#        fifty ants and a hundred iterations, at five times the cost, ten ants
-#        cost 1.7 and 2.8 per cent of mean objective.
-#: ACO arguments: colony size, and iterations of the stopping criterion
-ACO_SETTINGS = {"m": 10, "max_iter": 100}
 #: GA arguments: population size as a multiple of n, and generations
 GA_SETTINGS = {"N_factor": 1, "G": 10}
 
@@ -227,9 +218,9 @@ GA_SETTINGS = {"N_factor": 1, "G": 10}
 #: each algorithm computes on the instance it is handed (see instance_baseline()
 #: in the algorithm modules).
 METHODS = {
-    "neh":  ("NEH",  _run_neh),
-    "aco":  ("ACO",  _run_aco),
-    "ga":   ("GA",   _run_ga),
+    "approx2": ("2-approx", _run_approx2),
+    "neh":     ("NEH",      _run_neh),
+    "ga":      ("GA",       _run_ga),
 }
 
 
@@ -278,6 +269,9 @@ SUMMARY_RE = re.compile(
 #: of a record file can be traced back to the group that wrote them: the algorithm
 #: modules label the narrow regime "K=k" and the unrestricted one "all weights"
 NAME_OF_LABEL = {label: name for name, (label, _) in METHODS.items()}
+#: the label the 2-approximation is recorded under, which its benchmark writes
+#: instead of the name of the module it lives in
+NAME_OF_LABEL[APPROX2_LABEL] = "approx2"
 WEIGHTS_OF_LABEL = dict([("K=%s" % w[1:], w) for w in WEIGHT_SETTINGS
                          if w != "free"] + [("all weights", "free")])
 
@@ -470,8 +464,8 @@ def _instance_reporter(label, n, weights, rlabel, stream):
     """
     One line per instance, printed as soon as that instance is done.
 
-    A configuration can take an hour or more -- the ant colony optimization at
-    the largest size of the scale runs for a couple of minutes on each of twenty
+    A configuration can take an hour or more -- the genetic algorithm at the
+    largest size of the scale runs for a couple of minutes on each of twenty
     instances -- so the driver would otherwise be silent for the whole of it.
     The reporter carries the running time of the instance and the time elapsed
     since the method started on this configuration, and the gap of the instance
@@ -692,9 +686,8 @@ def _header(methods, args):
         "generated     : %s" % datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "methods       : %s" % ", ".join(METHODS[m][0] for m in methods),
         "instances/cfg : %d" % (args.instances or INSTANCES),
-        "metaheuristics: ACO %s; GA %s"
-        % (", ".join("%s=%s" % kv for kv in sorted(ACO_SETTINGS.items())),
-           ", ".join("%s=%s" % kv for kv in sorted(GA_SETTINGS.items()))),
+        "metaheuristics: GA %s"
+        % ", ".join("%s=%s" % kv for kv in sorted(GA_SETTINGS.items())),
         "gap against   : the baseline of each configuration, which on this scale "
                         "is the reference value LB = max{LB_1,LB_2,LB_3} of "
                         "paper Section 4.3, a property of the instance",
@@ -801,9 +794,6 @@ def parse_args(argv=None):
     p.add_argument("--instances", type=int, default=None,
                    help="instances per configuration (default: %d)" % INSTANCES)
     p.add_argument("--seed", type=int, default=42, help="base random seed")
-    p.add_argument("--aco-ants", type=int, default=None, help="ACO: number of ants")
-    p.add_argument("--aco-iter", type=int, default=None, help="ACO: iterations")
-    p.add_argument("--aco-rho", type=float, default=None, help="ACO: evaporation rate")
     p.add_argument("--ga-pop", type=int, default=None, help="GA: population size")
     p.add_argument("--ga-gen", type=int, default=None, help="GA: generations")
     p.add_argument("--out", default=str(DEFAULT_OUT),
@@ -912,9 +902,8 @@ def main(argv=None):
     print("  scale     : %s" % SCALE)
     print("  methods   : %s" % ", ".join(METHODS[m][0] for m in methods))
     print("  instances : %d per configuration" % (args.instances or INSTANCES))
-    print("  metaheur.: ACO %s; GA %s"
-          % (", ".join("%s=%s" % kv for kv in sorted(ACO_SETTINGS.items())),
-             ", ".join("%s=%s" % kv for kv in sorted(GA_SETTINGS.items()))))
+    print("  metaheur.: GA %s"
+          % ", ".join("%s=%s" % kv for kv in sorted(GA_SETTINGS.items())))
     print("  output    : %s" % out_path)
     print("  archive   : %s" % ARCHIVE_DIR)
     print("  records   : %s" % args.record_path)
