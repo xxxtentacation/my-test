@@ -2,7 +2,7 @@
 """
 Genetic Algorithm (GA) for F2 || WCmax (two-machine flow shop, minimizing the
 maximum weighted completion time), implementing Section 5.3 of the paper
-(paper_framework.tex): Algorithm (alg:pmx) partially mapped crossover, Algorithm
+(paper_framework.tex): Algorithm (alg:ap) alternating-position crossover, Algorithm
 (alg:cm) critical-job mutation, and Algorithm (alg:ga) the genetic algorithm.
 
 Chromosome.  A permutation sigma = (sigma(1), ..., sigma(n)) of the job indices;
@@ -27,27 +27,40 @@ distance of NSGA-II rather than by a single scalar fitness.  The schedule the
 algorithm reports is the one of smallest WCmax over the final population, which
 is also what the benchmark of the paper measures.
 
-Initial population.  N individuals: the three structured seeds, which already
-carry the two ingredients of a good schedule (small makespan, heavy jobs early),
-
-    sigma^J     Johnson's rule, minimizes the makespan
-    sigma^W     non-increasing weight, ties broken by Johnson's rule
-    sigma^NEH   the NEH heuristic (NEH.py / Algorithm alg:neh)
-
-plus N - 3 uniform random permutations supplying diversity.
+Initial population.  The NEH schedule of the instance and N - 1 neighbours of
+it.  NEH orders the jobs by non-increasing a_j + b_j and inserts them one at a
+time at the position that lowers the criterion most, so the population starts
+from an order that already reads the weights, and the schedule the algorithm
+reports can never be worse than the one NEH returns.
 
 Operators.
-    PMX (Algorithm alg:pmx) copies a contiguous block of jobs from one parent and
-    fills the remaining positions from the other, resolving conflicts through the
-    induced mapping so that the child is always a valid permutation.
-    Critical-job mutation (Algorithm alg:cm) locates the job attaining WCmax and
-    tries to move it to every earlier position, keeping the best insertion; if no
-    insertion improves the value, it swaps two jobs from different weight classes
-    with probability p_m.
+    Alternating-position crossover (Algorithm alg:ap) gives the child the odd
+    positions of one parent -- half the instance, every other job -- and
+    front-back crossover (Algorithm alg:fb) gives it the front half instead;
+    either way the remaining positions are filled with the jobs of the other
+    parent in the order it lists them, passing over a job the child already
+    holds, so that the child is a valid permutation without any repair.  Each of
+    the two is drawn with probability 1/2.  Swapping the roles of the two
+    parents yields the second child.
+    Critical-job mutation (Algorithm alg:cm) acts on single jobs: a job
+    attaining WCmax is moved to the position that serves the criterion best, and,
+    where no such move helps, two jobs of inverted weight are exchanged with
+    probability p_m.  It is what moves the population off the order it started
+    from, one job at a time.
+
+Local search (Algorithm alg:ga, Step 3).  The jobs carrying the largest weighted
+completion times -- descent_k(n) of them, one job in ten of the instance, the
+ones that decide the criterion -- are reinserted, each at the position that
+lowers WCmax most, until no such insertion improves.
+
+Generations.  The algorithm is run for the number of generations the caller
+names.  The initial population already carries an order that reads the weights,
+so the generations are spent moving jobs within it rather than building it up
+from nothing, and the local search of Step 3 refines what they leave.
 
 Note on p_m.  Algorithm alg:ga applies Algorithm alg:cm to each offspring with
-probability p_m, and Algorithm alg:cm itself uses p_m for its fallback random
-swap.  Both uses are implemented as written in the paper.
+probability p_m, and Algorithm alg:cm itself uses p_m for its fallback exchange.
+Both uses are implemented as written in the paper.
 """
 
 from __future__ import annotations
@@ -134,114 +147,186 @@ def johnson_order(a: Sequence[float], b: Sequence[float]) -> List[int]:
     return early + late
 
 
-def weight_descending_order(a: Sequence[float], b: Sequence[float],
-                            w: Sequence[float]) -> List[int]:
+def alternating_crossover(p1: Sequence[int], p2: Sequence[int]) -> List[int]:
     """
-    sigma^W: order the jobs by non-increasing weight w_j, breaking ties by
-    Johnson's rule.  Heavy jobs thereby receive the earliest positions, which
-    attacks the bottleneck objective directly.
-    """
-    johnson_rank = {j: t for t, j in enumerate(johnson_order(a, b))}
-    return sorted(range(len(w)), key=lambda j: (-w[j], johnson_rank[j]))
+    Algorithm alg:ap: alternating-position crossover.
 
+    Step 1  [Alternate] the child inherits the odd positions 1, 3, 5, ... of p1,
+            half of the instance, so that those jobs keep the slot they hold in
+            p1;
+    Step 2  [Fill] the even positions are filled with the jobs of p2, taken in
+            the order p2 lists them, a job the child already holds being passed
+            over.
 
-def pmx(p1: Sequence[int], p2: Sequence[int], cut1: int, cut2: int) -> List[int]:
-    """
-    Algorithm alg:pmx: partially mapped crossover.
-
-    Step 1  copy the middle segment p1[cut1..cut2] verbatim into the child;
-    Step 2  fill every other position t with p2[t]; whenever that job already
-            occurs in the child, replace it through the mapping induced by the
-            segment, j <- p2[ p1^{-1}(j) ], until an unused job is reached.
-
-    The mapping is a permutation, so the chain terminates; a guard is kept only
-    as a safety net.  Swapping the roles of p1 and p2 yields the second child.
+    Conflict resolution.  A job of p2 clashes with the child only when p1
+    already contributes it, and the clash is passed over rather than repaired:
+    that job has a slot already, the one p1 gave it, and the next job of p2
+    takes the free position instead.  The pass is well defined, because p1
+    contributes ceil(n / 2) jobs to the odd positions while p2 holds exactly the
+    floor(n / 2) remaining ones, which is the number of even positions to fill;
+    the scan therefore reaches one free job for each of them and stops with
+    every position taken.  No mapping between the two parents and no repair
+    operator is needed, and the child is a valid permutation by construction.
+    Swapping the roles of p1 and p2 yields the second child.
     """
     n = len(p1)
-    lo, hi = (cut1, cut2) if cut1 <= cut2 else (cut2, cut1)
-    pos_in_p1 = {job: t for t, job in enumerate(p1)}
-
     child: List[Optional[int]] = [None] * n
-    used = set()
-    for t in range(lo, hi + 1):
+    odd = range(0, n, 2)
+    for t in odd:
         child[t] = p1[t]
-        used.add(p1[t])
-
-    for t in list(range(0, lo)) + list(range(hi + 1, n)):
-        j = p2[t]
-        guard = 0
-        while j in used:
-            j = p2[pos_in_p1[j]]          # follow the PMX mapping
-            guard += 1
-            if guard > n:                 # cannot happen for a valid permutation
-                break
+    held = set(child[t] for t in odd)
+    free = [j for j in p2 if j not in held]
+    for t, j in zip(range(1, n, 2), free):
         child[t] = j
-        used.add(j)
-
     return [int(x) for x in child]
 
 
-def _random_cross_class_swap(sigma: Sequence[int], w: Sequence[float],
-                             rng: random.Random) -> List[int]:
+def front_back_crossover(p1: Sequence[int], p2: Sequence[int]) -> List[int]:
     """
-    Swap two jobs of `sigma` lying in different weight classes (Algorithm
-    alg:cm, Step 3 fallback).  If every job has the same weight there is no such
-    pair, and the schedule is returned unchanged.
+    Algorithm alg:fb: front-back crossover.
+
+    Step 1  [Front] the child inherits the front half of p1, positions
+            1, ..., ceil(n / 2), so that those jobs keep the slot they hold in
+            p1;
+    Step 2  [Rear] the rear half is filled with the jobs of p2, read from the
+            position that follows its own front half to its end and then from
+            its first position to its front half, a job the child already holds
+            being passed over.
+
+    The two operators differ only in which half of p1 the child keeps: every
+    other slot here, the front half there.  The clash is settled by the same
+    pass -- a job of p2 that the child already holds keeps the slot p1 gave it
+    and is passed over -- and the same count makes the pass exact: p1
+    contributes ceil(n / 2) jobs to the half it gives, so p2 holds exactly the
+    floor(n / 2) others, which is the number of positions to fill.  Reading p2
+    from the position after its front half first is what makes the child take
+    the rear half of p2 for its own rear, the jobs of p2's front half being
+    called on only where the rear half holds a job the child already has.
+    Swapping the roles of p1 and p2 yields the second child.
+    """
+    n = len(p1)
+    h = (n + 1) // 2                      # ceil(n / 2): the front half of p1
+    child: List[Optional[int]] = [None] * n
+    for t in range(h):
+        child[t] = p1[t]
+    held = set(p1[:h])
+    cyclic = list(range(h, n)) + list(range(0, h))
+    free = [p2[t] for t in cyclic if p2[t] not in held]
+    for t, j in zip(range(h, n), free):
+        child[t] = j
+    return [int(x) for x in child]
+
+
+def _inversion_swap(sigma: Sequence[int], w: Sequence[float],
+                    rng: random.Random) -> List[int]:
+    """
+    Swap an earlier lighter job with a later heavier one (Algorithm alg:cm,
+    Step 3 fallback): the exchange moves weight forward, which is the direction
+    the block structure prescribes.  If no such pair exists the schedule is
+    returned unchanged.
     """
     n = len(sigma)
-    p = rng.randrange(n)
-    wp = w[sigma[p]]
-    others = [q for q in range(n) if q != p and w[sigma[q]] != wp]
-    if not others:
-        return list(sigma)
-    q = rng.choice(others)
-    out = list(sigma)
-    out[p], out[q] = out[q], out[p]
-    return out
+    for _ in range(8):
+        p = rng.randrange(n)
+        heavier = [q for q in range(p + 1, n) if w[sigma[q]] > w[sigma[p]]]
+        if heavier:
+            q = rng.choice(heavier)
+            out = list(sigma)
+            out[p], out[q] = out[q], out[p]
+            return out
+    return list(sigma)
 
 
-def critical_job_mutation(sigma: Sequence[int], a: Sequence[float],
-                          b: Sequence[float], w: Sequence[float],
-                          pm: float, rng: random.Random) -> List[int]:
+def job_mutation(sigma: Sequence[int], a: Sequence[float],
+                   b: Sequence[float], w: Sequence[float],
+                   pm: float, rng: random.Random) -> List[int]:
     """
     Algorithm alg:cm: critical-job mutation.
 
-    Step 1  locate a critical job j* attaining WCmax and its position t*;
-    Step 2  move j* to every earlier position and evaluate the result;
-    Step 3  keep the best insertion if it improves WCmax, otherwise perform a
-            random cross-weight-class swap with probability pm.
+    Step 1  let j* be a job attaining WCmax; form, for every position r, the
+            schedule obtained by moving j* to r, and keep the best of them if it
+            improves on sigma;
+    Step 2  otherwise exchange an earlier lighter job with a later heavier one
+            with probability pm.
 
-    Moving j* earlier can only decrease its own completion time (its machine-2
-    work is unchanged while it may start earlier), so this is a cheap targeted
-    hill-climbing step on the job that currently decides the objective.
+    Both moves act on single jobs: a job is moved, or exchanged for one of a
+    different weight, and the change is kept only when the criterion falls.
+    Nothing is imposed on the schedule as a whole, so the population is moved
+    off the order it started from one job at a time.
     """
     n = len(sigma)
     if n < 2:
         return list(sigma)
 
+    # Step 1: the critical job, into the position that serves the criterion best.
     cur = _wcmax_fast(sigma, a, b, w)
-
-    # Step 1: the critical job and its position.
     t_star, _ = _critical_job(sigma, a, b, w)
     j_star = sigma[t_star]
-
-    # Step 2: try every insertion of j* into an earlier position r < t*.
-    best_val = cur
-    best_sigma: Optional[List[int]] = None
-    for r in range(t_star):
-        cand = list(sigma[:r]) + [j_star] + list(sigma[r:t_star]) \
-            + list(sigma[t_star + 1:])
+    best_val, best_sigma = cur, None
+    rest = list(sigma[:t_star]) + list(sigma[t_star + 1:])
+    for r in range(n):
+        if r == t_star:
+            continue
+        cand = rest[:r] + [j_star] + rest[r:]
         val = _wcmax_fast(cand, a, b, w)
         if val < best_val:
-            best_val = val
-            best_sigma = cand
-
-    # Step 3.
+            best_val, best_sigma = val, cand
     if best_sigma is not None:
         return best_sigma
+
+    # Step 2.
     if rng.random() < pm:
-        return _random_cross_class_swap(sigma, w, rng)
+        return _inversion_swap(sigma, w, rng)
     return list(sigma)
+
+
+def _worst_jobs(sigma: Sequence[int], a: Sequence[float], b: Sequence[float],
+                w: Sequence[float], k: int) -> List[int]:
+    """
+    The k jobs with the largest weighted completion times, worst first.
+
+    They are the jobs that decide the criterion and therefore the ones whose
+    reinsertion can lower it.
+    """
+    c1 = c2 = 0.0
+    vals = []
+    for j in sigma:
+        c1 += a[j]
+        c2 = max(c1, c2) + b[j]
+        vals.append((w[j] * c2, j))
+    vals.sort(key=lambda pair: -pair[0])
+    return [j for _v, j in vals[:k]]
+
+
+def insertion_descent(sigma: Sequence[int], a: Sequence[float],
+                      b: Sequence[float], w: Sequence[float],
+                      k: int) -> List[int]:
+    """
+    Algorithm alg:ga, Step 3: the local search on the incumbent.
+
+    Reinsert the k jobs that carry the largest weighted completion times, each
+    at the position that lowers the criterion most, and repeat until no such
+    insertion improves.
+    """
+    sigma = list(sigma)
+    n = len(sigma)
+    for _ in range(n * k):
+        cur = _wcmax_fast(sigma, a, b, w)
+        best_val, best_sigma = cur, None
+        for job in _worst_jobs(sigma, a, b, w, k):
+            t = sigma.index(job)
+            rest = sigma[:t] + sigma[t + 1:]
+            for r in range(n):
+                if r == t:
+                    continue
+                cand = rest[:r] + [job] + rest[r:]
+                val = _wcmax_fast(cand, a, b, w)
+                if val < best_val:
+                    best_val, best_sigma = val, cand
+        if best_sigma is None:
+            return sigma
+        sigma = best_sigma
+    return sigma
 
 
 # ---------------------------------------------------------------------------
@@ -351,28 +436,49 @@ def _nsga2_survive(objs: Sequence[tuple], N: int) -> List[int]:
     return keep
 
 
+def _neh_population(a: Sequence[float], b: Sequence[float],
+                    w: Sequence[float], N: int,
+                    rng: random.Random) -> List[List[int]]:
+    """
+    P0: the NEH schedule and N - 1 neighbours of it.
+
+    The first individual is the schedule of the NEH heuristic of NEH.py, which
+    orders the jobs by non-increasing a_j + b_j and inserts them one at a time at
+    the position that lowers WCmax most, so it is a schedule the weights have
+    already been read into.  The others are copies of it with a few neighbouring
+    jobs exchanged, the number of exchanges being drawn between one and
+    max(1, n // 4), which keeps the population supplied with the orders the
+    operators can move away from.  Since that first individual is in the
+    population and the elite is tracked on the criterion, the schedule the
+    algorithm reports is never worse than the one NEH returns.
+    """
+    sigma = list(neh_heuristic(a, b, w))
+    n = len(sigma)
+    pop: List[List[int]] = [sigma]
+    furthest = max(1, n // 4)      # the strongest displacement drawn
+    while len(pop) < N:
+        neighbour = list(sigma)
+        for _ in range(rng.randint(1, furthest)):
+            t = rng.randrange(n - 1)
+            neighbour[t], neighbour[t + 1] = neighbour[t + 1], neighbour[t]
+        pop.append(neighbour)
+    return pop[:N]
+
+
 def _initial_population(a: Sequence[float], b: Sequence[float],
                         w: Sequence[float], N: int,
                         rng: random.Random) -> List[List[int]]:
-    """The three structured seeds, then random permutations up to N individuals."""
-    n = len(a)
-    pop: List[List[int]] = [
-        johnson_order(a, b),                       # sigma^J
-        weight_descending_order(a, b, w),          # sigma^W
-        list(neh_heuristic(a, b, w)),              # sigma^NEH
-    ]
-    while len(pop) < N:
-        perm = list(range(n))
-        rng.shuffle(perm)
-        pop.append(perm)
-    return pop[:N]
+    """The initial population of paper Algorithm alg:ga, Step 1."""
+    return _neh_population(a, b, w, N, rng)
+
 
 
 def _evolve(pop: List[List[int]], a: Sequence[float], b: Sequence[float],
             w: Sequence[float], N: int, G: int, pc: float, pm: float,
             rng: random.Random):
     """
-    The NSGA-II loop: tournament on (rank, crowding), PMX, critical-job mutation,
+    The NSGA-II loop: tournament on (rank, crowding), the two half-inheritance
+    crossovers, critical-job mutation,
     and (mu + lambda) survival by non-dominated sorting.
 
     Returns the population reached after G generations, its objective pairs, and
@@ -398,14 +504,16 @@ def _evolve(pop: List[List[int]], a: Sequence[float], b: Sequence[float],
             pick = i if (rank[i], -crowd[i]) <= (rank[j], -crowd[j]) else j
             pool.append(pop[pick])
 
-        # Crossover: PMX, or the two parents copied.
+        # Crossover: one of the two half-inheritance operators, each with
+        # probability 1/2, or the two parents copied.
         offspring: List[List[int]] = []
         while len(offspring) < N:
             p1 = pool[rng.randrange(len(pool))]
             p2 = pool[rng.randrange(len(pool))]
             if n >= 2 and rng.random() < pc:
-                cut1, cut2 = rng.randrange(n), rng.randrange(n)
-                kids = [pmx(p1, p2, cut1, cut2), pmx(p2, p1, cut1, cut2)]
+                operator = (alternating_crossover if rng.random() < 0.5
+                            else front_back_crossover)
+                kids = [operator(p1, p2), operator(p2, p1)]
             else:
                 kids = [list(p1), list(p2)]
             for kid in kids:
@@ -415,7 +523,7 @@ def _evolve(pop: List[List[int]], a: Sequence[float], b: Sequence[float],
         # Mutation: Algorithm alg:cm on each offspring with probability pm.
         for k in range(len(offspring)):
             if rng.random() < pm:
-                offspring[k] = critical_job_mutation(offspring[k], a, b, w, pm, rng)
+                offspring[k] = job_mutation(offspring[k], a, b, w, pm, rng)
 
         # The criterion of the paper, tracked on every offspring.
         for s in offspring:
@@ -433,10 +541,11 @@ def _evolve(pop: List[List[int]], a: Sequence[float], b: Sequence[float],
 
 
 def ga(a: Sequence[float], b: Sequence[float], w: Sequence[float],
-       N: Optional[int] = None, G: int = 30, pc: float = 0.9, pm: float = 0.1,
+       N: Optional[int] = None, G: int = 1, pc: float = 0.9, pm: float = 0.1,
+       k: Optional[int] = None,
        lam: Optional[int] = None, seed: Optional[int] = None) -> List[int]:
     """
-    Genetic algorithm for F2 || WCmax, second generation (Algorithm alg:ga).
+    Genetic algorithm for F2 || WCmax (Algorithm alg:ga).
 
     The search is bi-objective: an individual is the pair made of its makespan
     C_max and the weight w_last of its last job, and the population is carried
@@ -444,22 +553,28 @@ def ga(a: Sequence[float], b: Sequence[float], w: Sequence[float],
     that the whole trade-off between the two is explored rather than a single
     weighted value.  The two objectives bound the criterion of the paper from
     below, WCmax >= w_last * C_max, and the schedule the algorithm reports is the
-    one minimizing WCmax over the final population, refined by the critical-job
-    local search of Step 3.
+    best one on the criterion that the search saw, refined by the insertion
+    descent of Step 3.
 
     Parameters
     ----------
     a, b, w : length n
         Processing time on M1, processing time on M2, and weight of each job.
-    N       : population size (default 2n; the paper sets N = Theta(n)).
-    G       : number of generations (default 30).  Calibrated in Section 6.1.2:
-              raising G to 120 leaves the mean gap unchanged on every tested
-              configuration, so 30 generations already reach the fixed point.
+    N       : population size (default population_of(n), the capped rule of the
+              study: min(20, max(6, ceil(n/2)))).
+    G       : number of generations (default 1).  A scale of the study names the
+              count it runs -- the small and the large scale differ -- and the
+              argument is what carries it.
     pc      : crossover probability; with probability 1 - pc the two parents are
               copied into the offspring set unchanged.
     pm      : mutation probability.  Used twice, as in the paper: Algorithm
               alg:cm is applied to each offspring with probability pm, and its
               Step 3 fallback swap also uses pm.
+    k       : how many jobs the local search of Step 3 reinserts, the ones with
+              the largest weighted completion times.  A caller that sets the
+              parameters of a scale names one of its own -- the small and the
+              large scale of the study do -- and a caller that names none gets
+              the default rule descent_k(n).
     lam     : elitism size.  Kept for the callers of the paper's run; the
               survivors are now chosen by non-dominated sorting, which is
               elitist by construction, so the argument no longer acts.
@@ -475,7 +590,7 @@ def ga(a: Sequence[float], b: Sequence[float], w: Sequence[float],
     if n == 0:
         return []
     if N is None:
-        N = max(8, 2 * n)
+        N = population_of(n)
     if lam is None:
         lam = max(1, N // 10)
     lam = max(0, min(lam, N))
@@ -483,25 +598,23 @@ def ga(a: Sequence[float], b: Sequence[float], w: Sequence[float],
     rng = random.Random(seed)
 
     # ---- Step 1: initialization -------------------------------------------
-    # The three structured seeds, then N - 3 uniform random permutations.
+    # The initial population: the NEH schedule of the instance and its
+    # neighbours, so that the search starts from an order the weights have
+    # already been read into.
     pop = _initial_population(a, b, w, N, rng)
 
     # ---- Step 2: evolution -------------------------------------------------
-    # NSGA-II on (C_max, w_last): fronts and crowding carry the selection, while
-    # the best schedule on the criterion itself is tracked alongside them.
+    # G generations, NSGA-II on (C_max, w_last): fronts and crowding carry the
+    # selection, while the best schedule on the criterion itself is tracked
+    # alongside them.
     pop, _objs, sigma_star, best_val = _evolve(pop, a, b, w, N, G, pc, pm, rng)
 
     # ---- Step 3: local search ---------------------------------------------
-    # Apply Algorithm alg:cm to sigma* until it yields no improvement.  Passing
-    # pm = 0 disables the fallback random swap, so the loop is exactly the
-    # "keep inserting while it helps" descent.
-    while True:
-        cand = critical_job_mutation(sigma_star, a, b, w, 0.0, rng)
-        val = _wcmax_fast(cand, a, b, w)
-        if val < best_val:
-            sigma_star, best_val = cand, val
-        else:
-            break
+    # The insertion descent of Algorithm alg:ga on the incumbent: the jobs that
+    # carry the largest weighted completion times are reinserted while that
+    # lowers the criterion.  Its width is the caller's, or the default rule.
+    width = descent_k(n) if k is None else max(1, min(n, k))
+    sigma_star = insertion_descent(sigma_star, a, b, w, width)
 
     return sigma_star
 
@@ -522,7 +635,35 @@ def run_ga(a, b, w, **kwargs) -> dict:
 # ---------------------------------------------------------------------------
 
 INSTANCES_PER_CONFIG = 20      # paper Section 6.1: instances per configuration
-PROC_LO, PROC_HI = 1, 10       # processing times ~ U{1, ..., 10}
+PROC_LO, PROC_HI = 1, 10       # processing times ~ normal on {1, ..., 10}
+
+#: How many jobs the local search of Algorithm alg:ga reinserts when the caller
+#: names none: the ones with the largest weighted completion times, worst first,
+#: one job in ten of the instance and at least one.  The drivers of the study
+#: set the rule themselves -- the two scales run it at a rate of their own -- so
+#: that this is only the default of a caller that names none.
+DESCENT_K = 1
+DESCENT_K_RATE = 0.1
+
+
+def descent_k(n: int) -> int:
+    """The jobs the insertion descent of Algorithm alg:ga reinserts."""
+    return min(n, max(DESCENT_K, int(n * DESCENT_K_RATE)))
+
+
+#: The population size of an instance of n jobs.  It grows with the instance and
+#: is capped: a small instance is given a small population, and a large one keeps
+#: the same twenty individuals, which the calibration of the study showed to be
+#: enough for the block mutation and the local search to reach what a population
+#: of n individuals reaches, at a fraction of the cost.  The floor keeps the
+#: selection and the crossover supplied with distinct parents.
+POP_MIN, POP_RATE, POP_MAX = 6, 0.5, 20
+
+
+def population_of(n: int) -> int:
+    """The population size of the genetic algorithm on an instance of n jobs."""
+    return min(POP_MAX, max(POP_MIN, (n + 1) // 2))     # ceil(n / 2)
+
 
 #: name of this module, used to tag the per-instance records
 LABEL = Path(__file__).stem.upper()
@@ -557,10 +698,9 @@ def record_instance(path, n, weights, seed, idx, total, obj, seconds,
     the live line of the drivers -- label, n, weight setting, processing-time
     range, instance, value, gap, status and running time -- preceded by the seed
     of the instance and the moment it finished.  `label` is the name the method
-    is recorded under, GA by default, which the driver overrides for the
-    2-approximation, whose benchmark lives here as well.  The gap is the one the
-    method reports on, `base` being the reference it computed for the instance; a
-    method that hands none, as the exact ones do, shows a dash there.
+    is recorded under, GA by default, which the driver may override.  The gap is
+    the one the method reports on, `base` being the reference it computed for the
+    instance; a method that hands none, as the exact ones do, shows a dash there.
     """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -573,7 +713,8 @@ def record_instance(path, n, weights, seed, idx, total, obj, seconds,
                     "none" if obj is None else "%.1f" % obj,
                     "-" if obj is None or base is None or base == 0
                     else "%+.2f%%" % (100.0 * (obj - base) / base),
-                    STATUS.get(proved, "-"), "%.2f s" % (seconds or 0.0)))
+                    STATUS.get(proved, "-"),
+                    "%.2f ms" % (1000.0 * (seconds or 0.0))))
 
 
 def instance_baseline(a, b, w, order=None):
@@ -614,10 +755,10 @@ def instance_baseline(a, b, w, order=None):
 #: instance scales of paper Section 6.1: name -> (values of n, values of K).
 #: The dynamic program is reported on the first of them, whose weights are the
 #: geometric ladder {1, 10, ..., 10^(K-1)}; the comparison of Section 6.2 runs on
-#: the other two, which draw the weights uniformly from {1, ..., K} with K = 30,
+#: the other two, which draw the weights normally on {1, ..., K} with K = 30,
 #: so that the number of weight classes is arbitrary below that bound.
 SCALES = {
-    "dp":     ([20, 40, 60], [2, 3]),
+    "dp":     ([20, 40, 60], [2]),
     "small":  ([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60], [30]),
     "large":  ([100, 120, 140, 160, 180, 200, 220, 240, 260, 280,
                 300, 320, 340, 360, 380, 400], [30]),
@@ -629,46 +770,68 @@ SCALES = {
 WIDE_K = {"indep": 3, "corr": 9}
 
 #: weight settings of paper Section 6.1.1
-#:   "narrow"  weights uniform on {1, ..., K} with K small, so that few weight
+#:   "narrow"  weights normal on {1, ..., K} with K small, so that few weight
 #:             classes keep the exact methods tractable;
-#:   "indep"   weights uniform on {1, ..., 3}, independent of the processing times;
+#:   "indep"   weights normal on {1, ..., 3}, independent of the processing times;
 #:   "corr"    the jobs split into 9 weight classes by the rank of a_j + b_j, so
 #:             that the heaviest jobs are also the longest;
-#:   "free"    weights uniform on {1, ..., n}, the unrestricted regime of the
+#:   "free"    weights normal on {1, ..., n}, the unrestricted regime of the
 #:             large scale of paper Table 1: as many values as there are jobs.
 WEIGHT_SETTINGS = ("narrow", "indep", "corr", "free")
+
+
+def _normal_int(rng, lo, hi):
+    """
+    One integer drawn from a normal distribution on lo, ..., hi.
+
+    The mean is the middle of the range and the standard deviation a sixth of
+    its width, so that the range spans three standard deviations on either side
+    of the mean: the values near the middle are the likely ones and the two ends
+    are rare without being out of reach.  The draw is rounded to an integer and
+    clamped to the range, and the small probability mass outside the range is
+    folded onto its two ends.
+    """
+    if hi <= lo:
+        return lo
+    mu = 0.5 * (lo + hi)
+    sigma = (hi - lo) / 6.0
+    return max(lo, min(hi, int(round(rng.gauss(mu, sigma)))))
 
 
 def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     """
     One random instance of the benchmark protocol (paper Section 6).
 
-    a_j, b_j ~ U{PROC_LO, ..., proc_hi}, the upper end of the range being the one
-    paper Section 6.1 gives the scale: [1,40] and [1,80] on the two comparison
-    scales, and [1,20], [1,40] and [1,60] on the geometric one.  The weights
-    follow the setting `weights`: the narrow regime draws them uniformly from
+    Every integer of the instance comes from a normal distribution on the
+    integers of its range, with the mean at the middle of the range and the
+    standard deviation a sixth of its width, so that the two ends of the range
+    are three standard deviations from the mean.  The processing times a_j and
+    b_j are drawn on {PROC_LO, ..., proc_hi}, the upper end of the range being
+    the one paper Section 6.1 gives the scale: [1,40] and [1,80] on the two
+    comparison scales, and [1,20], [1,40] and [1,60] on the geometric one.  The
+    weights follow the setting `weights`: the narrow regime draws them on
     {1, ..., K}, so that K is the number of values they can take; the
-    independent regime draws them uniformly from {1, ..., 3}; the correlated
-    regime sorts the jobs by a_j + b_j and cuts that order into 9 equal classes,
-    so that the heaviest jobs are also the longest; and the free regime draws
-    them uniformly from {1, ..., n}, which places no bound on how many values
-    they take.  `geometric` draws them from the ladder {1, 10, ..., 10^(K-1)},
-    the rule of the first scale of paper Section 6.1, so that the K weight
-    classes are decades apart rather than neighbouring integers; it takes
-    precedence over `weights` when set.
+    independent regime draws them on {1, ..., 3}; the correlated regime sorts
+    the jobs by a_j + b_j and cuts that order into 9 equal classes, so that the
+    heaviest jobs are also the longest, which is a construction rather than a
+    draw; and the free regime draws them on {1, ..., n}, which places no bound
+    on how many values they take.  `geometric` draws the exponent of the ladder
+    {1, 10, ..., 10^(K-1)} instead, the rule of the first scale of paper
+    Section 6.1, so that the K weight classes are decades apart rather than
+    neighbouring integers; it takes precedence over `weights` when set.
     """
     if weights not in WEIGHT_SETTINGS:
         raise ValueError("unknown weight setting: %r" % (weights,))
-    a = [rng.randint(PROC_LO, proc_hi) for _ in range(n)]
-    b = [rng.randint(PROC_LO, proc_hi) for _ in range(n)]
+    a = [_normal_int(rng, PROC_LO, proc_hi) for _ in range(n)]
+    b = [_normal_int(rng, PROC_LO, proc_hi) for _ in range(n)]
     if geometric:
-        w = [10 ** rng.randrange(K) for _ in range(n)]
+        w = [10 ** _normal_int(rng, 0, K - 1) for _ in range(n)]
     elif weights == "narrow":
-        w = [rng.randint(1, K) for _ in range(n)]
+        w = [_normal_int(rng, 1, K) for _ in range(n)]
     elif weights == "indep":
-        w = [rng.randint(1, WIDE_K["indep"]) for _ in range(n)]
+        w = [_normal_int(rng, 1, WIDE_K["indep"]) for _ in range(n)]
     elif weights == "free":
-        w = [rng.randint(1, n) for _ in range(n)]
+        w = [_normal_int(rng, 1, n) for _ in range(n)]
     else:                                   # "corr"
         k = WIDE_K["corr"]
         order = sorted(range(n), key=lambda j: a[j] + b[j])
@@ -678,23 +841,53 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     return a, b, w
 
 
+def solve_instance(a, b, w, repeats=1, rng=None, **kwargs):
+    """
+    One instance, solved by the genetic algorithm.
+
+    Returns the value of the best schedule found, the CPU time that took, `None`
+    in place of a proof of optimality, a heuristic proving nothing about it, and
+    the reference value LB of the instance, which is the denominator of the gap
+    this method is read on.  `rng` is the stream the restarts draw their seeds
+    from, and every further keyword argument is forwarded to `ga`.
+
+    One instance of the benchmark protocol is exactly this call, so a driver that
+    draws the instances itself can run the algorithm on the very instance the
+    other methods of the comparison are run on.  The 2-approximation of the paper
+    lives in its own module, approx2.py.
+    """
+    best = float("inf")
+    best_order = None
+    total = 0.0
+    for _ in range(repeats):
+        t0 = time.perf_counter()
+        # The run draws its seed from `rng` unless the caller names one; drawing
+        # it only when it is used keeps the stream in step with the driver.
+        if "seed" not in kwargs:
+            kwargs["seed"] = None if rng is None else rng.randrange(1 << 30)
+        order = ga(a, b, w, **kwargs)
+        total += time.perf_counter() - t0
+        obj = _wcmax_fast(order, a, b, w)
+        if obj < best:
+            best, best_order = obj, order
+    # the reference value of this instance: the lower bound LB of paper
+    # Section 4.3, which the instance alone determines
+    return (best, total / repeats, None,
+            None if best_order is None
+            else instance_baseline(a, b, w, best_order))
+
+
 def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42, first=1,
-              geometric=False, weights="narrow", repeats=1, method="ga", label=None,
+              geometric=False, weights="narrow", repeats=1, label=None,
               progress=None, proc_hi=PROC_HI, log_path=None, **kwargs):
     """
-    Run one method on `instances` random instances and aggregate the result.
+    Run the genetic algorithm on `instances` random instances and aggregate the
+    result.
 
-    The stochastic method (the genetic algorithm) is run `repeats` times per
-    instance from independent seeds; the best objective value found is recorded
-    together with the mean CPU time of a single run, and both are averaged over
-    the instances.  Any extra keyword argument is forwarded to `ga`
-    (N, G, pc, pm, lam).
-
-    Parameters
-    ----------
-    method : "ga"        the genetic algorithm of Section 5.3
-             "2-approx"  the weight-descending schedule of Section 4.3
-                         (the 2-approximation algorithm)
+    The algorithm is run `repeats` times per instance from independent seeds; the
+    best objective value found is recorded together with the mean CPU time of a
+    single run, and both are averaged over the instances.  Any extra keyword
+    argument is forwarded to `ga` (N, G, pc, pm, lam).
 
     first : int, optional
         Number of the first instance to run, 1 by default.  The instances before
@@ -729,34 +922,18 @@ def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42, first=1,
     objs, times, bases = [], [], []
     for idx in range(first - 1, instances):
         a, b, w = gen_instance(n, K, rng, geometric, weights, proc_hi)
-        best = float("inf")
-        best_order = None
-        total = 0.0
-        for _ in range(repeats):
-            t0 = time.perf_counter()
-            if method == "ga":
-                order = ga(a, b, w, seed=solver_rng.randrange(1 << 30), **kwargs)
-            elif method in ("2-approx", "weight"):
-                order = weight_descending_order(a, b, w)
-            else:
-                raise ValueError("unknown method: %r" % (method,))
-            total += time.perf_counter() - t0
-            obj = _wcmax_fast(order, a, b, w)
-            if obj < best:
-                best, best_order = obj, order
-        # the reference value of this instance: the lower bound LB of paper
-        # Section 4.3, which the instance alone determines
-        bases.append(None if best_order is None
-                     else instance_baseline(a, b, w, best_order))
-        objs.append(best)
-        times.append(total / repeats)
+        obj, seconds, proved, base = solve_instance(a, b, w, repeats=repeats,
+                                                    rng=solver_rng, **kwargs)
+        objs.append(obj)
+        times.append(seconds)
+        bases.append(base)
         record_instance(log_path, n, weights, seed, idx + 1, instances,
-                        objs[-1], times[-1], K,          # on disk before the next
-                        proc_hi=proc_hi, base=bases[-1], label=label)
+                        obj, seconds, K,                 # on disk before the next
+                        proc_hi=proc_hi, base=base, label=label)
         if progress is not None:          # live line for a long-running study
             # a heuristic proves nothing about optimality, so the flag is None;
             # the reference is the one the driver estimated for the instance
-            progress(idx + 1, instances, objs[-1], times[-1], None, bases[-1])
+            progress(idx + 1, instances, obj, seconds, proved, base)
 
     return {
         "n": n, "K": K, "instances": instances,
@@ -772,9 +949,10 @@ def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42, first=1,
 def report(res, label="GA"):
     """Single-line summary of a benchmark result."""
     return ("%-8s n=%4d K=%2d | instances=%2d | mean obj=%9.2f | best obj=%9.2f"
-            " | mean time=%9.4f s"
+            " | mean time=%9.2f ms"
             % (label, res["n"], res["K"], res["instances"],
-               res["mean_obj"], res["best_obj"], res["mean_time"]))
+               res["mean_obj"], res["best_obj"],
+               1000.0 * res["mean_time"]))
 
 
 def main() -> None:  # pragma: no cover
@@ -787,9 +965,9 @@ def main() -> None:  # pragma: no cover
     w_lo, w_hi = 1, 3     # weight range
 
     random.seed(seed)
-    a = [random.randint(a_lo, a_hi) for _ in range(n)]
-    b = [random.randint(b_lo, b_hi) for _ in range(n)]
-    w = [random.randint(w_lo, w_hi) for _ in range(n)]
+    a = [_normal_int(random, a_lo, a_hi) for _ in range(n)]
+    b = [_normal_int(random, b_lo, b_hi) for _ in range(n)]
+    w = [_normal_int(random, w_lo, w_hi) for _ in range(n)]
 
     print("seed   :", seed, "| n =", n)
     print("a      :", a)
@@ -803,9 +981,12 @@ def main() -> None:  # pragma: no cover
     # cross-check with the closed-form recurrence
     print("  verify:", wcmax_of_order(res["order"], a, b, w))
 
-    # Optional: compare with the seeds and with the other heuristics.
+    # Optional: compare with the constructions the algorithm is built on -- the
+    # block schedule of the initial population, the 2-approximation of its own
+    # module, and the NEH heuristic.
+    from approx2 import two_approximation
     for name, order in (("Johnson", johnson_order(a, b)),
-                        ("Weight ", weight_descending_order(a, b, w)),
+                        ("2-approx", two_approximation(a, b, w)),
                         ("NEH    ", neh_heuristic(a, b, w))):
         print(f"  {name}:", wcmax_of_order(order, a, b, w))
     # ---- benchmark: INSTANCES_PER_CONFIG instances per configuration -------
@@ -813,9 +994,7 @@ def main() -> None:  # pragma: no cover
     print("Benchmark, %d instances per configuration (paper Section 6.1):"
           % INSTANCES_PER_CONFIG)
     for n, K in [(20, 3), (50, 3), (100, 3)]:
-        for method in ("2-approx", "ga"):
-            print("  " + report(benchmark(n=n, K=K, seed=1000 * n + K,
-                                          method=method), label=method))
+        print("  " + report(benchmark(n=n, K=K, seed=1000 * n + K)))
     print("  other scales: loop over SCALES, e.g. benchmark(n=n, K=K)"
           " for n in SCALES['large'][0]")
 

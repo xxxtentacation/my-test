@@ -1,0 +1,432 @@
+# -*- coding: utf-8 -*-
+"""
+2-Approximation for F2 || WCmax (two-machine flow shop, minimizing the maximum
+weighted completion time), implementing Section 4.3 of the paper
+(paper_framework.tex): Algorithm (alg:approx2), with Theorem (thm:approx2) for
+its guarantee and the three lower bounds (eq:lb1) to (eq:lb) for the reference
+value the method is read on.
+
+The rule.  Sort the jobs by non-increasing weight w_j, breaking ties by
+non-increasing a_j + b_j, and schedule them in that sequence on both machines.
+The result is a permutation schedule pi whose value satisfies
+
+    WCmax(pi) <= 2 WCmax*,
+
+and the sort is the whole cost of the method, so it runs in O(n log n) time.
+The proof rests on the weights alone: for every prefix S of the sorted sequence
+the job of S that leaves a machine last carries a weight of at least the weight
+w_j that closes S, so the optimum is at least max_j w_j * sum_{h in S} a_h and
+max_j w_j * sum_{h in S} b_h, while every job of S completes on M2 no later than
+sum_{h in S} (a_h + b_h), which is what the two bounds add up to.
+
+Reference value.  The method, like every other one of the study, reports the gap
+against the lower bound LB = max { LB_1, LB_2, LB_3 } of paper Section 4.3 --
+the M1 threshold, the M2 threshold and the job threshold -- which the instance
+alone determines (see instance_baseline()).
+
+This module also carries the experiment harness of the other method modules, so
+that the drivers can run it on the very instances the rest of the comparison is
+run on.
+"""
+
+from __future__ import annotations
+
+from datetime import datetime
+from pathlib import Path
+
+import random
+import statistics
+import time
+from typing import List, Sequence
+
+
+def wcmax_of_order(order: Sequence[int], a: Sequence[float], b: Sequence[float],
+                   w: Sequence[float]) -> float:
+
+    n = len(order)
+    wc = 0.0
+    for j in range(n):
+        best = 0.0
+        for i in range(j + 1):
+            sa = sum(a[order[h]] for h in range(i + 1))
+            sb = sum(b[order[h]] for h in range(i, j + 1))
+            best = max(best, sa + sb)
+        wc = max(wc, w[order[j]] * best)
+    return wc
+
+
+def _wcmax_fast(order: Sequence[int], a: Sequence[float], b: Sequence[float],
+                w: Sequence[float]) -> float:
+    """
+    Evaluate WCmax of `order` in O(len(order)) time by a single forward
+    two-machine pass:
+        c1 = cumulative M1 time, c2 = M2 completion time of the current job;
+        c2 = max(c1, c2) + b_j,   wcmax = max(wcmax, w_j * c2).
+    """
+    c1 = 0.0
+    c2 = 0.0
+    wc = 0.0
+    for j in order:
+        c1 += a[j]
+        c2 = max(c1, c2) + b[j]
+        wc = max(wc, w[j] * c2)
+    return wc
+
+
+def two_approximation(a: Sequence[float], b: Sequence[float],
+                      w: Sequence[float]) -> List[int]:
+    """
+    Algorithm alg:approx2: the 2-approximation schedule.
+
+    Step 1  sort the jobs by non-increasing weight w_j, breaking ties by
+            non-increasing a_j + b_j;
+    Step 2  schedule them in that sequence on both machines.
+
+    Returns the job indices (0-based) of the resulting schedule pi.  No
+    evaluation of the criterion enters the rule: the order of the weights is the
+    whole of it, which is what keeps the method at O(n log n) time and what the
+    factor 2 of Theorem thm:approx2 is read off from.
+    """
+    n = len(a)
+    if n != len(b) or n != len(w):
+        raise ValueError("a, b, w must have the same length")
+
+    return sorted(range(n), key=lambda j: (-w[j], -(a[j] + b[j])))
+
+
+def run_approx2(a, b, w) -> dict:
+    """Convenience wrapper returning a result dict."""
+    order = two_approximation(a, b, w)
+    return {"obj": wcmax_of_order(order, a, b, w), "order": order}
+
+
+# ---------------------------------------------------------------------------
+# Experiment harness (paper Section 6.1)
+#
+# Each configuration is replicated over INSTANCES_PER_CONFIG random instances.
+# For every instance the best objective value found by the method and its CPU
+# time are recorded, and the two are averaged over the instances to give the
+# comparison result (paper Section 6.1.3).
+# ---------------------------------------------------------------------------
+
+INSTANCES_PER_CONFIG = 20      # paper Section 6.1: instances per configuration
+PROC_LO, PROC_HI = 1, 10       # processing times ~ normal on {1, ..., 10}
+
+#: name of this module, used to tag the per-instance records.  The label is the
+#: one the tables and the records of the study carry for this method, and the
+#: drivers hand the same one in when they write their own lines.
+LABEL = "2-APX"
+
+#: where the per-instance records go when the caller names no file
+RECORD_DIR = Path(__file__).resolve().parent / "记录"
+
+#: how a weight setting is written in the records, and in the tables of the
+#: paper: by the number of distinct weights it produces.  K is that number for
+#: every drawn regime -- the narrow one takes it as the parameter K, and the
+#: independent and correlated ones from WIDE_K -- while the unrestricted regime
+#: has no such number and is named instead.
+def weight_label(weights, K):
+    return "all weights" if weights == "free" else "K=%s" % K
+
+
+#: what the record says about optimality, in the words of the live output of the
+#: drivers: True when the method closed the instance, False when it ran into the
+#: time limit, and None for a heuristic, which proves nothing about optimality
+STATUS = {True: "optimal", False: "time limit", None: "-"}
+
+
+def record_instance(path, n, weights, seed, idx, total, obj, seconds,
+                    K=None, proc_hi=PROC_HI, proved=None, base=None, label=None):
+    """
+    Append one line for a finished instance, and flush it at once.
+
+    The line is written as soon as that instance is done, not when the whole
+    benchmark is over, so that a run which is interrupted or killed still holds
+    every instance it has already solved.  `path` may be a str or a Path; its
+    parent directory is created if it does not exist.  The fields are those of
+    the live line of the drivers -- label, n, weight setting, processing-time
+    range, instance, value, gap, status and running time -- preceded by the seed
+    of the instance and the moment it finished.  `label` is the name the method
+    is recorded under, "2-approx" in the tables of the paper, which the driver
+    hands in.  The gap is the one the method reports on, `base` being the
+    reference it computed for the instance.
+    """
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as fh:
+        fh.write("%s  %-5s n=%-4d %-6s %-7s | seed=%-7d | instance %2d/%-2d "
+                 "| value %-12s | gap %9s | %-10s %9s\n"
+                 % (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), label or LABEL, n,
+                    weight_label(weights, K), "[%d,%d]" % (PROC_LO, proc_hi),
+                    seed, idx, total,
+                    "none" if obj is None else "%.1f" % obj,
+                    "-" if obj is None or base is None or base == 0
+                    else "%+.2f%%" % (100.0 * (obj - base) / base),
+                    STATUS.get(proved, "-"),
+                    "%.2f ms" % (1000.0 * (seconds or 0.0))))
+
+
+def instance_baseline(a, b, w, order=None):
+    """
+    The reference value of one instance, the lower bound
+
+        LB = max { LB_1, LB_2, LB_3 }
+
+    of paper Section 4.3.  The jobs are taken in non-increasing order of weight,
+    so that no prefix S = {J_1, ..., J_j} of that order holds a weight below w_j,
+    and the three bounds read
+
+        LB_1 = max_j w_j * sum_{h in S} a_h,     the M1 work of the prefix,
+        LB_2 = max_j w_j * sum_{h in S} b_h,     its M2 counterpart,
+        LB_3 = max_j w_j * (a_j + b_j),          a single job on its own.
+
+    Each of them bounds WCmax from below.  For LB_1, the job of S that finishes
+    last on M1 completes no earlier than the M1 work of S and carries a weight of
+    at least w_j; LB_2 reads the same on M2; and no job completes before its own
+    two operations are done.  LB is therefore at most the optimum, which is what
+    makes every gap of the benchmark non-negative.
+
+    The value is a property of the instance alone: `order` is accepted for the
+    callers that still hand one in, and ignored, so that every method measured on
+    an instance is measured against the same reference.
+    """
+    jobs = sorted(range(len(w)), key=lambda j: -w[j])   # w_1 >= ... >= w_n
+    sa = sb = 0.0
+    lb1 = lb2 = lb3 = 0.0
+    for j in jobs:                                      # prefix S grows by J_j
+        sa += a[j]
+        sb += b[j]
+        lb1 = max(lb1, w[j] * sa)
+        lb2 = max(lb2, w[j] * sb)
+        lb3 = max(lb3, w[j] * (a[j] + b[j]))
+    return max(lb1, lb2, lb3)
+
+
+#: instance scales of paper Section 6.1: name -> (values of n, values of K).
+#: The dynamic program is reported on the first of them, whose weights are the
+#: geometric ladder {1, 10, ..., 10^(K-1)}; the comparison of Section 6.2 runs on
+#: the other two, which draw the weights normally on {1, ..., K} with K = 30,
+#: so that the number of weight classes is arbitrary below that bound.
+SCALES = {
+    "dp":     ([20, 40, 60], [2]),
+    "small":  ([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60], [30]),
+    "large":  ([100, 120, 140, 160, 180, 200, 220, 240, 260, 280,
+                300, 320, 340, 360, 380, 400], [30]),
+}
+
+
+#: number of distinct weights of the two wide regimes of paper Section 6.1.1; the
+#: small scale uses the narrow regime instead, whose count is the parameter K
+WIDE_K = {"indep": 3, "corr": 9}
+
+#: weight settings of paper Section 6.1.1
+#:   "narrow"  weights normal on {1, ..., K} with K small, so that few weight
+#:             classes keep the exact methods tractable;
+#:   "indep"   weights normal on {1, ..., 3}, independent of the processing times;
+#:   "corr"    the jobs split into 9 weight classes by the rank of a_j + b_j, so
+#:             that the heaviest jobs are also the longest;
+#:   "free"    weights normal on {1, ..., n}, the unrestricted regime of the
+#:             large scale of paper Table 1: as many values as there are jobs.
+WEIGHT_SETTINGS = ("narrow", "indep", "corr", "free")
+
+
+def _normal_int(rng, lo, hi):
+    """
+    One integer drawn from a normal distribution on lo, ..., hi.
+
+    The mean is the middle of the range and the standard deviation a sixth of
+    its width, so that the range spans three standard deviations on either side
+    of the mean: the values near the middle are the likely ones and the two ends
+    are rare without being out of reach.  The draw is rounded to an integer and
+    clamped to the range, and the small probability mass outside the range is
+    folded onto its two ends.
+    """
+    if hi <= lo:
+        return lo
+    mu = 0.5 * (lo + hi)
+    sigma = (hi - lo) / 6.0
+    return max(lo, min(hi, int(round(rng.gauss(mu, sigma)))))
+
+
+def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
+    """
+    One random instance of the benchmark protocol (paper Section 6).
+
+    Every integer of the instance comes from a normal distribution on the
+    integers of its range, with the mean at the middle of the range and the
+    standard deviation a sixth of its width, so that the two ends of the range
+    are three standard deviations from the mean.  The processing times a_j and
+    b_j are drawn on {PROC_LO, ..., proc_hi}, the upper end of the range being
+    the one paper Section 6.1 gives the scale: [1,40] and [1,80] on the two
+    comparison scales, and [1,20], [1,40] and [1,60] on the geometric one.  The
+    weights follow the setting `weights`: the narrow regime draws them on
+    {1, ..., K}, so that K is the number of values they can take; the
+    independent regime draws them on {1, ..., 3}; the correlated regime sorts
+    the jobs by a_j + b_j and cuts that order into 9 equal classes, so that the
+    heaviest jobs are also the longest, which is a construction rather than a
+    draw; and the free regime draws them on {1, ..., n}, which places no bound
+    on how many values they take.  `geometric` draws the exponent of the ladder
+    {1, 10, ..., 10^(K-1)} instead, the rule of the first scale of paper
+    Section 6.1, so that the K weight classes are decades apart rather than
+    neighbouring integers; it takes precedence over `weights` when set.
+    """
+    if weights not in WEIGHT_SETTINGS:
+        raise ValueError("unknown weight setting: %r" % (weights,))
+    a = [_normal_int(rng, PROC_LO, proc_hi) for _ in range(n)]
+    b = [_normal_int(rng, PROC_LO, proc_hi) for _ in range(n)]
+    if geometric:
+        w = [10 ** _normal_int(rng, 0, K - 1) for _ in range(n)]
+    elif weights == "narrow":
+        w = [_normal_int(rng, 1, K) for _ in range(n)]
+    elif weights == "indep":
+        w = [_normal_int(rng, 1, WIDE_K["indep"]) for _ in range(n)]
+    elif weights == "free":
+        w = [_normal_int(rng, 1, n) for _ in range(n)]
+    else:                                   # "corr"
+        k = WIDE_K["corr"]
+        order = sorted(range(n), key=lambda j: a[j] + b[j])
+        w = [0] * n
+        for rank, j in enumerate(order):
+            w[j] = 1 + rank * k // n
+    return a, b, w
+
+
+def solve_instance(a, b, w, repeats=1):
+    """
+    One instance, solved by the 2-approximation rule.
+
+    Returns the value of the best schedule found, the CPU time that took, `None`
+    in place of a proof of optimality, a heuristic proving nothing about it, and
+    the reference value LB of the instance, which is the denominator of the gap
+    this method is read on.
+
+    The rule is deterministic, so `repeats` > 1 changes nothing but the timing.
+    One instance of the benchmark protocol is exactly this call, so a driver that
+    draws the instances itself can run the rule on the very instance the other
+    methods of the comparison are run on.
+    """
+    best = float("inf")
+    best_order = None
+    total = 0.0
+    for _ in range(repeats):
+        t0 = time.perf_counter()
+        order = two_approximation(a, b, w)        # method under test
+        total += time.perf_counter() - t0
+        obj = _wcmax_fast(order, a, b, w)
+        if obj < best:
+            best, best_order = obj, order
+    # the reference value of this instance: the lower bound LB of paper
+    # Section 4.3, which the instance alone determines
+    return (best, total / repeats, None,
+            None if best_order is None
+            else instance_baseline(a, b, w, best_order))
+
+
+def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42, first=1,
+              geometric=False, weights="narrow", repeats=1, progress=None,
+              proc_hi=PROC_HI, log_path=None):
+    """
+    Run the method on `instances` random instances and aggregate the result.
+
+    For every instance the method is run `repeats` times; the best objective
+    value found is recorded together with the mean CPU time of a single run.
+    `first` is the number of the first instance to run, 1 by default.  The
+    instances before it are still drawn from the stream the seed gives, so that
+    every instance keeps the sample it is meant to have, but they are not solved;
+    the values returned cover the instances from `first` on, and so does the
+    record file.
+
+    The rule is deterministic, so `repeats` > 1 changes nothing but the timing.
+
+    Returns
+    -------
+    dict with keys
+        mean_obj  : mean over instances of the best objective value (comparison
+                    result of paper Section 6.1.3)
+        best_obj  : best objective value over all instances
+        mean_time : mean CPU time of a single run, in seconds
+        objs, times : the per-instance values
+    """
+    # Records go to the file the caller names, or to one of our own tagged with
+    # the time this benchmark started.
+    if log_path is None:
+        log_path = (RECORD_DIR / ("%s_%s.txt"
+                                  % (LABEL, datetime.now().strftime("%Y%m%d-%H%M%S"))))
+    rng = random.Random(seed)
+    # The instances before `first` are drawn and dropped, so that the stream
+    # reaches instance `first` where it would have, had the run never stopped.
+    for _ in range(first - 1):
+        gen_instance(n, K, rng, geometric, weights, proc_hi)
+    objs, times, bases = [], [], []
+    for idx in range(first - 1, instances):
+        a, b, w = gen_instance(n, K, rng, geometric, weights, proc_hi)
+        obj, seconds, proved, base = solve_instance(a, b, w, repeats=repeats)
+        objs.append(obj)
+        times.append(seconds)
+        bases.append(base)
+        record_instance(log_path, n, weights, seed, idx + 1, instances,
+                        obj, seconds, K,                 # on disk before the next
+                        proc_hi=proc_hi, base=base)
+        if progress is not None:          # live line for a long-running study
+            # a heuristic proves nothing about optimality, so the flag is None;
+            # the reference is the one the driver estimated for the instance
+            progress(idx + 1, instances, obj, seconds, proved, base)
+
+    return {
+        "n": n, "K": K, "instances": instances,
+        "mean_obj": statistics.fmean(objs),
+        "best_obj": min(objs),
+        "mean_time": statistics.fmean(times),
+        "objs": objs,
+        "times": times,
+        "bases": bases,
+    }
+
+
+def report(res, label="2-approx"):
+    """Single-line summary of a benchmark result."""
+    return ("%-8s n=%4d K=%2d | instances=%2d | mean obj=%9.2f | best obj=%9.2f"
+            " | mean time=%9.2f ms"
+            % (label, res["n"], res["K"], res["instances"],
+               res["mean_obj"], res["best_obj"],
+               1000.0 * res["mean_time"]))
+
+
+def main() -> None:  # pragma: no cover
+    """Random instance generated from a fixed seed, as in MILP.py."""
+    # random-instance parameters
+    seed = 42       # random seed
+    n =  5          # number of jobs
+    a_lo, a_hi = 1, 10   # M1 processing-time range
+    b_lo, b_hi = 1, 10   # M2 processing-time range
+    w_lo, w_hi = 1, 3     # weight range
+
+    random.seed(seed)
+    a = [_normal_int(random, a_lo, a_hi) for _ in range(n)]
+    b = [_normal_int(random, b_lo, b_hi) for _ in range(n)]
+    w = [_normal_int(random, w_lo, w_hi) for _ in range(n)]
+
+    print("seed   :", seed, "| n =", n)
+    print("a      :", a)
+    print("b      :", b)
+    print("w      :", w)
+
+    res = run_approx2(a, b, w)
+    print("2-approximation result:")
+    print("  WCmax :", res["obj"])
+    print("  order :", [j + 1 for j in res["order"]], "(1-based)")
+    # cross-check with the closed-form recurrence
+    print("  verify:", wcmax_of_order(res["order"], a, b, w))
+
+    # ---- benchmark: INSTANCES_PER_CONFIG instances per configuration -------
+    print()
+    print("Benchmark, %d instances per configuration (paper Section 6.1):"
+          % INSTANCES_PER_CONFIG)
+    for n, K in [(20, 3), (50, 3), (100, 3)]:
+        print("  " + report(benchmark(n=n, K=K, seed=1000 * n + K)))
+    print("  other scales: loop over SCALES, e.g. benchmark(n=n, K=K)"
+          " for n in SCALES['large'][0]")
+
+
+if __name__ == "__main__":
+    main()

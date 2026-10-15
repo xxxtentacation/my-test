@@ -94,7 +94,7 @@ def run_neh(a, b, w) -> dict:
 # ---------------------------------------------------------------------------
 
 INSTANCES_PER_CONFIG = 20      # paper Section 6.1: instances per configuration
-PROC_LO, PROC_HI = 1, 10       # processing times ~ U{1, ..., 10}
+PROC_LO, PROC_HI = 1, 10       # processing times ~ normal on {1, ..., 10}
 
 #: name of this module, used to tag the per-instance records
 LABEL = Path(__file__).stem.upper()
@@ -143,7 +143,8 @@ def record_instance(path, n, weights, seed, idx, total, obj, seconds,
                     "none" if obj is None else "%.1f" % obj,
                     "-" if obj is None or base is None or base == 0
                     else "%+.2f%%" % (100.0 * (obj - base) / base),
-                    STATUS.get(proved, "-"), "%.2f s" % (seconds or 0.0)))
+                    STATUS.get(proved, "-"),
+                    "%.2f ms" % (1000.0 * (seconds or 0.0))))
 
 
 def instance_baseline(a, b, w, order=None):
@@ -184,10 +185,10 @@ def instance_baseline(a, b, w, order=None):
 #: instance scales of paper Section 6.1: name -> (values of n, values of K).
 #: The dynamic program is reported on the first of them, whose weights are the
 #: geometric ladder {1, 10, ..., 10^(K-1)}; the comparison of Section 6.2 runs on
-#: the other two, which draw the weights uniformly from {1, ..., K} with K = 30,
+#: the other two, which draw the weights normally on {1, ..., K} with K = 30,
 #: so that the number of weight classes is arbitrary below that bound.
 SCALES = {
-    "dp":     ([20, 40, 60], [2, 3]),
+    "dp":     ([20, 40, 60], [2]),
     "small":  ([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60], [30]),
     "large":  ([100, 120, 140, 160, 180, 200, 220, 240, 260, 280,
                 300, 320, 340, 360, 380, 400], [30]),
@@ -199,46 +200,68 @@ SCALES = {
 WIDE_K = {"indep": 3, "corr": 9}
 
 #: weight settings of paper Section 6.1.1
-#:   "narrow"  weights uniform on {1, ..., K} with K small, so that few weight
+#:   "narrow"  weights normal on {1, ..., K} with K small, so that few weight
 #:             classes keep the exact methods tractable;
-#:   "indep"   weights uniform on {1, ..., 3}, independent of the processing times;
+#:   "indep"   weights normal on {1, ..., 3}, independent of the processing times;
 #:   "corr"    the jobs split into 9 weight classes by the rank of a_j + b_j, so
 #:             that the heaviest jobs are also the longest;
-#:   "free"    weights uniform on {1, ..., n}, the unrestricted regime of the
+#:   "free"    weights normal on {1, ..., n}, the unrestricted regime of the
 #:             large scale of paper Table 1: as many values as there are jobs.
 WEIGHT_SETTINGS = ("narrow", "indep", "corr", "free")
+
+
+def _normal_int(rng, lo, hi):
+    """
+    One integer drawn from a normal distribution on lo, ..., hi.
+
+    The mean is the middle of the range and the standard deviation a sixth of
+    its width, so that the range spans three standard deviations on either side
+    of the mean: the values near the middle are the likely ones and the two ends
+    are rare without being out of reach.  The draw is rounded to an integer and
+    clamped to the range, and the small probability mass outside the range is
+    folded onto its two ends.
+    """
+    if hi <= lo:
+        return lo
+    mu = 0.5 * (lo + hi)
+    sigma = (hi - lo) / 6.0
+    return max(lo, min(hi, int(round(rng.gauss(mu, sigma)))))
 
 
 def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     """
     One random instance of the benchmark protocol (paper Section 6).
 
-    a_j, b_j ~ U{PROC_LO, ..., proc_hi}, the upper end of the range being the one
-    paper Section 6.1 gives the scale: [1,40] and [1,80] on the two comparison
-    scales, and [1,20], [1,40] and [1,60] on the geometric one.  The weights
-    follow the setting `weights`: the narrow regime draws them uniformly from
+    Every integer of the instance comes from a normal distribution on the
+    integers of its range, with the mean at the middle of the range and the
+    standard deviation a sixth of its width, so that the two ends of the range
+    are three standard deviations from the mean.  The processing times a_j and
+    b_j are drawn on {PROC_LO, ..., proc_hi}, the upper end of the range being
+    the one paper Section 6.1 gives the scale: [1,40] and [1,80] on the two
+    comparison scales, and [1,20], [1,40] and [1,60] on the geometric one.  The
+    weights follow the setting `weights`: the narrow regime draws them on
     {1, ..., K}, so that K is the number of values they can take; the
-    independent regime draws them uniformly from {1, ..., 3}; the correlated
-    regime sorts the jobs by a_j + b_j and cuts that order into 9 equal classes,
-    so that the heaviest jobs are also the longest; and the free regime draws
-    them uniformly from {1, ..., n}, which places no bound on how many values
-    they take.  `geometric` draws them from the ladder {1, 10, ..., 10^(K-1)},
-    the rule of the first scale of paper Section 6.1, so that the K weight
-    classes are decades apart rather than neighbouring integers; it takes
-    precedence over `weights` when set.
+    independent regime draws them on {1, ..., 3}; the correlated regime sorts
+    the jobs by a_j + b_j and cuts that order into 9 equal classes, so that the
+    heaviest jobs are also the longest, which is a construction rather than a
+    draw; and the free regime draws them on {1, ..., n}, which places no bound
+    on how many values they take.  `geometric` draws the exponent of the ladder
+    {1, 10, ..., 10^(K-1)} instead, the rule of the first scale of paper
+    Section 6.1, so that the K weight classes are decades apart rather than
+    neighbouring integers; it takes precedence over `weights` when set.
     """
     if weights not in WEIGHT_SETTINGS:
         raise ValueError("unknown weight setting: %r" % (weights,))
-    a = [rng.randint(PROC_LO, proc_hi) for _ in range(n)]
-    b = [rng.randint(PROC_LO, proc_hi) for _ in range(n)]
+    a = [_normal_int(rng, PROC_LO, proc_hi) for _ in range(n)]
+    b = [_normal_int(rng, PROC_LO, proc_hi) for _ in range(n)]
     if geometric:
-        w = [10 ** rng.randrange(K) for _ in range(n)]
+        w = [10 ** _normal_int(rng, 0, K - 1) for _ in range(n)]
     elif weights == "narrow":
-        w = [rng.randint(1, K) for _ in range(n)]
+        w = [_normal_int(rng, 1, K) for _ in range(n)]
     elif weights == "indep":
-        w = [rng.randint(1, WIDE_K["indep"]) for _ in range(n)]
+        w = [_normal_int(rng, 1, WIDE_K["indep"]) for _ in range(n)]
     elif weights == "free":
-        w = [rng.randint(1, n) for _ in range(n)]
+        w = [_normal_int(rng, 1, n) for _ in range(n)]
     else:                                   # "corr"
         k = WIDE_K["corr"]
         order = sorted(range(n), key=lambda j: a[j] + b[j])
@@ -248,6 +271,36 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     return a, b, w
 
 
+
+
+def solve_instance(a, b, w, repeats=1):
+    """
+    One instance, solved by the NEH-type rule.
+
+    Returns the value of the best schedule found, the CPU time that took, `None`
+    in place of a proof of optimality, a heuristic proving nothing about it, and
+    the reference value LB of the instance, which is the denominator of the gap
+    this method is read on.
+
+    One instance of the benchmark protocol is exactly this call, so a driver that
+    draws the instances itself can run the rule on the very instance the other
+    methods of the comparison are run on.
+    """
+    best = float("inf")
+    best_order = None
+    total = 0.0
+    for _ in range(repeats):
+        t0 = time.perf_counter()
+        order = neh(a, b, w)                      # method under test
+        total += time.perf_counter() - t0
+        obj = wcmax_of_order(order, a, b, w)
+        if obj < best:
+            best, best_order = obj, order
+    # the reference value of this instance: the lower bound LB of paper
+    # Section 4.3, which the instance alone determines
+    return (best, total / repeats, None,
+            None if best_order is None
+            else instance_baseline(a, b, w, best_order))
 
 
 def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42, first=1,
@@ -289,29 +342,17 @@ def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42, first=1,
     objs, times, bases = [], [], []
     for idx in range(first - 1, instances):
         a, b, w = gen_instance(n, K, rng, geometric, weights, proc_hi)
-        best = float("inf")
-        best_order = None
-        total = 0.0
-        for _ in range(repeats):
-            t0 = time.perf_counter()
-            order = neh(a, b, w)                      # method under test
-            total += time.perf_counter() - t0
-            obj = wcmax_of_order(order, a, b, w)
-            if obj < best:
-                best, best_order = obj, order
-        # the reference value of this instance: the lower bound LB of paper
-        # Section 4.3, which the instance alone determines
-        bases.append(None if best_order is None
-                     else instance_baseline(a, b, w, best_order))
-        objs.append(best)
-        times.append(total / repeats)
+        obj, seconds, proved, base = solve_instance(a, b, w, repeats=repeats)
+        objs.append(obj)
+        times.append(seconds)
+        bases.append(base)
         record_instance(log_path, n, weights, seed, idx + 1, instances,
-                        objs[-1], times[-1], K,          # on disk before the next
-                        proc_hi=proc_hi, base=bases[-1])
+                        obj, seconds, K,                 # on disk before the next
+                        proc_hi=proc_hi, base=base)
         if progress is not None:          # live line for a long-running study
             # a heuristic proves nothing about optimality, so the flag is None;
             # the reference is the one the driver estimated for the instance
-            progress(idx + 1, instances, objs[-1], times[-1], None, bases[-1])
+            progress(idx + 1, instances, obj, seconds, proved, base)
 
     return {
         "n": n, "K": K, "instances": instances,
@@ -327,9 +368,10 @@ def benchmark(n=50, K=3, instances=INSTANCES_PER_CONFIG, seed=42, first=1,
 def report(res, label="NEH"):
     """Single-line summary of a benchmark result."""
     return ("%-8s n=%4d K=%2d | instances=%2d | mean obj=%9.2f | best obj=%9.2f"
-            " | mean time=%9.4f s"
+            " | mean time=%9.2f ms"
             % (label, res["n"], res["K"], res["instances"],
-               res["mean_obj"], res["best_obj"], res["mean_time"]))
+               res["mean_obj"], res["best_obj"],
+               1000.0 * res["mean_time"]))
 
 
 def main() -> None:  # pragma: no cover
@@ -342,9 +384,9 @@ def main() -> None:  # pragma: no cover
     w_lo, w_hi = 1, 3     # weight range
 
     random.seed(seed)
-    a = [random.randint(a_lo, a_hi) for _ in range(n)]
-    b = [random.randint(b_lo, b_hi) for _ in range(n)]
-    w = [random.randint(w_lo, w_hi) for _ in range(n)]
+    a = [_normal_int(random, a_lo, a_hi) for _ in range(n)]
+    b = [_normal_int(random, b_lo, b_hi) for _ in range(n)]
+    w = [_normal_int(random, w_lo, w_hi) for _ in range(n)]
 
     print("seed   :", seed, "| n =", n)
     print("a      :", a)

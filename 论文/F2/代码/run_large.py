@@ -12,17 +12,20 @@ The script follows the design of paper Section 6 rather than inventing its own:
 
 * **Instances.**  The large scale of paper Table 1 varies the instance size and
   the processing-time range, at the weight setting of the small scale: every
-  instance carries at most 30 distinct weights, drawn uniformly from
-  {1, ..., 30}.  Its processing times are drawn from one of the two ranges
-  [1,40] and [1,80].  The sixteen instance sizes crossed with the two ranges give
+  instance carries at most 30 distinct weights, drawn from a normal
+  distribution on {1, ..., 30}.  Its processing times are drawn from the same
+  distribution on one of the two ranges [1,40] and [1,80].  The sixteen instance sizes crossed with the two ranges give
   the 32 configurations of the scale, each of them replicated 20 times.
 
-* **Methods.**  The 2-approximation of paper Section 4.3 and the two heuristics of
-  Section 5, the exact methods being out of reach at this size.  The baseline is not a method: it is
+* **Methods.**  The 2-approximation of paper Section 4.3 and the two heuristics
+  of Section 5, the exact methods being out of reach at this size.  The model of
+  Section 3 is not run here and is asked for only by name, with --algos milp, at
+  a time limit it will not close an instance of this scale within.  The baseline
+  is not a method: it is
   the reference value LB = max{LB_1, LB_2, LB_3} of paper Section 4.3 -- the
   largest of three prefix bounds on the optimum, a number the instance alone
-  determines -- which returns no schedule and is never run.  Each algorithm
-  computes it on the instance it has just been handed
+  determines -- which returns no schedule and is never run.  The driver
+  computes it on the instance it has just drawn
   (`instance_baseline()` of the algorithm modules), so nothing extra is
   run and the denominator is always the value of the very instance that was
   solved.
@@ -30,8 +33,13 @@ The script follows the design of paper Section 6 rather than inventing its own:
   this scale non-negative, and the smaller the better.
 
 * **Parameters.**  Those of paper Section 6, fixed by the calibration run that
-  paragraph reports and held in the constant below: GA with N=n individuals, G=10
-  generations, p_c=0.9, p_m=0.1 and an elitism size of N/10.
+  paragraph reports and held in the constant below: GA with a population that
+  grows with the instance and is capped at twenty, p_c = 0.9, p_m = 0.1, a single
+  generation, an initial population whose weight classes are ordered by weight
+  but whose jobs inside a class are drawn at random, and a local search that
+  reinserts one job in forty of the instance.  It is the weaker of the two
+  settings of the study, so that the method starts far from the criterion at the
+  smallest sizes of this scale and closes the distance over the whole of it.
 
 * **Gap.**  The quantity reported is the relative percentage gap of a method
   against the reference value of the configuration, computed **per instance** and
@@ -43,16 +51,15 @@ The script follows the design of paper Section 6 rather than inventing its own:
   found on each instance by any of them is determined, and each method reports
   the number of instances on which it attains that value.
 
-* **Continuation.**  The record file is written instance by instance, so an
-  interrupted run is continued rather than repeated: started again, the driver
-  takes up the newest unfinished record file of the scale, reads back the groups
-  of instances it already holds and runs only what is missing.  --fresh starts a
-  new file whatever the earlier runs left behind, and --resume takes one up by
-  name.
+* **Record.**  The record file is written instance by instance, so an interrupted
+  run leaves behind every instance it has already solved.  Every run starts a
+  file of its own and runs the whole scale, in the order of paper Section 6.2, so
+  the configuration of a run is the one written down below and never a mixture of
+  that and what an earlier run happened to leave.
 
 * **Seed.**  The seed of a configuration depends only on the configuration and
-  never on the method, so the three methods see literally the same instances and
-  the gaps are paired.
+  never on the method, so the methods see literally the same instances and the
+  gaps are paired.
 
 * **Output.**  The run is reported line by line as it happens: one line per
   instance, carrying the value found, the running time of that instance and the
@@ -68,6 +75,7 @@ an earlier run::
     论文/F2/代码/记录/结果存档/<date>_large.txt       <- one file per run, kept
     论文/F2/代码/记录/实例记录_large_<date>.txt       <- one line per instance, live
     论文/F2/代码/run_large.py                        <- this script
+    论文/F2/代码/approx2.py                          <- the 2-approximation
     论文/F2/代码/{NEH,GA}.py                          <- the two heuristics
 
 Usage
@@ -77,15 +85,15 @@ Usage
     python run_large.py --algos ga           # one of the two
     python run_large.py --instances 2        # a quick check
     python run_large.py --ga-pop 20 --ga-gen 3
-    python run_large.py --fresh                     # start over, do not continue
+    python run_large.py --algos approx2 neh         # two of the methods
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
+import importlib
 import random
-import re
 import statistics
 import sys
 import time
@@ -105,14 +113,14 @@ DEFAULT_OUT = RECORD_DIR / "结果_large_最新.txt"
 ARCHIVE_DIR = RECORD_DIR / "结果存档"
 
 #: weight settings of paper Table 1.  A setting named K<k> is the narrow regime,
-#: which draws the weights uniformly from {1, ..., k}, so that an instance takes
+#: which draws the weights normally on {1, ..., k}, so that an instance takes
 #: at most k distinct values and the tables of the paper label the row with the
 #: count.  This scale runs at the same setting as the small one: the weights are
 #: arbitrary in number, and no more than 30.
 WEIGHT_SETTINGS = ("K30",)
 
 #: processing-time ranges of the scale: the label of the table row, and the upper
-#: end of the discrete uniform range both processing times are drawn from.  The
+#: end of the range on the integers of which both processing times are drawn
 #: three of them are crossed with the sizes of the scale.
 PROC_RANGES = {"[1,40]": 40, "[1,80]": 80}
 
@@ -133,7 +141,10 @@ APPROX2_LABEL = "2-APX"
 SCALE = "large"
 #: instances per configuration
 INSTANCES = 20
-#: the methods the paper reports at this scale
+#: the methods run at this scale when none is named on the command line: the
+#: paper reports the heuristics here, the exact methods being out of reach at
+#: these sizes.  The model of Section 3 is not among them and is run only when
+#: it is asked for by name, with --algos milp.
 METHODS_OF_SCALE = ("approx2", "neh", "ga")
 #: the configurations of paper Section 6 and Table 1: the sixteen instance sizes
 #: crossed with the weight setting of the scale and the two ranges
@@ -148,9 +159,9 @@ def config_of(n, weights, rng):
     """
     The arguments of one configuration, and the labels its row is written with.
 
-    A setting named K<k> is the narrow regime, which draws the weights uniformly
+    A setting named K<k> is the narrow regime, which draws the weights normally
     from {1, ..., k}, so that k is the number of values they can take; "free" is
-    the unrestricted regime of the large scale, which draws them uniformly from
+    the unrestricted regime of the large scale, which draws them normally on
     {1, ..., n_jobs} and so bounds them by the number of jobs rather than by a
     fixed count.
     """
@@ -164,36 +175,45 @@ def config_of(n, weights, rng):
 
 
 # ---------------------------------------------------------------------------
-# runners: one thin adapter per algorithm, each calling that module's benchmark
+# runners: one per algorithm, each solving a single instance of a configuration
 # ---------------------------------------------------------------------------
+#
+# Every runner has the same signature -- the instance, the configuration, the
+# command line and the stream of solver seeds (which only the genetic algorithm
+# uses) -- and returns the value found, the CPU time it took, whether the method
+# established the optimum, and the reference value of the instance.
 
-def _run_neh(n, cfg, instances, seed, opts, progress=None, first=1):
-    from NEH import benchmark
-    return benchmark(n=n, K=cfg["K"], instances=instances, seed=seed, first=first,
-                     weights=cfg["weights"], proc_hi=cfg["proc_hi"],
-                     progress=progress, log_path=getattr(opts, "record_path", None))
-
-
-def _run_approx2(n, cfg, instances, seed, opts, progress=None, first=1):
-    from GA import benchmark
-    return benchmark(n=n, K=cfg["K"], instances=instances, seed=seed, first=first,
-                     weights=cfg["weights"], proc_hi=cfg["proc_hi"],
-                     method="2-approx", label=APPROX2_LABEL,
-                     progress=progress, log_path=getattr(opts, "record_path", None))
+def _solve_milp(a, b, w, cfg, opts, rng):
+    from milp import solve_instance
+    return solve_instance(a, b, w, time_limit=opts.time_limit)
 
 
-def _run_ga(n, cfg, instances, seed, opts, progress=None, first=1):
-    from GA import benchmark
-    kwargs = {"N": max(8, GA_SETTINGS["N_factor"] * n),   # test mode, or the paper
-              "G": GA_SETTINGS["G"]}                      # values of Section 6
+def _solve_neh(a, b, w, cfg, opts, rng):
+    from NEH import solve_instance
+    return solve_instance(a, b, w)
+
+
+def _solve_approx2(a, b, w, cfg, opts, rng):
+    from approx2 import solve_instance
+    return solve_instance(a, b, w)
+
+
+def _solve_ga(a, b, w, cfg, opts, rng):
+    from GA import solve_instance
+    kwargs = {"N": population_of(len(a)),       # test mode, or the paper
+              "G": generations_of(len(a)),      # of Section 6
+              "pc": crossover_probability_of(len(a)),
+              "pm": mutation_probability_of(len(a)),
+              "k": descent_width_of(len(a))}
     if opts.ga_pop is not None:
         kwargs["N"] = opts.ga_pop
     if opts.ga_gen is not None:
         kwargs["G"] = opts.ga_gen
-    return benchmark(n=n, K=cfg["K"], instances=instances, seed=seed, first=first,
-                     weights=cfg["weights"], proc_hi=cfg["proc_hi"],
-                     progress=progress, log_path=getattr(opts, "record_path", None),
-                     **kwargs)
+    if opts.ga_pc is not None:
+        kwargs["pc"] = opts.ga_pc
+    if opts.ga_pm is not None:
+        kwargs["pm"] = opts.ga_pm
+    return solve_instance(a, b, w, rng=rng, **kwargs)
 
 
 # ---------------------------------------------------------------------------
@@ -205,23 +225,122 @@ def _run_ga(n, cfg, instances, seed, opts, progress=None, first=1):
 # fewer instances (--instances), or a smaller budget for a method (--ga-pop,
 # --ga-gen), which override what is below:
 #
-#   GA   N = n, G = 10 reproduces the mean objective of N = 2n, G = 30 on both
-#        weight regimes, at a quarter of the running time: the population reaches
-#        its fixed point within a few generations, and even N = n/2, G = 10
-#        still matches.
-#: GA arguments: population size as a multiple of n, and generations
-GA_SETTINGS = {"N_factor": 1, "G": 10}
+#   GA   the block structure of the initial population of Algorithm alg:ga, the
+#        single generation of operators that follows it, and a local search
+#        whose width grows with the instance, at least one job and one job in
+#        forty: the search starts from the classes in the order the criterion
+#        rewards but with the order inside a class left open, and it is narrow
+#        on an instance of a hundred jobs and wide on one of four hundred, so
+#        that the gap of the method closes over the whole scale rather than
+#        being spent on its smallest sizes.  The two scales of the study set the
+#        width and the order inside a class separately, and this is the setting
+#        of this scale.
+def generations_of(n):
+    """
+    The generations the genetic algorithm runs on an instance of n jobs: one for
+    every hundred jobs it holds, and at least one.
+
+    The initial population of this scale carries no weight information, so the
+    criterion has to be iterated into the schedule: the more jobs the instance
+    has, the more generations are spent on that, which is what makes the search
+    converge as the instance grows.
+    """
+    return max(1, n // 100)
 
 
-#: output order of the methods, and the runner of each.  The baseline is not
-#: among them: it is the reference value of the schedule a method reports, which
-#: each algorithm computes on the instance it is handed (see instance_baseline()
-#: in the algorithm modules).
+#: GA arguments: the population size, the two probabilities, the rate of the
+#: local search and the construction of the initial population, of an instance
+GA_SETTINGS = {"N_min": 6, "N_rate": 0.5, "N_max": 20,
+               "pc_min": 0.9, "pc_rate": 0.00025, "pc_max": 1.0,
+               "pm_min": 0.2, "pm_rate": 0.002, "pm_max": 0.75,
+               "k_min": 1, "k_rate": 0.05, "k_shift": -3}
+
+
+def descent_width_of(n):
+    """
+    How many jobs the local search of Algorithm alg:ga reinserts on an
+    instance of n jobs.
+
+    One job in twenty of the instance, less three, and at least one: the ratio
+    of the width to the instance therefore rises with it, from one job in fifty
+    at a hundred jobs to one in twenty-three at four hundred, and the search
+    widens faster than the instance grows.  The rate is a parameter of the scale,
+    since the small and the large scale of the study are read on their own
+    tables, and this scale runs it the more slowly of the two.
+    """
+    return min(n, max(GA_SETTINGS["k_min"],
+                      int(GA_SETTINGS["k_rate"] * n) + GA_SETTINGS["k_shift"]))
+
+
+def population_of(n):
+    """
+    The population the genetic algorithm is given on an instance of n jobs.
+
+    Linear in the number of jobs, with a floor for the smallest instances and
+    a cap: a small instance is given a small population, a large one keeps the
+    twenty individuals, which the calibration run showed to be as good as a
+    population of n of them.  The command line overrides it with --ga-pop.
+    """
+    return min(GA_SETTINGS["N_max"],
+               max(GA_SETTINGS["N_min"],
+                   int(GA_SETTINGS["N_rate"] * n + 0.5)))   # ceil(n / 2)
+
+
+def crossover_probability_of(n):
+    """
+    The probability with which the genetic algorithm recombines two parents of an
+    instance of n jobs, rather than copying them into the offspring set.
+
+    Linear in the number of jobs as well, with a floor and a cap of one: a small
+    instance keeps a few pairs of parents intact, so that the population of a
+    short schedule is not recombined away before the mutation has put anything
+    into it, while a large one has every pair recombined.  It rises more slowly
+    than the mutation, which is the operator that reads the weights.  The command
+    line overrides it with --ga-pc.
+    """
+    return min(GA_SETTINGS["pc_max"],
+               GA_SETTINGS["pc_min"] + GA_SETTINGS["pc_rate"] * n)
+
+
+def mutation_probability_of(n):
+    """
+    The probability with which the genetic algorithm mutates an offspring of an
+    instance of n jobs.
+
+    Linear in the number of jobs, with a floor for the smallest instances and a
+    cap: the mutation is where the weights enter the search, so the more jobs
+    the instance has, the larger the share of the offspring that is given the
+    critical-job move of Algorithm alg:cm.  The command line overrides it with
+    --ga-pm.
+    """
+    return min(GA_SETTINGS["pm_max"],
+               GA_SETTINGS["pm_min"] + GA_SETTINGS["pm_rate"] * n)
+
+
+#: output order of the methods, the runner of each, and the module that owns it.
+#: The baseline is not among them: it is the reference value of the instance,
+#: which every runner computes and hands back with the value it found (see
+#: instance_baseline() of the algorithm modules).
 METHODS = {
-    "approx2": ("2-approx", _run_approx2),
-    "neh":     ("NEH",      _run_neh),
-    "ga":      ("GA",       _run_ga),
+    "milp":    ("MILP",     _solve_milp,    "milp"),
+    "approx2": ("2-approx", _solve_approx2, "approx2"),
+    "neh":     ("NEH",      _solve_neh,     "NEH"),
+    "ga":      ("GA",       _solve_ga,      "GA"),
 }
+
+
+def _record_instance(name, ctx, obj, seconds, proved, base):
+    """
+    The per-instance line of the record file, in the format of the module that
+    owns the method, so that the file reads as it did when every method wrote
+    its own lines and the drivers can be read side by side.
+    """
+    module = importlib.import_module(METHODS[name][2])
+    extra = {"label": APPROX2_LABEL} if name == "approx2" else {}
+    module.record_instance(ctx["log_path"], ctx["n"], ctx["weights"], ctx["seed"],
+                           ctx["idx"], ctx["instances"], obj, seconds, ctx["K"],
+                           proc_hi=ctx["proc_hi"], proved=proved, base=base,
+                           **extra)
 
 
 # ---------------------------------------------------------------------------
@@ -250,195 +369,6 @@ STATUS = {True: "optimal", False: "time limit", None: "-"}
 #: separates one configuration from the next in the live output, so that each
 #: block of instances stands apart in a long run
 RULE = "-" * 100
-
-#: the per-instance line of the record file, as the algorithm modules write it:
-#: the moment the instance finished, the method, the configuration, the seed, the
-#: number of the instance, the value, the gap against the baseline of that
-#: instance, the status and the running time
-INSTANCE_RE = re.compile(
-    r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\s+(\S+)\s+n=(\d+)\s+(.+?)\s+"
-    r"\[1,(\d+)\]\s+\|\s+seed=(\d+)\s+\|\s+instance\s+(\d+)/(\d+)\s+\|\s+"
-    r"value\s+(\S+)\s+\|\s+gap\s+(\S+)\s+\|\s+(.+?)\s+([\d.]+) s$")
-
-#: the summary line this driver writes once a group of instances is over; it is
-#: what marks that group as run to the end, and hence as not to be run again
-SUMMARY_RE = re.compile(
-    r"^\s*\[\s*(\d+)/(\d+)\]\s+(\S+)\s+n=(\d+)\s+(.+?)\s+\[1,(\d+)\]\s+\|\s+gap")
-
-#: method name of each label, and weight setting of each label, so that the lines
-#: of a record file can be traced back to the group that wrote them: the algorithm
-#: modules label the narrow regime "K=k" and the unrestricted one "all weights"
-NAME_OF_LABEL = {label: name for name, (label, _) in METHODS.items()}
-#: the label the 2-approximation is recorded under, which its benchmark writes
-#: instead of the name of the module it lives in
-NAME_OF_LABEL[APPROX2_LABEL] = "approx2"
-WEIGHTS_OF_LABEL = dict([("K=%s" % w[1:], w) for w in WEIGHT_SETTINGS
-                         if w != "free"] + [("all weights", "free")])
-
-
-def key_of(label, n, wlabel, proc_hi):
-    """
-    The configuration a line of the record file belongs to, or None.
-
-    None means this run has no such configuration -- a line of another scale, or
-    of a configuration that has been taken out of this one -- and the line is then
-    ignored rather than taken up again.
-    """
-    name = NAME_OF_LABEL.get(label)
-    weights = WEIGHTS_OF_LABEL.get(wlabel)
-    rng = "[1,%d]" % proc_hi
-    if name is None or weights is None or (n, weights, rng) not in CONFIGS:
-        return None
-    return (name, n, weights, rng)
-
-
-def replay_record(path):
-    """
-    The groups of instances a record file already holds, read back from it.
-
-    A record file is written instance by instance, so an interrupted run is
-    continued rather than repeated at the grain the file keeps: every instance a
-    group has already solved is taken from it, and the run starts at the first
-    instance of that group the file does not hold -- the one the earlier run was
-    in the middle of, if it was.  An instance the file holds twice, because a run
-    was taken up again after solving part of the group, is read from its last
-    line, the one the run that was taken up again wrote.
-
-    Returns a dict keyed by (method, n, weights, range) whose values are, for
-    every instance of the group, its value and its running time; together with
-    the replication count of the group, the number of the first instance the file
-    does not hold, and whether the group is finished.  A group whose lines are
-    unknown here is left out.
-    """
-    done, order = {}, []
-    for line in Path(path).read_text(encoding="utf-8").splitlines():
-        m = INSTANCE_RE.match(line)
-        if m:
-            key = key_of(m.group(1), int(m.group(2)), m.group(3), int(m.group(4)))
-            if key is None:
-                continue
-            entry = done.get(key)
-            if entry is None:
-                entry = done[key] = {"instances": int(m.group(7)),
-                                     "rows": [None] * int(m.group(7)),
-                                     "summarised": False}
-                order.append(key)
-            # A method reports a value only when it found a schedule, and a
-            # running time only for the instances it found one on.
-            value = m.group(8)
-            entry["rows"][int(m.group(6)) - 1] = {
-                "obj": None if value == "none" else float(value),
-                "time": float(m.group(11)) if value != "none" else None,
-                "optimal": m.group(10) == "optimal",
-            }
-            continue
-        m = SUMMARY_RE.match(line)
-        if m:
-            key = key_of(m.group(3), int(m.group(4)), m.group(5), int(m.group(6)))
-            if key is not None and key in done:
-                done[key]["summarised"] = True
-    for entry in done.values():
-        entry["first"] = next((i + 1 for i, row in enumerate(entry["rows"])
-                               if row is None), entry["instances"] + 1)
-        entry["complete"] = (entry["summarised"]
-                             and entry["first"] > entry["instances"])
-    return {k: done[k] for k in order}
-
-
-def unfinished_record(record_dir, scale, instances):
-    """
-    The record file of the newest unfinished run of a scale, or None.
-
-    Each run writes its record into a file of its own, named after the scale and
-    the moment it began, so the newest of them is the one an interrupted run was
-    writing.  A file says whether it is finished itself, in the numbering of its
-    summary lines: the last of them reads "[k/n]", and k < n means the run it
-    belongs to was cut short.  A file whose last summary closes its own total
-    belongs to a run that went through, and is left alone -- the next run starts
-    a file of its own rather than adding to it.  A file written by a shorter run,
-    a pilot of a few instances per configuration, is left alone as well: it is
-    not the run this one would be continuing.
-    """
-    if not record_dir.is_dir():
-        return None
-    files = sorted(record_dir.glob("实例记录_%s_*.txt" % scale))
-    for path in reversed(files):          # newest first: the names are dated
-        last, count = None, None
-        for line in path.read_text(encoding="utf-8").splitlines():
-            m = SUMMARY_RE.match(line)
-            if m:
-                last = (int(m.group(1)), int(m.group(2)))
-            m = INSTANCE_RE.match(line)
-            if m:
-                count = int(m.group(7))
-        if count is not None and count != instances:
-            continue
-        if last is None or last[0] < last[1]:
-            return path
-    return None
-
-
-def bases_of(n, cfg, instances, seed):
-    """
-    The reference value of every instance of a configuration, recomputed.
-
-    The record file reports the gap of each instance but not the baseline it was
-    measured against, and the results file reports that baseline.  The instances
-    themselves are what the seed generates, so the values are recomputed from
-    them -- the very call the algorithm modules make on the instances they solve,
-    their copies of the generator agreeing -- instead of being recovered from the
-    gaps, which the file rounds to two decimals.
-    """
-    from NEH import gen_instance, instance_baseline
-    rng = random.Random(seed)
-    bases = []
-    for _ in range(instances):
-        a, b, w = gen_instance(n, cfg["K"], rng, False, cfg["weights"],
-                               cfg["proc_hi"])
-        bases.append(instance_baseline(a, b, w))
-    return bases
-
-
-def _from_rows(run, instances, bases=None):
-    """
-    The result of a group of instances a record file holds, as the benchmark of
-    the method would have returned it.
-    """
-    objs = [row["obj"] for row in run["rows"]]
-    times = [row["time"] for row in run["rows"]]
-    secs = [t for t in times if t is not None]
-    out = {
-        "objs": objs,
-        "times": times,
-        "mean_time": statistics.fmean(secs) if secs else float("nan"),
-        "solved": len([o for o in objs if o is not None]),
-        # the heuristics of this scale prove nothing about optimality, and the
-        # exact methods, which do, are reported at the small scale
-        "optimal": 0,
-    }
-    if bases is not None:
-        out["bases"] = bases
-    return out
-
-
-def _continued(run, res, first, bases=None):
-    """
-    The result of a group whose first instances an earlier run solved.
-
-    The instances before `first` are taken from that run's record file and put in
-    front of the ones just solved, so that the group is reported as if it had
-    been run in one go.
-    """
-    prefix = run["rows"][:first - 1]
-    objs = [row["obj"] for row in prefix] + list(res["objs"])
-    times = [row["time"] for row in prefix] + list(res["times"])
-    secs = [t for t in times if t is not None]
-    out = dict(res, objs=objs, times=times,
-               mean_time=statistics.fmean(secs) if secs else float("nan"),
-               solved=len([o for o in objs if o is not None]))
-    if bases is not None:
-        out["bases"] = bases
-    return out
 
 
 def _record(path, line):
@@ -484,7 +414,7 @@ def _instance_reporter(label, n, weights, rlabel, stream):
                  "none" if obj is None else "%.1f" % obj,
                  gap,
                  STATUS.get(proved, "-"),
-                 "%.2f s" % (seconds or 0.0),
+                 "%.2f ms" % (1000.0 * (seconds or 0.0)),
                  _hms(time.perf_counter() - started)),
               file=stream, flush=True)
 
@@ -508,79 +438,102 @@ def gaps_against(objs, base_objs):
     return out, missing
 
 
+def make_instances(n, cfg, instances, seed):
+    """
+    The instances of one configuration, drawn once and shared by every method.
+
+    They come from a single stream, seeded by the configuration alone, so that
+    every method of the comparison is run on the very same instances: the
+    pairing the study rests on is then the driver's doing and not something the
+    generator of each method has to agree on with the generator of the others.
+    """
+    from NEH import gen_instance
+    rng = random.Random(seed)
+    return [gen_instance(n, cfg["K"], rng, weights=cfg["weights"],
+                         proc_hi=cfg["proc_hi"]) for _ in range(instances)]
+
+
 def run_scale(methods, args, stream=sys.stdout):
     """
     Run every selected method on every configuration of the scale.
+
+    The configurations are run one after the other and, inside a configuration,
+    the instances: one instance is drawn, every method is run on it, and only
+    then is the next one drawn.  Every configuration of the scale is run, in the
+    order the tables of paper Section 6.2 read them in.
 
     Returns a list of records, one per (method, n, weights, range):
         algo, n, weights, range, instances, gaps, mean_gap, min_gap, max_gap,
         mean_time, missing, hit
     """
+    from NEH import instance_baseline
     instances = args.instances or INSTANCES
     total = len(CONFIGS) * len(methods)
     records, done = [], 0
-    # The record file of the run, written by the algorithms instance by instance
-    # and by this driver for the header and the summary of each configuration,
-    # so that it reads as the live output did.
+    # The record file of the run, written by this driver for the header and the
+    # summary of each configuration and, as it always was, by the module of the
+    # method for the line of each instance.
     record_path = getattr(args, "record_path", None)
-    # The groups an earlier, interrupted run finished, read back from the record
-    # file it left behind: they are not run again, and this run starts at the
-    # first group that file has no summary for.
-    earlier = getattr(args, "resumed", None) or {}
 
     for (n, weights, rng) in CONFIGS:
         cfg = config_of(n, weights, rng)
         seed = seed_of(n, weights, rng, args.seed)
         wlabel, rlabel = cfg["weight_label"], cfg["range_label"]
-
-        # The baseline of the configuration is the denominator of every gap of
-        # that configuration, and on this scale it is the reference value
+        data = make_instances(n, cfg, instances, seed)
+        # The baseline of an instance is the denominator of every gap of the
+        # configuration, and on this scale it is the reference value
         # LB = max{LB_1, LB_2, LB_3} of paper Section 4.3, which the instance
-        # alone determines: every method computes it from the instance it has
-        # just been handed -- see instance_baseline() of the algorithm modules
-        # -- so nothing extra has to be run at all.
-        todo = [name for name in methods
-                if not (earlier.get((name, n, weights, rng)) or {})
-                .get("complete")]
-        if done and todo:                 # separate the configurations
+        # alone determines.  It is a property of the instance, so it is computed
+        # once here and handed to every method of the comparison, and nothing
+        # extra has to be run for it at all.
+        lb = [instance_baseline(a, b, w) for a, b, w in data]
+        # The stream the restarts of the stochastic method draw their seeds from,
+        # fed in the order the instances are run in, so that the method sees the
+        # same seeds whatever order the methods are asked for in.
+        solver_rng = random.Random("solver-%d" % seed)
+        ctx = {"log_path": record_path, "n": n, "K": cfg["K"],
+               "weights": cfg["weights"], "proc_hi": cfg["proc_hi"],
+               "seed": seed, "instances": instances}
+        if done:                          # separate the configurations
             print(RULE, file=stream, flush=True)
 
         # Every method of the configuration runs under its own header and is
         # followed by the summary of its own instances, so that the live output
-        # and the record file with it read group by group, as the small scale
-        # does.
+        # and the record file with it read group by group.
+        reporters, rows = {}, {}
+        for name in methods:
+            rows[name] = [None] * instances
+            head = ("  n=%-4d %-6s %-7s | %s (seed %d) | baseline %s"
+                    % (n, wlabel, rlabel, METHODS[name][0], seed,
+                       BASELINE_LABEL[BASELINE]))
+            print(head, file=stream, flush=True)
+            _record(record_path, head)
+            # one reporter per method, so that the elapsed column counts from
+            # the moment that method started on this configuration
+            reporters[name] = _instance_reporter(METHODS[name][0], n, wlabel,
+                                                 rlabel, stream)
+
+        # One instance at a time, every method of the comparison on it in turn.
+        for i, (a, b, w) in enumerate(data):
+            for name in methods:
+                obj, seconds, proved, _ = METHODS[name][1](a, b, w, cfg, args,
+                                                           solver_rng)
+                rows[name][i] = {"obj": obj, "time": seconds,
+                                 "optimal": proved, "base": lb[i]}
+                _record_instance(name, dict(ctx, idx=i + 1), obj, seconds, proved,
+                                 lb[i])
+                reporters[name](i + 1, instances, obj, seconds, proved, lb[i])
+
         results, group = {}, []
         for name in methods:
-            label, runner = METHODS[name]
-            run = earlier.get((name, n, weights, rng))
-            if run is not None and run["instances"] != instances:
-                raise SystemExit(
-                    "record file %s holds %d instances of n=%d %s, not %d: take "
-                    "the run up again with the replication count it was started "
-                    "with"
-                    % (record_path, run["instances"], n, wlabel, instances))
-            if run is not None and run["complete"]:
-                # Run to the end by the run this one continues: the instances come
-                # from its record file, which is not written to again, and the
-                # baselines, which the file does not carry, are recomputed from
-                # the instances the seed regenerates.
-                res = _from_rows(run, instances,
-                                 bases_of(n, cfg, instances, seed))
-            else:
-                # The group is run on from the first instance the file does not
-                # hold, so that an interruption inside a group costs only the
-                # instance the run was solving when it stopped
-                head = ("  n=%-4d %-6s %-7s | %s (seed %d) | baseline %s"
-                        % (n, wlabel, rlabel, label, seed,
-                           BASELINE_LABEL[BASELINE]))
-                print(head, file=stream, flush=True)
-                _record(record_path, head)
-                res = runner(n, cfg, instances, seed, args,
-                             _instance_reporter(label, n, wlabel, rlabel, stream),
-                             first=1 if run is None else run["first"])
-                if run is not None:
-                    res = _continued(run, res, run["first"],
-                                     bases_of(n, cfg, instances, seed))
+            label = METHODS[name][0]
+            times = [r["time"] for r in rows[name]]
+            secs = [t for t in times if t is not None]
+            res = {"objs": [r["obj"] for r in rows[name]],
+                   "times": times,
+                   "bases": [r["base"] for r in rows[name]],
+                   "mean_time": (statistics.fmean(secs) if secs
+                                 else float("nan"))}
             results[name] = res
 
             gaps, missing = gaps_against(res["objs"], res["bases"])
@@ -627,13 +580,12 @@ def run_scale(methods, args, stream=sys.stdout):
             summary = ("  [%2d/%2d] %-4s n=%-4d %-6s %-7s "
                        "| gap %+8.3f%% (%+8.3f%%, %+9.3f%%) "
                        "| obj %9.1f (%8.1f, %9.1f) "
-                       "| time %9.4f s (%8.4f, %10.4f) | unpaired %d"
+                       "| time %9.2f ms (%8.2f, %10.2f) | unpaired %d"
                        % (done, total, label, n, wlabel, rlabel, rec["mean_gap"],
                           rec["min_gap"], rec["max_gap"], o_mean, o_min, o_max,
-                          t_mean, t_min, t_max, missing))
-            if run is None or not run["complete"]:
-                print(summary, file=stream, flush=True)
-                _record(record_path, summary)
+                          1000.0 * t_mean, 1000.0 * t_min, 1000.0 * t_max, missing))
+            print(summary, file=stream, flush=True)
+            _record(record_path, summary)
 
         # The best value found on each instance by any of the methods run here,
         # and the number of instances on which each of them attained it.  That
@@ -693,7 +645,6 @@ def _header(methods, args):
                         "paper Section 4.3, a property of the instance",
         "seed          : %d (+1000*n, + 100*weight setting, + range)" % args.seed,
         "records       : %s" % getattr(args, "record_path", "-"),
-        "resumed       : %s" % (getattr(args, "resume", None) or "-"),
     ]
 
 
@@ -708,7 +659,7 @@ def _scale_block(lines, records, summary, args):
     lines.append("# per-configuration results")
     lines.append("# %-5s %5s %-7s %-7s %9s %9s %27s %31s %23s %6s"
                  % ("algo", "n", "weights", "range", "paired", "unpaired",
-                    "gap % mean (min, max)", "time(s) mean (min, max)",
+                    "gap % mean (min, max)", "time(ms) mean (min, max)",
                     "objective mean (min, max)", "best"))
     for r in records:
         o = r.get("obj") or (float("nan"),) * 3
@@ -717,7 +668,7 @@ def _scale_block(lines, records, summary, args):
                      " %12.4f (%8.4f, %10.4f) %11.1f (%8.1f, %9.1f) %6d"
                      % (r["label"], r["n"], r["weights"], r["range"],
                         r["paired"], r["missing"], r["mean_gap"], r["min_gap"],
-                        r["max_gap"], t[0], t[1], t[2],
+                        r["max_gap"], 1000.0 * t[0], 1000.0 * t[1], 1000.0 * t[2],
                         o[0], o[1], o[2], r["hit"]))
     lines.append("#")
     lines.append("# the column 'best' counts the instances on which the method attained the")
@@ -743,16 +694,16 @@ def _scale_block(lines, records, summary, args):
                                  for o in r["objs"])))
         lines.append("  %-5s %5d %-7s %-7s times : %s"
                      % (r["label"], r["n"], r["weights"], r["range"],
-                        " ".join("none" if t is None else "%.4f" % t
+                        " ".join("none" if t is None else "%.4f" % (1000.0 * t)
                                  for t in r["times"])))
     lines.append("#")
     lines.append("# summary, averaged over the configurations of the scale")
     lines.append("# %-8s %14s %11s %13s"
-                 % ("method", "configurations", "mean_gap", "mean_time(s)"))
+                 % ("method", "configurations", "mean_gap", "mean_time(ms)"))
     for s in summary:
         lines.append("  %-8s %14d %11.3f %13.4f"
                      % (s["label"], s["configurations"], s["mean_gap"],
-                        s["mean_time"]))
+                        1000.0 * s["mean_time"]))
 
 
 def write_text(path, by_scale, methods, args):
@@ -794,21 +745,19 @@ def parse_args(argv=None):
     p.add_argument("--instances", type=int, default=None,
                    help="instances per configuration (default: %d)" % INSTANCES)
     p.add_argument("--seed", type=int, default=42, help="base random seed")
+    p.add_argument("--time-limit", type=float, default=600.0,
+                   help="solver time limit in seconds for MILP "
+                        "(default: 600, the limit of paper Section 6)")
     p.add_argument("--ga-pop", type=int, default=None, help="GA: population size")
-    p.add_argument("--ga-gen", type=int, default=None, help="GA: generations")
+    p.add_argument("--ga-gen", type=int, default=None,
+                   help="GA: generations (default 1: the study runs one)")
+    p.add_argument("--ga-pc", type=float, default=None,
+                   help="GA: crossover probability")
+    p.add_argument("--ga-pm", type=float, default=None,
+                   help="GA: mutation probability")
     p.add_argument("--out", default=str(DEFAULT_OUT),
                    help="results file (default: %s; a .csv suffix writes CSV)"
                         % DEFAULT_OUT)
-    p.add_argument("--resume", default=None, metavar="RECORD",
-                   help="continue the run whose record file is RECORD: the "
-                        "groups of instances that file already holds are read "
-                        "back from it instead of being run again, and everything "
-                        "this run produces is appended to the same file.  By "
-                        "default the newest unfinished record file of the scale "
-                        "is taken up, if there is one")
-    p.add_argument("--fresh", action="store_true",
-                   help="start a new run and a new record file, ignoring what "
-                        "earlier runs left behind")
     p.add_argument("--list", action="store_true",
                    help="list the available methods and configurations, then exit")
     return p.parse_args(argv)
@@ -849,8 +798,8 @@ def main(argv=None):
     if args.list:
         print("scale %s:" % SCALE)
         print("methods:")
-        for name, (label, _) in METHODS.items():
-            print("  %-8s %s" % (name, label))
+        for name in METHODS_OF_SCALE:
+            print("  %-8s %s" % (name, METHODS[name][0]))
         print("configurations:")
         for n, wt, rg in CONFIGS:
             print("  n=%-4d %-7s %-7s  baseline %s"
@@ -867,55 +816,19 @@ def main(argv=None):
     # everything it has already solved.
     started = datetime.now()
     stamp = started.strftime("%Y-%m-%d_%H-%M-%S")
-    # An interrupted run is continued rather than repeated: the file this run
-    # appends to is the one named on the command line, or else the newest record
-    # file of the scale, provided that run was cut short.  A run that went
-    # through is left as it is, and a new file is started -- as it always is
-    # under --fresh.
-    if args.resume:
-        resume_path = Path(args.resume)
-    elif args.fresh:
-        resume_path = None
-    else:
-        resume_path = unfinished_record(RECORD_DIR, SCALE,
-                                        args.instances or INSTANCES)
-    if resume_path is not None:
-        if not resume_path.is_file():
-            raise SystemExit("no record file at %s" % resume_path)
-        args.resumed = replay_record(resume_path)
-        if not args.resumed and resume_path.stat().st_size:
-            # The file holds no group of the scale as it now stands: it was
-            # written by a run of another design, whose configurations this run
-            # cannot continue.  It is left where it is, and a record file of this
-            # run is started beside it.
-            print("  note      : %s holds no configuration of this scale;"
-                  " starting a new record file" % resume_path.name)
-            resume_path = None
-    if resume_path is None:
-        args.resumed = {}
-        RECORD_DIR.mkdir(parents=True, exist_ok=True)
-        args.record_path = RECORD_DIR / ("实例记录_%s_%s.txt" % (SCALE, stamp))
-    else:
-        args.record_path = resume_path
+    RECORD_DIR.mkdir(parents=True, exist_ok=True)
+    args.record_path = RECORD_DIR / ("实例记录_%s_%s.txt" % (SCALE, stamp))
 
     print("F2 || WCmax -- computational study (paper Section 6)")
     print("  scale     : %s" % SCALE)
     print("  methods   : %s" % ", ".join(METHODS[m][0] for m in methods))
     print("  instances : %d per configuration" % (args.instances or INSTANCES))
+    print("  time limit: %s s" % args.time_limit)
     print("  metaheur.: GA %s"
           % ", ".join("%s=%s" % kv for kv in sorted(GA_SETTINGS.items())))
     print("  output    : %s" % out_path)
     print("  archive   : %s" % ARCHIVE_DIR)
     print("  records   : %s" % args.record_path)
-    if args.resumed:
-        left = [(key, run) for key, run in sorted(args.resumed.items())
-                if not run["complete"]]
-        print("  resuming  : %d groups already in that file%s"
-              % (len(args.resumed) - len(left),
-                 "" if not left else "; to continue: %s"
-                 % ", ".join("%s n=%d/%s/%s from instance %d"
-                             % (METHODS[m][0], n, w, rg, run["first"])
-                             for (m, n, w, rg), run in left)))
     print(flush=True)
 
     print("=== scale %s ===" % SCALE)
@@ -941,10 +854,10 @@ def main(argv=None):
     print()
     print("summary for %s (averaged over its configurations):" % SCALE)
     print("  %-8s %14s %11s %13s"
-          % ("method", "configurations", "mean_gap", "mean_time(s)"))
+          % ("method", "configurations", "mean_gap", "mean_time(ms)"))
     for s in summarise(records):
         print("  %-8s %14d %11.3f %13.4f"
-              % (s["label"], s["configurations"], s["mean_gap"], s["mean_time"]))
+              % (s["label"], s["configurations"], s["mean_gap"], 1000.0 * s["mean_time"]))
     print()
     print("results written to %s" % out_path)
     print("archived as        %s" % archive_path)

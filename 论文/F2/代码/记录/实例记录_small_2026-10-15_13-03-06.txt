@@ -1,0 +1,376 @@
+  n=10   K=30   [1,40]  | MILP (seed 13082)
+  n=10   K=30   [1,40]  | 2-approx (seed 13082)
+  n=10   K=30   [1,40]  | NEH (seed 13082)
+  n=10   K=30   [1,40]  | GA (seed 13082)
+2026-10-15 13:03:06  MILP  n=10   K=30   [1,40]  | seed=13082   | instance  1/20 | value 2730.0       | gap    +9.64% | optimal     72.59 ms
+2026-10-15 13:03:06  2-APX n=10   K=30   [1,40]  | seed=13082   | instance  1/20 | value 2730.0       | gap    +9.64% | -            0.01 ms
+2026-10-15 13:03:06  NEH   n=10   K=30   [1,40]  | seed=13082   | instance  1/20 | value 2730.0       | gap    +9.64% | -            0.08 ms
+2026-10-15 13:03:06  GA    n=10   K=30   [1,40]  | seed=13082   | instance  1/20 | value 3735.0       | gap   +50.00% | -            0.51 ms
+2026-10-15 13:03:06  MILP  n=10   K=30   [1,40]  | seed=13082   | instance  2/20 | value 2214.0       | gap    +0.82% | optimal     49.43 ms
+2026-10-15 13:03:06  2-APX n=10   K=30   [1,40]  | seed=13082   | instance  2/20 | value 2214.0       | gap    +0.82% | -            0.01 ms
+2026-10-15 13:03:06  NEH   n=10   K=30   [1,40]  | seed=13082   | instance  2/20 | value 2214.0       | gap    +0.82% | -            0.07 ms
+2026-10-15 13:03:06  GA    n=10   K=30   [1,40]  | seed=13082   | instance  2/20 | value 2916.0       | gap   +32.79% | -            0.49 ms
+2026-10-15 13:03:06  MILP  n=10   K=30   [1,40]  | seed=13082   | instance  3/20 | value 3168.0       | gap   +15.62% | optimal     87.67 ms
+2026-10-15 13:03:06  2-APX n=10   K=30   [1,40]  | seed=13082   | instance  3/20 | value 3392.0       | gap   +23.80% | -            0.02 ms
+2026-10-15 13:03:06  NEH   n=10   K=30   [1,40]  | seed=13082   | instance  3/20 | value 3648.0       | gap   +33.14% | -            0.07 ms
+2026-10-15 13:03:06  GA    n=10   K=30   [1,40]  | seed=13082   | instance  3/20 | value 3456.0       | gap   +26.13% | -            0.47 ms
+2026-10-15 13:03:06  MILP  n=10   K=30   [1,40]  | seed=13082   | instance  4/20 | value 2136.0       | gap    +4.71% | optimal     37.88 ms
+2026-10-15 13:03:06  2-APX n=10   K=30   [1,40]  | seed=13082   | instance  4/20 | value 2136.0       | gap    +4.71% | -            0.01 ms
+2026-10-15 13:03:06  NEH   n=10   K=30   [1,40]  | seed=13082   | instance  4/20 | value 2496.0       | gap   +22.35% | -            0.07 ms
+2026-10-15 13:03:06  GA    n=10   K=30   [1,40]  | seed=13082   | instance  4/20 | value 2916.0       | gap   +42.94% | -            0.52 ms
+2026-10-15 13:03:06  MILP  n=10   K=30   [1,40]  | seed=13082   | instance  5/20 | value 1785.0       | gap    +8.84% | optimal     89.14 ms
+2026-10-15 13:03:06  2-APX n=10   K=30   [1,40]  | seed=13082   | instance  5/20 | value 1920.0       | gap   +17.07% | -            0.01 ms
+2026-10-15 13:03:06  NEH   n=10   K=30   [1,40]  | seed=13082   | instance  5/20 | value 2000.0       | gap   +21.95% | -            0.07 ms
+2026-10-15 13:03:06  GA    n=10   K=30   [1,40]  | seed=13082   | instance  5/20 | value 1815.0       | gap   +10.67% | -            0.56 ms
+2026-10-15 13:03:06  MILP  n=10   K=30   [1,40]  | seed=13082   | instance  6/20 | value 1378.0       | gap    +3.92% | optimal     36.59 ms
+2026-10-15 13:03:06  2-APX n=10   K=30   [1,40]  | seed=13082   | instance  6/20 | value 1378.0       | gap    +3.92% | -            0.01 ms
+2026-10-15 13:03:06  NEH   n=10   K=30   [1,40]  | seed=13082   | instance  6/20 | value 1378.0       | gap    +3.92% | -            0.08 ms
+2026-10-15 13:03:06  GA    n=10   K=30   [1,40]  | seed=13082   | instance  6/20 | value 1750.0       | gap   +31.98% | -            0.61 ms
+2026-10-15 13:03:06  MILP  n=10   K=30   [1,40]  | seed=13082   | instance  7/20 | value 3515.0       | gap   +15.62% | optimal     64.92 ms
+2026-10-15 13:03:06  2-APX n=10   K=30   [1,40]  | seed=13082   | instance  7/20 | value 3515.0       | gap   +15.62% | -            0.01 ms
+2026-10-15 13:03:06  NEH   n=10   K=30   [1,40]  | seed=13082   | instance  7/20 | value 3515.0       | gap   +15.62% | -            0.08 ms
+2026-10-15 13:03:06  GA    n=10   K=30   [1,40]  | seed=13082   | instance  7/20 | value 6192.0       | gap  +103.68% | -            0.44 ms
+2026-10-15 13:03:06  MILP  n=10   K=30   [1,40]  | seed=13082   | instance  8/20 | value 2688.0       | gap    +5.66% | optimal    113.06 ms
+2026-10-15 13:03:06  2-APX n=10   K=30   [1,40]  | seed=13082   | instance  8/20 | value 2704.0       | gap    +6.29% | -            0.01 ms
+2026-10-15 13:03:06  NEH   n=10   K=30   [1,40]  | seed=13082   | instance  8/20 | value 2688.0       | gap    +5.66% | -            0.07 ms
+2026-10-15 13:03:06  GA    n=10   K=30   [1,40]  | seed=13082   | instance  8/20 | value 2720.0       | gap    +6.92% | -            0.54 ms
+2026-10-15 13:03:06  MILP  n=10   K=30   [1,40]  | seed=13082   | instance  9/20 | value 2235.0       | gap   +18.25% | optimal     55.65 ms
+2026-10-15 13:03:06  2-APX n=10   K=30   [1,40]  | seed=13082   | instance  9/20 | value 2366.0       | gap   +25.19% | -            0.01 ms
+2026-10-15 13:03:06  NEH   n=10   K=30   [1,40]  | seed=13082   | instance  9/20 | value 2310.0       | gap   +22.22% | -            0.08 ms
+2026-10-15 13:03:06  GA    n=10   K=30   [1,40]  | seed=13082   | instance  9/20 | value 3990.0       | gap  +111.11% | -            0.50 ms
+2026-10-15 13:03:06  MILP  n=10   K=30   [1,40]  | seed=13082   | instance 10/20 | value 3006.0       | gap   +24.63% | optimal     92.39 ms
+2026-10-15 13:03:06  2-APX n=10   K=30   [1,40]  | seed=13082   | instance 10/20 | value 3006.0       | gap   +24.63% | -            0.01 ms
+2026-10-15 13:03:06  NEH   n=10   K=30   [1,40]  | seed=13082   | instance 10/20 | value 3171.0       | gap   +31.47% | -            0.07 ms
+2026-10-15 13:03:06  GA    n=10   K=30   [1,40]  | seed=13082   | instance 10/20 | value 5434.0       | gap  +125.29% | -            0.43 ms
+2026-10-15 13:03:06  MILP  n=10   K=30   [1,40]  | seed=13082   | instance 11/20 | value 1921.0       | gap   +16.49% | optimal     39.29 ms
+2026-10-15 13:03:06  2-APX n=10   K=30   [1,40]  | seed=13082   | instance 11/20 | value 1921.0       | gap   +16.49% | -            0.01 ms
+2026-10-15 13:03:06  NEH   n=10   K=30   [1,40]  | seed=13082   | instance 11/20 | value 1926.0       | gap   +16.80% | -            0.07 ms
+2026-10-15 13:03:06  GA    n=10   K=30   [1,40]  | seed=13082   | instance 11/20 | value 3003.0       | gap   +82.11% | -            0.50 ms
+2026-10-15 13:03:07  MILP  n=10   K=30   [1,40]  | seed=13082   | instance 12/20 | value 2156.0       | gap   +13.95% | optimal     83.74 ms
+2026-10-15 13:03:07  2-APX n=10   K=30   [1,40]  | seed=13082   | instance 12/20 | value 2310.0       | gap   +22.09% | -            0.01 ms
+2026-10-15 13:03:07  NEH   n=10   K=30   [1,40]  | seed=13082   | instance 12/20 | value 2175.0       | gap   +14.96% | -            0.07 ms
+2026-10-15 13:03:07  GA    n=10   K=30   [1,40]  | seed=13082   | instance 12/20 | value 2442.0       | gap   +29.07% | -            0.61 ms
+2026-10-15 13:03:07  MILP  n=10   K=30   [1,40]  | seed=13082   | instance 13/20 | value 3360.0       | gap    +6.19% | optimal     63.16 ms
+2026-10-15 13:03:07  2-APX n=10   K=30   [1,40]  | seed=13082   | instance 13/20 | value 3934.0       | gap   +24.34% | -            0.01 ms
+2026-10-15 13:03:07  NEH   n=10   K=30   [1,40]  | seed=13082   | instance 13/20 | value 3500.0       | gap   +10.62% | -            0.14 ms
+2026-10-15 13:03:07  GA    n=10   K=30   [1,40]  | seed=13082   | instance 13/20 | value 5448.0       | gap   +72.19% | -            0.60 ms
+2026-10-15 13:03:07  MILP  n=10   K=30   [1,40]  | seed=13082   | instance 14/20 | value 3840.0       | gap    +1.27% | optimal     34.86 ms
+2026-10-15 13:03:07  2-APX n=10   K=30   [1,40]  | seed=13082   | instance 14/20 | value 3864.0       | gap    +1.90% | -            0.01 ms
+2026-10-15 13:03:07  NEH   n=10   K=30   [1,40]  | seed=13082   | instance 14/20 | value 3840.0       | gap    +1.27% | -            0.10 ms
+2026-10-15 13:03:07  GA    n=10   K=30   [1,40]  | seed=13082   | instance 14/20 | value 3840.0       | gap    +1.27% | -            0.80 ms
+2026-10-15 13:03:07  MILP  n=10   K=30   [1,40]  | seed=13082   | instance 15/20 | value 4240.0       | gap   +15.22% | optimal    105.58 ms
+2026-10-15 13:03:07  2-APX n=10   K=30   [1,40]  | seed=13082   | instance 15/20 | value 4496.0       | gap   +22.17% | -            0.01 ms
+2026-10-15 13:03:07  NEH   n=10   K=30   [1,40]  | seed=13082   | instance 15/20 | value 4240.0       | gap   +15.22% | -            0.07 ms
+2026-10-15 13:03:07  GA    n=10   K=30   [1,40]  | seed=13082   | instance 15/20 | value 5900.0       | gap   +60.33% | -            0.53 ms
+2026-10-15 13:03:07  MILP  n=10   K=30   [1,40]  | seed=13082   | instance 16/20 | value 2877.0       | gap   +28.90% | optimal    173.10 ms
+2026-10-15 13:03:07  2-APX n=10   K=30   [1,40]  | seed=13082   | instance 16/20 | value 3060.0       | gap   +37.10% | -            0.01 ms
+2026-10-15 13:03:07  NEH   n=10   K=30   [1,40]  | seed=13082   | instance 16/20 | value 3132.0       | gap   +40.32% | -            0.07 ms
+2026-10-15 13:03:07  GA    n=10   K=30   [1,40]  | seed=13082   | instance 16/20 | value 3450.0       | gap   +54.57% | -            0.79 ms
+2026-10-15 13:03:07  MILP  n=10   K=30   [1,40]  | seed=13082   | instance 17/20 | value 2256.0       | gap   +12.24% | optimal     20.14 ms
+2026-10-15 13:03:07  2-APX n=10   K=30   [1,40]  | seed=13082   | instance 17/20 | value 2288.0       | gap   +13.83% | -            0.01 ms
+2026-10-15 13:03:07  NEH   n=10   K=30   [1,40]  | seed=13082   | instance 17/20 | value 2587.0       | gap   +28.71% | -            0.09 ms
+2026-10-15 13:03:07  GA    n=10   K=30   [1,40]  | seed=13082   | instance 17/20 | value 3360.0       | gap   +67.16% | -            0.46 ms
+2026-10-15 13:03:07  MILP  n=10   K=30   [1,40]  | seed=13082   | instance 18/20 | value 3276.0       | gap    +4.50% | optimal    131.22 ms
+2026-10-15 13:03:07  2-APX n=10   K=30   [1,40]  | seed=13082   | instance 18/20 | value 3556.0       | gap   +13.43% | -            0.01 ms
+2026-10-15 13:03:07  NEH   n=10   K=30   [1,40]  | seed=13082   | instance 18/20 | value 3276.0       | gap    +4.50% | -            0.08 ms
+2026-10-15 13:03:07  GA    n=10   K=30   [1,40]  | seed=13082   | instance 18/20 | value 5040.0       | gap   +60.77% | -            0.46 ms
+2026-10-15 13:03:07  MILP  n=10   K=30   [1,40]  | seed=13082   | instance 19/20 | value 1921.0       | gap   +15.44% | optimal     57.78 ms
+2026-10-15 13:03:07  2-APX n=10   K=30   [1,40]  | seed=13082   | instance 19/20 | value 1921.0       | gap   +15.44% | -            0.01 ms
+2026-10-15 13:03:07  NEH   n=10   K=30   [1,40]  | seed=13082   | instance 19/20 | value 1924.0       | gap   +15.62% | -            0.08 ms
+2026-10-15 13:03:07  GA    n=10   K=30   [1,40]  | seed=13082   | instance 19/20 | value 2193.0       | gap   +31.79% | -            0.51 ms
+2026-10-15 13:03:07  MILP  n=10   K=30   [1,40]  | seed=13082   | instance 20/20 | value 1242.0       | gap   +27.25% | optimal     56.81 ms
+2026-10-15 13:03:07  2-APX n=10   K=30   [1,40]  | seed=13082   | instance 20/20 | value 1264.0       | gap   +29.51% | -            0.01 ms
+2026-10-15 13:03:07  NEH   n=10   K=30   [1,40]  | seed=13082   | instance 20/20 | value 1242.0       | gap   +27.25% | -            0.08 ms
+2026-10-15 13:03:07  GA    n=10   K=30   [1,40]  | seed=13082   | instance 20/20 | value 1377.0       | gap   +41.09% | -            0.61 ms
+  [ 1/88] MILP n=10   K=30   [1,40]  | opt 20/20   | gap   +0.000% (  +0.000%,    +0.000%) | obj    2597.2 (  1242.0,    4240.0) | time     73.25 ms (   20.14,     173.10) | no value 0
+  [ 2/88] 2-approx n=10   K=30   [1,40]  | opt none    | gap   +3.504% (  +0.000%,   +17.083%) | obj    2698.8 (  1264.0,    4496.0) | time      0.01 ms (    0.01,       0.02) | no value 0
+  [ 3/88] NEH  n=10   K=30   [1,40]  | opt none    | gap   +4.095% (  +0.000%,   +16.854%) | obj    2699.6 (  1242.0,    4240.0) | time      0.08 ms (    0.07,       0.14) | no value 0
+  [ 4/88] GA   n=10   K=30   [1,40]  | opt none    | gap  +34.903% (  +0.000%,   +80.772%) | obj    3548.8 (  1377.0,    6192.0) | time      0.55 ms (    0.43,       0.80) | no value 0
+  n=10   K=30   [1,80]  | MILP (seed 13122)
+  n=10   K=30   [1,80]  | 2-approx (seed 13122)
+  n=10   K=30   [1,80]  | NEH (seed 13122)
+  n=10   K=30   [1,80]  | GA (seed 13122)
+2026-10-15 13:03:07  MILP  n=10   K=30   [1,80]  | seed=13122   | instance  1/20 | value 5338.0       | gap    +8.28% | optimal    135.30 ms
+2026-10-15 13:03:07  2-APX n=10   K=30   [1,80]  | seed=13122   | instance  1/20 | value 5729.0       | gap   +16.21% | -            0.01 ms
+2026-10-15 13:03:07  NEH   n=10   K=30   [1,80]  | seed=13122   | instance  1/20 | value 5338.0       | gap    +8.28% | -            0.07 ms
+2026-10-15 13:03:07  GA    n=10   K=30   [1,80]  | seed=13122   | instance  1/20 | value 8892.0       | gap   +80.37% | -            0.46 ms
+2026-10-15 13:03:07  MILP  n=10   K=30   [1,80]  | seed=13122   | instance  2/20 | value 5866.0       | gap   +19.71% | optimal     54.79 ms
+2026-10-15 13:03:07  2-APX n=10   K=30   [1,80]  | seed=13122   | instance  2/20 | value 5950.0       | gap   +21.43% | -            0.01 ms
+2026-10-15 13:03:07  NEH   n=10   K=30   [1,80]  | seed=13122   | instance  2/20 | value 5868.0       | gap   +19.76% | -            0.07 ms
+2026-10-15 13:03:07  GA    n=10   K=30   [1,80]  | seed=13122   | instance  2/20 | value 6304.0       | gap   +28.65% | -            0.58 ms
+2026-10-15 13:03:07  MILP  n=10   K=30   [1,80]  | seed=13122   | instance  3/20 | value 3388.0       | gap    +1.99% | optimal     33.77 ms
+2026-10-15 13:03:07  2-APX n=10   K=30   [1,80]  | seed=13122   | instance  3/20 | value 3564.0       | gap    +7.28% | -            0.01 ms
+2026-10-15 13:03:07  NEH   n=10   K=30   [1,80]  | seed=13122   | instance  3/20 | value 3816.0       | gap   +14.87% | -            0.07 ms
+2026-10-15 13:03:07  GA    n=10   K=30   [1,80]  | seed=13122   | instance  3/20 | value 3816.0       | gap   +14.87% | -            0.54 ms
+2026-10-15 13:03:08  MILP  n=10   K=30   [1,80]  | seed=13122   | instance  4/20 | value 4284.0       | gap   +10.70% | optimal     45.88 ms
+2026-10-15 13:03:08  2-APX n=10   K=30   [1,80]  | seed=13122   | instance  4/20 | value 5117.0       | gap   +32.22% | -            0.01 ms
+2026-10-15 13:03:08  NEH   n=10   K=30   [1,80]  | seed=13122   | instance  4/20 | value 4284.0       | gap   +10.70% | -            0.07 ms
+2026-10-15 13:03:08  GA    n=10   K=30   [1,80]  | seed=13122   | instance  4/20 | value 4505.0       | gap   +16.41% | -            0.55 ms
+2026-10-15 13:03:08  MILP  n=10   K=30   [1,80]  | seed=13122   | instance  5/20 | value 3585.0       | gap   +28.77% | optimal    101.47 ms
+2026-10-15 13:03:08  2-APX n=10   K=30   [1,80]  | seed=13122   | instance  5/20 | value 3636.0       | gap   +30.60% | -            0.01 ms
+2026-10-15 13:03:08  NEH   n=10   K=30   [1,80]  | seed=13122   | instance  5/20 | value 3591.0       | gap   +28.99% | -            0.07 ms
+2026-10-15 13:03:08  GA    n=10   K=30   [1,80]  | seed=13122   | instance  5/20 | value 3855.0       | gap   +38.47% | -            0.51 ms
+2026-10-15 13:03:08  MILP  n=10   K=30   [1,80]  | seed=13122   | instance  6/20 | value 3960.0       | gap    +6.02% | optimal    142.31 ms
+2026-10-15 13:03:08  2-APX n=10   K=30   [1,80]  | seed=13122   | instance  6/20 | value 4148.0       | gap   +11.06% | -            0.01 ms
+2026-10-15 13:03:08  NEH   n=10   K=30   [1,80]  | seed=13122   | instance  6/20 | value 3960.0       | gap    +6.02% | -            0.07 ms
+2026-10-15 13:03:08  GA    n=10   K=30   [1,80]  | seed=13122   | instance  6/20 | value 4266.0       | gap   +14.22% | -            0.50 ms
+2026-10-15 13:03:08  MILP  n=10   K=30   [1,80]  | seed=13122   | instance  7/20 | value 4522.0       | gap    +9.92% | optimal    112.84 ms
+2026-10-15 13:03:08  2-APX n=10   K=30   [1,80]  | seed=13122   | instance  7/20 | value 4896.0       | gap   +19.01% | -            0.01 ms
+2026-10-15 13:03:08  NEH   n=10   K=30   [1,80]  | seed=13122   | instance  7/20 | value 4880.0       | gap   +18.62% | -            0.07 ms
+2026-10-15 13:03:08  GA    n=10   K=30   [1,80]  | seed=13122   | instance  7/20 | value 5219.0       | gap   +26.86% | -            0.48 ms
+2026-10-15 13:03:08  MILP  n=10   K=30   [1,80]  | seed=13122   | instance  8/20 | value 4966.0       | gap    +6.80% | optimal     92.73 ms
+2026-10-15 13:03:08  2-APX n=10   K=30   [1,80]  | seed=13122   | instance  8/20 | value 5700.0       | gap   +22.58% | -            0.01 ms
+2026-10-15 13:03:08  NEH   n=10   K=30   [1,80]  | seed=13122   | instance  8/20 | value 4966.0       | gap    +6.80% | -            0.07 ms
+2026-10-15 13:03:08  GA    n=10   K=30   [1,80]  | seed=13122   | instance  8/20 | value 6344.0       | gap   +36.43% | -            0.58 ms
+2026-10-15 13:03:08  MILP  n=10   K=30   [1,80]  | seed=13122   | instance  9/20 | value 3072.0       | gap    +1.59% | optimal     28.99 ms
+2026-10-15 13:03:08  2-APX n=10   K=30   [1,80]  | seed=13122   | instance  9/20 | value 3180.0       | gap    +5.16% | -            0.01 ms
+2026-10-15 13:03:08  NEH   n=10   K=30   [1,80]  | seed=13122   | instance  9/20 | value 3260.0       | gap    +7.80% | -            0.08 ms
+2026-10-15 13:03:08  GA    n=10   K=30   [1,80]  | seed=13122   | instance  9/20 | value 3690.0       | gap   +22.02% | -            0.51 ms
+2026-10-15 13:03:08  MILP  n=10   K=30   [1,80]  | seed=13122   | instance 10/20 | value 3720.0       | gap   +10.03% | optimal     60.60 ms
+2026-10-15 13:03:08  2-APX n=10   K=30   [1,80]  | seed=13122   | instance 10/20 | value 4473.0       | gap   +32.30% | -            0.01 ms
+2026-10-15 13:03:08  NEH   n=10   K=30   [1,80]  | seed=13122   | instance 10/20 | value 3720.0       | gap   +10.03% | -            0.11 ms
+2026-10-15 13:03:08  GA    n=10   K=30   [1,80]  | seed=13122   | instance 10/20 | value 4893.0       | gap   +44.72% | -            0.53 ms
+2026-10-15 13:03:08  MILP  n=10   K=30   [1,80]  | seed=13122   | instance 11/20 | value 3445.0       | gap   +11.13% | optimal     66.77 ms
+2026-10-15 13:03:08  2-APX n=10   K=30   [1,80]  | seed=13122   | instance 11/20 | value 3666.0       | gap   +18.26% | -            0.01 ms
+2026-10-15 13:03:08  NEH   n=10   K=30   [1,80]  | seed=13122   | instance 11/20 | value 3725.0       | gap   +20.16% | -            0.08 ms
+2026-10-15 13:03:08  GA    n=10   K=30   [1,80]  | seed=13122   | instance 11/20 | value 3549.0       | gap   +14.48% | -            0.47 ms
+2026-10-15 13:03:08  MILP  n=10   K=30   [1,80]  | seed=13122   | instance 12/20 | value 3456.0       | gap   +22.29% | optimal     40.65 ms
+2026-10-15 13:03:08  2-APX n=10   K=30   [1,80]  | seed=13122   | instance 12/20 | value 4644.0       | gap   +64.33% | -            0.01 ms
+2026-10-15 13:03:08  NEH   n=10   K=30   [1,80]  | seed=13122   | instance 12/20 | value 3880.0       | gap   +37.30% | -            0.07 ms
+2026-10-15 13:03:08  GA    n=10   K=30   [1,80]  | seed=13122   | instance 12/20 | value 4400.0       | gap   +55.70% | -            0.48 ms
+2026-10-15 13:03:08  MILP  n=10   K=30   [1,80]  | seed=13122   | instance 13/20 | value 5364.0       | gap   +20.65% | optimal    134.68 ms
+2026-10-15 13:03:08  2-APX n=10   K=30   [1,80]  | seed=13122   | instance 13/20 | value 5364.0       | gap   +20.65% | -            0.01 ms
+2026-10-15 13:03:08  NEH   n=10   K=30   [1,80]  | seed=13122   | instance 13/20 | value 5364.0       | gap   +20.65% | -            0.07 ms
+2026-10-15 13:03:08  GA    n=10   K=30   [1,80]  | seed=13122   | instance 13/20 | value 7350.0       | gap   +65.32% | -            0.48 ms
+2026-10-15 13:03:08  MILP  n=10   K=30   [1,80]  | seed=13122   | instance 14/20 | value 4301.0       | gap    +6.67% | optimal    104.65 ms
+2026-10-15 13:03:08  2-APX n=10   K=30   [1,80]  | seed=13122   | instance 14/20 | value 4746.0       | gap   +17.71% | -            0.01 ms
+2026-10-15 13:03:08  NEH   n=10   K=30   [1,80]  | seed=13122   | instance 14/20 | value 4301.0       | gap    +6.67% | -            0.07 ms
+2026-10-15 13:03:08  GA    n=10   K=30   [1,80]  | seed=13122   | instance 14/20 | value 5066.0       | gap   +25.64% | -            0.52 ms
+2026-10-15 13:03:08  MILP  n=10   K=30   [1,80]  | seed=13122   | instance 15/20 | value 3780.0       | gap   +13.21% | optimal     54.72 ms
+2026-10-15 13:03:08  2-APX n=10   K=30   [1,80]  | seed=13122   | instance 15/20 | value 3780.0       | gap   +13.21% | -            0.01 ms
+2026-10-15 13:03:08  NEH   n=10   K=30   [1,80]  | seed=13122   | instance 15/20 | value 3780.0       | gap   +13.21% | -            0.07 ms
+2026-10-15 13:03:08  GA    n=10   K=30   [1,80]  | seed=13122   | instance 15/20 | value 4137.0       | gap   +23.90% | -            0.46 ms
+2026-10-15 13:03:09  MILP  n=10   K=30   [1,80]  | seed=13122   | instance 16/20 | value 5520.0       | gap    +3.08% | optimal     57.23 ms
+2026-10-15 13:03:09  2-APX n=10   K=30   [1,80]  | seed=13122   | instance 16/20 | value 6210.0       | gap   +15.97% | -            0.01 ms
+2026-10-15 13:03:09  NEH   n=10   K=30   [1,80]  | seed=13122   | instance 16/20 | value 5968.0       | gap   +11.45% | -            0.07 ms
+2026-10-15 13:03:09  GA    n=10   K=30   [1,80]  | seed=13122   | instance 16/20 | value 9178.0       | gap   +71.39% | -            0.47 ms
+2026-10-15 13:03:09  MILP  n=10   K=30   [1,80]  | seed=13122   | instance 17/20 | value 3864.0       | gap   +24.44% | optimal     29.72 ms
+2026-10-15 13:03:09  2-APX n=10   K=30   [1,80]  | seed=13122   | instance 17/20 | value 3864.0       | gap   +24.44% | -            0.01 ms
+2026-10-15 13:03:09  NEH   n=10   K=30   [1,80]  | seed=13122   | instance 17/20 | value 3864.0       | gap   +24.44% | -            0.08 ms
+2026-10-15 13:03:09  GA    n=10   K=30   [1,80]  | seed=13122   | instance 17/20 | value 9256.0       | gap  +198.10% | -            0.50 ms
+2026-10-15 13:03:09  MILP  n=10   K=30   [1,80]  | seed=13122   | instance 18/20 | value 4732.0       | gap    +0.83% | optimal     49.07 ms
+2026-10-15 13:03:09  2-APX n=10   K=30   [1,80]  | seed=13122   | instance 18/20 | value 5239.0       | gap   +11.63% | -            0.01 ms
+2026-10-15 13:03:09  NEH   n=10   K=30   [1,80]  | seed=13122   | instance 18/20 | value 4732.0       | gap    +0.83% | -            0.07 ms
+2026-10-15 13:03:09  GA    n=10   K=30   [1,80]  | seed=13122   | instance 18/20 | value 6848.0       | gap   +45.92% | -            0.48 ms
+2026-10-15 13:03:09  MILP  n=10   K=30   [1,80]  | seed=13122   | instance 19/20 | value 5168.0       | gap   +18.29% | optimal     91.39 ms
+2026-10-15 13:03:09  2-APX n=10   K=30   [1,80]  | seed=13122   | instance 19/20 | value 5168.0       | gap   +18.29% | -            0.01 ms
+2026-10-15 13:03:09  NEH   n=10   K=30   [1,80]  | seed=13122   | instance 19/20 | value 5168.0       | gap   +18.29% | -            0.08 ms
+2026-10-15 13:03:09  GA    n=10   K=30   [1,80]  | seed=13122   | instance 19/20 | value 7990.0       | gap   +82.88% | -            0.48 ms
+2026-10-15 13:03:09  MILP  n=10   K=30   [1,80]  | seed=13122   | instance 20/20 | value 6450.0       | gap   +11.98% | optimal     48.02 ms
+2026-10-15 13:03:09  2-APX n=10   K=30   [1,80]  | seed=13122   | instance 20/20 | value 7040.0       | gap   +22.22% | -            0.01 ms
+2026-10-15 13:03:09  NEH   n=10   K=30   [1,80]  | seed=13122   | instance 20/20 | value 6860.0       | gap   +19.10% | -            0.09 ms
+2026-10-15 13:03:09  GA    n=10   K=30   [1,80]  | seed=13122   | instance 20/20 | value 7775.0       | gap   +34.98% | -            0.46 ms
+  [ 5/88] MILP n=10   K=30   [1,80]  | opt 20/20   | gap   +0.000% (  +0.000%,    +0.000%) | obj    4439.1 (  3072.0,    6450.0) | time     74.28 ms (   28.99,     142.31) | no value 0
+  [ 6/88] 2-approx n=10   K=30   [1,80]  | opt none    | gap   +8.494% (  +0.000%,   +34.375%) | obj    4805.7 (  3180.0,    7040.0) | time      0.01 ms (    0.01,       0.01) | no value 0
+  [ 7/88] NEH  n=10   K=30   [1,80]  | opt none    | gap   +3.087% (  +0.000%,   +12.633%) | obj    4566.2 (  3260.0,    6860.0) | time      0.08 ms (    0.07,       0.11) | no value 0
+  [ 8/88] GA   n=10   K=30   [1,80]  | opt none    | gap  +31.109% (  +3.019%,  +139.545%) | obj    5866.6 (  3549.0,    9256.0) | time      0.50 ms (    0.46,       0.58) | no value 0
+  n=15   K=30   [1,40]  | MILP (seed 18082)
+  n=15   K=30   [1,40]  | 2-approx (seed 18082)
+  n=15   K=30   [1,40]  | NEH (seed 18082)
+  n=15   K=30   [1,40]  | GA (seed 18082)
+2026-10-15 13:03:10  MILP  n=15   K=30   [1,40]  | seed=18082   | instance  1/20 | value 3840.0       | gap    +8.47% | optimal    1033.45 ms
+2026-10-15 13:03:10  2-APX n=15   K=30   [1,40]  | seed=18082   | instance  1/20 | value 4500.0       | gap   +27.12% | -            0.01 ms
+2026-10-15 13:03:10  NEH   n=15   K=30   [1,40]  | seed=18082   | instance  1/20 | value 3915.0       | gap   +10.59% | -            0.32 ms
+2026-10-15 13:03:10  GA    n=15   K=30   [1,40]  | seed=18082   | instance  1/20 | value 5420.0       | gap   +53.11% | -            1.55 ms
+2026-10-15 13:03:10  MILP  n=15   K=30   [1,40]  | seed=18082   | instance  2/20 | value 3111.0       | gap    +8.62% | optimal    465.59 ms
+2026-10-15 13:03:10  2-APX n=15   K=30   [1,40]  | seed=18082   | instance  2/20 | value 3168.0       | gap   +10.61% | -            0.01 ms
+2026-10-15 13:03:10  NEH   n=15   K=30   [1,40]  | seed=18082   | instance  2/20 | value 3111.0       | gap    +8.62% | -            0.20 ms
+2026-10-15 13:03:10  GA    n=15   K=30   [1,40]  | seed=18082   | instance  2/20 | value 4004.0       | gap   +39.80% | -            1.15 ms
+2026-10-15 13:03:11  MILP  n=15   K=30   [1,40]  | seed=18082   | instance  3/20 | value 2827.0       | gap    +6.28% | optimal    358.80 ms
+2026-10-15 13:03:11  2-APX n=15   K=30   [1,40]  | seed=18082   | instance  3/20 | value 2980.0       | gap   +12.03% | -            0.01 ms
+2026-10-15 13:03:11  NEH   n=15   K=30   [1,40]  | seed=18082   | instance  3/20 | value 3102.0       | gap   +16.62% | -            0.20 ms
+2026-10-15 13:03:11  GA    n=15   K=30   [1,40]  | seed=18082   | instance  3/20 | value 3267.0       | gap   +22.82% | -            1.29 ms
+2026-10-15 13:03:11  MILP  n=15   K=30   [1,40]  | seed=18082   | instance  4/20 | value 3154.0       | gap    +4.40% | optimal    240.48 ms
+2026-10-15 13:03:11  2-APX n=15   K=30   [1,40]  | seed=18082   | instance  4/20 | value 4009.0       | gap   +32.70% | -            0.01 ms
+2026-10-15 13:03:11  NEH   n=15   K=30   [1,40]  | seed=18082   | instance  4/20 | value 3154.0       | gap    +4.40% | -            0.20 ms
+2026-10-15 13:03:11  GA    n=15   K=30   [1,40]  | seed=18082   | instance  4/20 | value 3749.0       | gap   +24.10% | -            1.27 ms
+2026-10-15 13:03:11  MILP  n=15   K=30   [1,40]  | seed=18082   | instance  5/20 | value 3920.0       | gap    +5.38% | optimal    237.02 ms
+2026-10-15 13:03:11  2-APX n=15   K=30   [1,40]  | seed=18082   | instance  5/20 | value 4320.0       | gap   +16.13% | -            0.01 ms
+2026-10-15 13:03:11  NEH   n=15   K=30   [1,40]  | seed=18082   | instance  5/20 | value 3960.0       | gap    +6.45% | -            0.20 ms
+2026-10-15 13:03:11  GA    n=15   K=30   [1,40]  | seed=18082   | instance  5/20 | value 5460.0       | gap   +46.77% | -            1.33 ms
+2026-10-15 13:03:12  MILP  n=15   K=30   [1,40]  | seed=18082   | instance  6/20 | value 3245.0       | gap   +13.46% | optimal    420.04 ms
+2026-10-15 13:03:12  2-APX n=15   K=30   [1,40]  | seed=18082   | instance  6/20 | value 3586.0       | gap   +25.38% | -            0.01 ms
+2026-10-15 13:03:12  NEH   n=15   K=30   [1,40]  | seed=18082   | instance  6/20 | value 3289.0       | gap   +15.00% | -            0.20 ms
+2026-10-15 13:03:12  GA    n=15   K=30   [1,40]  | seed=18082   | instance  6/20 | value 4200.0       | gap   +46.85% | -            1.42 ms
+2026-10-15 13:03:12  MILP  n=15   K=30   [1,40]  | seed=18082   | instance  7/20 | value 3570.0       | gap   +17.98% | optimal    202.59 ms
+2026-10-15 13:03:12  2-APX n=15   K=30   [1,40]  | seed=18082   | instance  7/20 | value 3570.0       | gap   +17.98% | -            0.02 ms
+2026-10-15 13:03:12  NEH   n=15   K=30   [1,40]  | seed=18082   | instance  7/20 | value 3570.0       | gap   +17.98% | -            0.20 ms
+2026-10-15 13:03:12  GA    n=15   K=30   [1,40]  | seed=18082   | instance  7/20 | value 6279.0       | gap  +107.50% | -            1.19 ms
+2026-10-15 13:03:12  MILP  n=15   K=30   [1,40]  | seed=18082   | instance  8/20 | value 2640.0       | gap    +9.86% | optimal    178.29 ms
+2026-10-15 13:03:12  2-APX n=15   K=30   [1,40]  | seed=18082   | instance  8/20 | value 2970.0       | gap   +23.60% | -            0.02 ms
+2026-10-15 13:03:12  NEH   n=15   K=30   [1,40]  | seed=18082   | instance  8/20 | value 2790.0       | gap   +16.10% | -            0.18 ms
+2026-10-15 13:03:12  GA    n=15   K=30   [1,40]  | seed=18082   | instance  8/20 | value 4080.0       | gap   +69.79% | -            1.19 ms
+2026-10-15 13:03:13  MILP  n=15   K=30   [1,40]  | seed=18082   | instance  9/20 | value 3312.0       | gap   +11.52% | optimal    825.63 ms
+2026-10-15 13:03:13  2-APX n=15   K=30   [1,40]  | seed=18082   | instance  9/20 | value 3600.0       | gap   +21.21% | -            0.01 ms
+2026-10-15 13:03:13  NEH   n=15   K=30   [1,40]  | seed=18082   | instance  9/20 | value 3537.0       | gap   +19.09% | -            0.18 ms
+2026-10-15 13:03:13  GA    n=15   K=30   [1,40]  | seed=18082   | instance  9/20 | value 6534.0       | gap  +120.00% | -            1.35 ms
+2026-10-15 13:03:13  MILP  n=15   K=30   [1,40]  | seed=18082   | instance 10/20 | value 3250.0       | gap   +20.10% | optimal    512.55 ms
+2026-10-15 13:03:13  2-APX n=15   K=30   [1,40]  | seed=18082   | instance 10/20 | value 3542.0       | gap   +30.89% | -            0.02 ms
+2026-10-15 13:03:13  NEH   n=15   K=30   [1,40]  | seed=18082   | instance 10/20 | value 3300.0       | gap   +21.95% | -            0.20 ms
+2026-10-15 13:03:13  GA    n=15   K=30   [1,40]  | seed=18082   | instance 10/20 | value 3300.0       | gap   +21.95% | -            1.44 ms
+2026-10-15 13:03:14  MILP  n=15   K=30   [1,40]  | seed=18082   | instance 11/20 | value 4522.0       | gap    +7.69% | optimal    328.41 ms
+2026-10-15 13:03:14  2-APX n=15   K=30   [1,40]  | seed=18082   | instance 11/20 | value 5082.0       | gap   +21.03% | -            0.01 ms
+2026-10-15 13:03:14  NEH   n=15   K=30   [1,40]  | seed=18082   | instance 11/20 | value 4522.0       | gap    +7.69% | -            0.19 ms
+2026-10-15 13:03:14  GA    n=15   K=30   [1,40]  | seed=18082   | instance 11/20 | value 6292.0       | gap   +49.85% | -            1.26 ms
+2026-10-15 13:03:14  MILP  n=15   K=30   [1,40]  | seed=18082   | instance 12/20 | value 2585.0       | gap    +1.29% | optimal    215.46 ms
+2026-10-15 13:03:14  2-APX n=15   K=30   [1,40]  | seed=18082   | instance 12/20 | value 2893.0       | gap   +13.36% | -            0.02 ms
+2026-10-15 13:03:14  NEH   n=15   K=30   [1,40]  | seed=18082   | instance 12/20 | value 2585.0       | gap    +1.29% | -            0.20 ms
+2026-10-15 13:03:14  GA    n=15   K=30   [1,40]  | seed=18082   | instance 12/20 | value 4020.0       | gap   +57.52% | -            1.16 ms
+2026-10-15 13:03:14  MILP  n=15   K=30   [1,40]  | seed=18082   | instance 13/20 | value 3120.0       | gap    +5.41% | optimal    611.19 ms
+2026-10-15 13:03:14  2-APX n=15   K=30   [1,40]  | seed=18082   | instance 13/20 | value 3120.0       | gap    +5.41% | -            0.01 ms
+2026-10-15 13:03:14  NEH   n=15   K=30   [1,40]  | seed=18082   | instance 13/20 | value 3120.0       | gap    +5.41% | -            0.18 ms
+2026-10-15 13:03:14  GA    n=15   K=30   [1,40]  | seed=18082   | instance 13/20 | value 4240.0       | gap   +43.24% | -            1.23 ms
+2026-10-15 13:03:15  MILP  n=15   K=30   [1,40]  | seed=18082   | instance 14/20 | value 2142.0       | gap    +3.78% | optimal    282.37 ms
+2026-10-15 13:03:15  2-APX n=15   K=30   [1,40]  | seed=18082   | instance 14/20 | value 2232.0       | gap    +8.14% | -            0.01 ms
+2026-10-15 13:03:15  NEH   n=15   K=30   [1,40]  | seed=18082   | instance 14/20 | value 2208.0       | gap    +6.98% | -            0.18 ms
+2026-10-15 13:03:15  GA    n=15   K=30   [1,40]  | seed=18082   | instance 14/20 | value 5304.0       | gap  +156.98% | -            1.18 ms
+2026-10-15 13:03:15  MILP  n=15   K=30   [1,40]  | seed=18082   | instance 15/20 | value 3120.0       | gap    +5.76% | optimal    459.28 ms
+2026-10-15 13:03:15  2-APX n=15   K=30   [1,40]  | seed=18082   | instance 15/20 | value 3160.0       | gap    +7.12% | -            0.01 ms
+2026-10-15 13:03:15  NEH   n=15   K=30   [1,40]  | seed=18082   | instance 15/20 | value 3290.0       | gap   +11.53% | -            0.18 ms
+2026-10-15 13:03:15  GA    n=15   K=30   [1,40]  | seed=18082   | instance 15/20 | value 6720.0       | gap  +127.80% | -            1.12 ms
+2026-10-15 13:03:15  MILP  n=15   K=30   [1,40]  | seed=18082   | instance 16/20 | value 2346.0       | gap    +3.76% | optimal    280.29 ms
+2026-10-15 13:03:15  2-APX n=15   K=30   [1,40]  | seed=18082   | instance 16/20 | value 3002.0       | gap   +32.77% | -            0.01 ms
+2026-10-15 13:03:15  NEH   n=15   K=30   [1,40]  | seed=18082   | instance 16/20 | value 2346.0       | gap    +3.76% | -            0.18 ms
+2026-10-15 13:03:15  GA    n=15   K=30   [1,40]  | seed=18082   | instance 16/20 | value 5738.0       | gap  +153.78% | -            1.00 ms
+2026-10-15 13:03:16  MILP  n=15   K=30   [1,40]  | seed=18082   | instance 17/20 | value 3500.0       | gap   +16.67% | optimal    421.13 ms
+2026-10-15 13:03:16  2-APX n=15   K=30   [1,40]  | seed=18082   | instance 17/20 | value 3500.0       | gap   +16.67% | -            0.01 ms
+2026-10-15 13:03:16  NEH   n=15   K=30   [1,40]  | seed=18082   | instance 17/20 | value 3500.0       | gap   +16.67% | -            0.18 ms
+2026-10-15 13:03:16  GA    n=15   K=30   [1,40]  | seed=18082   | instance 17/20 | value 7614.0       | gap  +153.80% | -            1.18 ms
+2026-10-15 13:03:16  MILP  n=15   K=30   [1,40]  | seed=18082   | instance 18/20 | value 3765.0       | gap    +3.29% | optimal    275.39 ms
+2026-10-15 13:03:16  2-APX n=15   K=30   [1,40]  | seed=18082   | instance 18/20 | value 4140.0       | gap   +13.58% | -            0.02 ms
+2026-10-15 13:03:16  NEH   n=15   K=30   [1,40]  | seed=18082   | instance 18/20 | value 4379.0       | gap   +20.14% | -            0.18 ms
+2026-10-15 13:03:16  GA    n=15   K=30   [1,40]  | seed=18082   | instance 18/20 | value 4488.0       | gap   +23.13% | -            1.25 ms
+2026-10-15 13:03:17  MILP  n=15   K=30   [1,40]  | seed=18082   | instance 19/20 | value 3791.0       | gap   +16.75% | optimal    371.88 ms
+2026-10-15 13:03:17  2-APX n=15   K=30   [1,40]  | seed=18082   | instance 19/20 | value 3842.0       | gap   +18.32% | -            0.01 ms
+2026-10-15 13:03:17  NEH   n=15   K=30   [1,40]  | seed=18082   | instance 19/20 | value 3791.0       | gap   +16.75% | -            0.18 ms
+2026-10-15 13:03:17  GA    n=15   K=30   [1,40]  | seed=18082   | instance 19/20 | value 5525.0       | gap   +70.16% | -            1.27 ms
+2026-10-15 13:03:17  MILP  n=15   K=30   [1,40]  | seed=18082   | instance 20/20 | value 4248.0       | gap   +19.70% | optimal    475.43 ms
+2026-10-15 13:03:17  2-APX n=15   K=30   [1,40]  | seed=18082   | instance 20/20 | value 4392.0       | gap   +23.75% | -            0.01 ms
+2026-10-15 13:03:17  NEH   n=15   K=30   [1,40]  | seed=18082   | instance 20/20 | value 4248.0       | gap   +19.70% | -            0.18 ms
+2026-10-15 13:03:17  GA    n=15   K=30   [1,40]  | seed=18082   | instance 20/20 | value 8280.0       | gap  +133.31% | -            1.35 ms
+  [ 9/88] MILP n=15   K=30   [1,40]  | opt 20/20   | gap   +0.000% (  +0.000%,    +0.000%) | obj    3300.4 (  2142.0,    4522.0) | time    409.76 ms (  178.29,    1033.45) | no value 0
+  [10/88] 2-approx n=15   K=30   [1,40]  | opt none    | gap   +8.744% (  +0.000%,   +27.962%) | obj    3580.4 (  2232.0,    5082.0) | time      0.01 ms (    0.01,       0.02) | no value 0
+  [11/88] NEH  n=15   K=30   [1,40]  | opt none    | gap   +2.645% (  +0.000%,   +16.308%) | obj    3385.8 (  2208.0,    4522.0) | time      0.20 ms (    0.18,       0.32) | no value 0
+  [12/88] GA   n=15   K=30   [1,40]  | opt none    | gap  +60.889% (  +1.538%,  +147.619%) | obj    5225.7 (  3267.0,    8280.0) | time      1.26 ms (    1.00,       1.55) | no value 0
+  n=15   K=30   [1,80]  | MILP (seed 18122)
+  n=15   K=30   [1,80]  | 2-approx (seed 18122)
+  n=15   K=30   [1,80]  | NEH (seed 18122)
+  n=15   K=30   [1,80]  | GA (seed 18122)
+2026-10-15 13:03:17  MILP  n=15   K=30   [1,80]  | seed=18122   | instance  1/20 | value 4350.0       | gap   +19.18% | optimal    139.43 ms
+2026-10-15 13:03:17  2-APX n=15   K=30   [1,80]  | seed=18122   | instance  1/20 | value 4350.0       | gap   +19.18% | -            0.01 ms
+2026-10-15 13:03:17  NEH   n=15   K=30   [1,80]  | seed=18122   | instance  1/20 | value 5240.0       | gap   +43.56% | -            0.19 ms
+2026-10-15 13:03:17  GA    n=15   K=30   [1,80]  | seed=18122   | instance  1/20 | value 5200.0       | gap   +42.47% | -            1.25 ms
+2026-10-15 13:03:17  MILP  n=15   K=30   [1,80]  | seed=18122   | instance  2/20 | value 5192.0       | gap    +9.26% | optimal    165.85 ms
+2026-10-15 13:03:17  2-APX n=15   K=30   [1,80]  | seed=18122   | instance  2/20 | value 5192.0       | gap    +9.26% | -            0.01 ms
+2026-10-15 13:03:17  NEH   n=15   K=30   [1,80]  | seed=18122   | instance  2/20 | value 5576.0       | gap   +17.34% | -            0.17 ms
+2026-10-15 13:03:17  GA    n=15   K=30   [1,80]  | seed=18122   | instance  2/20 | value 5330.0       | gap   +12.16% | -            1.54 ms
+2026-10-15 13:03:19  MILP  n=15   K=30   [1,80]  | seed=18122   | instance  3/20 | value 7840.0       | gap   +12.26% | optimal    1888.29 ms
+2026-10-15 13:03:19  2-APX n=15   K=30   [1,80]  | seed=18122   | instance  3/20 | value 8640.0       | gap   +23.71% | -            0.01 ms
+2026-10-15 13:03:19  NEH   n=15   K=30   [1,80]  | seed=18122   | instance  3/20 | value 7840.0       | gap   +12.26% | -            0.19 ms
+2026-10-15 13:03:19  GA    n=15   K=30   [1,80]  | seed=18122   | instance  3/20 | value 9956.0       | gap   +42.55% | -            1.37 ms
+2026-10-15 13:03:19  MILP  n=15   K=30   [1,80]  | seed=18122   | instance  4/20 | value 6260.0       | gap    +5.74% | optimal    170.59 ms
+2026-10-15 13:03:19  2-APX n=15   K=30   [1,80]  | seed=18122   | instance  4/20 | value 6840.0       | gap   +15.54% | -            0.01 ms
+2026-10-15 13:03:19  NEH   n=15   K=30   [1,80]  | seed=18122   | instance  4/20 | value 6260.0       | gap    +5.74% | -            0.20 ms
+2026-10-15 13:03:19  GA    n=15   K=30   [1,80]  | seed=18122   | instance  4/20 | value 11020.0      | gap   +86.15% | -            1.22 ms
+2026-10-15 13:03:20  MILP  n=15   K=30   [1,80]  | seed=18122   | instance  5/20 | value 8228.0       | gap    +6.25% | optimal    489.67 ms
+2026-10-15 13:03:20  2-APX n=15   K=30   [1,80]  | seed=18122   | instance  5/20 | value 8228.0       | gap    +6.25% | -            0.01 ms
+2026-10-15 13:03:20  NEH   n=15   K=30   [1,80]  | seed=18122   | instance  5/20 | value 8532.0       | gap   +10.18% | -            0.20 ms
+2026-10-15 13:03:20  GA    n=15   K=30   [1,80]  | seed=18122   | instance  5/20 | value 12870.0      | gap   +66.19% | -            1.28 ms
+2026-10-15 13:03:22  MILP  n=15   K=30   [1,80]  | seed=18122   | instance  6/20 | value 9720.0       | gap    +9.95% | optimal    2067.36 ms
+2026-10-15 13:03:22  2-APX n=15   K=30   [1,80]  | seed=18122   | instance  6/20 | value 9729.0       | gap   +10.06% | -            0.01 ms
+2026-10-15 13:03:22  NEH   n=15   K=30   [1,80]  | seed=18122   | instance  6/20 | value 9720.0       | gap    +9.95% | -            0.18 ms
+2026-10-15 13:03:22  GA    n=15   K=30   [1,80]  | seed=18122   | instance  6/20 | value 13896.0      | gap   +57.19% | -            1.22 ms
+2026-10-15 13:03:22  MILP  n=15   K=30   [1,80]  | seed=18122   | instance  7/20 | value 6495.0       | gap    +6.39% | optimal    393.07 ms
+2026-10-15 13:03:22  2-APX n=15   K=30   [1,80]  | seed=18122   | instance  7/20 | value 6825.0       | gap   +11.79% | -            0.01 ms
+2026-10-15 13:03:22  NEH   n=15   K=30   [1,80]  | seed=18122   | instance  7/20 | value 6495.0       | gap    +6.39% | -            0.19 ms
+2026-10-15 13:03:22  GA    n=15   K=30   [1,80]  | seed=18122   | instance  7/20 | value 7575.0       | gap   +24.08% | -            1.27 ms
+2026-10-15 13:03:23  MILP  n=15   K=30   [1,80]  | seed=18122   | instance  8/20 | value 6555.0       | gap   +19.01% | optimal    368.26 ms
+2026-10-15 13:03:23  2-APX n=15   K=30   [1,80]  | seed=18122   | instance  8/20 | value 6896.0       | gap   +25.20% | -            0.01 ms
+2026-10-15 13:03:23  NEH   n=15   K=30   [1,80]  | seed=18122   | instance  8/20 | value 6600.0       | gap   +19.83% | -            0.18 ms
+2026-10-15 13:03:23  GA    n=15   K=30   [1,80]  | seed=18122   | instance  8/20 | value 10336.0      | gap   +87.65% | -            1.20 ms
+2026-10-15 13:03:23  MILP  n=15   K=30   [1,80]  | seed=18122   | instance  9/20 | value 11344.0      | gap    +4.42% | optimal    549.73 ms
+2026-10-15 13:03:23  2-APX n=15   K=30   [1,80]  | seed=18122   | instance  9/20 | value 11344.0      | gap    +4.42% | -            0.01 ms
+2026-10-15 13:03:23  NEH   n=15   K=30   [1,80]  | seed=18122   | instance  9/20 | value 11344.0      | gap    +4.42% | -            0.19 ms
+2026-10-15 13:03:23  GA    n=15   K=30   [1,80]  | seed=18122   | instance  9/20 | value 14259.0      | gap   +31.25% | -            1.21 ms
+2026-10-15 13:03:23  MILP  n=15   K=30   [1,80]  | seed=18122   | instance 10/20 | value 5562.0       | gap    +5.34% | optimal    123.46 ms
+2026-10-15 13:03:23  2-APX n=15   K=30   [1,80]  | seed=18122   | instance 10/20 | value 6156.0       | gap   +16.59% | -            0.01 ms
+2026-10-15 13:03:23  NEH   n=15   K=30   [1,80]  | seed=18122   | instance 10/20 | value 6056.0       | gap   +14.70% | -            0.19 ms
+2026-10-15 13:03:23  GA    n=15   K=30   [1,80]  | seed=18122   | instance 10/20 | value 9204.0       | gap   +74.32% | -            1.31 ms
+2026-10-15 13:03:24  MILP  n=15   K=30   [1,80]  | seed=18122   | instance 11/20 | value 9292.0       | gap   +18.31% | optimal    962.52 ms
+2026-10-15 13:03:24  2-APX n=15   K=30   [1,80]  | seed=18122   | instance 11/20 | value 9877.0       | gap   +25.76% | -            0.01 ms
+2026-10-15 13:03:24  NEH   n=15   K=30   [1,80]  | seed=18122   | instance 11/20 | value 9350.0       | gap   +19.05% | -            0.23 ms
+2026-10-15 13:03:24  GA    n=15   K=30   [1,80]  | seed=18122   | instance 11/20 | value 10880.0      | gap   +38.53% | -            1.35 ms
+2026-10-15 13:03:25  MILP  n=15   K=30   [1,80]  | seed=18122   | instance 12/20 | value 7748.0       | gap    +1.53% | optimal    183.04 ms
+2026-10-15 13:03:25  2-APX n=15   K=30   [1,80]  | seed=18122   | instance 12/20 | value 8671.0       | gap   +13.63% | -            0.01 ms
+2026-10-15 13:03:25  NEH   n=15   K=30   [1,80]  | seed=18122   | instance 12/20 | value 7774.0       | gap    +1.87% | -            0.19 ms
+2026-10-15 13:03:25  GA    n=15   K=30   [1,80]  | seed=18122   | instance 12/20 | value 10110.0      | gap   +32.49% | -            1.22 ms
+2026-10-15 13:03:25  MILP  n=15   K=30   [1,80]  | seed=18122   | instance 13/20 | value 7650.0       | gap    +1.92% | optimal    371.58 ms
+2026-10-15 13:03:25  2-APX n=15   K=30   [1,80]  | seed=18122   | instance 13/20 | value 7866.0       | gap    +4.80% | -            0.01 ms
+2026-10-15 13:03:25  NEH   n=15   K=30   [1,80]  | seed=18122   | instance 13/20 | value 8580.0       | gap   +14.31% | -            0.18 ms
+2026-10-15 13:03:25  GA    n=15   K=30   [1,80]  | seed=18122   | instance 13/20 | value 18278.0      | gap  +143.51% | -            1.28 ms
+2026-10-15 13:03:25  MILP  n=15   K=30   [1,80]  | seed=18122   | instance 14/20 | value 6512.0       | gap    +2.42% | optimal    288.50 ms
+2026-10-15 13:03:25  2-APX n=15   K=30   [1,80]  | seed=18122   | instance 14/20 | value 7150.0       | gap   +12.46% | -            0.01 ms
+2026-10-15 13:03:25  NEH   n=15   K=30   [1,80]  | seed=18122   | instance 14/20 | value 7704.0       | gap   +21.17% | -            0.19 ms
+2026-10-15 13:03:25  GA    n=15   K=30   [1,80]  | seed=18122   | instance 14/20 | value 13364.0      | gap  +110.19% | -            1.04 ms
+2026-10-15 13:03:26  MILP  n=15   K=30   [1,80]  | seed=18122   | instance 15/20 | value 7320.0       | gap    +2.35% | optimal    459.16 ms
+2026-10-15 13:03:26  2-APX n=15   K=30   [1,80]  | seed=18122   | instance 15/20 | value 8280.0       | gap   +15.77% | -            0.01 ms
+2026-10-15 13:03:26  NEH   n=15   K=30   [1,80]  | seed=18122   | instance 15/20 | value 7320.0       | gap    +2.35% | -            0.18 ms
+2026-10-15 13:03:26  GA    n=15   K=30   [1,80]  | seed=18122   | instance 15/20 | value 11904.0      | gap   +66.44% | -            1.01 ms
+2026-10-15 13:03:26  MILP  n=15   K=30   [1,80]  | seed=18122   | instance 16/20 | value 5460.0       | gap    +0.22% | optimal    284.58 ms
+2026-10-15 13:03:26  2-APX n=15   K=30   [1,80]  | seed=18122   | instance 16/20 | value 6846.0       | gap   +25.66% | -            0.01 ms
+2026-10-15 13:03:26  NEH   n=15   K=30   [1,80]  | seed=18122   | instance 16/20 | value 5817.0       | gap    +6.77% | -            0.17 ms
+2026-10-15 13:03:26  GA    n=15   K=30   [1,80]  | seed=18122   | instance 16/20 | value 6552.0       | gap   +20.26% | -            1.24 ms
+2026-10-15 13:03:27  MILP  n=15   K=30   [1,80]  | seed=18122   | instance 17/20 | value 8225.0       | gap    +0.30% | optimal    1040.63 ms
+2026-10-15 13:03:27  2-APX n=15   K=30   [1,80]  | seed=18122   | instance 17/20 | value 8775.0       | gap    +7.01% | -            0.01 ms
+2026-10-15 13:03:27  NEH   n=15   K=30   [1,80]  | seed=18122   | instance 17/20 | value 8825.0       | gap    +7.62% | -            0.20 ms
+2026-10-15 13:03:27  GA    n=15   K=30   [1,80]  | seed=18122   | instance 17/20 | value 8225.0       | gap    +0.30% | -            1.54 ms
+2026-10-15 13:03:27  MILP  n=15   K=30   [1,80]  | seed=18122   | instance 18/20 | value 5522.0       | gap    +2.45% | optimal    198.78 ms
+2026-10-15 13:03:27  2-APX n=15   K=30   [1,80]  | seed=18122   | instance 18/20 | value 6292.0       | gap   +16.73% | -            0.02 ms
+2026-10-15 13:03:27  NEH   n=15   K=30   [1,80]  | seed=18122   | instance 18/20 | value 6180.0       | gap   +14.66% | -            0.18 ms
+2026-10-15 13:03:27  GA    n=15   K=30   [1,80]  | seed=18122   | instance 18/20 | value 11352.0      | gap  +110.61% | -            1.24 ms
+2026-10-15 13:03:27  MILP  n=15   K=30   [1,80]  | seed=18122   | instance 19/20 | value 6448.0       | gap    +5.22% | optimal    236.19 ms
+2026-10-15 13:03:27  2-APX n=15   K=30   [1,80]  | seed=18122   | instance 19/20 | value 7328.0       | gap   +19.58% | -            0.01 ms
+2026-10-15 13:03:27  NEH   n=15   K=30   [1,80]  | seed=18122   | instance 19/20 | value 6492.0       | gap    +5.94% | -            0.19 ms
+2026-10-15 13:03:27  GA    n=15   K=30   [1,80]  | seed=18122   | instance 19/20 | value 15850.0      | gap  +158.65% | -            1.15 ms
+2026-10-15 13:03:28  MILP  n=15   K=30   [1,80]  | seed=18122   | instance 20/20 | value 5984.0       | gap    +0.86% | optimal    219.82 ms
+2026-10-15 13:03:28  2-APX n=15   K=30   [1,80]  | seed=18122   | instance 20/20 | value 6902.0       | gap   +16.33% | -            0.01 ms
+2026-10-15 13:03:28  NEH   n=15   K=30   [1,80]  | seed=18122   | instance 20/20 | value 5984.0       | gap    +0.86% | -            0.18 ms
+2026-10-15 13:03:28  GA    n=15   K=30   [1,80]  | seed=18122   | instance 20/20 | value 6885.0       | gap   +16.05% | -            1.57 ms
+  [13/88] MILP n=15   K=30   [1,80]  | opt 20/20   | gap   +0.000% (  +0.000%,    +0.000%) | obj    7085.4 (  4350.0,   11344.0) | time    530.03 ms (  123.46,    2067.36) | no value 0
+  [14/88] 2-approx n=15   K=30   [1,80]  | opt none    | gap   +7.974% (  +0.000%,   +25.385%) | obj    7609.4 (  4350.0,   11344.0) | time      0.01 ms (    0.01,       0.02) | no value 0
+  [15/88] NEH  n=15   K=30   [1,80]  | opt none    | gap   +4.949% (  +0.000%,   +20.460%) | obj    7384.4 (  5240.0,   11344.0) | time      0.19 ms (    0.17,       0.23) | no value 0
+  [16/88] GA   n=15   K=30   [1,80]  | opt none    | gap  +51.544% (  +0.000%,  +145.813%) | obj   10652.3 (  5200.0,   18278.0) | time      1.27 ms (    1.01,       1.57) | no value 0
+  n=20   K=30   [1,40]  | MILP (seed 23082)
+  n=20   K=30   [1,40]  | 2-approx (seed 23082)
+  n=20   K=30   [1,40]  | NEH (seed 23082)
+  n=20   K=30   [1,40]  | GA (seed 23082)
+2026-10-15 13:03:28  MILP  n=20   K=30   [1,40]  | seed=23082   | instance  1/20 | value 4488.0       | gap    +4.98% | optimal    752.43 ms
+2026-10-15 13:03:28  2-APX n=20   K=30   [1,40]  | seed=23082   | instance  1/20 | value 4600.0       | gap    +7.60% | -            0.01 ms
+2026-10-15 13:03:28  NEH   n=20   K=30   [1,40]  | seed=23082   | instance  1/20 | value 4718.0       | gap   +10.36% | -            0.38 ms
+2026-10-15 13:03:28  GA    n=20   K=30   [1,40]  | seed=23082   | instance  1/20 | value 7800.0       | gap   +82.46% | -            2.55 ms
+2026-10-15 13:03:29  MILP  n=20   K=30   [1,40]  | seed=23082   | instance  2/20 | value 5640.0       | gap    +6.21% | optimal    183.66 ms
+2026-10-15 13:03:29  2-APX n=20   K=30   [1,40]  | seed=23082   | instance  2/20 | value 5800.0       | gap    +9.23% | -            0.01 ms
+2026-10-15 13:03:29  NEH   n=20   K=30   [1,40]  | seed=23082   | instance  2/20 | value 5640.0       | gap    +6.21% | -            0.42 ms
+2026-10-15 13:03:29  GA    n=20   K=30   [1,40]  | seed=23082   | instance  2/20 | value 6300.0       | gap   +18.64% | -            2.81 ms
+2026-10-15 13:03:32  MILP  n=20   K=30   [1,40]  | seed=23082   | instance  3/20 | value 4750.0       | gap   +19.05% | optimal    3497.46 ms
+2026-10-15 13:03:32  2-APX n=20   K=30   [1,40]  | seed=23082   | instance  3/20 | value 4807.0       | gap   +20.48% | -            0.01 ms
+2026-10-15 13:03:32  NEH   n=20   K=30   [1,40]  | seed=23082   | instance  3/20 | value 4750.0       | gap   +19.05% | -            0.38 ms
+2026-10-15 13:03:32  GA    n=20   K=30   [1,40]  | seed=23082   | instance  3/20 | value 6864.0       | gap   +72.03% | -            2.29 ms
+2026-10-15 13:03:33  MILP  n=20   K=30   [1,40]  | seed=23082   | instance  4/20 | value 4896.0       | gap    +5.88% | optimal    698.00 ms
+2026-10-15 13:03:33  2-APX n=20   K=30   [1,40]  | seed=23082   | instance  4/20 | value 4896.0       | gap    +5.88% | -            0.01 ms
+2026-10-15 13:03:33  NEH   n=20   K=30   [1,40]  | seed=23082   | instance  4/20 | value 5026.0       | gap    +8.69% | -            0.39 ms
+2026-10-15 13:03:33  GA    n=20   K=30   [1,40]  | seed=23082   | instance  4/20 | value 11542.0      | gap  +149.61% | -            2.15 ms
+2026-10-15 13:03:34  MILP  n=20   K=30   [1,40]  | seed=23082   | instance  5/20 | value 5292.0       | gap    +6.97% | optimal    896.85 ms
+2026-10-15 13:03:34  2-APX n=20   K=30   [1,40]  | seed=23082   | instance  5/20 | value 5491.0       | gap   +11.00% | -            0.01 ms
+2026-10-15 13:03:34  NEH   n=20   K=30   [1,40]  | seed=23082   | instance  5/20 | value 5310.0       | gap    +7.34% | -            0.39 ms
+2026-10-15 13:03:34  GA    n=20   K=30   [1,40]  | seed=23082   | instance  5/20 | value 6783.0       | gap   +37.11% | -            2.93 ms
