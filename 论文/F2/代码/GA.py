@@ -2,8 +2,8 @@
 """
 Genetic Algorithm (GA) for F2 || WCmax (two-machine flow shop, minimizing the
 maximum weighted completion time), implementing Section 5.3 of the paper
-(paper_framework.tex): Algorithm (alg:ap) alternating-position crossover, Algorithm
-(alg:cm) critical-job mutation, and Algorithm (alg:ga) the genetic algorithm.
+(paper_framework.tex): Algorithm (alg:pmx) partially mapped crossover, Algorithm
+(alg:cm) block mutation, and Algorithm (alg:ga) the genetic algorithm.
 
 Chromosome.  A permutation sigma = (sigma(1), ..., sigma(n)) of the job indices;
 the gene at position t is the job scheduled t-th.  Permutation encoding is used
@@ -15,38 +15,39 @@ no repair operator.  Decoding evaluates
 in O(n) time with a single forward pass over the two machines (paper
 eq:completion).
 
-Objectives.  A schedule is judged by the pair
+Objectives.  A schedule is judged by the triple
 
-    ( C_max(sigma), w_last(sigma) ),
+    ( C_max(sigma), w_last(sigma), WCmax(sigma) ),
 
-its makespan and the weight of the job that closes it, both to be minimized.
-The pair bounds the criterion from below, WCmax >= w_last * C_max, so the
-trade-off between the two is exactly the one the criterion rewards, and the
-population is carried forward by the non-dominated sorting and crowding
-distance of NSGA-II rather than by a single scalar fitness.  The schedule the
-algorithm reports is the one of smallest WCmax over the final population, which
-is also what the benchmark of the paper measures.
+its makespan, the weight of the job that closes it, and the criterion itself,
+all to be minimized.  The first two bound the criterion from below,
+WCmax >= w_last * C_max, and carry its scale; they are not the criterion, so it
+is ranked with them rather than tracked beside them, and the population is
+carried forward by the non-dominated sorting and crowding distance of NSGA-II
+rather than by a single scalar fitness.  The best schedule the search sees on
+the criterion is also carried into the next generation, so that an improvement
+is inherited by the generation that follows and not merely recorded.
 
-Initial population.  The NEH schedule of the instance and N - 1 neighbours of
-it.  NEH orders the jobs by non-increasing a_j + b_j and inserts them one at a
-time at the position that lowers the criterion most, so the population starts
-from an order that already reads the weights, and the schedule the algorithm
-reports can never be worse than the one NEH returns.
+Initial population.  Johnson's schedule and N - 1 neighbours of it.  Johnson's
+rule orders the jobs by their two processing times alone, so the population
+starts from the order that is shortest on the two machines and carries nothing
+of the weights; the criterion is brought in by the mutation below.
 
 Operators.
-    Alternating-position crossover (Algorithm alg:ap) gives the child the odd
-    positions of one parent -- half the instance, every other job -- and
-    front-back crossover (Algorithm alg:fb) gives it the front half instead;
-    either way the remaining positions are filled with the jobs of the other
-    parent in the order it lists them, passing over a job the child already
-    holds, so that the child is a valid permutation without any repair.  Each of
-    the two is drawn with probability 1/2.  Swapping the roles of the two
-    parents yields the second child.
-    Critical-job mutation (Algorithm alg:cm) acts on single jobs: a job
-    attaining WCmax is moved to the position that serves the criterion best, and,
-    where no such move helps, two jobs of inverted weight are exchanged with
-    probability p_m.  It is what moves the population off the order it started
-    from, one job at a time.
+    PMX (Algorithm alg:pmx) copies a contiguous segment of one parent and fills
+    the remaining positions from the other parent, resolving a gene that the
+    segment already holds through the mapping the segment induces, so that the
+    child is always a valid permutation.  Swapping the roles of the two parents
+    yields the second child.
+    Block mutation (Algorithm alg:cm) moves a block of the schedule: the jobs of
+    one weight leave it together, keeping the order they hold, and come back as
+    one run at the position that serves the criterion best.  The block is the one
+    a job attaining WCmax belongs to, and, with probability one half, one drawn
+    at random.  It is the move that holds the block structure of
+    Lemma (lem:block-johnson): an optimal schedule carries one block per weight,
+    in non-increasing order of it, and a move of a whole block puts the jobs of a
+    weight where the criterion wants them all at once, which a move of a single
+    job cannot.
 
 Local search (Algorithm alg:ga, Step 3).  The jobs carrying the largest weighted
 completion times -- descent_k(n) of them, one job in ten of the instance, the
@@ -54,13 +55,13 @@ ones that decide the criterion -- are reinserted, each at the position that
 lowers WCmax most, until no such insertion improves.
 
 Generations.  The algorithm is run for the number of generations the caller
-names.  The initial population already carries an order that reads the weights,
-so the generations are spent moving jobs within it rather than building it up
-from nothing, and the local search of Step 3 refines what they leave.
+names.  The initial population carries nothing of the weights, so the
+generations are spent building the criterion into the schedule rather than
+moving an order that already has it, and the local search of Step 3 refines what
+they leave.
 
 Note on p_m.  Algorithm alg:ga applies Algorithm alg:cm to each offspring with
-probability p_m, and Algorithm alg:cm itself uses p_m for its fallback exchange.
-Both uses are implemented as written in the paper.
+probability p_m, and nothing else in the algorithm draws on p_m.
 """
 
 from __future__ import annotations
@@ -147,137 +148,86 @@ def johnson_order(a: Sequence[float], b: Sequence[float]) -> List[int]:
     return early + late
 
 
-def alternating_crossover(p1: Sequence[int], p2: Sequence[int]) -> List[int]:
+def pmx(p1: Sequence[int], p2: Sequence[int], cut1: int, cut2: int) -> List[int]:
     """
-    Algorithm alg:ap: alternating-position crossover.
+    Algorithm alg:pmx: partially mapped crossover.
 
-    Step 1  [Alternate] the child inherits the odd positions 1, 3, 5, ... of p1,
-            half of the instance, so that those jobs keep the slot they hold in
-            p1;
-    Step 2  [Fill] the even positions are filled with the jobs of p2, taken in
-            the order p2 lists them, a job the child already holds being passed
-            over.
+    Step 1  copy the middle segment p1[cut1..cut2] verbatim into the child;
+    Step 2  fill every other position t with p2[t]; whenever that job already
+            occurs in the child, replace it through the mapping induced by the
+            segment, j <- p2[ p1^{-1}(j) ], until an unused job is reached.
 
-    Conflict resolution.  A job of p2 clashes with the child only when p1
-    already contributes it, and the clash is passed over rather than repaired:
-    that job has a slot already, the one p1 gave it, and the next job of p2
-    takes the free position instead.  The pass is well defined, because p1
-    contributes ceil(n / 2) jobs to the odd positions while p2 holds exactly the
-    floor(n / 2) remaining ones, which is the number of even positions to fill;
-    the scan therefore reaches one free job for each of them and stops with
-    every position taken.  No mapping between the two parents and no repair
-    operator is needed, and the child is a valid permutation by construction.
-    Swapping the roles of p1 and p2 yields the second child.
+    The mapping is a permutation, so the chain terminates; a guard is kept only
+    as a safety net.  Swapping the roles of p1 and p2 yields the second child.
     """
     n = len(p1)
+    lo, hi = (cut1, cut2) if cut1 <= cut2 else (cut2, cut1)
+    pos_in_p1 = {job: t for t, job in enumerate(p1)}
+
     child: List[Optional[int]] = [None] * n
-    odd = range(0, n, 2)
-    for t in odd:
+    used = set()
+    for t in range(lo, hi + 1):
         child[t] = p1[t]
-    held = set(child[t] for t in odd)
-    free = [j for j in p2 if j not in held]
-    for t, j in zip(range(1, n, 2), free):
+        used.add(p1[t])
+
+    for t in list(range(0, lo)) + list(range(hi + 1, n)):
+        j = p2[t]
+        guard = 0
+        while j in used:
+            j = p2[pos_in_p1[j]]          # follow the PMX mapping
+            guard += 1
+            if guard > n:                 # cannot happen for a valid permutation
+                break
         child[t] = j
+        used.add(j)
+
     return [int(x) for x in child]
 
 
-def front_back_crossover(p1: Sequence[int], p2: Sequence[int]) -> List[int]:
-    """
-    Algorithm alg:fb: front-back crossover.
-
-    Step 1  [Front] the child inherits the front half of p1, positions
-            1, ..., ceil(n / 2), so that those jobs keep the slot they hold in
-            p1;
-    Step 2  [Rear] the rear half is filled with the jobs of p2, read from the
-            position that follows its own front half to its end and then from
-            its first position to its front half, a job the child already holds
-            being passed over.
-
-    The two operators differ only in which half of p1 the child keeps: every
-    other slot here, the front half there.  The clash is settled by the same
-    pass -- a job of p2 that the child already holds keeps the slot p1 gave it
-    and is passed over -- and the same count makes the pass exact: p1
-    contributes ceil(n / 2) jobs to the half it gives, so p2 holds exactly the
-    floor(n / 2) others, which is the number of positions to fill.  Reading p2
-    from the position after its front half first is what makes the child take
-    the rear half of p2 for its own rear, the jobs of p2's front half being
-    called on only where the rear half holds a job the child already has.
-    Swapping the roles of p1 and p2 yields the second child.
-    """
-    n = len(p1)
-    h = (n + 1) // 2                      # ceil(n / 2): the front half of p1
-    child: List[Optional[int]] = [None] * n
-    for t in range(h):
-        child[t] = p1[t]
-    held = set(p1[:h])
-    cyclic = list(range(h, n)) + list(range(0, h))
-    free = [p2[t] for t in cyclic if p2[t] not in held]
-    for t, j in zip(range(h, n), free):
-        child[t] = j
-    return [int(x) for x in child]
-
-
-def _inversion_swap(sigma: Sequence[int], w: Sequence[float],
-                    rng: random.Random) -> List[int]:
-    """
-    Swap an earlier lighter job with a later heavier one (Algorithm alg:cm,
-    Step 3 fallback): the exchange moves weight forward, which is the direction
-    the block structure prescribes.  If no such pair exists the schedule is
-    returned unchanged.
-    """
-    n = len(sigma)
-    for _ in range(8):
-        p = rng.randrange(n)
-        heavier = [q for q in range(p + 1, n) if w[sigma[q]] > w[sigma[p]]]
-        if heavier:
-            q = rng.choice(heavier)
-            out = list(sigma)
-            out[p], out[q] = out[q], out[p]
-            return out
-    return list(sigma)
-
-
-def job_mutation(sigma: Sequence[int], a: Sequence[float],
+def block_mutation(sigma: Sequence[int], a: Sequence[float],
                    b: Sequence[float], w: Sequence[float],
-                   pm: float, rng: random.Random) -> List[int]:
+                   rng: random.Random) -> List[int]:
     """
-    Algorithm alg:cm: critical-job mutation.
+    Algorithm alg:cm: block mutation.
 
-    Step 1  let j* be a job attaining WCmax; form, for every position r, the
-            schedule obtained by moving j* to r, and keep the best of them if it
-            improves on sigma;
-    Step 2  otherwise exchange an earlier lighter job with a later heavier one
-            with probability pm.
+    Step 1  take the jobs of one weight out of the schedule, keeping the order
+            they hold in it, and put the run back at the position that lowers
+            W C_max most;
+    Step 2  the weight is the one of a job attaining W C_max, and, with
+            probability one half, one drawn at random instead.
 
-    Both moves act on single jobs: a job is moved, or exchanged for one of a
-    different weight, and the change is kept only when the criterion falls.
-    Nothing is imposed on the schedule as a whole, so the population is moved
-    off the order it started from one job at a time.
+    A weight is not a single job: it is a block of the schedule, and
+    \\Cref{lem:block-johnson} says that an optimal schedule holds one such block
+    per weight, in non-increasing order of it.  Moving a block therefore does
+    what a single job cannot: it puts every job of that weight where the
+    criterion wants it at once, and it is the move that builds the block order
+    up in as many moves as there are weights rather than as many as there are
+    jobs.  Since moving a block forward delays the jobs it passes, the move is
+    proposed whether or not it lowers the criterion -- there are orders the
+    criterion rewards that no single accepted move reaches -- and the survival
+    of the generation decides what becomes of it.
     """
     n = len(sigma)
     if n < 2:
         return list(sigma)
 
-    # Step 1: the critical job, into the position that serves the criterion best.
-    cur = _wcmax_fast(sigma, a, b, w)
-    t_star, _ = _critical_job(sigma, a, b, w)
-    j_star = sigma[t_star]
-    best_val, best_sigma = cur, None
-    rest = list(sigma[:t_star]) + list(sigma[t_star + 1:])
-    for r in range(n):
-        if r == t_star:
-            continue
-        cand = rest[:r] + [j_star] + rest[r:]
+    # Step 1: the block, and where it goes.
+    if rng.random() < 0.5:
+        t_star, _ = _critical_job(sigma, a, b, w)
+        weight = w[sigma[t_star]]
+    else:
+        weight = w[rng.choice(sigma)]
+    members = [j for j in sigma if w[j] == weight]
+    if len(members) == n:
+        return list(sigma)                # the whole schedule: nothing to move
+    rest = [j for j in sigma if w[j] != weight]
+    best_val, best = None, list(sigma)
+    for r in range(len(rest) + 1):
+        cand = rest[:r] + members + rest[r:]
         val = _wcmax_fast(cand, a, b, w)
-        if val < best_val:
-            best_val, best_sigma = val, cand
-    if best_sigma is not None:
-        return best_sigma
-
-    # Step 2.
-    if rng.random() < pm:
-        return _inversion_swap(sigma, w, rng)
-    return list(sigma)
+        if best_val is None or val < best_val:
+            best_val, best = val, cand
+    return best
 
 
 def _worst_jobs(sigma: Sequence[int], a: Sequence[float], b: Sequence[float],
@@ -332,26 +282,37 @@ def insertion_descent(sigma: Sequence[int], a: Sequence[float],
 # ---------------------------------------------------------------------------
 # Bi-objective machinery
 #
-# A schedule carries two objectives, both to be minimized: its makespan C_max
-# and the weight w_last of the job that closes it.  They bound the criterion of
-# the paper from below, WCmax = max_j w_j C_j >= w_last * C_max, and the two
-# together carry its scale: the criterion is a weighted completion, so a search
+# A schedule carries three objectives, all to be minimized: its makespan C_max,
+# the weight w_last of the job that closes it, and the criterion WCmax itself.
+# The first two bound the criterion from below, WCmax = max_j w_j C_j >=
+# w_last * C_max, and carry its scale: it is a weighted completion, so a search
 # that only pressed the makespan would leave the weights out of the account.
+# They are not the criterion, however -- a schedule can end early and light and
+# still be a poor one -- so the criterion is ranked with them rather than
+# tracked beside them: what the search selects for is what it is measured on.
 # ---------------------------------------------------------------------------
 
 def objectives(order: Sequence[int], a: Sequence[float], b: Sequence[float],
                w: Sequence[float]):
-    """The pair (C_max, w_last): makespan, and weight of the job closing it."""
+    """
+    The triple (C_max, w_last, WCmax) the survival ranks.
+
+    All three are read in the one forward pass over the two machines, so
+    ranking the criterion as well costs no more than the two bounds alone.
+    """
     c1 = c2 = 0.0
+    wc = 0.0
     for j in order:
         c1 += a[j]
         c2 = max(c1, c2) + b[j]
-    return c2, w[order[-1]]
+        wc = max(wc, w[j] * c2)
+    return c2, w[order[-1]], wc
 
 
 def _dominates(p, q) -> bool:
-    """True when the pair p dominates q: no worse in both, better in one."""
-    return (p[0] <= q[0] and p[1] <= q[1]) and (p[0] < q[0] or p[1] < q[1])
+    """True when p dominates q: no worse on every objective, better on one."""
+    return (all(x <= y for x, y in zip(p, q))
+            and any(x < y for x, y in zip(p, q)))
 
 
 def _pareto_fronts(objs: Sequence[tuple]) -> List[List[int]]:
@@ -393,7 +354,7 @@ def _crowding(objs: Sequence[tuple], front: Sequence[int]) -> dict:
     dist = {p: 0.0 for p in front}
     if len(front) <= 2:
         return {p: float("inf") for p in front}
-    for k in (0, 1):
+    for k in range(len(objs[front[0]])):
         line = sorted(front, key=lambda p: objs[p][k])
         lo, hi = objs[line[0]][k], objs[line[-1]][k]
         dist[line[0]] = dist[line[-1]] = float("inf")
@@ -436,23 +397,20 @@ def _nsga2_survive(objs: Sequence[tuple], N: int) -> List[int]:
     return keep
 
 
-def _neh_population(a: Sequence[float], b: Sequence[float],
-                    w: Sequence[float], N: int,
-                    rng: random.Random) -> List[List[int]]:
+def _johnson_population(a: Sequence[float], b: Sequence[float], N: int,
+                        rng: random.Random) -> List[List[int]]:
     """
-    P0: the NEH schedule and N - 1 neighbours of it.
+    P0: Johnson's schedule and N - 1 neighbours of it.
 
-    The first individual is the schedule of the NEH heuristic of NEH.py, which
-    orders the jobs by non-increasing a_j + b_j and inserts them one at a time at
-    the position that lowers WCmax most, so it is a schedule the weights have
-    already been read into.  The others are copies of it with a few neighbouring
-    jobs exchanged, the number of exchanges being drawn between one and
-    max(1, n // 4), which keeps the population supplied with the orders the
-    operators can move away from.  Since that first individual is in the
-    population and the elite is tracked on the criterion, the schedule the
-    algorithm reports is never worse than the one NEH returns.
+    The first individual is the schedule of Johnson's rule, which minimizes the
+    makespan, and the others are copies of it with a few neighbouring jobs
+    exchanged, the number of exchanges being drawn between one and
+    max(1, n // 4).  Johnson's rule orders the jobs by their processing times
+    alone, so the population starts from the order that is shortest on the two
+    machines together and carries no information about the weights, which the
+    mutation below then brings in one job at a time.
     """
-    sigma = list(neh_heuristic(a, b, w))
+    sigma = johnson_order(a, b)
     n = len(sigma)
     pop: List[List[int]] = [sigma]
     furthest = max(1, n // 4)      # the strongest displacement drawn
@@ -469,24 +427,29 @@ def _initial_population(a: Sequence[float], b: Sequence[float],
                         w: Sequence[float], N: int,
                         rng: random.Random) -> List[List[int]]:
     """The initial population of paper Algorithm alg:ga, Step 1."""
-    return _neh_population(a, b, w, N, rng)
+    return _johnson_population(a, b, N, rng)
 
 
 
 def _evolve(pop: List[List[int]], a: Sequence[float], b: Sequence[float],
-            w: Sequence[float], N: int, G: int, pc: float, pm: float,
+            w: Sequence[float], N: int, lam: int, G: int, pc: float, pm: float,
             rng: random.Random):
     """
-    The NSGA-II loop: tournament on (rank, crowding), the two half-inheritance
-    crossovers, critical-job mutation,
-    and (mu + lambda) survival by non-dominated sorting.
+    The NSGA-II loop: tournament on (rank, crowding), PMX, the block mutation,
+    and (mu + lambda) survival by non-dominated sorting on the three objectives.
 
-    Returns the population reached after G generations, its objective pairs, and
-    the best schedule on the criterion itself -- WCmax -- met along the way.  The
-    criterion is not one of the two objectives the survival ranks, so a schedule
-    that is excellent on it need not survive; tracking it separately is what lets
-    the algorithm report the best WCmax it saw rather than the best of the last
-    population.
+    A generation produces `lam` offspring from a population of N parents, so the
+    survival ranks N + lam schedules and keeps the best N of them.  More
+    offspring than parents is what gives one generation several recombinations
+    and mutations of the same parents to choose from, and the cost of the
+    generation is set by lam rather than by N.
+
+    Returns the population reached after G generations, its objectives, and the
+    best schedule on the criterion met along the way.  The criterion is one of
+    the three objectives the survival ranks, so a good schedule is under
+    pressure to survive; the elite is tracked on the criterion alone as well,
+    and is carried into the next generation, so that nothing the search finds is
+    lost when the other two objectives of that schedule are poor.
     """
     n = len(a)
     objs = [objectives(s, a, b, w) for s in pop]
@@ -504,28 +467,27 @@ def _evolve(pop: List[List[int]], a: Sequence[float], b: Sequence[float],
             pick = i if (rank[i], -crowd[i]) <= (rank[j], -crowd[j]) else j
             pool.append(pop[pick])
 
-        # Crossover: one of the two half-inheritance operators, each with
-        # probability 1/2, or the two parents copied.
+        # Crossover: PMX, or the two parents copied.
         offspring: List[List[int]] = []
-        while len(offspring) < N:
+        while len(offspring) < lam:
             p1 = pool[rng.randrange(len(pool))]
             p2 = pool[rng.randrange(len(pool))]
             if n >= 2 and rng.random() < pc:
-                operator = (alternating_crossover if rng.random() < 0.5
-                            else front_back_crossover)
-                kids = [operator(p1, p2), operator(p2, p1)]
+                # two distinct cut points, so that p1 < p2 as alg:pmx states
+                cut1, cut2 = rng.sample(range(n), 2)
+                kids = [pmx(p1, p2, cut1, cut2), pmx(p2, p1, cut1, cut2)]
             else:
                 kids = [list(p1), list(p2)]
             for kid in kids:
-                if len(offspring) < N:
+                if len(offspring) < lam:
                     offspring.append(kid)
 
         # Mutation: Algorithm alg:cm on each offspring with probability pm.
         for k in range(len(offspring)):
             if rng.random() < pm:
-                offspring[k] = job_mutation(offspring[k], a, b, w, pm, rng)
+                offspring[k] = block_mutation(offspring[k], a, b, w, rng)
 
-        # The criterion of the paper, tracked on every offspring.
+        # The criterion, tracked on every offspring.
         for s in offspring:
             val = _wcmax_fast(s, a, b, w)
             if val < elite_val:
@@ -537,6 +499,16 @@ def _evolve(pop: List[List[int]], a: Sequence[float], b: Sequence[float],
         keep = _nsga2_survive(all_objs, N)
         pop = [combined[i] for i in keep]
         objs = [all_objs[i] for i in keep]
+
+        # The elite is carried into the next generation: it takes the place of
+        # the survivor the ranking leaves worst, and is therefore a parent of
+        # the generation that follows.  Without this the improvements the search
+        # finds would be recorded but never inherited, since what the survival
+        # ranks is the criterion together with the two bounds and not the best
+        # schedule of the generation.
+        if elite not in pop:
+            pop[-1] = elite
+            objs[-1] = objectives(elite, a, b, w)
     return pop, objs, elite, elite_val
 
 
@@ -547,14 +519,16 @@ def ga(a: Sequence[float], b: Sequence[float], w: Sequence[float],
     """
     Genetic algorithm for F2 || WCmax (Algorithm alg:ga).
 
-    The search is bi-objective: an individual is the pair made of its makespan
-    C_max and the weight w_last of its last job, and the population is carried
-    forward by the non-dominated sorting and crowding distance of NSGA-II, so
-    that the whole trade-off between the two is explored rather than a single
-    weighted value.  The two objectives bound the criterion of the paper from
-    below, WCmax >= w_last * C_max, and the schedule the algorithm reports is the
-    best one on the criterion that the search saw, refined by the insertion
-    descent of Step 3.
+    The search is three-objective: an individual carries its makespan C_max, the
+    weight w_last of its last job and the criterion WCmax itself, and the
+    population is carried forward by the non-dominated sorting and crowding
+    distance of NSGA-II.  The first two bound the criterion from below,
+    WCmax >= w_last * C_max, and ranking the criterion with them is what makes
+    the selection press what the method is measured on; the best schedule the
+    search sees is also carried into the next generation, so that what one
+    generation finds is inherited by the next rather than only recorded.  The
+    schedule the algorithm reports is that best schedule, refined by the
+    insertion descent of Step 3.
 
     Parameters
     ----------
@@ -567,17 +541,19 @@ def ga(a: Sequence[float], b: Sequence[float], w: Sequence[float],
               argument is what carries it.
     pc      : crossover probability; with probability 1 - pc the two parents are
               copied into the offspring set unchanged.
-    pm      : mutation probability.  Used twice, as in the paper: Algorithm
-              alg:cm is applied to each offspring with probability pm, and its
-              Step 3 fallback swap also uses pm.
+    pm      : mutation probability.  Algorithm alg:cm, the move of a block of
+              one weight, is applied to each offspring with probability pm.
     k       : how many jobs the local search of Step 3 reinserts, the ones with
               the largest weighted completion times.  A caller that sets the
               parameters of a scale names one of its own -- the small and the
               large scale of the study do -- and a caller that names none gets
               the default rule descent_k(n).
-    lam     : elitism size.  Kept for the callers of the paper's run; the
-              survivors are now chosen by non-dominated sorting, which is
-              elitist by construction, so the argument no longer acts.
+    lam     : offspring per generation, the lambda of the (mu + lambda) survival.
+              The generation runs the crossover and the mutation until lam
+              children have been produced, and the survival keeps the best N of
+              the N + lam schedules it then holds.  A caller that names none gets
+              the default rule offspring_of(n), which rises linearly with the
+              instance, and the scales of the study name their own.
     seed    : optional random seed.
 
     Returns
@@ -592,22 +568,22 @@ def ga(a: Sequence[float], b: Sequence[float], w: Sequence[float],
     if N is None:
         N = population_of(n)
     if lam is None:
-        lam = max(1, N // 10)
-    lam = max(0, min(lam, N))
+        lam = offspring_of(n)
+    lam = max(1, int(lam))
 
     rng = random.Random(seed)
 
     # ---- Step 1: initialization -------------------------------------------
-    # The initial population: the NEH schedule of the instance and its
-    # neighbours, so that the search starts from an order the weights have
-    # already been read into.
+    # The initial population: Johnson's schedule of the instance and its
+    # neighbours.  Johnson's rule reads the two processing times alone, so the
+    # criterion has to be built into the schedule by the operators below.
     pop = _initial_population(a, b, w, N, rng)
 
     # ---- Step 2: evolution -------------------------------------------------
     # G generations, NSGA-II on (C_max, w_last): fronts and crowding carry the
     # selection, while the best schedule on the criterion itself is tracked
     # alongside them.
-    pop, _objs, sigma_star, best_val = _evolve(pop, a, b, w, N, G, pc, pm, rng)
+    pop, _objs, sigma_star, best_val = _evolve(pop, a, b, w, N, lam, G, pc, pm, rng)
 
     # ---- Step 3: local search ---------------------------------------------
     # The insertion descent of Algorithm alg:ga on the incumbent: the jobs that
@@ -663,6 +639,21 @@ POP_MIN, POP_RATE, POP_MAX = 6, 0.5, 20
 def population_of(n: int) -> int:
     """The population size of the genetic algorithm on an instance of n jobs."""
     return min(POP_MAX, max(POP_MIN, (n + 1) // 2))     # ceil(n / 2)
+
+
+#: How many offspring one generation produces, by the number of jobs of the
+#: instance: linear in n, with a floor and a cap.  Every child is one pass of the
+#: crossover and, with probability p_m, one pass of the mutation, so this is how
+#: many recombinations and mutations a generation gets before the survival sorts
+#: them, and the cost of a generation is set by it rather than by the population.
+#: The drivers of the study name their own rule; this is the default of a caller
+#: that names none.
+OFFSPRING_MIN, OFFSPRING_RATE, OFFSPRING_MAX = 20, 1.0, 120
+
+
+def offspring_of(n: int) -> int:
+    """The offspring one generation produces on an instance of n jobs."""
+    return min(OFFSPRING_MAX, OFFSPRING_MIN + int(OFFSPRING_RATE * n))
 
 
 #: name of this module, used to tag the per-instance records

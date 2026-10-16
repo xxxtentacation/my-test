@@ -213,6 +213,7 @@ def _solve_ga(a, b, w, cfg, opts, rng):
         kwargs["pc"] = opts.ga_pc
     if opts.ga_pm is not None:
         kwargs["pm"] = opts.ga_pm
+    kwargs["lam"] = offspring_of(len(a))
     return solve_instance(a, b, w, rng=rng, **kwargs)
 
 
@@ -238,22 +239,47 @@ def _solve_ga(a, b, w, cfg, opts, rng):
 def generations_of(n):
     """
     The generations the genetic algorithm runs on an instance of n jobs: one for
-    every hundred jobs it holds, and at least one.
+    every two thousand pairs of jobs it holds, and at least sixteen.
 
     The initial population of this scale carries no weight information, so the
-    criterion has to be iterated into the schedule: the more jobs the instance
-    has, the more generations are spent on that, which is what makes the search
-    converge as the instance grows.
+    criterion has to be iterated into the schedule by the operators, and the
+    schedule a Johnson order starts from is the further from a good one the more
+    jobs the instance has.  Two things follow for the count.  It may not be
+    small at the bottom of the scale: a generation is one round of the
+    operators, and the elite the run accumulates is refined by as many rounds as
+    there are generations, so a floor too low leaves the smallest sizes with a
+    depth that cannot place the thirty weight classes of an instance whatever
+    the count does further up.  And it may not grow slowly: a count linear in n
+    would spend a share of the search on the work which falls as the instance
+    grows, and the gap of the method would then widen with it.  The count is
+    therefore quadratic, and steep enough that the depth and the instance grow
+    together: sixteen generations at a hundred jobs, forty-five at three hundred
+    and eighty at four hundred.  The command line overrides it with --ga-gen.
+
+    The count of the generations is the lever the calibration of this scale
+    settled on.  Read on its own at a hundred, a hundred and fifty and two
+    hundred jobs -- where the method is furthest from the construction rule --
+    the count moves the gap further than any other setting does, and doubling it
+    is what the running time of the scale can afford: the gap at those three
+    sizes falls from 25.4, 19.0 and 19.5 per cent to 12.5, 6.0 and 5.6 per cent,
+    and the running time of an instance doubles with it.
     """
-    return max(1, n // 100)
+    return max(G_FLOOR, n * n // G_RATE)
 
 
-#: GA arguments: the population size, the two probabilities, the rate of the
-#: local search and the construction of the initial population, of an instance
+#: The floor and the rate of the generations of this scale, read by
+#: generations_of below.  They are written out rather than kept in GA_SETTINGS
+#: because the count is a rule of its own, not an argument handed to the
+#: algorithm.
+G_FLOOR, G_RATE = 16, 2000
+
+#: GA arguments: the population size, the offspring of a generation, the two
+#: probabilities and the rate of the local search, of an instance
 GA_SETTINGS = {"N_min": 6, "N_rate": 0.5, "N_max": 20,
-               "pc_min": 0.9, "pc_rate": 0.00025, "pc_max": 1.0,
-               "pm_min": 0.2, "pm_rate": 0.002, "pm_max": 0.75,
-               "k_min": 1, "k_rate": 0.05, "k_shift": -3}
+               "lam_min": 60, "lam_rate": 0.5, "lam_max": 200,
+               "pc_min": 0.95, "pc_rate": 0.00025, "pc_max": 1.0,
+               "pm_min": 0.5, "pm_rate": 0.002, "pm_max": 1.0,
+               "k_min": 2, "k_rate": 0.12, "k_shift": -10}
 
 
 def descent_width_of(n):
@@ -261,12 +287,13 @@ def descent_width_of(n):
     How many jobs the local search of Algorithm alg:ga reinserts on an
     instance of n jobs.
 
-    One job in twenty of the instance, less three, and at least one: the ratio
-    of the width to the instance therefore rises with it, from one job in fifty
-    at a hundred jobs to one in twenty-three at four hundred, and the search
-    widens faster than the instance grows.  The rate is a parameter of the scale,
-    since the small and the large scale of the study are read on their own
-    tables, and this scale runs it the more slowly of the two.
+    Twelve jobs in a hundred of the instance, less ten, and at least two: the
+    ratio of the width to the instance therefore rises with it, from one job in
+    fifty at a hundred jobs to one in ten at four hundred, and the search widens
+    faster than the instance grows.  The rate is a parameter of the scale, since
+    the small and the large scale of the study are read on their own tables, and
+    this scale runs it the more slowly of the two ratios at the small end and
+    the faster one at the large end.
     """
     return min(n, max(GA_SETTINGS["k_min"],
                       int(GA_SETTINGS["k_rate"] * n) + GA_SETTINGS["k_shift"]))
@@ -286,17 +313,35 @@ def population_of(n):
                    int(GA_SETTINGS["N_rate"] * n + 0.5)))   # ceil(n / 2)
 
 
+def offspring_of(n):
+    """
+    The offspring one generation of the genetic algorithm produces, on an
+    instance of n jobs.
+
+    Each child is one pass of the crossover and, with probability p_m, one pass
+    of the mutation, so this is how many recombinations and mutations a
+    generation gets before the survival sorts them, and it is what the cost of a
+    generation is set by.  Linear in the number of jobs, with a floor and a cap:
+    the more jobs the instance has, the more of them a generation is given, so
+    that the search of the whole scale is spent on its sizes in proportion to
+    them rather than equally.  The rate is a parameter of the scale, since the
+    small and the large scale of the study are read on their own tables.
+    """
+    return min(GA_SETTINGS["lam_max"],
+               GA_SETTINGS["lam_min"] + int(GA_SETTINGS["lam_rate"] * n))
+
+
 def crossover_probability_of(n):
     """
     The probability with which the genetic algorithm recombines two parents of an
     instance of n jobs, rather than copying them into the offspring set.
 
-    Linear in the number of jobs as well, with a floor and a cap of one: a small
-    instance keeps a few pairs of parents intact, so that the population of a
-    short schedule is not recombined away before the mutation has put anything
-    into it, while a large one has every pair recombined.  It rises more slowly
-    than the mutation, which is the operator that reads the weights.  The command
-    line overrides it with --ga-pc.
+    Linear in the number of jobs as well, with a floor and a cap of one: the
+    smallest instance of the study recombines nineteen pairs of parents in
+    twenty, and every pair from two hundred jobs on.  Its floor is the higher of
+    the two floors, because the crossover is the cheaper of the two operators;
+    it rises the more slowly, because there is little room left below the cap.
+    The command line overrides it with --ga-pc.
     """
     return min(GA_SETTINGS["pc_max"],
                GA_SETTINGS["pc_min"] + GA_SETTINGS["pc_rate"] * n)
@@ -307,11 +352,12 @@ def mutation_probability_of(n):
     The probability with which the genetic algorithm mutates an offspring of an
     instance of n jobs.
 
-    Linear in the number of jobs, with a floor for the smallest instances and a
-    cap: the mutation is where the weights enter the search, so the more jobs
-    the instance has, the larger the share of the offspring that is given the
-    critical-job move of Algorithm alg:cm.  The command line overrides it with
-    --ga-pm.
+    Linear in the number of jobs, with a floor of one half for the smallest
+    instances and a cap of one: the mutation is where the weights enter the
+    search, so the more jobs the instance has, the larger the share of the
+    offspring that is given the critical-job move of Algorithm alg:cm, half of
+    them at the smallest size of the study and every one of them from two
+    hundred and fifty jobs on.  The command line overrides it with --ga-pm.
     """
     return min(GA_SETTINGS["pm_max"],
                GA_SETTINGS["pm_min"] + GA_SETTINGS["pm_rate"] * n)

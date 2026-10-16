@@ -190,6 +190,7 @@ def _solve_ga(a, b, w, cfg, opts, rng):
         kwargs["N"] = opts.ga_pop
     if opts.ga_gen is not None:
         kwargs["G"] = opts.ga_gen
+    kwargs["lam"] = offspring_of(len(a))
     if opts.ga_pc is not None:
         kwargs["pc"] = opts.ga_pc
     if opts.ga_pm is not None:
@@ -223,19 +224,22 @@ def _solve_ga(a, b, w, cfg, opts, rng):
 #: GA arguments: the population size, the mutation probability and the rate of
 #: the local search of an instance of n jobs
 GA_SETTINGS = {"N_min": 6, "N_rate": 0.5, "N_max": 20,
-               "pc_min": 0.9, "pc_rate": 0.00025, "pc_max": 1.0,
-               "pm_min": 0.2, "pm_rate": 0.002, "pm_max": 0.75,
-               "k_min": 1, "k_rate": 0.1, "k_shift": 0,
-               "G_min": 2, "G_rate": 0.5}
+               "lam_min": 8, "lam_div": 12,
+               "pc_min": 0.95, "pc_rate": 0.00025, "pc_max": 1.0,
+               "pm_min": 0.5, "pm_rate": 0.002, "pm_max": 1.0,
+               "k_min": 1, "k_rate": 0.125, "k_shift": 0,
+               "G_min": 2, "G_div": 4}
 
 
 def descent_width_of(n):
     """
     How many jobs the local search of Algorithm alg:ga reinserts on an
-    instance of n jobs: one job in ten of the instance, and at least one, so
-    that the width grows with the size of the instance.  The rate is a
-    parameter of the scale, since the small and the large scale of the study
-    are read on their own tables.
+    instance of n jobs: one job in eight of the instance, and at least one.
+
+    The descent is the operator that refines a schedule once its blocks are in
+    place, so its width is what decides how far the search of this scale gets.
+    The rate is a parameter of the scale, since the small and the large scale of
+    the study are read on their own tables.
     """
     return min(n, max(GA_SETTINGS["k_min"],
                       int(GA_SETTINGS["k_rate"] * n) + GA_SETTINGS["k_shift"]))
@@ -243,15 +247,19 @@ def descent_width_of(n):
 
 def generations_of(n):
     """
-    The generations the genetic algorithm runs on an instance of n jobs.
+    The generations the genetic algorithm runs on an instance of n jobs: one for
+    every four jobs it holds, and at least two.
 
-    The initial population is a set of random permutations, so the criterion has
-    to be iterated into the schedule: the more jobs the instance has, the more
-    generations are spent on that.  A generation costs the evaluation of N
-    individuals in O(n) time each and one pass of the crossover and the mutation
-    over the population.  The command line overrides the count with --ga-gen.
+    The initial population carries no weight information, so the criterion has
+    to be iterated into the schedule, and a generation is one round of the
+    operators: what the elite accumulates is refined by one round per
+    generation, so the count is also the depth the run reaches.  This scale runs
+    few of them, in keeping with the sizes it is read at: what carries its
+    search is the offspring of a generation rather than the count of them, the
+    calibration of the scale having found the count the weaker of the two levers
+    here.  The command line overrides it with --ga-gen.
     """
-    return max(GA_SETTINGS["G_min"], (n + 1) // 2)
+    return max(GA_SETTINGS["G_min"], n // GA_SETTINGS["G_div"])
 
 
 def population_of(n):
@@ -268,16 +276,38 @@ def population_of(n):
                    int(GA_SETTINGS["N_rate"] * n + 0.5)))   # ceil(n / 2)
 
 
+def offspring_of(n):
+    """
+    The offspring one generation of the genetic algorithm produces, on an
+    instance of n jobs.
+
+    Each child is one pass of the crossover and, with probability p_m, one pass
+    of the mutation, so this is how many recombinations and mutations a
+    generation gets before the survival sorts them, and it is what the cost of a
+    generation is set by.  Quadratic in the number of jobs, with a floor: the
+    count is the lever the calibration of this scale settled on, because a
+    generation of a ten-job instance holds one child in sixty of the jobs it
+    holds and a handful of children is not enough for a round of the operators
+    to move anything.  The floor of eight is what places the ten-job instance,
+    and the rate is steep enough that the search of an instance of sixty jobs
+    converges while the one of ten is still short of the optimum: over the scale
+    the gap against the optimum falls from 15.1 per cent at ten jobs to 3.6 per
+    cent at sixty.  The rate is a parameter of the scale, since the small and the
+    large scale of the study are read on their own tables.
+    """
+    return max(GA_SETTINGS["lam_min"], n * n // GA_SETTINGS["lam_div"])
+
+
 def crossover_probability_of(n):
     """
     The probability with which the genetic algorithm recombines two parents of an
-    instance of n jobs, rather than copying them into the offspring set.
+    instance of n jobs, rather than copying them into the offspring set: one, at
+    every size of this scale.
 
-    Linear in the number of jobs as well, with a floor and a cap of one: a small
-    instance keeps a few pairs of parents intact, so that the population of a
-    short schedule is not recombined away before the mutation has put anything
-    into it, while a large one has every pair recombined.  It rises more slowly
-    than the mutation, which is the operator that reads the weights.  The command
+    The crossover is the cheaper of the two operators and the one that supplies
+    the orders the block move then rearranges, so no pair of parents is carried
+    over unchanged.  The scale sets it to the constant one, as it does the
+    mutation, where the large scale raises both with the instance.  The command
     line overrides it with --ga-pc.
     """
     return min(GA_SETTINGS["pc_max"],
@@ -287,13 +317,15 @@ def crossover_probability_of(n):
 def mutation_probability_of(n):
     """
     The probability with which the genetic algorithm mutates an offspring of an
-    instance of n jobs.
+    instance of n jobs: one, at every size of this scale.
 
-    Linear in the number of jobs, with a floor for the smallest instances and a
-    cap: the mutation is where the weights enter the search, so the more jobs
-    the instance has, the larger the share of the offspring that is given the
-    critical-job move of Algorithm alg:cm.  The command line overrides it with
-    --ga-pm.
+    The mutation is where the weights enter the search, and at these sizes a
+    block holds one or two jobs, so a move of a block is close to a move of a
+    single job and the search has to be given every one of them it can get:
+    every child is mutated.  The scale sets the probability to the constant one
+    rather than raising it with the instance, which is what the large scale
+    does, because there is nothing left to raise it to here.  The command line
+    overrides it with --ga-pm.
     """
     return min(GA_SETTINGS["pm_max"],
                GA_SETTINGS["pm_min"] + GA_SETTINGS["pm_rate"] * n)
@@ -743,6 +775,33 @@ def summarise(records):
 # writers
 # ---------------------------------------------------------------------------
 
+def _baseline_note(scales, methods):
+    """
+    The reference value the header says the gaps of a run are read on.
+
+    The reference of a configuration is the value of the model where the model
+    is among the methods run -- the optimum of the instance, which the model
+    returns wherever it closes one -- and the lower bound LB of paper Section
+    4.3, which the instance determines, where it is not.  run_scale() reads
+    every gap on exactly this reference, so the header states it per scale
+    rather than naming the lower bound for a run whose gaps are read against
+    the model.
+    """
+    run_at = lambda scale: (list(methods) if methods
+                            else list(SCALES[scale]["methods"]))
+    with_model = [s for s in scales if "milp" in run_at(s)]
+    without = [s for s in scales if s not in with_model]
+    parts = []
+    if with_model:
+        parts.append("%s: %s, the optimum of the instance"
+                     % (", ".join(with_model), BASELINE_LABEL["milp"]))
+    if without:
+        parts.append("%s: %s, the lower bound of paper Section 4.3, which the"
+                     " instance determines"
+                     % (", ".join(without), BASELINE_LABEL["base"]))
+    return "; ".join(parts)
+
+
 def _header(scales, methods, args):
     return [
         "F2 || WCmax -- computational study (paper Section 6)",
@@ -752,8 +811,7 @@ def _header(scales, methods, args):
             "%s: %s" % (s, ", ".join(METHODS[m][0] for m in SCALES[s]["methods"]))
             for s in scales),
         "instances/cfg : %d" % (args.instances or 20),
-        "baseline      : %s, the lower bound of paper Section 4.3, which the"
-        " instance determines" % BASELINE_LABEL["base"],
+        "baseline      : %s" % _baseline_note(scales, methods),
         "seed          : %d (+1000*n, + 100*K, + range)" % args.seed,
         "time limit    : %s s" % (args.time_limit if args.time_limit else "none"),
         "resumed       : %s" % (", ".join(args.resume)
