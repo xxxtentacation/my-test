@@ -11,12 +11,16 @@ methods they run, so a group can be run, interrupted and repeated on its own.
 The script follows the design of paper Section 6.1 rather than inventing its
 own:
 
-* **Instances.**  The set the dynamic program is reported on is the one of the
-  study that preceded this one: the three instance sizes 20, 40 and 60, crossed
-  with the weight count K = 2, whose weights are the geometric ladder {1, 10},
-  so that the weight classes are decades apart, and with the three
-  processing-time ranges [1,20], [1,40] and [1,60].  The nine configurations are
-  each replicated 20 times, for the 180 instances of the group.
+* **Instances.**  The instance sizes 40, 60, 80 and 100, crossed with the weight
+  count K = 2, whose weights are the geometric ladder {1, 10}, so that the weight
+  classes are decades apart, and with the two processing-time ranges [1,40] and
+  [1,80] of the other two groups, so that the three groups of the study share
+  them.  The eight configurations are each replicated 20 times, for the 160
+  instances of the group.  The ladder starts at 40 and rises by 20 a step, and it
+  is carried to the largest size the 600 s limit of the study still reaches:
+  [1,40] is settled well within it at every size of the group, while on [1,80]
+  the limit binds from about a hundred jobs on, which the count of instances the
+  method settles is what reports.
 
 * **Methods.**  The dynamic program of the paper alone.  Its running time
   O(n K V^(3K-3)) grows so fast in the number K of distinct weights that the
@@ -25,9 +29,10 @@ own:
   on the number of instances whose optimum it establishes and on its running
   time, rather than on a gap.
 
-* **Parameters.**  Those of paper Section 6: processing times U(1,20), U(1,40)
-  and U(1,60), and a time limit of 600 s, which bounds the state space an
-  instance may build rather than the search itself.
+* **Parameters.**  Those of paper Section 6: processing times drawn from the
+  discrete normal on {1, ..., 40} and {1, ..., 80}, and a time limit of 600 s,
+  which bounds the state space an instance may build rather than the search
+  itself.
 
 * **Optimum count.**  Once the method has run on a configuration, the count of
   instances whose optimum it established is what the two tables of the dynamic
@@ -99,16 +104,18 @@ SCALE = "dp"
 WEIGHT_COUNTS = (2,)
 
 #: the processing-time ranges of the group, by the upper end of the discrete
-#: range on the integers of which both processing times are drawn; the three are
-#: crossed with the instance sizes
-RANGES = (20, 40, 60)
+#: range on the integers of which both processing times are drawn; they are the
+#: two the other groups of the study use, and are crossed with the instance sizes
+RANGES = (40, 80)
 
-#: the instance sizes of the group
-SIZES = (20, 40, 60)
+#: the instance sizes of the group, the ladder the study reads the exact method
+#: on: it starts at 40 and rises by 20 a step up to the largest size the 600 s
+#: limit still reaches
+SIZES = (40, 60, 80, 100)
 
 #: The configuration of this group, and the only place where it is written down:
-#: the three instance sizes crossed with the weight count and the three
-#: processing-time ranges, 20 instances each, for the 9 configurations and 180
+#: the four instance sizes crossed with the weight count and the two
+#: processing-time ranges, 20 instances each, for the 8 configurations and 160
 #: instances of the group.  "configs" holds one (n, K, processing-time range)
 #: triple per configuration; "instances" is the replication count; "methods" the
 #: method the group is reported on; and "baseline" is None, the dynamic program
@@ -326,9 +333,11 @@ def run_scale(scale, methods, args, stream=sys.stdout):
                            % (done, total, label, n, wlabel, rlabel,
                               "%d/%d" % (opt, instances) if opt else "none",
                               o_mean, o_min, o_max, 1000.0 * t_mean, 1000.0 * t_min, 1000.0 * t_max, missing))
-                if run is None or not run["complete"]:
-                    print(summary, file=stream, flush=True)
-                    _record(record_path, summary)
+                # The summary closes the configuration in the live output and in
+                # the record file alike; this group has no resume, so a
+                # configuration is always run to its end before it is written.
+                print(summary, file=stream, flush=True)
+                _record(record_path, summary)
 
     # The best value found on each instance, now that the method has run on it:
     # the dynamic program is exact, so that value is the optimum of the instance.

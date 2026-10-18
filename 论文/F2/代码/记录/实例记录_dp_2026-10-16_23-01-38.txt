@@ -1,0 +1,21 @@
+  n=40   K=2    [1,40]  | DP (seed 40282)
+2026-10-16 23:01:42  DP    n=40   K=2    [1,40]  | seed=40282   | instance  1/20 | value 2660.0       | gap         - | optimal    3725.67 ms
+2026-10-16 23:01:43  DP    n=40   K=2    [1,40]  | seed=40282   | instance  2/20 | value 4550.0       | gap         - | optimal    1221.13 ms
+2026-10-16 23:01:43  DP    n=40   K=2    [1,40]  | seed=40282   | instance  3/20 | value 5120.0       | gap         - | optimal    321.59 ms
+2026-10-16 23:01:45  DP    n=40   K=2    [1,40]  | seed=40282   | instance  4/20 | value 4290.0       | gap         - | optimal    1468.50 ms
+2026-10-16 23:01:46  DP    n=40   K=2    [1,40]  | seed=40282   | instance  5/20 | value 4460.0       | gap         - | optimal    851.88 ms
+2026-10-16 23:01:46  DP    n=40   K=2    [1,40]  | seed=40282   | instance  6/20 | value 4960.0       | gap         - | optimal    190.10 ms
+2026-10-16 23:01:47  DP    n=40   K=2    [1,40]  | seed=40282   | instance  7/20 | value 4130.0       | gap         - | optimal    1459.75 ms
+2026-10-16 23:01:51  DP    n=40   K=2    [1,40]  | seed=40282   | instance  8/20 | value 3570.0       | gap         - | optimal    3115.50 ms
+2026-10-16 23:01:55  DP    n=40   K=2    [1,40]  | seed=40282   | instance  9/20 | value 3530.0       | gap         - | optimal    4305.27 ms
+2026-10-16 23:01:56  DP    n=40   K=2    [1,40]  | seed=40282   | instance 10/20 | value 4870.0       | gap         - | optimal    1326.27 ms
+2026-10-16 23:01:57  DP    n=40   K=2    [1,40]  | seed=40282   | instance 11/20 | value 4990.0       | gap         - | optimal    684.45 ms
+2026-10-16 23:01:59  DP    n=40   K=2    [1,40]  | seed=40282   | instance 12/20 | value 4300.0       | gap         - | optimal    1983.69 ms
+2026-10-16 23:02:00  DP    n=40   K=2    [1,40]  | seed=40282   | instance 13/20 | value 4280.0       | gap         - | optimal    811.12 ms
+2026-10-16 23:02:01  DP    n=40   K=2    [1,40]  | seed=40282   | instance 14/20 | value 3980.0       | gap         - | optimal    1463.43 ms
+2026-10-16 23:02:03  DP    n=40   K=2    [1,40]  | seed=40282   | instance 15/20 | value 3980.0       | gap         - | optimal    1436.57 ms
+2026-10-16 23:02:04  DP    n=40   K=2    [1,40]  | seed=40282   | instance 16/20 | value 4590.0       | gap         - | optimal    1359.71 ms
+2026-10-16 23:02:04  DP    n=40   K=2    [1,40]  | seed=40282   | instance 17/20 | value 5480.0       | gap         - | optimal    435.51 ms
+2026-10-16 23:02:05  DP    n=40   K=2    [1,40]  | seed=40282   | instance 18/20 | value 4330.0       | gap         - | optimal    825.02 ms
+2026-10-16 23:02:06  DP    n=40   K=2    [1,40]  | seed=40282   | instance 19/20 | value 4670.0       | gap         - | optimal    1155.90 ms
+2026-10-16 23:02:08  DP    n=40   K=2    [1,40]  | seed=40282   | instance 20/20 | value 3960.0       | gap         - | optimal    1182.21 ms

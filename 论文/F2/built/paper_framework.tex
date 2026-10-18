@@ -112,23 +112,23 @@
 \maketitle
 
 \begin{abstract}
-    Minimizing the maximum weighted completion time in a two-machine flow shop models
-    lines on which the most costly order paces the shop.
-    We establish that the problem is strongly NP-hard and give a mixed integer programming
-    formulation for it. We then show that an optimal schedule preserves the permutation
-    property and has a block structure of one block per distinct weight, Johnson's order
-    within each block, and the blocks in non-increasing weight order. On this structure we
-    build three methods. An exact dynamic program prunes dominated states and runs in
-    $O(nKV^{3K-3})$ time, where $K$ is the number of distinct weights and $V$ is the total
-    processing time. A 2-approximation runs in $O(n\log n)$ time, and rounding the time
-    coordinates and weights of the dynamic program turns it into a fully polynomial-time
-    approximation scheme that attains a $(1+\varepsilon)$-approximation for a constant
-    number of weights. For large instances we develop two heuristics, an adapted NEH
-    heuristic and a genetic algorithm. The computational study compares the exact methods
-    on small instances and the heuristics on the large ones, measured against a theoretical
-    lower bound. On the small instances the dynamic program returned the same values as the
-    model and was faster by up to two orders of magnitude. Among the heuristics the genetic
-    algorithm returned the smallest gap in every setting, ahead of the NEH heuristic.
+    Minimizing the maximum weighted completion time in a two-machine flow shop models a line
+    in which a few high-priority orders pace the shop. The problem is strongly NP-hard, and we
+    give a mixed integer programming formulation for it. We show that an optimal schedule
+    preserves the permutation property and has a block structure: one block per distinct
+    weight, Johnson's order within each block, and the blocks in non-increasing weight order.
+    On this structure we build three methods: a dynamic program that prunes dominated states
+    and runs in $O(nKV^{3K-3})$ time, where $K$ is the number of distinct weights and $V$ the
+    total processing time; a 2-approximation in $O(n\log n)$ time; and a fully polynomial-time
+    approximation scheme that attains a $(1+\varepsilon)$ guarantee for a constant number of
+    weights. For large instances we develop an adapted NEH heuristic and a genetic algorithm.
+    In a study with twenty instances per configuration, the model settles all $440$ small
+    instances, and at $K=2$ the dynamic program certifies the optimum up to eighty jobs on both
+    ranges and to a hundred on the narrower one; what stops it is cost, not correctness. The
+    2-approximation stays within $3.5$ per cent of the optimum on average and within $1.8$ per
+    cent of the lower bound, NEH within $2.5$ and $4.4$, and the genetic algorithm, the
+    weakest on small instances, is the only method whose gap falls as the instance grows,
+    passing both rules beyond about $260$ jobs.
 \end{abstract}
 
 \noindent \textbf{Keywords:} Flow shop; Dynamic programming; Approximation algorithms; 
@@ -137,137 +137,122 @@
 \label{sec:intro}
 
 The two-machine flow shop is one of the best known models in scheduling. Its structure is
-that of a plant whose jobs are machined on one machine and finished on another. Metal parts
-are cut and then coated, and a casting is rolled after it is poured. A web is printed and
-then bound, and a granulate is compressed after it is mixed. A job must leave the first
-stage before it can enter the second, and each stage carries one job at a time. Johnson
-settled the sequencing decision for this model as early as 1954
-\citep{johnson1954optimal}. The two-stage structure has remained a standard subject of
-sequencing theory, and its variants and solution methods are surveyed in
-\citep{pinedo2022scheduling}. The criterion of this paper is the maximum weighted
-completion time, also called the weighted makespan. It charges each job the product of its
-weight and its completion time and takes the largest of those products. Where the makespan
-asks when the shop falls idle, the weighted makespan asks which job is left waiting and
-what that wait costs. The weight belongs to the order rather
-than to the plant as a whole, and in a plant it is rarely a continuum. A contractual
-penalty for lateness, the capital tied up in work in process and the priority a large
-customer has bought are three classes rather than a spectrum. The most costly order is the
-one carrying the largest of them.
+that of a plant whose jobs are machined on one machine and finished on another: metal parts
+are cut and then coated, a casting is rolled after it is poured, a web is printed and then
+bound. A job must leave the first stage before it can enter the second, and each stage carries
+one job at a time. Johnson settled the sequencing decision for this model as early as 1954
+\citep{johnson1954optimal}, and the two-stage structure has remained a standard subject of
+sequencing theory, with its variants and solution methods reviewed in
+\citep{pinedo2022scheduling}.
 
-Much the same structure has appeared outside the factory. A system that serves large
-language model agents handles every step of a task in two phases. The step is reasoned about
-in the chain of thought \citep{wei2022chain}, and only then acted upon, by calling a tool or
-running code, in the chain of execution \citep{yao2023react}. The two phases draw on
-different resources, the first on the model that produces the thought and the second on the
-tool, the interpreter or the index that the call reaches, and the phases of different steps
-run alongside each other. What settles when a step finishes is therefore the phase it is in
-and the time the steps ahead of it have kept the resource it is waiting for.
+The criterion of this paper is the maximum weighted completion time, also called the weighted
+makespan. It charges each job the product of its weight and its completion time and takes the
+largest of those products: where the makespan asks when the shop falls idle, the weighted
+makespan asks which job is left waiting and what that wait costs. The weight belongs to the
+order rather than to the plant as a whole, and in a plant it is rarely a continuum. A
+contractual penalty for lateness, the capital tied up in work in process and the priority a
+large customer has bought are three classes rather than a spectrum, and the most costly order
+is the one carrying the largest of them.
 
-Serving a task takes many such steps, among them a retrieved document, a tool call and a
-sub-query, and the order in which they are admitted to the two phases settles when the task
-as a whole finishes. The correspondence with the two-machine flow shop runs through them one
-by one. A step is a job. The reasoning is the first machine and the acting is the second,
-and a step cannot be acted upon before it has been reasoned about, exactly as a job cannot
-enter the second machine before it has left the first. Each phase serves one step at a time,
-so a step waits for the step that holds the phase ahead of it, exactly as each machine
-carries one job at a time. The time a step spends in a phase is its processing time on that
-machine, the latency of the model for the reasoning and of the tool for the acting. The
-steps are not equal. One bought by a paid tier, or one whose failure is costly, weighs more
-than the rest, and that cost is the weight of the job.
+Much the same structure appears outside the factory. A system that serves large language model
+agents handles every step of a task in two phases: the step is reasoned about in the chain of
+thought \citep{wei2022chain}, and only then acted upon, by calling a tool or running code, in
+the chain of execution \citep{yao2023react}. A step is a job, the reasoning is the first
+machine and the acting is the second. A step cannot be acted upon before it has been reasoned
+about, each phase serves one step at a time, and the time a step spends in a phase is its
+processing time on that machine. The two phases draw on different resources, the model for the
+reasoning and the tool, the interpreter or the index for the acting, and the phases of
+different steps run alongside each other, so that when a step finishes is settled by the phase
+it is in and by the time the steps ahead of it have kept the resource it waits for. The steps
+are not equal: one bought by a paid tier, or one whose failure is costly, weighs more than the
+rest, and that cost is the weight of the job.
 
-The environment is not a choice of convenience. The two stages stand in series because a
-step has to be reasoned about before it is acted upon, and each of them holds one step at a
-time because the model and the tool each serve one step at a time. A single stage would not
-do. Reasoning and acting consume different resources, and a step that waits for its tool
-leaves the model free for the next step, so that merging the two phases would erase the
-overlap that makes the order of the steps matter at all. The criterion asks for the same
-environment from the other side. What is judged is the completion time of one step, and on a
-single machine that completion time is settled by the position of the step, no earlier stage
-being there whose delay it could inherit. Two stages in series are what make the completion
-time of the decisive step a property of the whole schedule rather than of its position in
-the sequence.
+Two features of this environment are not a choice of convenience. The two stages stand in
+series because a step has to be reasoned about before it is acted upon, and merging them would
+erase the overlap that makes the order of the steps matter at all: reasoning and acting consume
+different resources, and a step that waits for its tool leaves the model free for the next one.
+The criterion is a maximum rather than an average for the same reason, since what decides
+whether the service is acceptable is the step that matters most. On a single machine that step
+would not be a property of the schedule: its completion time would be settled by its position
+in the sequence, no earlier stage being there whose delay it could inherit. Two stages in
+series are what make the completion time of the decisive step depend on the whole schedule.
 
-What decides whether the service is acceptable is not the average over the steps but the
-step that matters most. Weighted by its cost, that step is what the task is judged on, so
-the criterion is the maximum weighted completion time rather than the average.
+In scheduling theory the criterion has been studied in several machine environments.
+Maximum-type criteria have a classical foundation: Lawler's backward rule minimizes, on a single
+machine, the maximum of arbitrary nondecreasing cost functions in quadratic time
+\citep{lawler1973optimal}, and weighted completion times are read as a maximum rather than a sum
+within that framework. In the online setting, where jobs are revealed over time, best-possible
+algorithms are known for the same criterion on one machine \citep{li2015best}, and a machine
+carrying one restricted rate-modifying activity has been treated for it as well
+\citep{zuo2026single}. On identical parallel
+machines, randomized approximation schemes have been developed for the weighted makespan
+\citep{sun2024randomized}, and the criterion has been combined with the decision of which
+orders to accept \citep{lu2025order}. Maximum-type criteria appear in other forms as well, such
+as the maximum earliness/tardiness cost of a single machine when jobs may be rejected
+\citep{guo2026maximum}. In all of these settings, however, a job occupies one machine for its
+entire processing time, so that the interaction between two consecutive stages, which is what
+defines the flow shop, does not arise.
 
-In scheduling theory the criterion has been studied in several machine environments. On a
-single machine, jobs are revealed over time and must be sequenced without knowledge of the
-future. For this online setting, best-possible algorithms are known for the maximum
-weighted completion time \citep{li2015best}. A single machine carrying one restricted
-rate-modifying activity has also been treated for the same criterion
-\citep{zuo2026single}. On identical parallel machines, randomized approximation schemes for
-the weighted makespan have been developed \citep{sun2024randomized}. The criterion has also
-been combined with the decision of which orders to accept \citep{lu2025order}.
-Maximum-type criteria have been studied in other forms as well. For a single machine, the
-maximum earliness/tardiness cost has been minimized when jobs may be rejected
-\citep{guo2026maximum}. In all of these settings, however, a job occupies one machine for
-its entire processing time. The interaction between two consecutive stages, which is what
-defines the flow shop, therefore does not arise.
-
-The flow shop environment, by contrast, has been studied extensively but for different
-criteria. The variant that has attracted most theoretical attention is the proportionate
-flow shop, in which every machine spends the same time on a given job. That model, the
-ordered flow shop and related variants are surveyed in \citep{panwalkar2013review}. Its
-appeal is that it can often be reduced to a single-machine problem with the same criterion
-\citep{panwalkar2015equivalence}, so that results proved for one machine carry over.
-Weighted objectives have been treated within it as well, but the objective treated is
-the sum of the weighted completion times rather than their maximum
-\citep{shakhlevich1998minimizing}. For the general two-machine flow shop, the criterion
-that has been studied is the makespan, most recently together with the decision of which
-orders to reject \citep{shabtay2024coordinating}.
+The flow shop environment, by contrast, has been studied extensively, but for different
+criteria. The variant that has attracted most theoretical attention is the proportionate flow
+shop, in which every machine spends the same time on a given job; it is surveyed, with the
+ordered flow shop and related variants, in \citep{panwalkar2013review}. Its appeal is that it
+can often be reduced to a single-machine problem with the same criterion
+\citep{panwalkar2015equivalence}, so that results proved for one machine carry over. Weighted
+objectives have been treated within it as well, but the objective is the sum of the weighted
+completion times rather than their maximum \citep{shakhlevich1998minimizing}. For the general
+two-machine flow shop, the makespan is settled by Johnson's rule, and the criteria studied
+beyond it are the sums of the completion times and of the weighted completion times, which are
+NP-hard already with two machines \citep{gareyjohnson1976complexity}; the most recent study
+combines the makespan with the decision of which orders to reject
+\citep{shabtay2024coordinating}.
 
 The criterion and the machine environment are therefore each well established, while their
-combination is not. The criterion has been read on one machine at a time, and the flow shop
-has been read for the makespan.
+combination is not: the criterion has been read on one machine at a time, and the flow shop for
+the makespan and for the sums of completion times, but not for their maximum. The two sets of
+results do not combine. The reductions that make
+the proportionate flow shop tractable require the processing times to be proportionate, and the
+general two-machine flow shop does not satisfy that assumption. More fundamentally, a total
+weighted completion time decomposes over the jobs and can be accumulated while a schedule is
+built, which is what allows a dynamic program to compare partial schedules with one another; a
+maximum does not decompose in this way, since a partial schedule carries no information about
+its final value until it is complete. Optimizing $F2 \parallel W C_{\max}$ therefore requires
+structural properties of a kind that the earlier work does not supply, and the criterion
+matters for the systems above, where a wrong sequence delays the most costly step rather than
+the average one.
 
-The problem is not solved by combining these results, for two reasons. The reductions
-that make the proportionate flow shop tractable require the processing times to be
-proportionate. The general two-machine flow shop does not satisfy that assumption, so
-results proved for one machine do not carry over. More fundamentally, a total weighted
-completion time decomposes over the jobs. It can therefore be accumulated while a
-schedule is built, which is what allows a dynamic program to compare partial schedules
-with one another. A maximum does not decompose in this way, since a partial schedule
-carries no information about its final value until it is complete. Optimizing $F2 \parallel W C_{\max}$ therefore requires structural
-properties of a kind that the earlier work does not supply.
-
-The criterion matters for the systems above, where a wrong sequence delays the most costly
-step rather than the average one. It matters for scheduling theory as well, where a maximum
-weighted criterion has not been placed in the two-machine flow shop.
-
-In this paper we study the problem $F2 \parallel W C_{\max}$.
-Four features distinguish it from the settings reviewed above. (i) Two machines stand in
-series, so that each completion time depends on the idle time inherited from its
-predecessors. (ii) The objective is a maximum over weighted
-completion times rather than their sum. (iii) The processing times are general, with no
-proportionate assumption. (iv) No job may be rejected, so that every job must be
-scheduled. Replacing the weighted sum by a weighted maximum, and dropping the
-proportionality assumption, would already put the problem beyond the single-machine
-reduction. We show that it is in fact strongly NP-hard
-(\Cref{thm:snphard}). The difficulty is structural rather than a matter of the instance
-size. Because the objective is determined by a single job, an exchange that shortens many
-completion times while lengthening that one does not improve the objective value. Because
+In this paper we study the problem $F2 \parallel W C_{\max}$. Four features distinguish it from
+the settings reviewed above. (i) Two machines stand in series, so that each completion time
+depends on the idle time inherited from its predecessors. (ii) The objective is a maximum over
+weighted completion times rather than their sum. (iii) The processing times are general, with
+no proportionate assumption. (iv) No job may be rejected, so that every job must be scheduled.
+Replacing the weighted sum by a weighted maximum, and dropping the proportionality assumption,
+would already put the problem beyond the single-machine reduction. We show that it is in fact
+strongly NP-hard (\Cref{thm:snphard}). The difficulty is structural rather than a matter of the
+instance size. Because the objective is determined by a single job, an exchange that shortens
+many completion times while lengthening that one does not improve the objective value. Because
 the jobs carry unequal weights, moreover, Johnson's rule has no direct extension to the
 weighted case.
 
-Our results follow from the structure of an optimal schedule. Since the objective is a
-maximum, jobs of equal weight are interchangeable with respect to it. An optimal
-schedule can therefore be assumed to have a block structure, with one block per distinct
-weight, Johnson's order within each block, and blocks in non-increasing weight order.
-On this structure we build three methods, an exact dynamic program, a 2-approximation and
-an approximation scheme. The dynamic program runs in $O(nKV^{3K-3})$ time, where $K$ is the
-number of distinct weights and $V$ is the total processing time. It is practical when the
-weights fall into few classes, as in the plants described above. A 2-approximation runs in
-$O(n\log n)$ time, and rounding the input of the dynamic program gives a fully
-polynomial-time approximation scheme. The scheme attains a $(1+\varepsilon)$-approximation
-for constant $K$. Because the exact methods remain exponential in $K$, we also develop two
-heuristics for large instances and report a computational study that compares them with the
-2-approximation.
+Our results follow from the structure of an optimal schedule. Since the objective is a maximum,
+jobs of equal weight are interchangeable with respect to it. An optimal schedule can therefore
+be assumed to have a block structure, with one block per distinct weight, Johnson's order
+within each block, and blocks in non-increasing weight order. On this structure we build three
+methods, an exact dynamic program, a 2-approximation and an approximation scheme. The dynamic
+program runs in $O(nKV^{3K-3})$ time, where $K$ is the number of distinct weights and $V$ is
+the total processing time. It is practical when the weights fall into few classes, as in the
+plants described above. A 2-approximation runs in $O(n\log n)$ time, and rounding the input of
+the dynamic program gives a fully polynomial-time approximation scheme. The scheme attains a
+$(1+\varepsilon)$-approximation for constant $K$. For large instances the standard tools are
+constructive heuristics, of which NEH \citep{nawaz1983heuristic} is the reference, and genetic
+algorithms, whose operators and survival rules are adapted to the permutation encoding
+\citep{puka2024,qiao2022adaptive}. Because the exact methods remain exponential in $K$, we also
+develop two heuristics for large instances and report a computational study that compares them
+with the 2-approximation.
 
 The rest of the paper is organized as follows. \Cref{sec:preliminaries} fixes
-the notation and states the completion-time recurrence.
-\Cref{sec:formulation} gives the mixed integer programming formulation and
-establishes the complexity of the problem. \Cref{sec:dp_algorithm} proves the
+the notation, states the completion-time recurrence and gives the mixed integer programming
+formulation. \Cref{sec:complexity} establishes the complexity of the problem. \Cref{sec:dp_algorithm} proves the
 structural properties, develops the exact dynamic program, and presents the
 2-approximation and the approximation scheme. \Cref{sec:heuristics} describes
 the two heuristics. \Cref{sec:experiments} reports the computational study,
@@ -276,18 +261,18 @@ and \Cref{sec:conclusion} concludes.
 \section{Preliminaries}
 \label{sec:preliminaries}
 
-We consider the problem $F2 \parallel W C_{\max}$, the two-machine flow shop with the maximum
-weighted completion time as the criterion. The name is the three-field notation of scheduling
-theory \citep{pinedo2022scheduling}: $F2$ denotes the flow shop in which every job passes
-through two machines in series, the second field is left empty because the jobs carry no
-restriction beyond the data below, and $W C_{\max}$ denotes the criterion. In what follows the
-problem is referred to by this notation alone.
-Let $\mathcal{J} = \{J_1, J_2, \dots, J_n\}$ be the set of $n$ jobs to be processed on two machines $M_1$ and $M_2$ in series.
-Each job $J_j$ must be processed first on $M_1$ for $a_j$ time units and then on $M_2$ for $b_j$ time units, and preemption is not allowed.
-All processing times $a_j$ and $b_j$ are assumed to be positive integers.
-Each machine can process at most one job at a time.
-Each job $J_j$ has a weight $w_j > 0$.
-A schedule $\pi = (\pi(1), \pi(2), \dots, \pi(n))$ specifies the processing sequence on both machines.
+We consider the problem $F2 \parallel W C_{\max}$, the two-machine flow shop whose criterion is the
+maximum weighted completion time. The name is the three-field notation of scheduling
+theory \citep{pinedo2022scheduling}: $F2$ denotes a flow shop in which every job passes
+through two machines in series, the second field is left empty because no further restriction is
+placed on the jobs, and $W C_{\max}$ denotes the criterion. The problem is referred to by this
+notation alone.
+
+Let $\mathcal{J} = \{J_1, J_2, \dots, J_n\}$ be $n$ jobs processed on two machines $M_1$ and $M_2$ in series.
+Each job $J_j$ is processed first on $M_1$ for $a_j$ time units and then on $M_2$ for $b_j$ time units,
+without preemption, the processing times $a_j$ and $b_j$ being positive integers.
+Each machine processes at most one job at a time, and each job $J_j$ carries a weight $w_j > 0$.
+A schedule $\pi = (\pi(1), \pi(2), \dots, \pi(n))$ specifies the sequence on both machines.
 For a schedule $\pi$, let $A_j = \sum_{h=1}^{j} a_{\pi(h)}$ and $B_j = \sum_{h=1}^{j} b_{\pi(h)}$
 be the cumulative processing times on $M_1$ and $M_2$ after the first $j$ jobs. The completion time
 of the job in position $j$ on machine $M_2$ is
@@ -299,12 +284,12 @@ $w_{\pi(j)}C_{\pi(j)}$ over the positions,
 \begin{equation}\label{eq:wcmax}
 W C_{\max}(\pi)=\max_{1\le j\le n}w_{\pi(j)}\,C_{\pi(j)}.
 \end{equation}
-Here $C_j$ is the completion time of job $J_j$ on $M_2$ and $C_{\pi(j)}$ is the one of
-\cref{eq:completion}. Throughout, $W C_{\max}^{*}$ denotes the optimal value of
-$F2 \parallel W C_{\max}$.
+Here $C_j$ is the completion time of job $J_j$ on $M_2$, and $C_{\pi(j)}$ is the completion time of
+the job in position $j$, given by \cref{eq:completion}. Throughout, $W C_{\max}^{*}$ denotes the
+optimal value of $F2 \parallel W C_{\max}$.
 
-The problem $F2 \parallel W C_{\max}$ can be formulated as a mixed integer linear program (MILP).
-For a permutation schedule, the positions are indexed by $k = 1,\dots,n$.
+The problem can be formulated as a mixed integer linear program (MILP). The positions of a
+permutation schedule are indexed by $k = 1,\dots,n$.
 We introduce the following decision variables:
 \begin{itemize}
 	\item $x_{jk} = 1$ if job $J_j$ is assigned to position $k$, and $0$ otherwise;
@@ -330,19 +315,20 @@ The MILP model is:
 	& C_k^1, C_k^2, C_j \ge 0 \quad \label{milp:dom}
 \end{align}
 
-Constraint \cref{milp:assign1}--\cref{milp:assign2} ensure a one-to-one assignment between jobs and positions.
-Constraints \cref{milp:m1_start}--\cref{milp:m1_rec} compute the completion time of the job in each position on $M_1$.
-Constraints \cref{milp:m2_start}--\cref{milp:m2_b} compute the completion time of the job in each position on $M_2$.
-For $k \ge 2$, the job in position $k$ starts on $M_2$ only after it has completed $M_1$ and the preceding job has released $M_2$.
-Constraint \cref{milp:link} links the position-based completion times to the job-based completion times through a big-$M$ formulation:
-when $x_{jk} = 1$, job $J_j$ is in position $k$ and $C_j \ge C_k^2$;
-when $x_{jk} = 0$, the right-hand side becomes $C_k^2 - M \le 0$ and the constraint is inactive.
-Constraint \cref{milp:wcmax} enforces $Z \ge w_j C_j$ for every job, so that minimizing $Z$ yields the optimal $W C_{\max}$ of \cref{eq:wcmax}.
-Constraint \cref{milp:x} requires the assignment variables $x_{jk}$ to be binary.
-Constraint \cref{milp:dom} requires the completion times $C_k^1$, $C_k^2$ and $C_j$ to be nonnegative.
+Constraints \cref{milp:assign1} and \cref{milp:assign2} assign every job to exactly one position and
+every position to exactly one job. Constraints \cref{milp:m1_start} and \cref{milp:m1_rec} compute
+the completion times on $M_1$, and \cref{milp:m2_start} to \cref{milp:m2_b} those on $M_2$: for
+$k \ge 2$ the job in position $k$ starts on $M_2$ only after it has completed $M_1$ and the
+preceding job has released $M_2$. Constraint \cref{milp:link} ties the position-based completion
+times to the job-based ones through a big-$M$ formulation, so that $C_j \ge C_k^2$ when
+$x_{jk} = 1$, while the constraint is inactive when $x_{jk} = 0$, its right-hand side becoming
+$C_k^2 - M \le 0$. Constraint \cref{milp:wcmax} enforces $Z \ge w_j C_j$ for every job, so that
+minimizing $Z$ yields the optimal $W C_{\max}$ of \cref{eq:wcmax}, and \cref{milp:x} and
+\cref{milp:dom} require the assignment variables to be binary and the completion times
+nonnegative.
 
-\section{Problem formulation}
-\label{sec:formulation}
+\section{Computational complexity}
+\label{sec:complexity}
 \begin{theorem}\label{thm:nphard}
     $F2 \parallel W C_{\max}$ is NP-hard.
 \end{theorem}
@@ -354,9 +340,9 @@ $Z_1\cup Z_2=\{1,\dots,r\}$ and
 \sum_{i\in Z_1}x_i=\sum_{i\in Z_2}x_i=T?
 \]
 
-Construct an instance of $F2 \parallel W C_{\max}$ with $n=r+1$ jobs. For $j=1,\dots,n-1$, set
-$a_j=1$, $b_j=rx_j$ and $w_j=T+1$; for the remaining job $J_n$, set $a_n=rT$, $b_n=1$ and
-$w_n=2T+1$. The decision question is whether some schedule satisfies
+We construct an instance with $n=r+1$ jobs: for $j=1,\dots,n-1$ set
+$a_j=1$, $b_j=rx_j$ and $w_j=T+1$, and for the remaining job $J_n$ set $a_n=rT$, $b_n=1$ and
+$w_n=2T+1$. The question is whether some schedule satisfies
 \[
 W C_{\max}\le Y, \qquad\text{where}\qquad Y=r(T+1)(2T+1).
 \]
@@ -376,26 +362,25 @@ W C_{\max}\le Y, \qquad\text{where}\qquad Y=r(T+1)(2T+1).
 	% job on M_2 (all 6 jobs, start when M1 finishes and M2 is free)
 	\draw[fill=gray!20] (1,3.5)  rectangle (16,4.5)  node[midway] {$J_{j\in Z_1}$};
 	\draw[fill=gray!50] (20,3.5)  rectangle (22,4.5) node[midway] {$J_n$};
-	\draw[fill=gray!80] (22,3.5) rectangle (37,4.5) node[midway] {$J_{j\in Z_2}$};
+	\draw[fill=gray!80] (22,3.5) rectangle (37,4.5)  node[midway] {$J_{j\in Z_2}$};
 
 	% x-axis
 	\draw[thick] (0,2.2) -- (35,2.2);
-	\foreach \x/\label in {0/0 ,1/1 ,5/$|Z_1|$ ,20/$T{+}|Z_1|$ ,25/2T ,} 
+	\foreach \x/\label in {0/0 ,1/1 ,5/$|Z_1|$ ,20/$T{+}|Z_1|$ ,25/2T ,}
     {
 		\draw (\x,2.2) -- (\x,2.4);
 		\node[below, font=\footnotesize] at (\x,2.0) {\label};
 	}
 
 	% caption
-	\node[below] at (17,0.5) {Figure~\thefigure};
+	\node[below] at (17,0.5) {Figure~\thefigure: The reduction from Partition};
 \end{tikzpicture}
 \label{fig:nphard-partition}
 \end{figure}
 
-The jobs $J_1,\dots,J_{n-1}$ are partitioned into two subsets by $J_n$; the resulting layout on the
-two machines is shown in \Cref{fig:nphard-partition}. The total $M_2$ processing times of the two subsets
-are unknown, but their sum equals $2rT$. We may therefore write them as $r(T+\xi)$ and $r(T-\xi)$
-for some $-T\le\xi\le T$. The completion times of $J_n$ are then
+Job $J_n$ splits the remaining jobs into two subsets, and \Cref{fig:nphard-partition} shows the
+layout the split leaves on the two machines. The $M_2$ workloads of the subsets are unknown, but
+they sum to $2rT$, so they can be written as $r(T+\xi)$ and $r(T-\xi)$ for some $-T\le\xi\le T$. The completion times of $J_n$ are then
 \begin{equation}\label{eq:completetime1}
     C_n^1 = |Z_1| + rT + 1,
 \end{equation}
@@ -404,8 +389,8 @@ for some $-T\le\xi\le T$. The completion times of $J_n$ are then
 \end{equation}
 and $C_n = \max\{C_n^1, C_n^2\}$.
 
-If $\xi=0$, then $\sum_{j\in Z_1}b_j=\sum_{j\in Z_2}b_j$, so the Partition instance has a feasible
-solution. In this case $C_n$ is given by \cref{eq:completetime1}, and
+If $\xi=0$, the two subsets carry the same $M_2$ load, and the Partition instance has a solution.
+In this case $C_n$ is given by \cref{eq:completetime1}, and
 \begin{align*}
 C_n &= |Z_1| + rT + 1 \le rT + r = r(T+1), \\
 w_nC_n &= (2T+1)\,r(T+1) = Y, \\
@@ -460,13 +445,15 @@ Thus, for every $d\in\{d_1,\dots,d_m,T\}$ and every integer completion time $C$,
 \end{equation}
 Indeed, if $C\ge d+1$, write $Q=qd+r$ with $q=\lfloor Q/d\rfloor$ and $0\le r<d$. Then $q(d+1)=Q-r+q>Q$ because $q>d>r$.
 Suppose first that the 3-Partition instance is a yes-instance. Let $G_1,\dots,G_m$ be triples with
-$\sum_{J_j\in G_k}x_j=B$ for every $k$, and schedule
+$\sum_{J_j\in G_k}x_j=B$ for every $k$; each triple contains exactly three elements, since two of
+its members sum to less than $B$ and four to more. Schedule
 \[
 G_1,S_1,G_2,S_2,\dots,G_m,S_m.
 \]
-The three element jobs in $G_k$ use $3$ units on $M_1$, and $S_k$ uses $RB+1$ units. Hence $S_k$ completes on $M_1$ 
-at time $kD$. The three element jobs in $G_k$ use $RB+3$ units on $M_2$; since the preceding separator completes on $M_2$ 
-at time $(k-1)D+1$, the last element of $G_k$ completes at time $kD$. Therefore
+The three element jobs in $G_k$ use $3$ units on $M_1$, and $S_k$ uses $RB+1$ units, so $S_k$ completes on $M_1$
+at time $kD$. On $M_2$ the group $G_k$ occupies the machine from time $(k-1)D+1$, which is the
+completion of $S_{k-1}$ for $k\ge2$ and that of the first element of the group on $M_1$ for $k=1$,
+and it uses $RB+3$ units there; the last element of $G_k$ therefore completes at time $kD$. Thus
 \[
  C_{S_k}=kD+1=d_k.
 \]
@@ -474,11 +461,12 @@ Every element job completes on $M_2$ no later than $T=mD$. By the definition of 
 are at most $Q$, so $W C_{\max}\le Y$.
 
 Conversely, suppose that a schedule $\pi$ satisfies $W C_{\max}\le Y$. Since the objective is regular,
-the standard permutation-schedule property for two-machine flow shops lets us restrict attention to
-permutation schedules. The separator jobs have identical processing times, so if their positions are
-fixed, exchanging the labels of two separators that occur in the wrong order can only decrease the
-maximum weighted completion time, because $w_{S_1}\ge w_{S_2}\ge\cdots\ge w_{S_m}$. We may
-consequently assume that the separators occur in the order $S_1,S_2,\dots,S_m$.
+the standard permutation-schedule property for two-machine flow shops \citep{baker1974introduction}
+lets us restrict attention to permutation schedules. The separator jobs have identical processing
+times, so if their positions are fixed, exchanging the labels of two separators that occur in the
+wrong order cannot increase the maximum weighted completion time: $d_k$ rises with $k$, so
+$w_{S_1}\ge w_{S_2}\ge\cdots\ge w_{S_m}$, and the exchange only moves a larger weight to an earlier
+completion. We may consequently assume that the separators occur in the order $S_1,S_2,\dots,S_m$.
 By \cref{eq:deadline-encoding},
 \[
  C_{S_k}\le kD+1\quad(k=1,\dots,m),
@@ -531,67 +519,69 @@ $m$, this is a strong polynomial reduction, and $F2 \parallel W C_{\max}$ is str
 \begin{figure}[htbp]
 \centering
 \refstepcounter{figure}
-\begin{tikzpicture}[x=0.18in, y=0.33in]
-	% machine index
-	\node[anchor=east] at (-0.6,5.7) {$M_1$};
-	\node[anchor=east] at (-0.6,4.0) {$M_2$};
-
-	% M_1: element jobs (narrow strips, 3 per block) + separators
-	\draw[fill=gray!20] (0,5.2)    rectangle (1.5,6.2) node[midway] {$G_1$};
-	\draw[fill=gray!50] (1.5,5.2)  rectangle (6.5,6.2)  node[midway] {$S_1$};
-	\draw[fill=gray!20] (6.5,5.2)  rectangle (8,6.2) node[midway] {$G_2$};
-	\draw[fill=gray!50] (8,5.2)  rectangle (13,6.2) node[midway] {$S_2$};
+\begin{tikzpicture}[x=0.17in, y=0.33in, font=\footnotesize]
+	\tikzset{
+		elem/.style = {draw, fill=gray!18},
+		sep/.style  = {draw, fill=gray!45},
+	}
+	% ---- M1: a group of three elements, then a separator -----------------
+	\node[anchor=east] at (-0.4,5.7) {$M_1$};
+	\draw[elem] (0,5.2)    rectangle (1.5,6.2) node[midway] {$G_1$};
+	\draw[sep]  (1.5,5.2)  rectangle (6.5,6.2) node[midway, align=center] {$S_1$\\[-1pt]{\scriptsize $RB+1$}};
+	\draw[elem] (6.5,5.2)  rectangle (8,6.2)   node[midway] {$G_2$};
+	\draw[sep]  (8,5.2)    rectangle (13,6.2)  node[midway, align=center] {$S_2$\\[-1pt]{\scriptsize $RB+1$}};
 	\node at (15,5.7) {$\cdots$};
-	\draw[fill=gray!20] (17,5.2) rectangle (18.5,6.2) node[midway] {$G_m$};
-	\draw[fill=gray!50] (18.5,5.2)   rectangle (23.5,6.2)   node[midway] {$S_{m}$};
+	\draw[elem] (17,5.2)   rectangle (18.5,6.2) node[midway] {$G_m$};
+	\draw[sep]  (18.5,5.2) rectangle (23.5,6.2) node[midway, align=center] {$S_m$\\[-1pt]{\scriptsize $RB+1$}};
 
-	% M_2: element jobs and separators (now separators have b_{S_k} = 1, shown as thin slices)
-	\draw[fill=gray!20] (0.5,3.5)  rectangle (6.5,4.5)   node[midway] {$J_{j\in G_1}$};
-	\draw[fill=gray!50] (6.5,3.5)  rectangle (6.7,4.5);
-	\draw[fill=gray!20] (6.7,3.5)  rectangle (13,4.5)  node[midway] {$J_{j\in G_2}$};
-	\draw[fill=gray!50] (13,3.5)  rectangle (13.2,4.5);
-	\node at (15.35,4.0) {$\cdots$};
-	\draw[fill=gray!20] (17.5,3.5) rectangle (23.5,4.5)  node[midway] {$J_{j\in G_{m}}$};
-	\draw[fill=gray!50] (23.5,3.5) rectangle (23.7,4.5);
+	% ---- M2: the same groups, each closed by a separator of one unit -----
+	\node[anchor=east] at (-0.4,3.9) {$M_2$};
+	\draw[elem] (1,3.4)    rectangle (6.5,4.4) node[midway] {$G_1$};
+	\draw[sep]  (6.5,3.4)  rectangle (7,4.4);
+	\draw[elem] (7,3.4)    rectangle (12.5,4.4) node[midway] {$G_2$};
+	\draw[sep]  (12.5,3.4) rectangle (13,4.4);
+	\node at (15,3.9) {$\cdots$};
+	\draw[elem] (18,3.4)   rectangle (23.5,4.4) node[midway] {$G_m$};
+	\draw[sep]  (23.5,3.4) rectangle (24,4.4);
+	\node[above, font=\scriptsize] at (6.75,4.45) {$1$};
 
-	% x-axis (separator $M_2$ completion times)
-	\draw[thick] (0,2.8) -- (23.7,2.8);
-	\foreach \x/\label in {0/0, 6.7/$D{+}1$, 13.2/$2D{+}1$, 23.7/$mD{+}1$}
-	{
-		\draw (\x,2.8) -- (\x,3.0);
-		\node[below, font=\footnotesize] at (\x,2.6) {\label};
+	% ---- the separator completions that pin the groups -------------------
+	\draw[thick] (0,2.9) -- (24,2.9);
+	\foreach \x/\lab in {0/{$0$}, 7/{$D+1$}, 13/{$2D+1$}, 24/{$mD+1$}} {
+		\draw (\x,2.9) -- (\x,3.1);
+		\node[below, font=\scriptsize] at (\x,2.8) {\lab};
 	}
 
-	% caption
-	\node[below] at (11.85,1.7) {Figure~\thefigure: 3-Partition reduction};
+	% ---- caption ---------------------------------------------------------
+	\node[below, text width=13.5cm, align=flush center] at (12,2.1)
+		{Figure~\thefigure: The reduction from 3-Partition};
 \end{tikzpicture}
 \label{fig:snphard-3partition}
 \end{figure}
 
-\section{Algorithm} 
+\section{Exact and approximation algorithms}
 \label{sec:dp_algorithm}
-In this section, we design a dynamic programming algorithm for $F2 \parallel W C_{\max}$
-and analyze its running time. Throughout, let $K$ denote the number of distinct weights
-and $V=\sum_{j=1}^{n}(a_j+b_j)$ the total processing time.
+This section develops the exact dynamic program and the two approximation algorithms that
+rest on it. Throughout, $K$ denotes the number of distinct weights and
+$V=\sum_{j=1}^{n}(a_j+b_j)$ the total processing time.
 
 Since the objective is a maximum over weighted completion times, jobs of equal weight are
 interchangeable. An optimal schedule can therefore be assumed to have a block structure:
 one block per distinct weight, Johnson's order within each block, and blocks in
-non-increasing weight order. A schedule is thus fixed once we decide how each weight class
-is distributed among the blocks. This is what makes a dynamic program possible, and why
-the running time of every algorithm below is governed by $K$.
+non-increasing weight order. A schedule is fixed once each weight class has been assigned to
+a block, and the running time of every algorithm below is governed by the number $K$ of those
+classes.
 
-We build three algorithms on this structure. The first algorithm is exact, and it prunes
-dominated states. A state records each block's processing time on both machines, the
-completion time of its last job on $M_2$, and that job's weight. It runs in
-$O(n \cdot K \cdot |\mathscr{H}|_{\max})$ time, with
-$|\mathscr{H}|_{\max} \le 2^{K}V^{3K-3}$. The second sorts the jobs by non-increasing
-weight in $O(n\log n)$ time and returns a schedule within a factor $2$ of the optimum. The
-third rounds the time coordinates and the weights to geometrically spaced grids, which
-turns the dynamic program into a $(1+\epsilon)$-approximation scheme for a fixed number of
-distinct weights.
+Three algorithms are built on this structure. The first is exact and prunes dominated states:
+a state records each block's processing time on both machines, the completion time of its last
+job on $M_2$, and that job's weight, and the dynamic program runs in
+$O(n \cdot K \cdot |\mathscr{H}|_{\max})$ time with
+$|\mathscr{H}|_{\max} \le 2^{K}V^{3K-3}$. The second sorts the jobs by non-increasing weight in
+$O(n\log n)$ time and returns a schedule within a factor $2$ of the optimum. The third rounds
+the time coordinates and the weights to geometrically spaced grids, which turns the dynamic
+program into a $(1+\epsilon)$-approximation scheme for a fixed number of distinct weights.
 
-\subsection{The number of weights is constant}
+\subsection{Block structure of an optimal schedule}
 For $F2 \parallel W C_{\max}$, an optimal schedule exists in which both machines process the jobs
 in the same order \citep{baker1974introduction}; we therefore restrict attention to such
 permutation schedules. Within this class, Johnson's rule \citep{johnson1954optimal} minimizes
@@ -679,8 +669,8 @@ $\mathcal{B}_2=\{J_4,J_5\}$, and $\mathcal{B}_3=\{J_6\}$.
 \end{figure}
 
 \begin{lemma}\label{lem:block-johnson}
-For any schedule $\pi$, rescheduling the jobs within each block according to Johnson's rule~\citep{johnson1954optimal}
-and concatenating the blocks in their original order yields a schedule $\pi'$ with
+For any schedule $\pi$, scheduling the jobs of each block by Johnson's rule~\citep{johnson1954optimal}
+and concatenating the blocks in their original order gives a schedule $\pi'$ with
 $W C_{\max}(\pi') \le W C_{\max}(\pi)$.
 \end{lemma}
 \begin{proof}
@@ -735,9 +725,9 @@ W C_{\max}(\pi') = \max_{k} L_k C_{\pi'(\ell_k)}
 which establishes the lemma.
 \end{proof}
 
-\subsection{Algorithm Properties and Dynamic Programming}
-We now develop a dynamic programming algorithm that processes the jobs sequentially in the Johnson
-sequence and assigns each job to one of the $K$ blocks $\mathcal{B}_1,\dots,\mathcal{B}_K$.
+\subsection{An exact dynamic program}
+The exact dynamic program processes the jobs in the Johnson sequence and assigns each job to one
+of the $K$ blocks $\mathcal{B}_1,\dots,\mathcal{B}_K$.
 
 \Cref{lem:block-johnson} provides the structural basis for the dynamic program. Given any
 assignment of jobs to the $K$ blocks, sequencing the jobs within each block $\mathcal{B}_i$
@@ -773,8 +763,8 @@ $i$ blocks, and $T_{B_i}$ the completion time of block $\mathcal{B}_i$ on $M_2$.
 Let $\mathscr{H} = (A_1,\dots,A_K; B_1,\dots,B_K; C_1,\dots,C_K; L_1,\dots,L_K)$ and
 $\mathscr{H}' = (A'_1,\dots,A'_K; B'_1,\dots,B'_K; C'_1,\dots,C'_K; L'_1,\dots,L'_K)$ be two states
 in $\mathscr{H}_j$. If $A_i = A'_i$, $B_i = B'_i$ and $L_i = L'_i$ for every $i$, and
-$C_i \le C'_i$ for every $i$, then $\mathscr{H}'$ can be discarded without affecting the optimal
-solution.
+$C_i \le C'_i$ for every $i$, then $\mathscr{H}'$ may be discarded without changing the optimal
+value.
 \end{lemma}
 \begin{proof}
 Consider any continuation that extends $\mathscr{H}'$ to a complete schedule $\Pi'$. Replacing the
@@ -799,7 +789,7 @@ The resulting candidate states are collected in temporary sets $\mathcal{Y}_1,\d
 By \Cref{lem:merge-dominance}, merging the candidates removes dominated and duplicate
 states and yields $\mathscr{H}_{j}$.
 
-\begin{algorithm}[tbp]
+\begin{algorithm}[htbp]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -816,7 +806,7 @@ states and yields $\mathscr{H}_{j}$.
 \KwOut{$W C_{\max}$.}
 \end{algorithm}
 
-\begin{algorithm}[tbp]
+\begin{algorithm}[htbp]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -898,7 +888,7 @@ $\mathscr{H}_{n}$ in $O(K)$ time, which is dominated by the DP phase. For fixed 
 constant and the bound becomes $O(n \cdot V^{\,3K-3})$.
 \end{proof}
 
-\subsection{A 2-Approximation Algorithm}
+\subsection{A 2-approximation}
 \label{sub:approx2}
 
 The exact dynamic program of \Cref{sec:dp_algorithm} runs in pseudo-polynomial
@@ -906,7 +896,7 @@ time, and the FPTAS of \Cref{sub:fptas} has running time exponential in the
 number $K$ of distinct weights. When only a constant-factor guarantee is needed, the
 following elementary rule suffices.
 
-\begin{algorithm}[tbp]
+\begin{algorithm}[htbp]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -964,9 +954,8 @@ $W C_{\max}^{*}$ bounds the weighted completion time of every job of $\pi^{*}$, 
 $W C_{\max}^{*}\ge w_u C^{*}_u\ge w_j\sum_{h\in S}a_h$ and
 $W C_{\max}^{*}\ge w_v C^{*}_v\ge w_j\sum_{h\in S}b_h$.
 
-The prefix $S$ was arbitrary, so the largest of these quantities over the prefixes bounds
-the optimum as well, and a single job bounds it from below on its own. Three lower bounds
-on the optimum follow,
+Since the prefix $S$ was arbitrary, these bounds hold for every prefix, and a single job bounds
+the optimum on its own as well. Three lower bounds therefore follow,
 \begin{equation}\label{eq:lb1}
 LB_1=\max_{1\le j\le n}w_j\sum_{h\in S}a_h,
 \end{equation}
@@ -976,8 +965,8 @@ LB_2=\max_{1\le j\le n}w_j\sum_{h\in S}b_h,
 \begin{equation}\label{eq:lb3}
 LB_3=\max_{1\le j\le n}w_j\,(a_j+b_j),
 \end{equation}
-each of the three holding for a reason of its own. We call them the $M_1$ threshold $LB_1$,
-the $M_2$ threshold $LB_2$ and the job threshold $LB_3$. The first two charge the workload of
+We call them the $M_1$ threshold $LB_1$, the $M_2$ threshold $LB_2$ and the job threshold
+$LB_3$. The first two charge the workload of
 the prefix to the job of the prefix that leaves its machine last. That job carries
 a weight of at least $w_j$, and it completes its machine only after the whole workload of $S$
 has been processed there. Hence $W C_{\max}^{*}\ge w_j\sum_{h\in S}a_h$ and
@@ -996,19 +985,17 @@ $w_j\sum_{h\in S}(a_h+b_h)\le LB_1+LB_2\le 2\,LB\le 2\,W C_{\max}^{*}$, and the 
 follows from \cref{eq:approx2-upper}.
 \end{proof}
 
-\subsection{FPTAS}
+\subsection{A fully polynomial-time approximation scheme}
 \label{sub:fptas}
 
 \subsubsection{Rounding the time coordinates}
 \label{subsub:fptas-time}
 
-We now convert the exact dynamic program of \Cref{alg:dp} into a fully
-polynomial-time approximation scheme by rounding the input data
-\citep{hall1994}. One key point of this technique is the determination of
-valid lower and upper bounds for the coordinates to be rounded: each time
-coordinate ranges in a bounded interval, and rounding it to one of a fixed number
-of geometrically spaced values keeps the relative error within a single factor
-$\theta$. The total processing times $A_i,B_i$ of block $\mathcal{B}_i$ on $M_1$
+The exact dynamic program of \Cref{alg:dp} becomes a fully polynomial-time approximation
+scheme once the input data are rounded \citep{hall1994}. The technique rests on bounds for the
+coordinates that are rounded: each time coordinate ranges over a bounded interval, and rounding
+it to one of a fixed number of geometrically spaced values keeps the relative error within a
+factor $\theta$. The total processing times $A_i,B_i$ of block $\mathcal{B}_i$ on $M_1$
 and $M_2$, and its completion time $C_i$, are rounded. The weight $L_i$ of the
 last job of block $\mathcal{B}_i$ is not rounded; following
 \Cref{alg:dp}, the positional constraint $L_i\in\{0,W_i\}$ is required
@@ -1065,7 +1052,7 @@ block-end weights are unchanged. Every
 label therefore carries exactly one state into $\mathscr{H}^{\epsilon}_{j}$, and the number of
 states never exceeds the number of labels.
 
-\begin{algorithm}[tbp]
+\begin{algorithm}[htbp]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -1098,8 +1085,8 @@ states never exceeds the number of labels.
 
 \begin{lemma}\label{lem:traj-approx}
 Let $\mathscr{H}_{j}=(A_1,\dots,A_K; B_1,\dots,B_K; C_1,\dots,C_K; L_1,\dots,L_K)$, $j=1,\dots,n$, be the
-states along an optimal trajectory of \Cref{alg:dp}, that is, the states recovered by
-backtracking from an optimal final state. For every $j$, \Cref{alg:fptas} keeps a state
+states along an optimal trajectory of \Cref{alg:dp}, the states that backtracking from an optimal
+final state recovers. For every $j$, \Cref{alg:fptas} keeps a state
 $\hat{\mathscr{H}}^{\epsilon}_{j}=(\hat A_1,\dots,\hat A_K; \hat B_1,\dots,\hat B_K; \hat C_1,\dots,\hat C_K; L_1,\dots, L_K)$
 that carries the same block-end weights $L_1,\dots,L_K$ and satisfies
 \begin{equation}\label{eq:traj-bound}
@@ -1159,15 +1146,15 @@ errors of the remaining blocks.
 \end{proof}
 
 \begin{theorem}\label{thm:fptas}
-For every $0<\epsilon<1$, \Cref{alg:fptas} returns a fully polynomial-time approximation scheme with
+For every $0<\epsilon<1$, \Cref{alg:fptas} returns a schedule with
 \[
 W C_{\max}\ \le\ (1+\epsilon)\,W C_{\max}^{*}.
 \]
-For fixed $K$, the algorithm runs in
+For fixed $K$, it runs in
 $
 O\!\left(n^{4K+1}\cdot K\cdot\frac{(\log V)^{3K}}{\epsilon^{3K}}\right)
 $
-time.
+time, which is polynomial in $n$, $\log V$ and $1/\epsilon$.
 \end{theorem}
 
 \begin{proof}
@@ -1231,7 +1218,7 @@ For constant $K$, the bound reduces to
 $O(n^{4K+1}K(\log V)^{3K}/\epsilon^{3K})$, which is polynomial in $n$, $\log V$ and $1/\epsilon$.
 \end{proof}
 
-\subsubsection{Weight rounding}
+\subsubsection{Rounding the weights}
 \label{subsub:fptas-weight}
 
 The FPTAS above rounds the time coordinates $A_i,B_i,C_i$ and assumes that the number $K$ of
@@ -1330,7 +1317,7 @@ running time is therefore $O(n^3)$ (\Cref{prop:neh-complexity}). The heuristic a
 produces a feasible permutation schedule by construction and requires no hyperparameter
 selection, so it serves as a fast standalone solver for large instances.
 
-\begin{algorithm}[tbp]
+\begin{algorithm}[htbp]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -1393,7 +1380,7 @@ The fitness of a schedule is the criterion itself, $W C_{\max}(\pi)$, and no nor
 is fixed for it. \Cref{fig:encoding} shows the encoding and
 the decoding on the six-job instance of \Cref{ex:blocking}.
 
-\begin{figure}[htbp]
+\begin{figure}[tbp]
 \centering
 \refstepcounter{figure}
 \begin{tikzpicture}[x=0.16in, y=0.32in, font=\footnotesize]
@@ -1580,7 +1567,7 @@ finally receives.
 \label{fig:pmx}
 \end{figure}
 
-\begin{algorithm}[tbp]
+\begin{algorithm}[htbp]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -1648,7 +1635,7 @@ sequence of accepted moves reaches.  The move is therefore proposed whether or n
 the criterion, and it is the survival of the generation, and the elite carried through it,
 that decide what becomes of it.
 
-\begin{algorithm}[tbp]
+\begin{algorithm}[htbp]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -1670,19 +1657,7 @@ criterion moves. \;
 \KwOut{Schedule $\pi$.}
 \end{algorithm}
 
-\paragraph{Genetic Algorithm}
-The four parts above assemble into \Cref{alg:ga}, which runs as many generations as the
-instance is given: the population it starts from is short on the makespan but carries nothing
-of the weights, so the criterion has to be iterated into the schedule by the mutation before a
-good order appears. Its closing step is a local search on the
-schedule the population has reached, over the $k$ jobs that carry the largest weighted
-completion times, which are reinserted, each at the position that lowers the criterion most,
-the pass being repeated while it keeps lowering it. Those jobs are the ones that decide the
-criterion, so reinserting them is where an insertion can still pay. The descent stops as soon
-as none of them
-improves.
-
-\begin{algorithm}[tbp]
+\begin{algorithm}[htbp]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -1718,6 +1693,20 @@ it; evaluate all individuals; set $\pi^{*}$ to the best. \;
 \KwOut{Best schedule $\pi^{*}$.}
 \end{algorithm}
 
+\paragraph{Genetic Algorithm}
+The four parts above assemble into \Cref{alg:ga}, which runs as many generations as the
+instance is given: the population it starts from is short on the makespan but carries nothing
+of the weights, so the criterion has to be iterated into the schedule by the mutation before a
+good order appears. Its closing step is a local search on the
+schedule the population has reached, over the $k$ jobs that carry the largest weighted
+completion times, which are reinserted, each at the position that lowers the criterion most,
+the pass being repeated while it keeps lowering it. Those jobs are the ones that decide the
+criterion, so reinserting them is where an insertion can still pay. The descent stops as soon
+as none of them
+improves.
+
+
+
 \section{Experiments}
 \label{sec:experiments}
 
@@ -1731,206 +1720,194 @@ $13.0$ on a single thread, so that the reported times are comparable across conf
 
 \subsection{Experimental setup}
 
-Every algorithm was run once on every instance, and no method was handicapped by a smaller
-budget than another, since all of them evaluate the objective by the same recurrence
-\cref{eq:completion}. The dynamic program is read on the number of instances whose optimum it
-establishes, since it is the only method whose instance set lies within its reach. Every
-other method is read on its relative percentage gap against a reference value, reported in per
-cent, and on the CPU time it requires, reported in milliseconds. Both are given by
-their mean and by their maximum over the instances of the configuration. The gap of method $A$ is
+Every method is run once on every instance and given the same budget, and all of them evaluate
+the objective by the same recurrence \cref{eq:completion}, so that the comparison holds the
+objective fixed and varies only the search. Two readings are taken. The dynamic program, the
+only exact method of the study, is read on the number of instances whose optimum it establishes
+and on its running time. Every other method is read on its relative percentage gap
 \begin{equation}\label{eq:gap}
 \text{gap}_A = \frac{z_A-z_{\text{base}}}{z_{\text{base}}},
 \end{equation}
-where $z_A$ is the objective value of the schedule it returned and $z_{\text{base}}$ is that
-reference value. On the small scale the reference is the optimum of the instance, which is the
-value the model returned on it, so that the model itself is read on a gap of zero and every
-heuristic on its distance from the optimum. On the large scale, where no exact method is within
-reach, the reference is the lower bound $LB$ of \cref{eq:lb}: the largest of the three
-thresholds $LB_1$, $LB_2$ and $LB_3$ of \Cref{sub:approx2}, each of which the instance
-determines on its own, so that no schedule of a method enters the denominator of its gap.
+where $z_A$ is the objective value of the schedule it returned and $z_{\text{base}}$ the
+reference value of the instance, and on the CPU time it requires; the gap is reported in per
+cent and the time in milliseconds, each by its mean and its maximum over the instances of the
+configuration. On the small scale the reference is the optimum, which is the value the model
+returns, so that the model is read on a gap of zero and every heuristic on its distance from the
+optimum. On the large scale, where no exact method is within reach, the reference is the lower
+bound $LB$ of \cref{eq:lb} -- the largest of the three thresholds $LB_1$, $LB_2$ and $LB_3$ of
+\Cref{sub:approx2}, each of which the instance determines on its own -- so that no schedule of a
+method enters the denominator of its gap.
 
 The parameters of the genetic algorithm were fixed by a calibration run before the study, and
-each of them is a function of the instance size, so that a single rule covers every size of
-both scales.  Its population is
-$N=\min(20,\max(6,\lceil n/2\rceil))$ individuals, which is $6,8,10,\dots,20$ over the sizes
-of the small scale and twenty from $n=40$ on.  Both of its probabilities rise with the
-instance, because the more jobs it holds, the more of the search has to be spent moving them
-rather than preserving them: the crossover probability is
-$p_c=\min(1,\,19/20+n/4000)$, which rises from $0.95$ at $n=10$ to one at $n=200$, and the
-mutation probability is $p_m=\min(1,\,1/2+n/500)$, which rises from $0.52$ at $n=10$ to one
-from $n=250$ on.  The two rates say which operator is expected to do the work.  The
-crossover is applied to almost every pair of parents over the whole study, so it has little
-room to rise, while the mutation, which carries the population across the weights, is given a
-share that doubles over it.  A small instance is therefore given a small population and
-mutated sparingly, and a large one the full budget.
+each is a function of the instance size, so that one rule covers every size of both scales. Its
+population is $N=\min(20,\max(6,\lceil n/2\rceil))$ individuals, $6,8,10,\dots,20$ over the
+sizes of the small scale and twenty from $n=40$ on. Both of its probabilities rise with the
+instance, since the more jobs it holds the more of the search has to be spent moving them
+rather than preserving them: the crossover probability is $p_c=\min(1,\,19/20+n/4000)$, from
+$0.95$ at $n=10$ to one at $n=200$, and the mutation probability is
+$p_m=\min(1,\,1/2+n/500)$, from $0.52$ at $n=10$ to one from $n=250$ on. The two rates say
+which operator is expected to do the work: the crossover is applied to almost every pair of
+parents over the whole study and has little room to rise, while the mutation, which carries the
+population across the weights, is given a share that doubles. A small instance is therefore
+given a small population and mutated sparingly, and a large one the full budget.
 
-Three settings the scales do not share, and each is read with its own pair.  The first is the
-number of generations.  The small scale runs $G=\max(2,\lfloor n/4\rfloor)$ of them, from $2$
-at $n=10$ to $15$ at $n=60$.  The large one runs $G=\max(16,\lfloor n^{2}/2000\rfloor)$, from
-$16$ at $n=100$ to $80$ at $n=400$: a floor and a quadratic growth, because a generation is one
-round of the operators and the depth a run reaches is the number of rounds the elite is
-refined by, which may be neither too small at the bottom of the scale nor growing more slowly
-than the instance.  The second is the number of offspring a generation produces, which the
-small scale sets to $\lambda=\max(8,\lfloor n^{2}/12\rfloor)$ and the large one to
-$\lambda=\min(200,60+\lfloor n/2\rfloor)$: $8,18,\dots,300$ over the small scale, and $110$ at
-$n=100$ up to the cap of $200$ from $n=280$ on over the large one.  It is what the operators
-of one generation are run over, so that the generation offers the offspring of its parents
-$\lambda/N$ chances rather than the single one a child per parent would give it.  The third
-is the width of the local search of \Cref{alg:ga}: the small scale reinserts
-$k=\max(1,\lfloor n/8\rfloor)$ jobs, one job in eight of the instance, which is $1$, $2$ and
-$7$ jobs at $n=10$, $20$ and $60$, and the large one reinserts
-$k=\max(2,\lfloor 12n/100\rfloor-10)$ jobs, twelve jobs in a hundred less ten, which
-is $2$, $14$ and $38$ jobs at $n=100$, $200$ and $400$; the width of the large scale therefore
-grows faster than the instance itself, one job in fifty of a hundred jobs and one in ten of
-four hundred.  The initial population is built from Johnson's rule on both scales, which reads
-the two processing times alone, so the criterion has to be built into the schedule by the
-operators, and the three settings above say how much of the search is spent on that.  The two
-scales are read for different things.  The small one is read for the course of the search:
-its settings are the narrow ones, and the offspring of a generation, rather than the count of
-them, are what carry it, so that its gap against the optimum falls from $17$ per cent at ten
-jobs to $4$ per cent at sixty and closes on the construction rule without passing it.  The
-large one is read for what the search reaches when it is given
-the room: its settings grow faster than the instance, and its gap closes as the instance
-grows.
+Three settings the scales do not share. The first is the number of generations, which is one
+round of the operators and therefore the depth to which the elite is refined:
+$G=\max(2,\lfloor n/4\rfloor)$ on the small scale, from $2$ at $n=10$ to $15$ at $n=60$, and
+$G=\max(16,\lfloor n^{2}/2000\rfloor)$ on the large one, from $16$ at $n=100$ to $80$ at
+$n=400$ -- a floor and a quadratic growth, since the depth may be neither too small at the
+bottom of the scale nor growing more slowly than the instance. The second is the number of
+offspring a generation produces, $\lambda=\max(8,\lfloor n^{2}/12\rfloor)$ on the small scale
+and $\lambda=\min(200,60+\lfloor n/2\rfloor)$ on the large one, $8,18,\dots,300$ over the first
+and $110$ at $n=100$ up to the cap of $200$ from $n=280$ over the second: it sets how many
+times the operators are run over the parents in one generation, so that a generation offers the
+offspring of its parents $\lambda/N$ chances rather than the single one a child per parent
+would give it. The third is the width of the local search of \Cref{alg:ga}: the small scale
+reinserts $k=\max(1,\lfloor n/8\rfloor)$ jobs, one job in eight, which is $1$, $2$ and $7$ at
+$n=10$, $20$ and $60$, and the large one $k=\max(2,\lfloor 12n/100\rfloor-10)$ jobs, twelve in
+a hundred less ten, which is $2$, $14$ and $38$ at $n=100$, $200$ and $400$; the width of the
+large scale therefore grows faster than the instance itself, one job in fifty at a hundred and
+one in ten at four hundred.
 
-The instances were randomly generated in three groups, and every integer of an instance is
-drawn from a normal distribution on the integers of its range: the mean is the middle of the
-range and the standard deviation a sixth of its width, so that the two ends of the range lie
-three standard deviations from the mean, and the draw is rounded to an integer and clamped to
-the range. The first group is the one the dynamic
-program is reported on, and it is the set of the study that preceded this one: the instance
-sizes $20$, $40$ and $60$, crossed with the weight count $K=2$, whose weights are the
-geometric ladder $1,10$, its exponent drawn by that rule, and with the three processing-time
-ranges $[1,20]$, $[1,40]$ and $[1,60]$. The dynamic program is not compared with the other
-algorithms there. Its running time $O(nKV^{3K-3})$ grows so fast in the number $K$ of
-distinct weights that the sizes the other algorithms are read at are out of its reach, and
-its instances are therefore not the instances of the comparison; it is reported on a set of
+The initial population is built from Johnson's rule on both scales. That rule reads the two
+processing times alone, so the criterion has to be built into the schedule by the operators, and
+the three settings above say how much of the search is spent on that. The two scales are
+therefore read for different things: the small one for the course of the search, whose settings
+are the narrow ones and whose gap against the optimum falls from $17$ per cent at ten jobs to
+$4$ at sixty, closing on the construction rule without passing it; the large one for what the
+search reaches when it is given room, its settings growing faster than the instance and its gap
+closing as the instance grows.
+
+The instances were generated in three groups, and every integer of
+an instance is drawn from a normal distribution on the integers of its range: the mean at the
+middle of the range, the standard deviation a sixth of its width, so that the two ends lie three
+standard deviations away, and the draw rounded to an integer and clamped to the range. The first
+group, on which the dynamic program is reported, varies the instance size: $40$, $60$, $80$ and
+$100$, crossed with the weight count $K=2$, whose weights are the geometric ladder $1,10$, and
+with the two ranges $[1,40]$ and $[1,80]$ that the other groups use as well. Its ladder rises by
+$20$ a step and stops at the largest size the time limit still reaches: at $[1,40]$ every
+instance is settled well within the limit, while on $[1,80]$ the limit binds at a hundred jobs
+and cuts six of the twenty short. This group is not the set on which the methods are compared. The running time
+$O(nKV^{3K-3})$ of the dynamic program grows so fast in the number $K$ of distinct weights that
+the sizes the other algorithms are read at are out of its reach, so it is reported on a set of
 its own.
 
 \begin{table}[htbp]
 \resultstable
-\caption{The dynamic program, $K=2$. ``opt.'' count optimality.}
+\caption{The dynamic program, $K=2$}
 \label{tab:results-dp-k2}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}ccccc@{}}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l r r r @{\hspace{14pt}} r r r@{}}
 \toprule
-$n$ & $a_j,b_j$ range & $W C_{\max}$ & opt. & time (ms) \\
+\multirow{2}{*}{$n$} & \multicolumn{3}{c}{$a_j,b_j\in[1,40]$} & \multicolumn{3}{c}{$a_j,b_j\in[1,80]$} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+ & $W C_{\max}$ & time (ms) & opt. & $W C_{\max}$ & time (ms) & opt. \\
 \midrule
-\multirow{6}{*}{$20$} & $[1,20]$ & $1243.0$ & $20/20$ & $10.00$ \\
-                       &          & $(640.0,1810.0)$ &       & $(0.00,70.00)$ \\
-                       & $[1,40]$ & $2217.5$ & $20/20$ & $20.00$ \\
-                       &          & $(1680.0,3240.0)$ &       & $(0.00,80.00)$ \\
-                       & $[1,60]$ & $3213.0$ & $20/20$ & $20.00$ \\
-                       &          & $(2400.0,4760.0)$ &       & $(0.00,110.00)$ \\
-\midrule
-\multirow{6}{*}{$40$} & $[1,20]$ & $2225.0$ & $20/20$ & $840.00$ \\
-                       &          & $(1530.0,2720.0)$ &       & $(110.00,3260.00)$ \\
-                       & $[1,40]$ & $4287.0$ & $20/20$ & $4730.00$ \\
-                       &          & $(2780.0,6860.0)$ &       & $(30.00,20430.00)$ \\
-                       & $[1,60]$ & $6929.0$ & $20/20$ & $4810.00$ \\
-                       &          & $(4690.0,9190.0)$ &       & $(290.00,19600.00)$ \\
-\midrule
-\multirow{6}{*}{$60$} & $[1,20]$ & $3155.5$ & $20/20$ & $7930.00$ \\
-                       &          & $(2260.0,4430.0)$ &       & $(1940.00,20450.00)$ \\
-                       & $[1,40]$ & $6480.0$ & $20/20$ & $29670.00$ \\
-                       &          & $(4650.0,8480.0)$ &       & $(1380.00,81640.00)$ \\
-                       & $[1,60]$ & $9402.5$ & $20/20$ & $61250.00$ \\
-                       &          & $(6880.0,12230.0)$ &       & $(11670.00,215430.00)$ \\
+$40$ & \shortstack[r]{$4335.0$ \\ {\scriptsize $5480.0$}} & \shortstack[r]{$1465.55$ \\ {\scriptsize $4257.81$}} & $20/20$ & \shortstack[r]{$8604.5$ \\ {\scriptsize $10590.0$}} & \shortstack[r]{$4984.88$ \\ {\scriptsize $24448.80$}} & $20/20$ \\
+$60$ & \shortstack[r]{$6340.0$ \\ {\scriptsize $7270.0$}} & \shortstack[r]{$14233.26$ \\ {\scriptsize $31363.33$}} & $20/20$ & \shortstack[r]{$12344.5$ \\ {\scriptsize $15020.0$}} & \shortstack[r]{$52541.32$ \\ {\scriptsize $113542.29$}} & $20/20$ \\
+$80$ & \shortstack[r]{$8221.0$ \\ {\scriptsize $9750.0$}} & \shortstack[r]{$45134.23$ \\ {\scriptsize $109544.47$}} & $20/20$ & \shortstack[r]{$17341.5$ \\ {\scriptsize $19580.0$}} & \shortstack[r]{$134034.27$ \\ {\scriptsize $278535.25$}} & $20/20$ \\
+$100$ & \shortstack[r]{$10647.0$ \\ {\scriptsize $12350.0$}} & \shortstack[r]{$89585.46$ \\ {\scriptsize $168850.77$}} & $20/20$ & \shortstack[r]{$21544.3$ \\ {\scriptsize $24240.0$}} & \shortstack[r]{$329010.01$ \\ {\scriptsize $628500.13$}} & $14/20$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-The two groups that follow share their weight setting and their processing-time ranges. An
-instance carries at most thirty distinct weights, drawn by the rule above on $\{1,\dots,30\}$,
-so that the number of its weight classes is arbitrary below that bound, that the classes near
-the middle of the range are the populous ones, and that they are neighbouring integers rather
-than the decades of the first group. Its processing times $a_j$ and $b_j$ are drawn the same
-way, and independently for every job, on one of the two ranges $[1,40]$ and $[1,80]$, which
-are read as a factor and named in the caption of every table below. The small group varies the
-instance size over $10,15,\dots,60$ and the large one over $100,120,\dots,400$: the model is
-compared with the heuristics at the small sizes, where it is exact and settles them, and the
-heuristics alone are reported at the large ones, where no exact method is within reach and
-the gap of each of them is measured against the reference value $LB$ of \cref{eq:lb}. Between
-them the three groups carry the three factors of the study: the instance size, the number of
-distinct weights and the width of the processing-time range. Each configuration was
-replicated over $20$ independent instances, and
-every figure below is the average of those replications. Every method was given the same
-time limit of $600$\,s. A method that reaches the limit is recorded with the value it has
-attained rather than omitted. For every configuration the comparison tables give, for each
-method, the mean and the maximum of its gap and of its running time, each of the two as a pair
-of figures, and the table of the dynamic program gives the number of instances whose
-optimum it establishes.
+The two groups that follow are the comparison, and both carry the two ranges of the first, so
+that the width of the range is a factor every group shares. An instance of theirs carries at
+most thirty distinct weights, drawn by the same rule on $\{1,\dots,30\}$: the number of its
+weight classes is arbitrary below that bound, the populous classes are the ones near the middle,
+and neighbouring integers replace the decades of the first group. Its processing times are drawn
+the same way, and independently for every job, on one of $[1,40]$ and $[1,80]$, which are read as
+a factor and named in the caption of every table below. The small group varies the instance size
+over $10,15,\dots,60$ and the large one over $100,120,\dots,400$: the model is compared with the
+heuristics at the small sizes, where it is exact and settles them, and the heuristics alone are
+reported at the large ones, where no exact method is within reach and the gap of each is measured
+against $LB$ of \cref{eq:lb}. Between them the three groups carry the three factors of the study:
+the instance size, the number of distinct weights and the width of the processing-time range.
+Every configuration is replicated over twenty independent instances and every figure below is
+the average of them; every method is given the same time limit of $600$\,s, and a method that
+reaches it is recorded with the value it has attained rather than omitted. Every table below is
+read the same way. A row is an instance
+size, the columns are grouped by method and, in the table of the dynamic program, by
+processing-time range, and an entry is the pair (mean, maximum) of the quantity its column
+names over the twenty instances of the configuration, the mean above and the maximum below it
+in the smaller type. Gaps are in per cent and running times in milliseconds, and the ``opt.''
+column of the dynamic program gives the number of instances whose optimum it establishes.
 
-The algorithms of the previous sections were compared on these instances. The model of
-\Cref{sec:formulation} and the two heuristics of \Cref{sec:heuristics} were applied to every
-instance of the small group, and the heuristics alone to every instance of the large one,
-where no exact method is within reach. The dynamic program of \Cref{alg:dp} was applied to the
-instances of the first group, the only ones its running time reaches, and is reported on its
-own. What the tables read is the instance size, and, from one table to the next, the width of
-the processing-time range.
+The model of \Cref{sec:preliminaries} and the two heuristics of \Cref{sec:heuristics} were applied
+to every instance of the small group, and the heuristics alone to every instance of the large
+one, where no exact method is within reach; the dynamic program of \Cref{alg:dp} was applied to
+the first group alone, the only one its running time reaches.
 
-The tables below carry the results, and each is read for one question.
-\Cref{tab:results-dp-k2} reports the dynamic program on its own instance set.
-\Crefrange{tab:results-small-40}{tab:results-small-80}
-report the small scale, one table per processing-time range, and are read for the gap and the
-running time of every method as the instance size grows. \Crefrange{tab:results-large-40}{tab:results-large-80}
-report the large scale, one table per range, and are read for the gap and the running time of
-each heuristic under the instance size. The four tables are read together, and what they report is
-a change of leader rather than a fixed order: which method comes closest to the reference depends
-on the scale, and on the size within a scale.
+Each table is read for one question. \Cref{tab:results-dp-k2} reports the dynamic program on its
+own instances, and is read for how far the exact method reaches and what it costs to get there;
+\Crefrange{tab:results-small-40}{tab:results-small-80} report the small scale, one table per
+range, and are read for the gap and the running time of every method as the instance grows;
+\Crefrange{tab:results-large-40}{tab:results-large-80} report the large scale, one table per
+range, and are read for the same two quantities under the instance size. Read together, they
+report a change of leader rather than a fixed order: which method comes closest to the reference
+depends on the scale, and on the size within a scale.
 
 \subsection{Results}
 
-The model settled every instance of the small scale to optimality -- $20$ of $20$ in each of its
-$22$ configurations, $440$ instances in all -- so that the gaps reported against it below are
-distances to an optimum and not to the incumbent of a run that ran out of time. Its cost is what
-grows. The mean time of an instance rises from $50.6$\,ms at ten jobs to $80.1$\,s at sixty on
-$[1,40]$ and from $40.2$\,ms to $43.5$\,s on $[1,80]$, and the value it returns rises with the
-range as well: the mean optimum of a ten-job instance is $2510.7$ on $[1,40]$ and $5433.0$ on
-$[1,80]$, and that of a sixty-job instance $12323.6$ and $25266.1$. The slowest instance of the
-scale takes $299.6$\,s of the $600$\,s a run is allowed, so the exact side is complete on this
-scale but not roomy: the limit is close by the top of it.
+The model settles every instance of the small scale to optimality -- $20$ of $20$ in each of its
+$22$ configurations, $440$ instances in all -- so the gaps reported against it are distances to
+an optimum and not to the incumbent of a run that ran out of time. What grows is its cost: the
+mean time of an instance rises from $50.6$\,ms at ten jobs to $80.1$\,s at sixty on $[1,40]$, and
+from $40.2$\,ms to $43.5$\,s on $[1,80]$, while the value it returns rises with the range as
+well -- the mean optimum of a ten-job instance is $2510.7$ on $[1,40]$ and $5433.0$ on $[1,80]$,
+and that of a sixty-job instance $12323.6$ and $25266.1$. The slowest instance of the scale takes
+$299.6$\,s of the $600$\,s a run is allowed, so the exact side is complete here but not roomy:
+the limit is close by the top of the scale.
 
-The dynamic program is reported at $K=2$ alone, and what limits it is memory rather than time. Its
-state space is bounded by $2^{K}V^{\,3K-3}$, with $V$ the total processing time of the instance
-(\Cref{sec:dp_algorithm}), so that a third weight class multiplies the number of states by
-$2V^{\,3}$: at $K=3$ the memory of the machine the runs were made on is exhausted and the program
-does not return. What \Cref{tab:results-dp-k2} reads is the effect of the two parameters that
-remain. The first is the instance size: at $a_j,b_j\in[1,40]$ the mean running time rises from
-$20$\,ms at twenty jobs to $4.73$\,s at forty and $29.67$\,s at sixty, while the value of the
-criterion grows only from $2217.5$ to $4287.0$ and $6480.0$ over the same three sizes. The second
-is the width of the processing-time range, which enters the state space through $V$ rather than
-through the number of jobs: at sixty jobs the mean time is $7.93$\,s on $[1,20]$, $29.67$\,s on
-$[1,40]$ and $61.25$\,s on $[1,60]$. Every configuration of the group settles all twenty of its
-instances to optimality, so what the group varies is the cost of the exact method and not the
-answer it returns.
+The dynamic program is the only method of the study that certifies an optimum, and its strength is
+that it is exact wherever it returns: seven of the eight configurations settle all twenty of their
+instances, and a forty-job instance costs $1.47$\,s on $[1,40]$ and $4.98$\,s on $[1,80]$. Its
+weakness is reach, and it is bounded from two sides. The first is the number of weight classes.
+Its state space is bounded by $2^{K}V^{\,3K-3}$, with $V$ the total processing time of the instance
+(\Cref{sec:dp_algorithm}), so that a third class multiplies the number of states by $2V^{\,3}$: at
+$K=3$ the memory of the machine the runs were made on is exhausted and the program does not
+return, which is why the group is reported at $K=2$ alone. The second is the instance size and the
+width of the range, which enter through $V$ as well. At $a_j,b_j\in[1,40]$ the mean running time
+rises from $1.47$\,s at forty jobs to $14.23$\,s at sixty, $45.13$\,s at eighty and $89.59$\,s at
+a hundred -- a factor of $61$ over the ladder, against a criterion that grows only from $4335.0$
+to $10647.0$, a factor of $2.5$. The range multiplies that time by between $3.0$ and $3.7$ at
+every size, the two extremes being $1.47$ against $4.98$\,s at forty jobs and $89.59$ against
+$329.01$\,s at a hundred. The two bounds meet at the top of the ladder: at a hundred jobs on
+$[1,80]$ the $600$\,s limit cuts six of the twenty instances short, so that the configuration
+settles $14/20$, and over the fourteen it settles the mean time is $329.01$\,s with a largest of
+$628.50$\,s, past the limit because the deadline is checked once per job and not inside one. The
+exact method is therefore cheap at forty jobs and out of reach beyond a hundred, while the
+heuristics are read to four hundred.
 
-The two rules that read an instance without searching it are close to the optimum and far apart in
-what they cost. The 2-approximation, which reads the weights alone, has a mean gap of $3.52$ per
-cent over the whole scale -- $3.47$ on $[1,40]$ and $3.56$ on $[1,80]$ -- and reaches the optimum on
-$36$ of the $440$ instances, its worst instance $16.71$ per cent away. NEH has a mean gap of $2.53$
-per cent, $2.39$ on $[1,40]$ and $2.67$ on $[1,80]$, reaches the optimum on $99$ of the $440$, and
-its worst instance is $11.27$ per cent away. The two reverse over the scale: NEH is the closer of
-them at nine of the eleven sizes on $[1,40]$ and at seven of them on $[1,80]$, and the
+The two rules that read an instance without searching it are close to the optimum and far apart
+in what they cost. The 2-approximation, which reads the weights alone, has a mean gap of $3.52$
+per cent over the whole small scale -- $3.47$ on $[1,40]$ and $3.56$ on $[1,80]$ -- and reaches
+the optimum on $36$ of the $440$ instances, its worst $16.71$ per cent away. NEH has a mean gap
+of $2.53$ per cent, $2.39$ and $2.67$ on the two ranges, reaches the optimum on $99$ of the
+$440$, and its worst instance is $11.27$ per cent away. The two reverse over the scale: NEH is
+the closer at nine of the eleven sizes on $[1,40]$ and at seven on $[1,80]$, and the
 2-approximation takes the lead at the largest sizes, where the order of the weights is what the
-criterion rewards. Their costs are not of the same order either: $0.02$\,ms an instance on average
-for the 2-approximation, and never above $0.05$\,ms, against $2.68$\,ms for NEH, whose cost grows
-with the instance to $8.35$\,ms at sixty jobs, the model being a thousand times above both at
+criterion rewards. Their costs are not of the same order either: $0.02$\,ms an instance on
+average for the 2-approximation, never above $0.05$\,ms, against $2.68$\,ms for NEH, which grows
+with the instance to $8.35$\,ms at sixty jobs; the model is a thousand times above both, at
 $13.85$\,s an instance on the average of the scale.
 
-The genetic algorithm is the only method of the three whose gap closes over the scale, and here it
-closes onto the other two without passing them. Its mean gap falls from $16.83$ to $3.92$ per cent
-on $[1,40]$ and from $13.16$ to $3.24$ per cent on $[1,80]$, which leaves it within a point of both
-rules at sixty jobs. Its course is not monotone: it rises to $18.96$ and $18.97$ per cent at fifteen
-jobs and stays above $14$ per cent until thirty-five, where the instances are harder for it than the
-ten-job ones by more than the growth of its own budget makes up for. Averaged over the $22$
-configurations it stands at $10.75$ per cent, against $3.52$ for the 2-approximation and $2.53$ for
-NEH, and its worst instance of the scale is $67.41$ per cent from the optimum, at ten jobs. Its cost
-is above both rules by three orders of magnitude: $0.55$\,ms an instance at ten jobs and $1.65$\,s
-at sixty, against the $80.1$\,s the model needs at that size.
+The genetic algorithm is the only method whose gap closes over the small scale, and that is its
+strength here: it approaches the optimum from far away. Its mean gap falls from $16.83$ to $3.92$
+per cent on $[1,40]$ and from $13.16$ to $3.24$ per cent on $[1,80]$, which leaves it within a
+point of both rules at sixty jobs. What the rest of the scale shows is what that approach costs.
+It starts as the worst of the three, at three to twenty times the gap of the rules at ten jobs;
+its course is not monotone, rising to $18.96$ and $18.97$ per cent at fifteen jobs and staying
+above $14$ per cent until thirty-five, where the instances are harder for it by more than the
+growth of its own budget makes up for; and over the $22$ configurations it stands at $10.75$ per
+cent, against $3.52$ for the 2-approximation and $2.53$ for NEH, with a worst instance $67.41$
+per cent from the optimum, at ten jobs. Its cost is above both rules by three orders of
+magnitude: $0.55$\,ms an instance at ten jobs and $1.65$\,s at sixty, against the $80.1$\,s the
+model needs at that size. On this scale the search neither beats the rules nor approaches them
+cheaply; what it shows is the direction in which it moves, and that is read on the large scale.
 
 \begin{table}[htbp]
 \resultstable
-\caption{The small scale, $a_j,b_j\in[1,40]$.  An entry of ``gap'' or ``time'' is the pair (mean, maximum) of that quantity}
+\caption{The small scale, $a_j,b_j\in[1,40]$: MILP, 2-approx., NEH, GA}
 \label{tab:results-small-40}
 \begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l r r @{\hspace{14pt}} r r @{\hspace{14pt}} r r @{\hspace{14pt}} r r@{}}
 \toprule
@@ -1955,7 +1932,7 @@ $60$ & \shortstack[r]{$12323.6$ \\ {\scriptsize $14703.0$}} & \shortstack[r]{$80
 
 \begin{table}[htbp]
 \resultstable
-\caption{The small scale, $a_j,b_j\in[1,80]$.  An entry of ``gap'' or ``time'' is the pair (mean, maximum) of that quantity}
+\caption{The small scale, $a_j,b_j\in[1,80]$: MILP, 2-approx., NEH, GA}
 \label{tab:results-small-80}
 \begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l r r @{\hspace{14pt}} r r @{\hspace{14pt}} r r @{\hspace{14pt}} r r@{}}
 \toprule
@@ -2010,21 +1987,21 @@ $60$ & \shortstack[r]{$25266.1$ \\ {\scriptsize $29614.0$}} & \shortstack[r]{$43
 \label{fig:gap-small}
 \end{figure}
 
-On the large scale, where no exact method is within reach and the reference is the lower bound
-$LB$, the three methods separate for good. The 2-approximation is the closest on average, at $1.81$
-per cent over the $32$ configurations, its mean never above $3.20$ per cent and its worst instance
-$7.57$ per cent away. NEH is the furthest, at $4.40$ per cent, and its gap hardly moves over the
-scale: $5.02$ per cent at a hundred jobs against $3.60$ at four hundred on $[1,40]$, and $5.39$
-against $4.47$ on $[1,80]$, its worst configuration $5.59$ per cent and its worst instance $12.64$.
-The genetic algorithm is the only method whose gap falls as the instance grows, and it falls
-steeply: $10.88$ per cent at a hundred and eighty jobs, $5.49$ at two hundred, $2.09$ at two hundred
-and forty and $0.22$ at four hundred on $[1,40]$, and $6.99$, $6.34$, $2.09$ and $0.13$ per cent on
-$[1,80]$. It passes NEH at $240$ jobs and the 2-approximation at about $260$ on $[1,80]$ and $280$
-on $[1,40]$, and over the $640$ instances of the scale it attains the best value on $318$ of them,
-against $283$ for the 2-approximation and $42$ for NEH. Its worst configuration and its worst
-instance are both at the bottom of the scale, at $10.88$ and $28.17$ per cent. The cost of that is
-$70.8$\,s an instance on average, against $0.076$\,ms for the 2-approximation and $0.76$\,s for
-NEH, and $313.5$\,s on the slowest instance of the scale, of the $600$\,s a run is allowed.
+On the large scale the three methods separate for good. The rules are flat: the 2-approximation
+is the closest on average at $1.81$ per cent over the $32$ configurations, its mean never above
+$3.20$ per cent and its worst instance $7.57$ per cent away, and NEH is the furthest at $4.40$
+per cent, its gap hardly moving over the scale -- $5.02$ at a hundred jobs against $3.60$ at four
+hundred on $[1,40]$, and $5.39$ against $4.47$ on $[1,80]$, with a worst instance $12.64$ per
+cent away. The genetic algorithm is the only method whose gap falls as the instance grows, and it
+falls steeply: $10.88$ per cent at a hundred and eighty jobs, $5.49$ at two hundred, $2.09$ at
+two hundred and forty and $0.22$ at four hundred on $[1,40]$, and $6.99$, $6.34$, $2.09$ and
+$0.13$ per cent on $[1,80]$. It passes NEH at $240$ jobs and the 2-approximation at about $260$
+on $[1,80]$ and $280$ on $[1,40]$, and over the $640$ instances of the scale it attains the best
+value on $318$ of them, against $283$ for the 2-approximation and $42$ for NEH. What it costs is
+time and the bottom of the scale: $70.8$\,s an instance on average, against $0.076$\,ms for the
+2-approximation and $0.76$\,s for NEH, with $313.5$\,s on its slowest instance of the $600$\,s a
+run allows, and its worst configuration and its worst instance both at the bottom, at $10.88$ and
+$28.17$ per cent.
 
 The two ranges agree on the ordering of the two rules and disagree on the search. The
 2-approximation is closer on the wider range, $1.70$ per cent against $1.92$, and NEH further from
@@ -2034,7 +2011,7 @@ of a point of one another, and $3.65$ against $4.79$ on $[1,80]$.
 
 \begin{table}[htbp]
 \resultstable
-\caption{The large scale, $a_j,b_j\in[1,40]$.  An entry of ``gap'' or ``time'' is the pair (mean, maximum) of that quantity}
+\caption{The large scale, $a_j,b_j\in[1,40]$: 2-approx., NEH, GA}
 \label{tab:results-large-40}
 \begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l r r @{\hspace{14pt}} r r @{\hspace{14pt}} r r@{}}
 \toprule
@@ -2064,7 +2041,7 @@ $400$ & \shortstack[r]{$1.51$ \\ {\scriptsize $2.99$}} & \shortstack[r]{$0.20$ \
 
 \begin{table}[htbp]
 \resultstable
-\caption{The large scale, $a_j,b_j\in[1,80]$.  An entry of ``gap'' or ``time'' is the pair (mean, maximum) of that quantity}
+\caption{The large scale, $a_j,b_j\in[1,80]$: 2-approx., NEH, GA}
 \label{tab:results-large-80}
 \begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l r r @{\hspace{14pt}} r r @{\hspace{14pt}} r r@{}}
 \toprule
@@ -2133,16 +2110,28 @@ the rules do not reach.
 \subsection{Discussion}
 
 What the study reads, then, is a division of labour rather than a ranking. The 2-approximation is
-the cheapest method by six orders of magnitude and stays within five per cent of the optimum on the
-small scale and within $1.81$ per cent of $LB$ on the large one, which says that the factor of two
-of \Cref{thm:approx2} is loose by an order of magnitude on instances of this kind. What it cannot do
-is read anything but the weights, and that is the ground NEH takes: NEH reads the two processing
-times and no weight, which makes it the closest method at the bottom of the small scale and the
-furthest at the top of the large one, where its gap does not close as the instance grows. The
-genetic algorithm is the only method whose gap falls with the instance and the only one that beats
-both rules, from about $260$ jobs on and at ninety-three times the running time of NEH. The reason
-is the start it is given: Johnson's rule carries no weight, so the search spends its early
-generations building the criterion into the schedule before it can profit from it.
+the cheapest method by six orders of magnitude and stays within five per cent of the optimum on
+the small scale and within $1.81$ per cent of $LB$ on the large one, which says that the factor of
+two of \Cref{thm:approx2} is loose by an order of magnitude on instances of this kind. What it
+cannot do is read anything but the weights, and that is the ground NEH takes: NEH reads the two
+processing times and no weight, which makes it the closest method at the bottom of the small
+scale and the furthest at the top of the large one, where its gap does not close as the instance
+grows.
+
+The two methods that carry the study beyond a rule sit at opposite ends of it. The dynamic
+program is the only one that certifies an optimum, and it does so cheaply where it applies --
+$1.47$\,s for forty jobs on $[1,40]$ -- but its applicability is the restriction: two weight
+classes, at most a hundred jobs, and a third class that exhausts the memory of the machine before
+the search starts. The genetic algorithm is the reverse. It certifies nothing, it costs three
+orders of magnitude more than the rules on the small scale and more than ninety times NEH on the
+large one, and it is nevertheless the only method that beats both rules, on $318$ of the $640$
+large instances and from about $260$ jobs on. Neither is read on the instances of the other --
+the dynamic program on a set of its own at $K=2$, the search on instances that carry up to thirty
+weight classes -- so what separates them is not a common benchmark but the question each answers:
+whether the optimum can be certified at all, or whether a schedule that beats every rule can be
+built at the sizes that arise. The reason the search needs the room is the start it is given:
+Johnson's rule carries no weight, so its early generations are spent building the criterion into
+the schedule before it can profit from it.
 
 Two properties of the comparison are worth keeping in view. The large-scale gaps are distances to
 $LB$, which caps the optimum by the three prefix bounds of \cref{eq:lb} and is tight only where the
