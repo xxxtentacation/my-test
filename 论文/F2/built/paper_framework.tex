@@ -1270,14 +1270,14 @@ Hence the weight rounding incurs
 a relative error of at most $\theta=1+\epsilon/(2n)\le 1+\epsilon$, exactly as in the
 completion-time rounding.
 
-\section{Heuristic Algorithms}
+\section{Heuristic algorithms}
 \label{sec:heuristics}
 
 The exact dynamic program of \Cref{sec:dp_algorithm} is pseudo-polynomial, and the
 running time of the FPTAS of \Cref{sub:fptas} is exponential in the number $K$ of
-distinct weights. For large instances, fast heuristics are therefore of practical interest.
-In this section we present two heuristics for $F2 \parallel W C_{\max}$: an adaptation of
-the NEH algorithm \citep{puka2024} and a genetic algorithm \citep{qiao2022adaptive}.
+distinct weights. Fast heuristics are therefore the practical route for large instances.
+This section presents two of them for $F2 \parallel W C_{\max}$: an adaptation of the NEH
+algorithm \citep{puka2024} and a genetic algorithm \citep{qiao2022adaptive}.
 
 Throughout this section, the objective of a permutation
 $\pi=(\pi(1),\dots,\pi(k))$ of $k$ jobs is evaluated by \cref{eq:completion} and
@@ -1287,7 +1287,7 @@ W C_{\max}(\pi)=\max_{1\le t\le k} w_{\pi(t)}\, C_{\pi(t)},
 \]
 which is computed in $O(k)$ time.
 
-\subsection{NEH}
+\subsection{The NEH heuristic}
 Constructive heuristics are attractive for $F2 \parallel W C_{\max}$ because they produce a
 complete schedule in a single pass, without the tuning effort of population-based
 metaheuristics. The NEH heuristic \citep{puka2024} is among the most effective
@@ -1344,24 +1344,23 @@ recurrence above. Hence step $k$ costs $O(k^2)$, and the total running time is
 $O\bigl(\sum_{k=1}^{n}k^2\bigr)=O(n^3)$.
 \end{proof}
 
-\subsection{Genetic Algorithm}
+\subsection{The genetic algorithm}
 \label{sub:ga}
 
-The objective $W C_{\max}$ is the largest of the products $w_jC_j$ over the jobs. It is a
-bottleneck criterion, since a single \emph{critical} job attains that maximum and fixes the
-value of a schedule. An ordering can therefore be improved in only two ways, by lowering the
-completion time of that job or by shortening completion times across the board. A genetic
-algorithm for $F2 \parallel W C_{\max}$ should not treat all jobs symmetrically. The genetic algorithm is a standard tool for flow-shop
-scheduling \citep{qiao2022adaptive}. Nothing in it is built around the weight classes as a
-whole: the population starts from the order that is shortest on the two machines and knows
-nothing of the weights, and it is the mutation that moves the blocks of one weight, one block
-at a time, until the schedule carries the structure of \Cref{lem:block-johnson}. High-weight
-jobs should occupy early
-positions, so that their weighted completion stays small, while the makespan should stay low
-so that no job is delayed unnecessarily. The algorithm follows the classical framework of a
-genetic algorithm. It is organized in four parts: the encoding and decoding of a schedule,
-the generation of the initial population, the iteration of the population, and the mutation
-of the offspring.
+The objective $W C_{\max}$ is a bottleneck: a single \emph{critical} job attains the maximum
+and fixes the value of a schedule. An ordering can therefore be improved in only two ways, by
+lowering the completion time of that job or by shortening completion times across the board.
+High-weight jobs should occupy early positions, so that their weighted completion stays small,
+while the makespan should stay low so that no job is delayed unnecessarily, and a genetic
+algorithm for $F2 \parallel W C_{\max}$ cannot treat the jobs symmetrically.
+
+The genetic algorithm is a standard tool for flow-shop scheduling \citep{qiao2022adaptive}, and
+it is used here within its classical framework, organised in four parts: the encoding and
+decoding of a schedule, the generation of the initial population, the iteration of the
+population, and the mutation of the offspring. Nothing in that framework is built around the
+weight classes. The population starts from the order that is shortest on the two machines and
+knows nothing of the weights, and it is the mutation that moves the blocks of one weight, one
+block at a time, until the schedule carries the structure of \Cref{lem:block-johnson}.
 
 \subsubsection{Encoding and decoding}
 A chromosome is a permutation $\pi=(\pi(1),\dots,\pi(n))$, in which the gene at
@@ -1446,7 +1445,7 @@ a population as large as the instance reaches. A generation is dominated by the 
 which evaluates $n$ positions of a block at $O(n)$ time each, and therefore costs
 $O(\lambda n^{2})$, where $\lambda$ is the number of offspring the generation produces.
 
-\subsubsection{Population iteration}
+\subsubsection{Selection, crossover and survival}
 A generation turns the population into its successor by three moves.  The parents are
 selected, the parents are recombined into offspring, and the fittest of parents and
 offspring survive.  The algorithm runs $G$ generations of them, and each of them produces
@@ -1625,8 +1624,8 @@ keeping the order they hold in it, and the run is put back at the position that 
 $W C_{\max}$ over the whole schedule, which is evaluated by \cref{eq:completion} at every one
 of the positions the run can take.  The weight is the one of a job attaining
 $W C_{\max}(\pi)$, since that is the job that closes the criterion, and with probability
-$1/2$ a weight drawn at random instead, so that the order of the blocks is explored and not
-only repaired.
+$1/2$ a weight drawn at random is used instead, so that the order of the blocks is explored and
+not only repaired.
 
 The move is a variation and not an improvement.  Moving a block forward delays every job it
 passes, so the criterion may rise while the block order moves towards the one
@@ -1693,7 +1692,7 @@ it; evaluate all individuals; set $\pi^{*}$ to the best. \;
 \KwOut{Best schedule $\pi^{*}$.}
 \end{algorithm}
 
-\paragraph{Genetic Algorithm}
+\paragraph{The complete algorithm}
 The four parts above assemble into \Cref{alg:ga}, which runs as many generations as the
 instance is given: the population it starts from is short on the makespan but carries nothing
 of the weights, so the criterion has to be iterated into the schedule by the mutation before a
