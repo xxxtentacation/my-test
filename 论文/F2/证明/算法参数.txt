@@ -1,0 +1,19 @@
+
+The genetic algorithm was calibrated before the study, and each of its parameters is a function
+of the instance size, so that one rule covers both scales: its crossover probability is
+$p_c=\min(1,\,19/20+n/4000)$ and its mutation probability $p_m=\min(1,\,1/2+n/500)$, the
+mutation doubling its share over the scale while the crossover starts near one.
+Three settings the scales do not share. The number of generations is
+$G=\max(2,\lfloor n/4\rfloor)$ on the small scale and $G=\max(16,\lfloor n^{2}/2000\rfloor)$ on
+the large one, the number of offspring a generation produces is
+$\lambda=\max(8,\lfloor n^{2}/12\rfloor)$ on the small scale and
+$\lambda=\min(200,60+\lfloor n/2\rfloor)$ on the large one, and the local search of
+\Cref{alg:ga} reinserts $k=\max(1,\lfloor n/8\rfloor)$ jobs on the small scale and
+$k=\max(2,\lfloor 12n/100\rfloor-10)$ on the large one, so that its width grows faster than the
+instance.
+Since Johnson's rule carries no weight, the three settings above say how much of the search is
+spent building the criterion into the schedule. The two scales are therefore read for different
+things: the small one for the course of the search, whose settings are the narrow ones and whose
+gap against the optimum falls from $17$ per cent at ten jobs to $4$ at sixty, closing on the
+construction rule without passing it; the large one for what the search reaches when it is given
+room, its settings growing faster than the instance and its gap closing as the instance grows.

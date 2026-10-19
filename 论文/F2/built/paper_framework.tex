@@ -1,4 +1,4 @@
-\documentclass[12pt]{article}
+﻿\documentclass[12pt]{article}
 \textheight=24.5cm \textwidth=16.5cm
 \parskip = 0.165cm
 \renewcommand\baselinestretch{1.2}
@@ -216,13 +216,13 @@ general two-machine flow shop does not satisfy that assumption. More fundamental
 weighted completion time decomposes over the jobs and can be accumulated while a schedule is
 built, which is what allows a dynamic program to compare partial schedules with one another; a
 maximum does not decompose in this way, since a partial schedule carries no information about
-its final value until it is complete. Optimizing $F2 \parallel W C_{\max}$ therefore requires
-structural properties of a kind that the earlier work does not supply, and the criterion
-matters for the systems above, where a wrong sequence delays the most costly step rather than
-the average one.
+its final value until it is complete. Optimizing the maximum weighted completion time of a
+two-machine flow shop therefore requires structural properties of a kind that the earlier work
+does not supply, and the criterion matters for the systems above, where a wrong sequence delays
+the most costly step rather than the average one.
 
-In this paper we study the problem $F2 \parallel W C_{\max}$. Four features distinguish it from
-the settings reviewed above. (i) Two machines stand in series, so that each completion time
+In this paper we study this problem: the two-machine flow shop with the maximum weighted
+completion time as its criterion. Four features distinguish it from the settings reviewed above. (i) Two machines stand in series, so that each completion time
 depends on the idle time inherited from its predecessors. (ii) The objective is a maximum over
 weighted completion times rather than their sum. (iii) The processing times are general, with
 no proportionate assumption. (iv) No job may be rejected, so that every job must be scheduled.
@@ -261,18 +261,13 @@ and \Cref{sec:conclusion} concludes.
 \section{Preliminaries}
 \label{sec:preliminaries}
 
-We consider the problem $F2 \parallel W C_{\max}$, the two-machine flow shop whose criterion is the
-maximum weighted completion time. The name is the three-field notation of scheduling
-theory \citep{pinedo2022scheduling}: $F2$ denotes a flow shop in which every job passes
-through two machines in series, the second field is left empty because no further restriction is
-placed on the jobs, and $W C_{\max}$ denotes the criterion. The problem is referred to by this
-notation alone.
-
 Let $\mathcal{J} = \{J_1, J_2, \dots, J_n\}$ be $n$ jobs processed on two machines $M_1$ and $M_2$ in series.
 Each job $J_j$ is processed first on $M_1$ for $a_j$ time units and then on $M_2$ for $b_j$ time units,
 without preemption, the processing times $a_j$ and $b_j$ being positive integers.
 Each machine processes at most one job at a time, and each job $J_j$ carries a weight $w_j > 0$.
-A schedule $\pi = (\pi(1), \pi(2), \dots, \pi(n))$ specifies the sequence on both machines.
+A schedule $\pi = (\pi(1), \pi(2), \dots, \pi(n))$ specifies the sequence on both machines, and it
+may be taken to be a permutation of the jobs, since an optimal schedule exists in which both
+machines process them in the same order \citep{baker1974introduction}.
 For a schedule $\pi$, let $A_j = \sum_{h=1}^{j} a_{\pi(h)}$ and $B_j = \sum_{h=1}^{j} b_{\pi(h)}$
 be the cumulative processing times on $M_1$ and $M_2$ after the first $j$ jobs. The completion time
 of the job in position $j$ on machine $M_2$ is
@@ -285,8 +280,15 @@ $w_{\pi(j)}C_{\pi(j)}$ over the positions,
 W C_{\max}(\pi)=\max_{1\le j\le n}w_{\pi(j)}\,C_{\pi(j)}.
 \end{equation}
 Here $C_j$ is the completion time of job $J_j$ on $M_2$, and $C_{\pi(j)}$ is the completion time of
-the job in position $j$, given by \cref{eq:completion}. Throughout, $W C_{\max}^{*}$ denotes the
-optimal value of $F2 \parallel W C_{\max}$.
+the job in position $j$, given by \cref{eq:completion}.
+
+The problem is the two-machine flow shop with the maximum weighted completion time as its
+criterion. In the three-field notation of scheduling theory \citep{pinedo2022scheduling} it is
+denoted $F2 \parallel W C_{\max}$: the first field states the machine environment, a flow shop of
+two machines in series; the second field states any further restriction on the processing, and it
+is left empty because the data above impose none; and the third field states the criterion, the
+maximum weighted completion time of \cref{eq:wcmax}. The problem is referred to by this notation
+alone in what follows, and $W C_{\max}^{*}$ denotes its optimal value.
 
 The problem can be formulated as a mixed integer linear program (MILP). The positions of a
 permutation schedule are indexed by $k = 1,\dots,n$.
@@ -346,7 +348,7 @@ $w_n=2T+1$. The question is whether some schedule satisfies
 \[
 W C_{\max}\le Y, \qquad\text{where}\qquad Y=r(T+1)(2T+1).
 \]
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \refstepcounter{figure}
 \begin{tikzpicture}[x=0.15in, y=0.3in]
@@ -516,7 +518,7 @@ The construction uses $4m$ jobs, and all processing times, weights and the thres
 polynomial in $m$ and $B$. Since 3-Partition remains NP-complete when $B$ is polynomially bounded in
 $m$, this is a strong polynomial reduction, and $F2 \parallel W C_{\max}$ is strongly NP-hard.
 \end{proof}
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \refstepcounter{figure}
 \begin{tikzpicture}[x=0.17in, y=0.33in, font=\footnotesize]
@@ -582,11 +584,10 @@ the time coordinates and the weights to geometrically spaced grids, which turns 
 program into a $(1+\epsilon)$-approximation scheme for a fixed number of distinct weights.
 
 \subsection{Block structure of an optimal schedule}
-For $F2 \parallel W C_{\max}$, an optimal schedule exists in which both machines process the jobs
-in the same order \citep{baker1974introduction}; we therefore restrict attention to such
-permutation schedules. Within this class, Johnson's rule \citep{johnson1954optimal} minimizes
-the makespan: the jobs with $a_j \le b_j$ are scheduled first in non-decreasing order of $a_j$,
-and the remaining jobs follow in non-increasing order of $b_j$.
+Within the permutation schedules of \Cref{sec:preliminaries}, Johnson's rule
+\citep{johnson1954optimal} minimizes the makespan: the jobs with $a_j \le b_j$ are scheduled
+first in non-decreasing order of $a_j$, and the remaining jobs follow in non-increasing order of
+$b_j$.
 
 Fix a permutation schedule $\pi$. Let $W_1 > W_2 > \cdots > W_K$ be the $K$ distinct weights
 occurring among the jobs, and let
@@ -632,7 +633,7 @@ $\mathcal{G}_3=\{J_1,J_2,J_4,J_6\}$, and the resulting blocks are $\mathcal{B}_1
 $\mathcal{B}_2=\{J_4,J_5\}$, and $\mathcal{B}_3=\{J_6\}$.
 \end{exam}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \refstepcounter{figure}
 \begin{tikzpicture}[x=0.15in, y=0.3in]
@@ -789,7 +790,7 @@ The resulting candidate states are collected in temporary sets $\mathcal{Y}_1,\d
 By \Cref{lem:merge-dominance}, merging the candidates removes dominated and duplicate
 states and yields $\mathscr{H}_{j}$.
 
-\begin{algorithm}[htbp]
+\begin{algorithm}[H]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -806,7 +807,7 @@ states and yields $\mathscr{H}_{j}$.
 \KwOut{$W C_{\max}$.}
 \end{algorithm}
 
-\begin{algorithm}[htbp]
+\begin{algorithm}[H]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -896,7 +897,7 @@ time, and the FPTAS of \Cref{sub:fptas} has running time exponential in the
 number $K$ of distinct weights. When only a constant-factor guarantee is needed, the
 following elementary rule suffices.
 
-\begin{algorithm}[htbp]
+\begin{algorithm}[H]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -944,18 +945,8 @@ W C_{\max}(\pi)=\max_{1\le j\le n}w_{\pi(j)}\,C_{\pi(j)}
 \end{equation}
 
 It remains to bound the right-hand side by $2W C_{\max}^{*}$. Fix a prefix
-$S=\{J_1,J_2,\dots,J_j\}$ and let $\pi^{*}$ be an optimal schedule. Let $J_u$ be the job of
-$S$ that finishes last on $M_1$ in $\pi^{*}$, and $J_v$ the job of $S$ that finishes last on
-$M_2$. All jobs of $S$ are processed on $M_1$ before $J_u$ completes $M_1$, so
-$C^{*}_u\ge\sum_{h\in S}a_h$. In the same way, all $M_2$ processing of the jobs of $S$
-precedes the completion of $J_v$ on $M_2$, so $C^{*}_v\ge\sum_{h\in S}b_h$.
-Since both $J_u$ and $J_v$ lie in $S$, their weights satisfy $w_u,w_v\ge w_j$. The value
-$W C_{\max}^{*}$ bounds the weighted completion time of every job of $\pi^{*}$, so
-$W C_{\max}^{*}\ge w_u C^{*}_u\ge w_j\sum_{h\in S}a_h$ and
-$W C_{\max}^{*}\ge w_v C^{*}_v\ge w_j\sum_{h\in S}b_h$.
-
-Since the prefix $S$ was arbitrary, these bounds hold for every prefix, and a single job bounds
-the optimum on its own as well. Three lower bounds therefore follow,
+$S=\{J_1,J_2,\dots,J_j\}$ and let $\pi^{*}$ be an optimal schedule. Three quantities bound the
+optimum from below,
 \begin{equation}\label{eq:lb1}
 LB_1=\max_{1\le j\le n}w_j\sum_{h\in S}a_h,
 \end{equation}
@@ -965,22 +956,26 @@ LB_2=\max_{1\le j\le n}w_j\sum_{h\in S}b_h,
 \begin{equation}\label{eq:lb3}
 LB_3=\max_{1\le j\le n}w_j\,(a_j+b_j),
 \end{equation}
-We call them the $M_1$ threshold $LB_1$, the $M_2$ threshold $LB_2$ and the job threshold
-$LB_3$. The first two charge the workload of
-the prefix to the job of the prefix that leaves its machine last. That job carries
-a weight of at least $w_j$, and it completes its machine only after the whole workload of $S$
-has been processed there. Hence $W C_{\max}^{*}\ge w_j\sum_{h\in S}a_h$ and
-$W C_{\max}^{*}\ge w_j\sum_{h\in S}b_h$. The job threshold charges one job its own two
-operations, which run one after the other and neither of which can be left out, so
-$C^{*}_j\ge a_j+b_j$. As $J_j$ carries the weight $w_j$ itself, $w_j(a_j+b_j)$ is a lower
-bound on the optimum as well. Each bound is determined by the instance alone, and their
+the $M_1$ threshold $LB_1$, the $M_2$ threshold $LB_2$ and the job threshold $LB_3$, and their
 largest is the reference value of the instance,
 \begin{equation}\label{eq:lb}
 LB=\max\{LB_1,LB_2,LB_3\},
 \end{equation}
 so that $LB\le W C_{\max}^{*}$.
 
-For the prefix $S$, the two bounds give
+To see this, let $J_u$ be the job of $S$ that finishes last on $M_1$ in $\pi^{*}$, and $J_v$ the
+job of $S$ that finishes last on $M_2$. All jobs of $S$ are processed on $M_1$ before $J_u$
+completes $M_1$, so $C^{*}_u\ge\sum_{h\in S}a_h$. In the same way, all $M_2$ processing of the
+jobs of $S$ precedes the completion of $J_v$ on $M_2$, so $C^{*}_v\ge\sum_{h\in S}b_h$. Since
+both $J_u$ and $J_v$ lie in $S$, their weights satisfy $w_u,w_v\ge w_j$. The value
+$W C_{\max}^{*}$ bounds the weighted completion time of every job of $\pi^{*}$, so
+$W C_{\max}^{*}\ge w_u C^{*}_u\ge w_j\sum_{h\in S}a_h$ and
+$W C_{\max}^{*}\ge w_v C^{*}_v\ge w_j\sum_{h\in S}b_h$. Every job $J_j$ of $S$ is processed on
+$M_1$ before it is processed on $M_2$, and neither operation can be left out, so
+$C^{*}_j\ge a_j+b_j$ and $W C_{\max}^{*}\ge w_jC^{*}_j\ge w_j(a_j+b_j)$. The prefix $S$ was
+arbitrary, so these bounds hold for every prefix.
+
+For the prefix $S$, the first two bounds give
 $w_j\sum_{h\in S}(a_h+b_h)\le LB_1+LB_2\le 2\,LB\le 2\,W C_{\max}^{*}$, and the claim
 follows from \cref{eq:approx2-upper}.
 \end{proof}
@@ -1052,7 +1047,7 @@ block-end weights are unchanged. Every
 label therefore carries exactly one state into $\mathscr{H}^{\epsilon}_{j}$, and the number of
 states never exceeds the number of labels.
 
-\begin{algorithm}[htbp]
+\begin{algorithm}[H]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -1317,7 +1312,7 @@ running time is therefore $O(n^3)$ (\Cref{prop:neh-complexity}). The heuristic a
 produces a feasible permutation schedule by construction and requires no hyperparameter
 selection, so it serves as a fast standalone solver for large instances.
 
-\begin{algorithm}[htbp]
+\begin{algorithm}[H]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -1363,12 +1358,15 @@ knows nothing of the weights, and it is the mutation that moves the blocks of on
 block at a time, until the schedule carries the structure of \Cref{lem:block-johnson}.
 
 \subsubsection{Encoding and decoding}
-A chromosome is a permutation $\pi=(\pi(1),\dots,\pi(n))$, in which the gene at
-position $t$ is the job scheduled $t$-th. Permutation encoding always represents a feasible
-permutation schedule, because every job occurs exactly once. No repair operator is therefore
-needed to restore feasibility after crossover or mutation. To decode a chromosome, both
-machines process the jobs in the order $\pi(1),\dots,\pi(n)$. The completion time
-$C_{\pi(t)}$ of the $t$-th job follows from the closed form
+\textbf{Encoding.} A chromosome is a permutation $\pi=(\pi(1),\dots,\pi(n))$ of the $n$ jobs, in
+which the gene at position $t$ is the job scheduled $t$-th. Its length is the number of jobs and
+its alphabet the job set $\mathcal{J}$, and since both machines process the jobs in the order the
+chromosome gives, every chromosome stands for a permutation schedule and every permutation
+schedule for exactly one chromosome. No repair operator is therefore needed to restore feasibility
+after crossover or mutation.
+
+\textbf{Decoding.} Both machines process the jobs in the order $\pi(1),\dots,\pi(n)$. The
+completion time $C_{\pi(t)}$ of the $t$-th job follows from the closed form
 \cref{eq:completion}, which is evaluated in $O(n)$ time using the prefix sums
 $A_t=\sum_{h=1}^{t}a_{\pi(h)}$ and $B_t=\sum_{h=1}^{t}b_{\pi(h)}$; the objective
 value is that of \cref{eq:wcmax},
@@ -1379,7 +1377,7 @@ The fitness of a schedule is the criterion itself, $W C_{\max}(\pi)$, and no nor
 is fixed for it. \Cref{fig:encoding} shows the encoding and
 the decoding on the six-job instance of \Cref{ex:blocking}.
 
-\begin{figure}[tbp]
+\begin{figure}[H]
 \centering
 \refstepcounter{figure}
 \begin{tikzpicture}[x=0.16in, y=0.32in, font=\footnotesize]
@@ -1420,9 +1418,7 @@ the decoding on the six-job instance of \Cref{ex:blocking}.
 	\draw[thick] (0,3.0) -- (35,3.0);
 
 	% caption
-	\node[below, text width=15.5cm, align=flush center] at (17.5,0.6) {Figure~\thefigure: The
-		chromosome $\pi=(J_5,J_1,J_3,J_6,J_4,J_2)$ and the schedule it decodes to,
-		with $w_jC_j$ below each job};
+	\node[below, align=flush center] at (17.5,0.6) {Figure~\thefigure: Encoding and decoding};
 \end{tikzpicture}
 \label{fig:encoding}
 \end{figure}
@@ -1498,7 +1494,7 @@ gene taken there, $\pi_2[1]=J_6$, is one the segment already holds, at position 
 chain $J_6\to J_1\to J_5$ stops at the free job $J_5$, which is the value the position
 finally receives.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \refstepcounter{figure}
 \begin{tikzpicture}[x=0.44in, y=0.32in, font=\footnotesize]
@@ -1566,7 +1562,7 @@ finally receives.
 \label{fig:pmx}
 \end{figure}
 
-\begin{algorithm}[htbp]
+\begin{algorithm}[H]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -1634,7 +1630,7 @@ sequence of accepted moves reaches.  The move is therefore proposed whether or n
 the criterion, and it is the survival of the generation, and the elite carried through it,
 that decide what becomes of it.
 
-\begin{algorithm}[htbp]
+\begin{algorithm}[H]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -1656,7 +1652,7 @@ criterion moves. \;
 \KwOut{Schedule $\pi$.}
 \end{algorithm}
 
-\begin{algorithm}[htbp]
+\begin{algorithm}[H]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
@@ -1704,8 +1700,6 @@ criterion, so reinserting them is where an insertion can still pay. The descent 
 as none of them
 improves.
 
-
-
 \section{Experiments}
 \label{sec:experiments}
 
@@ -1716,12 +1710,9 @@ improves.
 All methods were coded in Python $3.13$ and run on a machine with an Intel Core Ultra 5 230F
 processor and $16$\,GB of memory, under Windows 11. The MILP model was solved with Gurobi
 $13.0$ on a single thread, so that the reported times are comparable across configurations.
-
-\subsection{Experimental setup}
-
-Every method is run once on every instance and given the same budget, and all of them evaluate
-the objective by the same recurrence \cref{eq:completion}, so that the comparison holds the
-objective fixed and varies only the search. Two readings are taken. The dynamic program, the
+Every method is run once on every instance and given the same $600$\,s budget, and all of them
+evaluate the objective by the same recurrence \cref{eq:completion}, so that the comparison holds
+the objective fixed and varies only the search. Two readings are taken. The dynamic program, the
 only exact method of the study, is read on the number of instances whose optimum it establishes
 and on its running time. Every other method is read on its relative percentage gap
 \begin{equation}\label{eq:gap}
@@ -1733,133 +1724,41 @@ cent and the time in milliseconds, each by its mean and its maximum over the ins
 configuration. On the small scale the reference is the optimum, which is the value the model
 returns, so that the model is read on a gap of zero and every heuristic on its distance from the
 optimum. On the large scale, where no exact method is within reach, the reference is the lower
-bound $LB$ of \cref{eq:lb} -- the largest of the three thresholds $LB_1$, $LB_2$ and $LB_3$ of
-\Cref{sub:approx2}, each of which the instance determines on its own -- so that no schedule of a
+bound $LB$ of \cref{eq:lb}, the largest of the three thresholds $LB_1$, $LB_2$ and $LB_3$ of
+\Cref{sub:approx2}, each of which the instance determines on its own, so that no schedule of a
 method enters the denominator of its gap.
 
-The parameters of the genetic algorithm were fixed by a calibration run before the study, and
-each is a function of the instance size, so that one rule covers every size of both scales. Its
-population is $N=\min(20,\max(6,\lceil n/2\rceil))$ individuals, $6,8,10,\dots,20$ over the
-sizes of the small scale and twenty from $n=40$ on. Both of its probabilities rise with the
-instance, since the more jobs it holds the more of the search has to be spent moving them
-rather than preserving them: the crossover probability is $p_c=\min(1,\,19/20+n/4000)$, from
-$0.95$ at $n=10$ to one at $n=200$, and the mutation probability is
-$p_m=\min(1,\,1/2+n/500)$, from $0.52$ at $n=10$ to one from $n=250$ on. The two rates say
-which operator is expected to do the work: the crossover is applied to almost every pair of
-parents over the whole study and has little room to rise, while the mutation, which carries the
-population across the weights, is given a share that doubles. A small instance is therefore
-given a small population and mutated sparingly, and a large one the full budget.
+The instances were generated in three groups, every integer of an instance drawn from a normal
+distribution on the integers of its range: the mean at the middle, the standard deviation a sixth
+of the width, the draw rounded and clamped. The first group, on which the dynamic program is
+reported, crosses the sizes $40$, $60$, $80$ and $100$ with the weight count $K=2$, whose weights
+are the geometric ladder $1,10$, and with the two ranges $[1,40]$ and $[1,80]$. Its ladder rises
+by $20$ a step and stops where the time limit binds: at $[1,40]$ every instance is settled well
+within it, while on $[1,80]$ six of the twenty at a hundred jobs are cut short. This is not the
+set on which the methods are compared: the running time $O(nKV^{3K-3})$ grows so fast in the
+number $K$ of distinct weights that the sizes the other algorithms are read at are out of its
+reach, so the group is reported on a set of its own. The two groups that follow are the
+comparison, and both carry the two ranges of the first. Their instances hold at most thirty
+distinct weights, drawn by the same rule on $\{1,\dots,30\}$, so that the classes are neighbouring
+integers rather than the decades of the first group; their processing times are drawn the same
+way, independently for every job, on one of $[1,40]$ and $[1,80]$, named in the caption of every
+table. The small group varies the instance size over $10,15,\dots,60$ and the large one over
+$100,120,\dots,400$: the model is compared with the heuristics at the small sizes, where it is
+exact and settles them, and the heuristics alone at the large ones, where the gap of each is
+measured against $LB$ of \cref{eq:lb}. Every configuration is replicated over twenty independent
+instances and every figure below is their average, and a method that reaches the limit is
+recorded with the value it has attained. Every table reads the same way: a row is an instance
+size, the columns are grouped by method (by range in the table of the dynamic program), and an
+entry is the pair (mean, maximum), the two side by side; gaps are in per cent, running times in
+milliseconds in the form $1.5\mathrm{e}3$ for $1.5\times10^{3}$, and ``opt.'' counts the instances
+the dynamic program settles.
 
-Three settings the scales do not share. The first is the number of generations, which is one
-round of the operators and therefore the depth to which the elite is refined:
-$G=\max(2,\lfloor n/4\rfloor)$ on the small scale, from $2$ at $n=10$ to $15$ at $n=60$, and
-$G=\max(16,\lfloor n^{2}/2000\rfloor)$ on the large one, from $16$ at $n=100$ to $80$ at
-$n=400$ -- a floor and a quadratic growth, since the depth may be neither too small at the
-bottom of the scale nor growing more slowly than the instance. The second is the number of
-offspring a generation produces, $\lambda=\max(8,\lfloor n^{2}/12\rfloor)$ on the small scale
-and $\lambda=\min(200,60+\lfloor n/2\rfloor)$ on the large one, $8,18,\dots,300$ over the first
-and $110$ at $n=100$ up to the cap of $200$ from $n=280$ over the second: it sets how many
-times the operators are run over the parents in one generation, so that a generation offers the
-offspring of its parents $\lambda/N$ chances rather than the single one a child per parent
-would give it. The third is the width of the local search of \Cref{alg:ga}: the small scale
-reinserts $k=\max(1,\lfloor n/8\rfloor)$ jobs, one job in eight, which is $1$, $2$ and $7$ at
-$n=10$, $20$ and $60$, and the large one $k=\max(2,\lfloor 12n/100\rfloor-10)$ jobs, twelve in
-a hundred less ten, which is $2$, $14$ and $38$ at $n=100$, $200$ and $400$; the width of the
-large scale therefore grows faster than the instance itself, one job in fifty at a hundred and
-one in ten at four hundred.
-
-The initial population is built from Johnson's rule on both scales. That rule reads the two
-processing times alone, so the criterion has to be built into the schedule by the operators, and
-the three settings above say how much of the search is spent on that. The two scales are
-therefore read for different things: the small one for the course of the search, whose settings
-are the narrow ones and whose gap against the optimum falls from $17$ per cent at ten jobs to
-$4$ at sixty, closing on the construction rule without passing it; the large one for what the
-search reaches when it is given room, its settings growing faster than the instance and its gap
-closing as the instance grows.
-
-The instances were generated in three groups, and every integer of
-an instance is drawn from a normal distribution on the integers of its range: the mean at the
-middle of the range, the standard deviation a sixth of its width, so that the two ends lie three
-standard deviations away, and the draw rounded to an integer and clamped to the range. The first
-group, on which the dynamic program is reported, varies the instance size: $40$, $60$, $80$ and
-$100$, crossed with the weight count $K=2$, whose weights are the geometric ladder $1,10$, and
-with the two ranges $[1,40]$ and $[1,80]$ that the other groups use as well. Its ladder rises by
-$20$ a step and stops at the largest size the time limit still reaches: at $[1,40]$ every
-instance is settled well within the limit, while on $[1,80]$ the limit binds at a hundred jobs
-and cuts six of the twenty short. This group is not the set on which the methods are compared. The running time
-$O(nKV^{3K-3})$ of the dynamic program grows so fast in the number $K$ of distinct weights that
-the sizes the other algorithms are read at are out of its reach, so it is reported on a set of
-its own.
-
-\begin{table}[htbp]
-\resultstable
-\caption{The dynamic program, $K=2$}
-\label{tab:results-dp-k2}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l r r r @{\hspace{14pt}} r r r@{}}
-\toprule
-\multirow{2}{*}{$n$} & \multicolumn{3}{c}{$a_j,b_j\in[1,40]$} & \multicolumn{3}{c}{$a_j,b_j\in[1,80]$} \\
-\cmidrule(lr){2-4}\cmidrule(lr){5-7}
- & $W C_{\max}$ & time (ms) & opt. & $W C_{\max}$ & time (ms) & opt. \\
-\midrule
-$40$ & \shortstack[r]{$4335.0$ \\ {\scriptsize $5480.0$}} & \shortstack[r]{$1465.55$ \\ {\scriptsize $4257.81$}} & $20/20$ & \shortstack[r]{$8604.5$ \\ {\scriptsize $10590.0$}} & \shortstack[r]{$4984.88$ \\ {\scriptsize $24448.80$}} & $20/20$ \\
-$60$ & \shortstack[r]{$6340.0$ \\ {\scriptsize $7270.0$}} & \shortstack[r]{$14233.26$ \\ {\scriptsize $31363.33$}} & $20/20$ & \shortstack[r]{$12344.5$ \\ {\scriptsize $15020.0$}} & \shortstack[r]{$52541.32$ \\ {\scriptsize $113542.29$}} & $20/20$ \\
-$80$ & \shortstack[r]{$8221.0$ \\ {\scriptsize $9750.0$}} & \shortstack[r]{$45134.23$ \\ {\scriptsize $109544.47$}} & $20/20$ & \shortstack[r]{$17341.5$ \\ {\scriptsize $19580.0$}} & \shortstack[r]{$134034.27$ \\ {\scriptsize $278535.25$}} & $20/20$ \\
-$100$ & \shortstack[r]{$10647.0$ \\ {\scriptsize $12350.0$}} & \shortstack[r]{$89585.46$ \\ {\scriptsize $168850.77$}} & $20/20$ & \shortstack[r]{$21544.3$ \\ {\scriptsize $24240.0$}} & \shortstack[r]{$329010.01$ \\ {\scriptsize $628500.13$}} & $14/20$ \\
-\bottomrule
-\end{tabular*}
-\end{table}
-
-The two groups that follow are the comparison, and both carry the two ranges of the first, so
-that the width of the range is a factor every group shares. An instance of theirs carries at
-most thirty distinct weights, drawn by the same rule on $\{1,\dots,30\}$: the number of its
-weight classes is arbitrary below that bound, the populous classes are the ones near the middle,
-and neighbouring integers replace the decades of the first group. Its processing times are drawn
-the same way, and independently for every job, on one of $[1,40]$ and $[1,80]$, which are read as
-a factor and named in the caption of every table below. The small group varies the instance size
-over $10,15,\dots,60$ and the large one over $100,120,\dots,400$: the model is compared with the
-heuristics at the small sizes, where it is exact and settles them, and the heuristics alone are
-reported at the large ones, where no exact method is within reach and the gap of each is measured
-against $LB$ of \cref{eq:lb}. Between them the three groups carry the three factors of the study:
-the instance size, the number of distinct weights and the width of the processing-time range.
-Every configuration is replicated over twenty independent instances and every figure below is
-the average of them; every method is given the same time limit of $600$\,s, and a method that
-reaches it is recorded with the value it has attained rather than omitted. Every table below is
-read the same way. A row is an instance
-size, the columns are grouped by method and, in the table of the dynamic program, by
-processing-time range, and an entry is the pair (mean, maximum) of the quantity its column
-names over the twenty instances of the configuration, the mean above and the maximum below it
-in the smaller type. Gaps are in per cent and running times in milliseconds, and the ``opt.''
-column of the dynamic program gives the number of instances whose optimum it establishes.
-
-The model of \Cref{sec:preliminaries} and the two heuristics of \Cref{sec:heuristics} were applied
-to every instance of the small group, and the heuristics alone to every instance of the large
-one, where no exact method is within reach; the dynamic program of \Cref{alg:dp} was applied to
-the first group alone, the only one its running time reaches.
-
-Each table is read for one question. \Cref{tab:results-dp-k2} reports the dynamic program on its
-own instances, and is read for how far the exact method reaches and what it costs to get there;
-\Crefrange{tab:results-small-40}{tab:results-small-80} report the small scale, one table per
-range, and are read for the gap and the running time of every method as the instance grows;
-\Crefrange{tab:results-large-40}{tab:results-large-80} report the large scale, one table per
-range, and are read for the same two quantities under the instance size. Read together, they
-report a change of leader rather than a fixed order: which method comes closest to the reference
-depends on the scale, and on the size within a scale.
-
-\subsection{Results}
-
-The model settles every instance of the small scale to optimality -- $20$ of $20$ in each of its
-$22$ configurations, $440$ instances in all -- so the gaps reported against it are distances to
-an optimum and not to the incumbent of a run that ran out of time. What grows is its cost: the
-mean time of an instance rises from $50.6$\,ms at ten jobs to $80.1$\,s at sixty on $[1,40]$, and
-from $40.2$\,ms to $43.5$\,s on $[1,80]$, while the value it returns rises with the range as
-well -- the mean optimum of a ten-job instance is $2510.7$ on $[1,40]$ and $5433.0$ on $[1,80]$,
-and that of a sixty-job instance $12323.6$ and $25266.1$. The slowest instance of the scale takes
-$299.6$\,s of the $600$\,s a run is allowed, so the exact side is complete here but not roomy:
-the limit is close by the top of the scale.
+\subsection{The dynamic program}
 
 The dynamic program is the only method of the study that certifies an optimum, and its strength is
 that it is exact wherever it returns: seven of the eight configurations settle all twenty of their
-instances, and a forty-job instance costs $1.47$\,s on $[1,40]$ and $4.98$\,s on $[1,80]$. Its
+instances, and a forty-job instance costs $1.47$\,s on $[1,40]$ and $4.98$\,s on $[1,80]$
+(\Cref{tab:results-dp-k2}). Its
 weakness is reach, and it is bounded from two sides. The first is the number of weight classes.
 Its state space is bounded by $2^{K}V^{\,3K-3}$, with $V$ the total processing time of the instance
 (\Cref{sec:dp_algorithm}), so that a third class multiplies the number of states by $2V^{\,3}$: at
@@ -1877,6 +1776,36 @@ $628.50$\,s, past the limit because the deadline is checked once per job and not
 exact method is therefore cheap at forty jobs and out of reach beyond a hundred, while the
 heuristics are read to four hundred.
 
+\begin{table}[H]
+\resultstable
+\caption{The dynamic program, $K=2$}
+\label{tab:results-dp-k2}
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l r r r @{\hspace{14pt}} r r r@{}}
+\toprule
+\multirow{2}{*}{$n$} & \multicolumn{3}{c}{$a_j,b_j\in[1,40]$} & \multicolumn{3}{c}{$a_j,b_j\in[1,80]$} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+ & $W C_{\max}$ & time (ms) & opt. & $W C_{\max}$ & time (ms) & opt. \\
+\midrule
+$40$ & $4335.0$ $5480.0$ & $1.5\mathrm{e}3$ $4.3\mathrm{e}3$ & $20/20$ & $8604.5$ $10590.0$ & $5.0\mathrm{e}3$ $2.4\mathrm{e}4$ & $20/20$ \\
+$60$ & $6340.0$ $7270.0$ & $1.4\mathrm{e}4$ $3.1\mathrm{e}4$ & $20/20$ & $12344.5$ $15020.0$ & $5.3\mathrm{e}4$ $1.1\mathrm{e}5$ & $20/20$ \\
+$80$ & $8221.0$ $9750.0$ & $4.5\mathrm{e}4$ $1.1\mathrm{e}5$ & $20/20$ & $17341.5$ $19580.0$ & $1.3\mathrm{e}5$ $2.8\mathrm{e}5$ & $20/20$ \\
+$100$ & $10647.0$ $12350.0$ & $9.0\mathrm{e}4$ $1.7\mathrm{e}5$ & $20/20$ & $21544.3$ $24240.0$ & $3.3\mathrm{e}5$ $6.3\mathrm{e}5$ & $14/20$ \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\subsection{The small scale}
+
+The model settles every instance of the small scale to optimality -- $20$ of $20$ in each of its
+$22$ configurations, $440$ instances in all -- so the gaps reported against it are distances to
+an optimum and not to the incumbent of a run that ran out of time. What grows is its cost: the
+mean time of an instance rises from $50.6$\,ms at ten jobs to $80.1$\,s at sixty on $[1,40]$, and
+from $40.2$\,ms to $43.5$\,s on $[1,80]$, while the value it returns rises with the range as
+well -- the mean optimum of a ten-job instance is $2510.7$ on $[1,40]$ and $5433.0$ on $[1,80]$,
+and that of a sixty-job instance $12323.6$ and $25266.1$. The slowest instance of the scale takes
+$299.6$\,s of the $600$\,s a run is allowed, so the exact side is complete here but not roomy:
+the limit is close by the top of the scale.
+
 The two rules that read an instance without searching it are close to the optimum and far apart
 in what they cost. The 2-approximation, which reads the weights alone, has a mean gap of $3.52$
 per cent over the whole small scale -- $3.47$ on $[1,40]$ and $3.56$ on $[1,80]$ -- and reaches
@@ -1887,7 +1816,7 @@ the closer at nine of the eleven sizes on $[1,40]$ and at seven on $[1,80]$, and
 2-approximation takes the lead at the largest sizes, where the order of the weights is what the
 criterion rewards. Their costs are not of the same order either: $0.02$\,ms an instance on
 average for the 2-approximation, never above $0.05$\,ms, against $2.68$\,ms for NEH, which grows
-with the instance to $8.35$\,ms at sixty jobs; the model is a thousand times above both, at
+with the instance to $8$\,ms at sixty jobs; the model is a thousand times above both, at
 $13.85$\,s an instance on the average of the scale.
 
 The genetic algorithm is the only method whose gap closes over the small scale, and that is its
@@ -1903,58 +1832,64 @@ per cent from the optimum, at ten jobs. Its cost is above both rules by three or
 magnitude: $0.55$\,ms an instance at ten jobs and $1.65$\,s at sixty, against the $80.1$\,s the
 model needs at that size. On this scale the search neither beats the rules nor approaches them
 cheaply; what it shows is the direction in which it moves, and that is read on the large scale.
+\Crefrange{tab:results-small-40}{tab:results-small-80} give the two ranges in full, and
+\Cref{fig:gap-small} the course of the gap over the scale.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \resultstable
 \caption{The small scale, $a_j,b_j\in[1,40]$: MILP, 2-approx., NEH, GA}
 \label{tab:results-small-40}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l r r @{\hspace{14pt}} r r @{\hspace{14pt}} r r @{\hspace{14pt}} r r@{}}
+\setlength{\tabcolsep}{3pt}
+\scriptsize
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l r r @{\hspace{5pt}} r r @{\hspace{5pt}} r r @{\hspace{5pt}} r r@{}}
 \toprule
 \multirow{2}{*}{$n$} & \multicolumn{2}{c}{MILP} & \multicolumn{2}{c}{2-approx.} & \multicolumn{2}{c}{NEH} & \multicolumn{2}{c}{GA} \\
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
  & $W C_{\max}$ & time (ms) & gap & time (ms) & gap & time (ms) & gap & time (ms) \\
 \midrule
-$10$ & \shortstack[r]{$2510.7$ \\ {\scriptsize $3192.0$}} & \shortstack[r]{$50.61$ \\ {\scriptsize $80.45$}} & \shortstack[r]{$4.90$ \\ {\scriptsize $14.18$}} & \shortstack[r]{$0.01$ \\ {\scriptsize $0.01$}} & \shortstack[r]{$\mathbf{0.78}$ \\ {\scriptsize $8.68$}} & \shortstack[r]{$0.08$ \\ {\scriptsize $0.27$}} & \shortstack[r]{$16.83$ \\ {\scriptsize $67.41$}} & \shortstack[r]{$0.55$ \\ {\scriptsize $0.75$}} \\
-$15$ & \shortstack[r]{$3682.3$ \\ {\scriptsize $4746.0$}} & \shortstack[r]{$134.97$ \\ {\scriptsize $275.95$}} & \shortstack[r]{$2.73$ \\ {\scriptsize $8.70$}} & \shortstack[r]{$0.01$ \\ {\scriptsize $0.02$}} & \shortstack[r]{$\mathbf{2.03}$ \\ {\scriptsize $7.97$}} & \shortstack[r]{$0.18$ \\ {\scriptsize $0.22$}} & \shortstack[r]{$18.96$ \\ {\scriptsize $42.04$}} & \shortstack[r]{$2.48$ \\ {\scriptsize $2.71$}} \\
-$20$ & \shortstack[r]{$4742.4$ \\ {\scriptsize $5759.0$}} & \shortstack[r]{$377.45$ \\ {\scriptsize $886.36$}} & \shortstack[r]{$4.57$ \\ {\scriptsize $9.48$}} & \shortstack[r]{$0.01$ \\ {\scriptsize $0.02$}} & \shortstack[r]{$\mathbf{2.29}$ \\ {\scriptsize $9.71$}} & \shortstack[r]{$0.39$ \\ {\scriptsize $0.42$}} & \shortstack[r]{$14.22$ \\ {\scriptsize $34.19$}} & \shortstack[r]{$10.27$ \\ {\scriptsize $11.21$}} \\
-$25$ & \shortstack[r]{$5736.1$ \\ {\scriptsize $7260.0$}} & \shortstack[r]{$725.39$ \\ {\scriptsize $2338.97$}} & \shortstack[r]{$3.75$ \\ {\scriptsize $10.79$}} & \shortstack[r]{$0.01$ \\ {\scriptsize $0.02$}} & \shortstack[r]{$\mathbf{1.83}$ \\ {\scriptsize $9.19$}} & \shortstack[r]{$0.69$ \\ {\scriptsize $0.73$}} & \shortstack[r]{$11.49$ \\ {\scriptsize $27.85$}} & \shortstack[r]{$26.07$ \\ {\scriptsize $28.68$}} \\
-$30$ & \shortstack[r]{$6513.6$ \\ {\scriptsize $8892.0$}} & \shortstack[r]{$1269.43$ \\ {\scriptsize $2396.07$}} & \shortstack[r]{$4.37$ \\ {\scriptsize $9.34$}} & \shortstack[r]{$0.01$ \\ {\scriptsize $0.03$}} & \shortstack[r]{$\mathbf{2.85}$ \\ {\scriptsize $9.31$}} & \shortstack[r]{$1.14$ \\ {\scriptsize $1.20$}} & \shortstack[r]{$14.67$ \\ {\scriptsize $43.61$}} & \shortstack[r]{$59.60$ \\ {\scriptsize $64.39$}} \\
-$35$ & \shortstack[r]{$7836.4$ \\ {\scriptsize $8931.0$}} & \shortstack[r]{$2973.48$ \\ {\scriptsize $10776.15$}} & \shortstack[r]{$\mathbf{2.55}$ \\ {\scriptsize $9.68$}} & \shortstack[r]{$0.02$ \\ {\scriptsize $0.03$}} & \shortstack[r]{$2.67$ \\ {\scriptsize $7.67$}} & \shortstack[r]{$1.74$ \\ {\scriptsize $1.79$}} & \shortstack[r]{$15.00$ \\ {\scriptsize $30.68$}} & \shortstack[r]{$117.27$ \\ {\scriptsize $126.27$}} \\
-$40$ & \shortstack[r]{$8760.2$ \\ {\scriptsize $10153.0$}} & \shortstack[r]{$5106.22$ \\ {\scriptsize $15912.26$}} & \shortstack[r]{$3.08$ \\ {\scriptsize $7.69$}} & \shortstack[r]{$0.02$ \\ {\scriptsize $0.03$}} & \shortstack[r]{$\mathbf{2.50}$ \\ {\scriptsize $8.71$}} & \shortstack[r]{$2.53$ \\ {\scriptsize $2.61$}} & \shortstack[r]{$8.42$ \\ {\scriptsize $21.17$}} & \shortstack[r]{$240.93$ \\ {\scriptsize $262.61$}} \\
-$45$ & \shortstack[r]{$9564.3$ \\ {\scriptsize $11076.0$}} & \shortstack[r]{$12793.08$ \\ {\scriptsize $37697.87$}} & \shortstack[r]{$3.63$ \\ {\scriptsize $7.98$}} & \shortstack[r]{$0.02$ \\ {\scriptsize $0.03$}} & \shortstack[r]{$\mathbf{2.64}$ \\ {\scriptsize $7.12$}} & \shortstack[r]{$3.52$ \\ {\scriptsize $3.66$}} & \shortstack[r]{$6.03$ \\ {\scriptsize $17.02$}} & \shortstack[r]{$403.04$ \\ {\scriptsize $443.34$}} \\
-$50$ & \shortstack[r]{$10631.6$ \\ {\scriptsize $11774.0$}} & \shortstack[r]{$19520.52$ \\ {\scriptsize $61667.95$}} & \shortstack[r]{$2.65$ \\ {\scriptsize $7.24$}} & \shortstack[r]{$0.02$ \\ {\scriptsize $0.03$}} & \shortstack[r]{$\mathbf{2.45}$ \\ {\scriptsize $7.10$}} & \shortstack[r]{$4.92$ \\ {\scriptsize $5.37$}} & \shortstack[r]{$6.88$ \\ {\scriptsize $21.46$}} & \shortstack[r]{$659.74$ \\ {\scriptsize $732.34$}} \\
-$55$ & \shortstack[r]{$11760.6$ \\ {\scriptsize $12992.0$}} & \shortstack[r]{$36700.15$ \\ {\scriptsize $176554.12$}} & \shortstack[r]{$3.02$ \\ {\scriptsize $6.35$}} & \shortstack[r]{$0.02$ \\ {\scriptsize $0.05$}} & \shortstack[r]{$\mathbf{2.96}$ \\ {\scriptsize $8.08$}} & \shortstack[r]{$6.29$ \\ {\scriptsize $6.50$}} & \shortstack[r]{$3.32$ \\ {\scriptsize $10.77$}} & \shortstack[r]{$1021.85$ \\ {\scriptsize $1099.12$}} \\
-$60$ & \shortstack[r]{$12323.6$ \\ {\scriptsize $14703.0$}} & \shortstack[r]{$80106.40$ \\ {\scriptsize $299585.38$}} & \shortstack[r]{$\mathbf{2.93}$ \\ {\scriptsize $8.87$}} & \shortstack[r]{$0.02$ \\ {\scriptsize $0.04$}} & \shortstack[r]{$3.31$ \\ {\scriptsize $6.72$}} & \shortstack[r]{$8.05$ \\ {\scriptsize $8.35$}} & \shortstack[r]{$3.92$ \\ {\scriptsize $10.07$}} & \shortstack[r]{$1652.00$ \\ {\scriptsize $1721.89$}} \\
+$10$ & $2510.7$ $3192.0$ & $5.1\mathrm{e}1$ $8.0\mathrm{e}1$ & $4.9$ $14.2$ & $1.0\mathrm{e}{-2}$ $1.0\mathrm{e}{-2}$ & $\mathbf{0.8}$ $8.7$ & $8.0\mathrm{e}{-2}$ $2.7\mathrm{e}{-1}$ & $16.8$ $67.4$ & $5.5\mathrm{e}{-1}$ $7.5\mathrm{e}{-1}$ \\
+$15$ & $3682.3$ $4746.0$ & $1.4\mathrm{e}2$ $2.8\mathrm{e}2$ & $2.7$ $8.7$ & $1.0\mathrm{e}{-2}$ $2.0\mathrm{e}{-2}$ & $\mathbf{2.0}$ $8.0$ & $1.8\mathrm{e}{-1}$ $2.2\mathrm{e}{-1}$ & $19.0$ $42.0$ & $2.0\mathrm{e}0$ $3.0\mathrm{e}0$ \\
+$20$ & $4742.4$ $5759.0$ & $3.8\mathrm{e}2$ $8.9\mathrm{e}2$ & $4.6$ $9.5$ & $1.0\mathrm{e}{-2}$ $2.0\mathrm{e}{-2}$ & $\mathbf{2.3}$ $9.7$ & $3.9\mathrm{e}{-1}$ $4.2\mathrm{e}{-1}$ & $14.2$ $34.2$ & $1.0\mathrm{e}1$ $1.1\mathrm{e}1$ \\
+$25$ & $5736.1$ $7260.0$ & $7.3\mathrm{e}2$ $2.3\mathrm{e}3$ & $3.8$ $10.8$ & $1.0\mathrm{e}{-2}$ $2.0\mathrm{e}{-2}$ & $\mathbf{1.8}$ $9.2$ & $6.9\mathrm{e}{-1}$ $7.3\mathrm{e}{-1}$ & $11.5$ $27.9$ & $2.6\mathrm{e}1$ $2.9\mathrm{e}1$ \\
+$30$ & $6513.6$ $8892.0$ & $1.3\mathrm{e}3$ $2.4\mathrm{e}3$ & $4.4$ $9.3$ & $1.0\mathrm{e}{-2}$ $3.0\mathrm{e}{-2}$ & $\mathbf{2.9}$ $9.3$ & $1.0\mathrm{e}0$ $1.0\mathrm{e}0$ & $14.7$ $43.6$ & $6.0\mathrm{e}1$ $6.4\mathrm{e}1$ \\
+$35$ & $7836.4$ $8931.0$ & $3.0\mathrm{e}3$ $1.1\mathrm{e}4$ & $\mathbf{2.6}$ $9.7$ & $2.0\mathrm{e}{-2}$ $3.0\mathrm{e}{-2}$ & $2.7$ $7.7$ & $2.0\mathrm{e}0$ $2.0\mathrm{e}0$ & $15.0$ $30.7$ & $1.2\mathrm{e}2$ $1.3\mathrm{e}2$ \\
+$40$ & $8760.2$ $10153.0$ & $5.1\mathrm{e}3$ $1.6\mathrm{e}4$ & $3.1$ $7.7$ & $2.0\mathrm{e}{-2}$ $3.0\mathrm{e}{-2}$ & $\mathbf{2.5}$ $8.7$ & $3.0\mathrm{e}0$ $3.0\mathrm{e}0$ & $8.4$ $21.2$ & $2.4\mathrm{e}2$ $2.6\mathrm{e}2$ \\
+$45$ & $9564.3$ $11076.0$ & $1.3\mathrm{e}4$ $3.8\mathrm{e}4$ & $3.6$ $8.0$ & $2.0\mathrm{e}{-2}$ $3.0\mathrm{e}{-2}$ & $\mathbf{2.6}$ $7.1$ & $4.0\mathrm{e}0$ $4.0\mathrm{e}0$ & $6.0$ $17.0$ & $4.0\mathrm{e}2$ $4.4\mathrm{e}2$ \\
+$50$ & $10631.6$ $11774.0$ & $2.0\mathrm{e}4$ $6.2\mathrm{e}4$ & $2.7$ $7.2$ & $2.0\mathrm{e}{-2}$ $3.0\mathrm{e}{-2}$ & $\mathbf{2.5}$ $7.1$ & $5.0\mathrm{e}0$ $5.0\mathrm{e}0$ & $6.9$ $21.5$ & $6.6\mathrm{e}2$ $7.3\mathrm{e}2$ \\
+$55$ & $11760.6$ $12992.0$ & $3.7\mathrm{e}4$ $1.8\mathrm{e}5$ & $3.0$ $6.4$ & $2.0\mathrm{e}{-2}$ $5.0\mathrm{e}{-2}$ & $\mathbf{3.0}$ $8.1$ & $6.0\mathrm{e}0$ $6.0\mathrm{e}0$ & $3.3$ $10.8$ & $1.0\mathrm{e}3$ $1.1\mathrm{e}3$ \\
+$60$ & $12323.6$ $14703.0$ & $8.0\mathrm{e}4$ $3.0\mathrm{e}5$ & $\mathbf{2.9}$ $8.9$ & $2.0\mathrm{e}{-2}$ $4.0\mathrm{e}{-2}$ & $3.3$ $6.7$ & $8.0\mathrm{e}0$ $8.0\mathrm{e}0$ & $3.9$ $10.1$ & $1.7\mathrm{e}3$ $1.7\mathrm{e}3$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \resultstable
 \caption{The small scale, $a_j,b_j\in[1,80]$: MILP, 2-approx., NEH, GA}
 \label{tab:results-small-80}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l r r @{\hspace{14pt}} r r @{\hspace{14pt}} r r @{\hspace{14pt}} r r@{}}
+\setlength{\tabcolsep}{3pt}
+\scriptsize
+\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l r r @{\hspace{5pt}} r r @{\hspace{5pt}} r r @{\hspace{5pt}} r r@{}}
 \toprule
 \multirow{2}{*}{$n$} & \multicolumn{2}{c}{MILP} & \multicolumn{2}{c}{2-approx.} & \multicolumn{2}{c}{NEH} & \multicolumn{2}{c}{GA} \\
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
  & $W C_{\max}$ & time (ms) & gap & time (ms) & gap & time (ms) & gap & time (ms) \\
 \midrule
-$10$ & \shortstack[r]{$5433.0$ \\ {\scriptsize $7365.0$}} & \shortstack[r]{$40.18$ \\ {\scriptsize $86.55$}} & \shortstack[r]{$4.63$ \\ {\scriptsize $16.71$}} & \shortstack[r]{$0.01$ \\ {\scriptsize $0.01$}} & \shortstack[r]{$\mathbf{0.62}$ \\ {\scriptsize $2.07$}} & \shortstack[r]{$0.08$ \\ {\scriptsize $0.16$}} & \shortstack[r]{$13.16$ \\ {\scriptsize $41.92$}} & \shortstack[r]{$0.53$ \\ {\scriptsize $0.58$}} \\
-$15$ & \shortstack[r]{$6941.7$ \\ {\scriptsize $9035.0$}} & \shortstack[r]{$163.01$ \\ {\scriptsize $299.74$}} & \shortstack[r]{$4.17$ \\ {\scriptsize $11.66$}} & \shortstack[r]{$0.01$ \\ {\scriptsize $0.02$}} & \shortstack[r]{$\mathbf{2.15}$ \\ {\scriptsize $8.18$}} & \shortstack[r]{$0.18$ \\ {\scriptsize $0.20$}} & \shortstack[r]{$18.97$ \\ {\scriptsize $37.17$}} & \shortstack[r]{$2.32$ \\ {\scriptsize $2.69$}} \\
-$20$ & \shortstack[r]{$9029.8$ \\ {\scriptsize $10906.0$}} & \shortstack[r]{$386.24$ \\ {\scriptsize $653.07$}} & \shortstack[r]{$3.84$ \\ {\scriptsize $13.68$}} & \shortstack[r]{$0.01$ \\ {\scriptsize $0.02$}} & \shortstack[r]{$\mathbf{1.31}$ \\ {\scriptsize $7.42$}} & \shortstack[r]{$0.39$ \\ {\scriptsize $0.49$}} & \shortstack[r]{$12.60$ \\ {\scriptsize $37.31$}} & \shortstack[r]{$10.02$ \\ {\scriptsize $11.10$}} \\
-$25$ & \shortstack[r]{$10971.5$ \\ {\scriptsize $13013.0$}} & \shortstack[r]{$692.05$ \\ {\scriptsize $1391.04$}} & \shortstack[r]{$3.97$ \\ {\scriptsize $11.14$}} & \shortstack[r]{$0.01$ \\ {\scriptsize $0.03$}} & \shortstack[r]{$\mathbf{3.08}$ \\ {\scriptsize $10.71$}} & \shortstack[r]{$0.71$ \\ {\scriptsize $0.75$}} & \shortstack[r]{$16.01$ \\ {\scriptsize $27.13$}} & \shortstack[r]{$26.02$ \\ {\scriptsize $28.33$}} \\
-$30$ & \shortstack[r]{$12832.5$ \\ {\scriptsize $15232.0$}} & \shortstack[r]{$1869.80$ \\ {\scriptsize $9374.60$}} & \shortstack[r]{$3.86$ \\ {\scriptsize $8.81$}} & \shortstack[r]{$0.01$ \\ {\scriptsize $0.02$}} & \shortstack[r]{$\mathbf{3.40}$ \\ {\scriptsize $7.90$}} & \shortstack[r]{$1.14$ \\ {\scriptsize $1.17$}} & \shortstack[r]{$12.93$ \\ {\scriptsize $30.56$}} & \shortstack[r]{$57.85$ \\ {\scriptsize $65.72$}} \\
-$35$ & \shortstack[r]{$15171.0$ \\ {\scriptsize $16940.0$}} & \shortstack[r]{$3264.38$ \\ {\scriptsize $10566.47$}} & \shortstack[r]{$3.83$ \\ {\scriptsize $7.84$}} & \shortstack[r]{$0.02$ \\ {\scriptsize $0.02$}} & \shortstack[r]{$\mathbf{3.09}$ \\ {\scriptsize $11.27$}} & \shortstack[r]{$1.75$ \\ {\scriptsize $1.82$}} & \shortstack[r]{$10.00$ \\ {\scriptsize $19.84$}} & \shortstack[r]{$115.93$ \\ {\scriptsize $124.35$}} \\
-$40$ & \shortstack[r]{$16912.4$ \\ {\scriptsize $19513.0$}} & \shortstack[r]{$8283.81$ \\ {\scriptsize $25306.71$}} & \shortstack[r]{$\mathbf{2.94}$ \\ {\scriptsize $11.28$}} & \shortstack[r]{$0.02$ \\ {\scriptsize $0.03$}} & \shortstack[r]{$3.12$ \\ {\scriptsize $11.03$}} & \shortstack[r]{$2.54$ \\ {\scriptsize $2.66$}} & \shortstack[r]{$10.37$ \\ {\scriptsize $29.73$}} & \shortstack[r]{$237.39$ \\ {\scriptsize $255.75$}} \\
-$45$ & \shortstack[r]{$19067.3$ \\ {\scriptsize $23062.0$}} & \shortstack[r]{$9174.69$ \\ {\scriptsize $18458.57$}} & \shortstack[r]{$2.96$ \\ {\scriptsize $7.32$}} & \shortstack[r]{$0.02$ \\ {\scriptsize $0.04$}} & \shortstack[r]{$\mathbf{2.62}$ \\ {\scriptsize $7.82$}} & \shortstack[r]{$3.55$ \\ {\scriptsize $4.00$}} & \shortstack[r]{$7.10$ \\ {\scriptsize $23.50$}} & \shortstack[r]{$405.21$ \\ {\scriptsize $435.56$}} \\
-$50$ & \shortstack[r]{$20795.4$ \\ {\scriptsize $23505.0$}} & \shortstack[r]{$22314.68$ \\ {\scriptsize $51257.77$}} & \shortstack[r]{$3.52$ \\ {\scriptsize $9.63$}} & \shortstack[r]{$0.02$ \\ {\scriptsize $0.03$}} & \shortstack[r]{$\mathbf{3.44}$ \\ {\scriptsize $9.71$}} & \shortstack[r]{$4.78$ \\ {\scriptsize $4.94$}} & \shortstack[r]{$5.54$ \\ {\scriptsize $14.98$}} & \shortstack[r]{$657.49$ \\ {\scriptsize $705.72$}} \\
-$55$ & \shortstack[r]{$22517.8$ \\ {\scriptsize $27573.0$}} & \shortstack[r]{$55263.13$ \\ {\scriptsize $140840.34$}} & \shortstack[r]{$\mathbf{2.77}$ \\ {\scriptsize $9.26$}} & \shortstack[r]{$0.02$ \\ {\scriptsize $0.05$}} & \shortstack[r]{$3.72$ \\ {\scriptsize $10.07$}} & \shortstack[r]{$6.23$ \\ {\scriptsize $6.42$}} & \shortstack[r]{$6.76$ \\ {\scriptsize $17.55$}} & \shortstack[r]{$1021.42$ \\ {\scriptsize $1151.79$}} \\
-$60$ & \shortstack[r]{$25266.1$ \\ {\scriptsize $29614.0$}} & \shortstack[r]{$43535.09$ \\ {\scriptsize $103537.34$}} & \shortstack[r]{$\mathbf{2.71}$ \\ {\scriptsize $8.44$}} & \shortstack[r]{$0.03$ \\ {\scriptsize $0.04$}} & \shortstack[r]{$2.80$ \\ {\scriptsize $6.90$}} & \shortstack[r]{$7.97$ \\ {\scriptsize $8.18$}} & \shortstack[r]{$3.24$ \\ {\scriptsize $8.86$}} & \shortstack[r]{$1652.52$ \\ {\scriptsize $1825.83$}} \\
+$10$ & $5433.0$ $7365.0$ & $4.0\mathrm{e}1$ $8.7\mathrm{e}1$ & $4.6$ $16.7$ & $1.0\mathrm{e}{-2}$ $1.0\mathrm{e}{-2}$ & $\mathbf{0.6}$ $2.1$ & $8.0\mathrm{e}{-2}$ $1.6\mathrm{e}{-1}$ & $13.2$ $41.9$ & $5.3\mathrm{e}{-1}$ $5.8\mathrm{e}{-1}$ \\
+$15$ & $6941.7$ $9035.0$ & $1.6\mathrm{e}2$ $3.0\mathrm{e}2$ & $4.2$ $11.7$ & $1.0\mathrm{e}{-2}$ $2.0\mathrm{e}{-2}$ & $\mathbf{2.2}$ $8.2$ & $1.8\mathrm{e}{-1}$ $2.0\mathrm{e}{-1}$ & $19.0$ $37.2$ & $2.0\mathrm{e}0$ $3.0\mathrm{e}0$ \\
+$20$ & $9029.8$ $10906.0$ & $3.9\mathrm{e}2$ $6.5\mathrm{e}2$ & $3.8$ $13.7$ & $1.0\mathrm{e}{-2}$ $2.0\mathrm{e}{-2}$ & $\mathbf{1.3}$ $7.4$ & $3.9\mathrm{e}{-1}$ $4.9\mathrm{e}{-1}$ & $12.6$ $37.3$ & $1.0\mathrm{e}1$ $1.1\mathrm{e}1$ \\
+$25$ & $10971.5$ $13013.0$ & $6.9\mathrm{e}2$ $1.4\mathrm{e}3$ & $4.0$ $11.1$ & $1.0\mathrm{e}{-2}$ $3.0\mathrm{e}{-2}$ & $\mathbf{3.1}$ $10.7$ & $7.1\mathrm{e}{-1}$ $7.5\mathrm{e}{-1}$ & $16.0$ $27.1$ & $2.6\mathrm{e}1$ $2.8\mathrm{e}1$ \\
+$30$ & $12832.5$ $15232.0$ & $1.9\mathrm{e}3$ $9.4\mathrm{e}3$ & $3.9$ $8.8$ & $1.0\mathrm{e}{-2}$ $2.0\mathrm{e}{-2}$ & $\mathbf{3.4}$ $7.9$ & $1.0\mathrm{e}0$ $1.0\mathrm{e}0$ & $12.9$ $30.6$ & $5.8\mathrm{e}1$ $6.6\mathrm{e}1$ \\
+$35$ & $15171.0$ $16940.0$ & $3.3\mathrm{e}3$ $1.1\mathrm{e}4$ & $3.8$ $7.8$ & $2.0\mathrm{e}{-2}$ $2.0\mathrm{e}{-2}$ & $\mathbf{3.1}$ $11.3$ & $2.0\mathrm{e}0$ $2.0\mathrm{e}0$ & $10.0$ $19.8$ & $1.2\mathrm{e}2$ $1.2\mathrm{e}2$ \\
+$40$ & $16912.4$ $19513.0$ & $8.3\mathrm{e}3$ $2.5\mathrm{e}4$ & $\mathbf{2.9}$ $11.3$ & $2.0\mathrm{e}{-2}$ $3.0\mathrm{e}{-2}$ & $3.1$ $11.0$ & $3.0\mathrm{e}0$ $3.0\mathrm{e}0$ & $10.4$ $29.7$ & $2.4\mathrm{e}2$ $2.6\mathrm{e}2$ \\
+$45$ & $19067.3$ $23062.0$ & $9.2\mathrm{e}3$ $1.8\mathrm{e}4$ & $3.0$ $7.3$ & $2.0\mathrm{e}{-2}$ $4.0\mathrm{e}{-2}$ & $\mathbf{2.6}$ $7.8$ & $4.0\mathrm{e}0$ $4.0\mathrm{e}0$ & $7.1$ $23.5$ & $4.1\mathrm{e}2$ $4.4\mathrm{e}2$ \\
+$50$ & $20795.4$ $23505.0$ & $2.2\mathrm{e}4$ $5.1\mathrm{e}4$ & $3.5$ $9.6$ & $2.0\mathrm{e}{-2}$ $3.0\mathrm{e}{-2}$ & $\mathbf{3.4}$ $9.7$ & $5.0\mathrm{e}0$ $5.0\mathrm{e}0$ & $5.5$ $15.0$ & $6.6\mathrm{e}2$ $7.1\mathrm{e}2$ \\
+$55$ & $22517.8$ $27573.0$ & $5.5\mathrm{e}4$ $1.4\mathrm{e}5$ & $\mathbf{2.8}$ $9.3$ & $2.0\mathrm{e}{-2}$ $5.0\mathrm{e}{-2}$ & $3.7$ $10.1$ & $6.0\mathrm{e}0$ $6.0\mathrm{e}0$ & $6.8$ $17.6$ & $1.0\mathrm{e}3$ $1.2\mathrm{e}3$ \\
+$60$ & $25266.1$ $29614.0$ & $4.4\mathrm{e}4$ $1.0\mathrm{e}5$ & $\mathbf{2.7}$ $8.4$ & $3.0\mathrm{e}{-2}$ $4.0\mathrm{e}{-2}$ & $2.8$ $6.9$ & $8.0\mathrm{e}0$ $8.0\mathrm{e}0$ & $3.2$ $8.9$ & $1.7\mathrm{e}3$ $1.8\mathrm{e}3$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
   \begin{axis}[
@@ -1986,6 +1921,14 @@ $60$ & \shortstack[r]{$25266.1$ \\ {\scriptsize $29614.0$}} & \shortstack[r]{$43
 \label{fig:gap-small}
 \end{figure}
 
+On this scale the three methods end within a point of one another, the search having travelled the
+whole way to join the two rules. What still separates them is the price: the model is exact but
+close to the limit of its budget, NEH is the closer of the two rules at the bottom of the scale
+and the 2-approximation at the top, and the search pays three orders of magnitude above both
+rules for a gap of the same order. What that price buys is read on the large scale.
+
+\subsection{The large scale}
+
 On the large scale the three methods separate for good. The rules are flat: the 2-approximation
 is the closest on average at $1.81$ per cent over the $32$ configurations, its mean never above
 $3.20$ per cent and its worst instance $7.57$ per cent away, and NEH is the furthest at $4.40$
@@ -2007,8 +1950,10 @@ The two ranges agree on the ordering of the two rules and disagree on the search
 it, $4.79$ against $4.02$, so that the 2-approximation leads NEH on both ranges while the search
 overtakes it on one: $4.28$ against $4.02$ per cent on $[1,40]$, where the two are within a quarter
 of a point of one another, and $3.65$ against $4.79$ on $[1,80]$.
+\Crefrange{tab:results-large-40}{tab:results-large-80} give the two ranges in full, and
+\Cref{fig:gap-large} the course of the gap over the scale.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \resultstable
 \caption{The large scale, $a_j,b_j\in[1,40]$: 2-approx., NEH, GA}
 \label{tab:results-large-40}
@@ -2018,27 +1963,27 @@ of a point of one another, and $3.65$ against $4.79$ on $[1,80]$.
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
  & gap & time (ms) & gap & time (ms) & gap & time (ms) \\
 \midrule
-$100$ & \shortstack[r]{$\mathbf{3.20}$ \\ {\scriptsize $7.57$}} & \shortstack[r]{$0.03$ \\ {\scriptsize $0.07$}} & \shortstack[r]{$5.02$ \\ {\scriptsize $7.69$}} & \shortstack[r]{$35.26$ \\ {\scriptsize $36.47$}} & \shortstack[r]{$10.58$ \\ {\scriptsize $28.17$}} & \shortstack[r]{$1384.37$ \\ {\scriptsize $1439.61$}} \\
-$120$ & \shortstack[r]{$\mathbf{2.87}$ \\ {\scriptsize $5.08$}} & \shortstack[r]{$0.03$ \\ {\scriptsize $0.05$}} & \shortstack[r]{$4.26$ \\ {\scriptsize $11.00$}} & \shortstack[r]{$61.35$ \\ {\scriptsize $67.38$}} & \shortstack[r]{$9.71$ \\ {\scriptsize $21.40$}} & \shortstack[r]{$2203.41$ \\ {\scriptsize $2271.48$}} \\
-$140$ & \shortstack[r]{$\mathbf{2.69}$ \\ {\scriptsize $6.12$}} & \shortstack[r]{$0.03$ \\ {\scriptsize $0.04$}} & \shortstack[r]{$4.08$ \\ {\scriptsize $6.16$}} & \shortstack[r]{$92.04$ \\ {\scriptsize $97.28$}} & \shortstack[r]{$10.76$ \\ {\scriptsize $23.19$}} & \shortstack[r]{$3180.44$ \\ {\scriptsize $3283.81$}} \\
-$160$ & \shortstack[r]{$\mathbf{1.89}$ \\ {\scriptsize $3.70$}} & \shortstack[r]{$0.04$ \\ {\scriptsize $0.04$}} & \shortstack[r]{$4.59$ \\ {\scriptsize $7.14$}} & \shortstack[r]{$134.46$ \\ {\scriptsize $137.52$}} & \shortstack[r]{$9.58$ \\ {\scriptsize $20.50$}} & \shortstack[r]{$4555.65$ \\ {\scriptsize $4747.43$}} \\
-$180$ & \shortstack[r]{$\mathbf{2.35}$ \\ {\scriptsize $5.34$}} & \shortstack[r]{$0.04$ \\ {\scriptsize $0.07$}} & \shortstack[r]{$4.11$ \\ {\scriptsize $7.33$}} & \shortstack[r]{$191.30$ \\ {\scriptsize $198.87$}} & \shortstack[r]{$10.88$ \\ {\scriptsize $20.41$}} & \shortstack[r]{$6435.09$ \\ {\scriptsize $6629.00$}} \\
-$200$ & \shortstack[r]{$\mathbf{2.06}$ \\ {\scriptsize $5.11$}} & \shortstack[r]{$0.05$ \\ {\scriptsize $0.06$}} & \shortstack[r]{$3.89$ \\ {\scriptsize $8.45$}} & \shortstack[r]{$260.86$ \\ {\scriptsize $266.55$}} & \shortstack[r]{$5.49$ \\ {\scriptsize $14.18$}} & \shortstack[r]{$10931.38$ \\ {\scriptsize $11172.88$}} \\
-$220$ & \shortstack[r]{$\mathbf{2.00}$ \\ {\scriptsize $5.12$}} & \shortstack[r]{$0.06$ \\ {\scriptsize $0.10$}} & \shortstack[r]{$3.90$ \\ {\scriptsize $5.88$}} & \shortstack[r]{$344.81$ \\ {\scriptsize $353.78$}} & \shortstack[r]{$4.33$ \\ {\scriptsize $10.78$}} & \shortstack[r]{$17399.07$ \\ {\scriptsize $17848.49$}} \\
-$240$ & \shortstack[r]{$\mathbf{1.65}$ \\ {\scriptsize $3.54$}} & \shortstack[r]{$0.06$ \\ {\scriptsize $0.10$}} & \shortstack[r]{$4.21$ \\ {\scriptsize $7.15$}} & \shortstack[r]{$445.75$ \\ {\scriptsize $455.58$}} & \shortstack[r]{$2.09$ \\ {\scriptsize $8.10$}} & \shortstack[r]{$26442.75$ \\ {\scriptsize $27195.43$}} \\
-$260$ & \shortstack[r]{$\mathbf{1.67}$ \\ {\scriptsize $3.88$}} & \shortstack[r]{$0.07$ \\ {\scriptsize $0.08$}} & \shortstack[r]{$4.02$ \\ {\scriptsize $6.73$}} & \shortstack[r]{$568.66$ \\ {\scriptsize $576.57$}} & \shortstack[r]{$1.73$ \\ {\scriptsize $5.95$}} & \shortstack[r]{$39325.56$ \\ {\scriptsize $40106.05$}} \\
-$280$ & \shortstack[r]{$1.63$ \\ {\scriptsize $4.59$}} & \shortstack[r]{$0.07$ \\ {\scriptsize $0.08$}} & \shortstack[r]{$3.97$ \\ {\scriptsize $7.33$}} & \shortstack[r]{$720.96$ \\ {\scriptsize $737.22$}} & \shortstack[r]{$\mathbf{0.81}$ \\ {\scriptsize $3.79$}} & \shortstack[r]{$57650.47$ \\ {\scriptsize $58582.96$}} \\
-$300$ & \shortstack[r]{$2.05$ \\ {\scriptsize $5.43$}} & \shortstack[r]{$0.08$ \\ {\scriptsize $0.11$}} & \shortstack[r]{$4.11$ \\ {\scriptsize $6.21$}} & \shortstack[r]{$892.01$ \\ {\scriptsize $904.59$}} & \shortstack[r]{$\mathbf{0.68}$ \\ {\scriptsize $1.97$}} & \shortstack[r]{$77091.75$ \\ {\scriptsize $79319.03$}} \\
-$320$ & \shortstack[r]{$1.35$ \\ {\scriptsize $2.71$}} & \shortstack[r]{$0.09$ \\ {\scriptsize $0.14$}} & \shortstack[r]{$3.59$ \\ {\scriptsize $6.12$}} & \shortstack[r]{$1090.79$ \\ {\scriptsize $1111.77$}} & \shortstack[r]{$\mathbf{0.59}$ \\ {\scriptsize $2.36$}} & \shortstack[r]{$99565.36$ \\ {\scriptsize $101622.73$}} \\
-$340$ & \shortstack[r]{$1.31$ \\ {\scriptsize $4.02$}} & \shortstack[r]{$0.10$ \\ {\scriptsize $0.15$}} & \shortstack[r]{$3.54$ \\ {\scriptsize $5.47$}} & \shortstack[r]{$1313.39$ \\ {\scriptsize $1325.81$}} & \shortstack[r]{$\mathbf{0.43}$ \\ {\scriptsize $1.94$}} & \shortstack[r]{$126205.10$ \\ {\scriptsize $127684.57$}} \\
-$360$ & \shortstack[r]{$1.16$ \\ {\scriptsize $2.85$}} & \shortstack[r]{$0.11$ \\ {\scriptsize $0.14$}} & \shortstack[r]{$3.67$ \\ {\scriptsize $7.22$}} & \shortstack[r]{$1562.68$ \\ {\scriptsize $1583.38$}} & \shortstack[r]{$\mathbf{0.19}$ \\ {\scriptsize $0.94$}} & \shortstack[r]{$158777.05$ \\ {\scriptsize $160802.00$}} \\
-$380$ & \shortstack[r]{$1.31$ \\ {\scriptsize $3.08$}} & \shortstack[r]{$0.12$ \\ {\scriptsize $0.15$}} & \shortstack[r]{$3.79$ \\ {\scriptsize $5.99$}} & \shortstack[r]{$1935.62$ \\ {\scriptsize $2143.48$}} & \shortstack[r]{$\mathbf{0.37}$ \\ {\scriptsize $1.59$}} & \shortstack[r]{$205483.27$ \\ {\scriptsize $219431.17$}} \\
-$400$ & \shortstack[r]{$1.51$ \\ {\scriptsize $2.99$}} & \shortstack[r]{$0.20$ \\ {\scriptsize $0.89$}} & \shortstack[r]{$3.60$ \\ {\scriptsize $4.93$}} & \shortstack[r]{$2405.22$ \\ {\scriptsize $2877.28$}} & \shortstack[r]{$\mathbf{0.22}$ \\ {\scriptsize $1.06$}} & \shortstack[r]{$276234.16$ \\ {\scriptsize $331651.06$}} \\
+$100$ & $\mathbf{3.2}$ $7.6$ & $3.0\mathrm{e}{-2}$ $7.0\mathrm{e}{-2}$ & $5.0$ $7.7$ & $3.5\mathrm{e}1$ $3.6\mathrm{e}1$ & $10.6$ $28.2$ & $1.4\mathrm{e}3$ $1.4\mathrm{e}3$ \\
+$120$ & $\mathbf{2.9}$ $5.1$ & $3.0\mathrm{e}{-2}$ $5.0\mathrm{e}{-2}$ & $4.3$ $11.0$ & $6.1\mathrm{e}1$ $6.7\mathrm{e}1$ & $9.7$ $21.4$ & $2.2\mathrm{e}3$ $2.3\mathrm{e}3$ \\
+$140$ & $\mathbf{2.7}$ $6.1$ & $3.0\mathrm{e}{-2}$ $4.0\mathrm{e}{-2}$ & $4.1$ $6.2$ & $9.2\mathrm{e}1$ $9.7\mathrm{e}1$ & $10.8$ $23.2$ & $3.2\mathrm{e}3$ $3.3\mathrm{e}3$ \\
+$160$ & $\mathbf{1.9}$ $3.7$ & $4.0\mathrm{e}{-2}$ $4.0\mathrm{e}{-2}$ & $4.6$ $7.1$ & $1.3\mathrm{e}2$ $1.4\mathrm{e}2$ & $9.6$ $20.5$ & $4.6\mathrm{e}3$ $4.7\mathrm{e}3$ \\
+$180$ & $\mathbf{2.4}$ $5.3$ & $4.0\mathrm{e}{-2}$ $7.0\mathrm{e}{-2}$ & $4.1$ $7.3$ & $1.9\mathrm{e}2$ $2.0\mathrm{e}2$ & $10.9$ $20.4$ & $6.4\mathrm{e}3$ $6.6\mathrm{e}3$ \\
+$200$ & $\mathbf{2.1}$ $5.1$ & $5.0\mathrm{e}{-2}$ $6.0\mathrm{e}{-2}$ & $3.9$ $8.5$ & $2.6\mathrm{e}2$ $2.7\mathrm{e}2$ & $5.5$ $14.2$ & $1.1\mathrm{e}4$ $1.1\mathrm{e}4$ \\
+$220$ & $\mathbf{2.0}$ $5.1$ & $6.0\mathrm{e}{-2}$ $1.0\mathrm{e}{-1}$ & $3.9$ $5.9$ & $3.5\mathrm{e}2$ $3.5\mathrm{e}2$ & $4.3$ $10.8$ & $1.7\mathrm{e}4$ $1.8\mathrm{e}4$ \\
+$240$ & $\mathbf{1.7}$ $3.5$ & $6.0\mathrm{e}{-2}$ $1.0\mathrm{e}{-1}$ & $4.2$ $7.2$ & $4.5\mathrm{e}2$ $4.6\mathrm{e}2$ & $2.1$ $8.1$ & $2.6\mathrm{e}4$ $2.7\mathrm{e}4$ \\
+$260$ & $\mathbf{1.7}$ $3.9$ & $7.0\mathrm{e}{-2}$ $8.0\mathrm{e}{-2}$ & $4.0$ $6.7$ & $5.7\mathrm{e}2$ $5.8\mathrm{e}2$ & $1.7$ $6.0$ & $3.9\mathrm{e}4$ $4.0\mathrm{e}4$ \\
+$280$ & $1.6$ $4.6$ & $7.0\mathrm{e}{-2}$ $8.0\mathrm{e}{-2}$ & $4.0$ $7.3$ & $7.2\mathrm{e}2$ $7.4\mathrm{e}2$ & $\mathbf{0.8}$ $3.8$ & $5.8\mathrm{e}4$ $5.9\mathrm{e}4$ \\
+$300$ & $2.1$ $5.4$ & $8.0\mathrm{e}{-2}$ $1.1\mathrm{e}{-1}$ & $4.1$ $6.2$ & $8.9\mathrm{e}2$ $9.1\mathrm{e}2$ & $\mathbf{0.7}$ $2.0$ & $7.7\mathrm{e}4$ $7.9\mathrm{e}4$ \\
+$320$ & $1.4$ $2.7$ & $9.0\mathrm{e}{-2}$ $1.4\mathrm{e}{-1}$ & $3.6$ $6.1$ & $1.1\mathrm{e}3$ $1.1\mathrm{e}3$ & $\mathbf{0.6}$ $2.4$ & $1.0\mathrm{e}5$ $1.0\mathrm{e}5$ \\
+$340$ & $1.3$ $4.0$ & $1.0\mathrm{e}{-1}$ $1.5\mathrm{e}{-1}$ & $3.5$ $5.5$ & $1.3\mathrm{e}3$ $1.3\mathrm{e}3$ & $\mathbf{0.4}$ $1.9$ & $1.3\mathrm{e}5$ $1.3\mathrm{e}5$ \\
+$360$ & $1.2$ $2.9$ & $1.1\mathrm{e}{-1}$ $1.4\mathrm{e}{-1}$ & $3.7$ $7.2$ & $1.6\mathrm{e}3$ $1.6\mathrm{e}3$ & $\mathbf{0.2}$ $0.9$ & $1.6\mathrm{e}5$ $1.6\mathrm{e}5$ \\
+$380$ & $1.3$ $3.1$ & $1.2\mathrm{e}{-1}$ $1.5\mathrm{e}{-1}$ & $3.8$ $6.0$ & $1.9\mathrm{e}3$ $2.1\mathrm{e}3$ & $\mathbf{0.4}$ $1.6$ & $2.1\mathrm{e}5$ $2.2\mathrm{e}5$ \\
+$400$ & $1.5$ $3.0$ & $2.0\mathrm{e}{-1}$ $8.9\mathrm{e}{-1}$ & $3.6$ $4.9$ & $2.4\mathrm{e}3$ $2.9\mathrm{e}3$ & $\mathbf{0.2}$ $1.1$ & $2.8\mathrm{e}5$ $3.3\mathrm{e}5$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \resultstable
 \caption{The large scale, $a_j,b_j\in[1,80]$: 2-approx., NEH, GA}
 \label{tab:results-large-80}
@@ -2048,27 +1993,27 @@ $400$ & \shortstack[r]{$1.51$ \\ {\scriptsize $2.99$}} & \shortstack[r]{$0.20$ \
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
  & gap & time (ms) & gap & time (ms) & gap & time (ms) \\
 \midrule
-$100$ & \shortstack[r]{$\mathbf{2.75}$ \\ {\scriptsize $5.26$}} & \shortstack[r]{$0.03$ \\ {\scriptsize $0.05$}} & \shortstack[r]{$5.39$ \\ {\scriptsize $12.64$}} & \shortstack[r]{$35.66$ \\ {\scriptsize $37.43$}} & \shortstack[r]{$8.95$ \\ {\scriptsize $23.55$}} & \shortstack[r]{$1409.90$ \\ {\scriptsize $1496.96$}} \\
-$120$ & \shortstack[r]{$\mathbf{2.44}$ \\ {\scriptsize $4.66$}} & \shortstack[r]{$0.03$ \\ {\scriptsize $0.06$}} & \shortstack[r]{$4.64$ \\ {\scriptsize $6.47$}} & \shortstack[r]{$60.32$ \\ {\scriptsize $66.07$}} & \shortstack[r]{$9.06$ \\ {\scriptsize $20.88$}} & \shortstack[r]{$2167.31$ \\ {\scriptsize $2249.25$}} \\
-$140$ & \shortstack[r]{$\mathbf{2.15}$ \\ {\scriptsize $6.02$}} & \shortstack[r]{$0.03$ \\ {\scriptsize $0.04$}} & \shortstack[r]{$4.81$ \\ {\scriptsize $8.43$}} & \shortstack[r]{$90.89$ \\ {\scriptsize $93.33$}} & \shortstack[r]{$7.24$ \\ {\scriptsize $15.10$}} & \shortstack[r]{$3136.94$ \\ {\scriptsize $3209.90$}} \\
-$160$ & \shortstack[r]{$\mathbf{2.60}$ \\ {\scriptsize $5.49$}} & \shortstack[r]{$0.04$ \\ {\scriptsize $0.04$}} & \shortstack[r]{$3.97$ \\ {\scriptsize $7.54$}} & \shortstack[r]{$134.96$ \\ {\scriptsize $139.10$}} & \shortstack[r]{$10.21$ \\ {\scriptsize $21.92$}} & \shortstack[r]{$4571.04$ \\ {\scriptsize $4726.96$}} \\
-$180$ & \shortstack[r]{$\mathbf{2.14}$ \\ {\scriptsize $4.70$}} & \shortstack[r]{$0.04$ \\ {\scriptsize $0.05$}} & \shortstack[r]{$4.66$ \\ {\scriptsize $7.17$}} & \shortstack[r]{$190.18$ \\ {\scriptsize $195.30$}} & \shortstack[r]{$6.99$ \\ {\scriptsize $17.08$}} & \shortstack[r]{$6429.74$ \\ {\scriptsize $6726.51$}} \\
-$200$ & \shortstack[r]{$\mathbf{1.87}$ \\ {\scriptsize $6.60$}} & \shortstack[r]{$0.05$ \\ {\scriptsize $0.07$}} & \shortstack[r]{$5.00$ \\ {\scriptsize $8.60$}} & \shortstack[r]{$260.31$ \\ {\scriptsize $265.96$}} & \shortstack[r]{$6.34$ \\ {\scriptsize $17.48$}} & \shortstack[r]{$10916.49$ \\ {\scriptsize $11382.00$}} \\
-$220$ & \shortstack[r]{$\mathbf{1.37}$ \\ {\scriptsize $2.98$}} & \shortstack[r]{$0.05$ \\ {\scriptsize $0.06$}} & \shortstack[r]{$5.11$ \\ {\scriptsize $7.64$}} & \shortstack[r]{$342.95$ \\ {\scriptsize $347.44$}} & \shortstack[r]{$2.47$ \\ {\scriptsize $7.33$}} & \shortstack[r]{$17326.84$ \\ {\scriptsize $17825.02$}} \\
-$240$ & \shortstack[r]{$\mathbf{1.26}$ \\ {\scriptsize $2.43$}} & \shortstack[r]{$0.06$ \\ {\scriptsize $0.07$}} & \shortstack[r]{$4.64$ \\ {\scriptsize $8.01$}} & \shortstack[r]{$445.17$ \\ {\scriptsize $460.79$}} & \shortstack[r]{$2.09$ \\ {\scriptsize $6.77$}} & \shortstack[r]{$26299.84$ \\ {\scriptsize $27028.61$}} \\
-$260$ & \shortstack[r]{$1.87$ \\ {\scriptsize $4.87$}} & \shortstack[r]{$0.07$ \\ {\scriptsize $0.08$}} & \shortstack[r]{$5.59$ \\ {\scriptsize $8.02$}} & \shortstack[r]{$569.50$ \\ {\scriptsize $582.71$}} & \shortstack[r]{$\mathbf{1.85}$ \\ {\scriptsize $5.73$}} & \shortstack[r]{$39464.28$ \\ {\scriptsize $40446.42$}} \\
-$280$ & \shortstack[r]{$1.41$ \\ {\scriptsize $3.11$}} & \shortstack[r]{$0.07$ \\ {\scriptsize $0.09$}} & \shortstack[r]{$3.90$ \\ {\scriptsize $6.46$}} & \shortstack[r]{$720.36$ \\ {\scriptsize $731.04$}} & \shortstack[r]{$\mathbf{0.74}$ \\ {\scriptsize $2.42$}} & \shortstack[r]{$57760.02$ \\ {\scriptsize $58914.31$}} \\
-$300$ & \shortstack[r]{$1.20$ \\ {\scriptsize $2.92$}} & \shortstack[r]{$0.09$ \\ {\scriptsize $0.13$}} & \shortstack[r]{$4.90$ \\ {\scriptsize $6.68$}} & \shortstack[r]{$891.43$ \\ {\scriptsize $907.87$}} & \shortstack[r]{$\mathbf{1.09}$ \\ {\scriptsize $3.79$}} & \shortstack[r]{$76949.10$ \\ {\scriptsize $78040.10$}} \\
-$320$ & \shortstack[r]{$1.23$ \\ {\scriptsize $3.09$}} & \shortstack[r]{$0.09$ \\ {\scriptsize $0.12$}} & \shortstack[r]{$4.30$ \\ {\scriptsize $6.03$}} & \shortstack[r]{$1092.38$ \\ {\scriptsize $1114.11$}} & \shortstack[r]{$\mathbf{0.51}$ \\ {\scriptsize $1.78$}} & \shortstack[r]{$99498.39$ \\ {\scriptsize $100647.08$}} \\
-$340$ & \shortstack[r]{$1.05$ \\ {\scriptsize $3.00$}} & \shortstack[r]{$0.10$ \\ {\scriptsize $0.12$}} & \shortstack[r]{$4.63$ \\ {\scriptsize $6.59$}} & \shortstack[r]{$1312.40$ \\ {\scriptsize $1329.73$}} & \shortstack[r]{$\mathbf{0.20}$ \\ {\scriptsize $1.02$}} & \shortstack[r]{$125947.63$ \\ {\scriptsize $126830.87$}} \\
-$360$ & \shortstack[r]{$1.17$ \\ {\scriptsize $2.17$}} & \shortstack[r]{$0.11$ \\ {\scriptsize $0.13$}} & \shortstack[r]{$5.37$ \\ {\scriptsize $6.78$}} & \shortstack[r]{$1586.33$ \\ {\scriptsize $1648.92$}} & \shortstack[r]{$\mathbf{0.24}$ \\ {\scriptsize $1.43$}} & \shortstack[r]{$160224.94$ \\ {\scriptsize $164703.79$}} \\
-$380$ & \shortstack[r]{$1.60$ \\ {\scriptsize $3.28$}} & \shortstack[r]{$0.12$ \\ {\scriptsize $0.13$}} & \shortstack[r]{$5.21$ \\ {\scriptsize $7.25$}} & \shortstack[r]{$1935.08$ \\ {\scriptsize $1975.71$}} & \shortstack[r]{$\mathbf{0.36}$ \\ {\scriptsize $1.80$}} & \shortstack[r]{$208505.05$ \\ {\scriptsize $212639.22$}} \\
-$400$ & \shortstack[r]{$1.11$ \\ {\scriptsize $3.71$}} & \shortstack[r]{$0.20$ \\ {\scriptsize $0.43$}} & \shortstack[r]{$4.47$ \\ {\scriptsize $7.66$}} & \shortstack[r]{$2729.24$ \\ {\scriptsize $3169.58$}} & \shortstack[r]{$\mathbf{0.13}$ \\ {\scriptsize $0.65$}} & \shortstack[r]{$313465.36$ \\ {\scriptsize $350424.29$}} \\
+$100$ & $\mathbf{2.8}$ $5.3$ & $3.0\mathrm{e}{-2}$ $5.0\mathrm{e}{-2}$ & $5.4$ $12.6$ & $3.6\mathrm{e}1$ $3.7\mathrm{e}1$ & $9.0$ $23.6$ & $1.4\mathrm{e}3$ $1.5\mathrm{e}3$ \\
+$120$ & $\mathbf{2.4}$ $4.7$ & $3.0\mathrm{e}{-2}$ $6.0\mathrm{e}{-2}$ & $4.6$ $6.5$ & $6.0\mathrm{e}1$ $6.6\mathrm{e}1$ & $9.1$ $20.9$ & $2.2\mathrm{e}3$ $2.2\mathrm{e}3$ \\
+$140$ & $\mathbf{2.2}$ $6.0$ & $3.0\mathrm{e}{-2}$ $4.0\mathrm{e}{-2}$ & $4.8$ $8.4$ & $9.1\mathrm{e}1$ $9.3\mathrm{e}1$ & $7.2$ $15.1$ & $3.1\mathrm{e}3$ $3.2\mathrm{e}3$ \\
+$160$ & $\mathbf{2.6}$ $5.5$ & $4.0\mathrm{e}{-2}$ $4.0\mathrm{e}{-2}$ & $4.0$ $7.5$ & $1.4\mathrm{e}2$ $1.4\mathrm{e}2$ & $10.2$ $21.9$ & $4.6\mathrm{e}3$ $4.7\mathrm{e}3$ \\
+$180$ & $\mathbf{2.1}$ $4.7$ & $4.0\mathrm{e}{-2}$ $5.0\mathrm{e}{-2}$ & $4.7$ $7.2$ & $1.9\mathrm{e}2$ $2.0\mathrm{e}2$ & $7.0$ $17.1$ & $6.4\mathrm{e}3$ $6.7\mathrm{e}3$ \\
+$200$ & $\mathbf{1.9}$ $6.6$ & $5.0\mathrm{e}{-2}$ $7.0\mathrm{e}{-2}$ & $5.0$ $8.6$ & $2.6\mathrm{e}2$ $2.7\mathrm{e}2$ & $6.3$ $17.5$ & $1.1\mathrm{e}4$ $1.1\mathrm{e}4$ \\
+$220$ & $\mathbf{1.4}$ $3.0$ & $5.0\mathrm{e}{-2}$ $6.0\mathrm{e}{-2}$ & $5.1$ $7.6$ & $3.4\mathrm{e}2$ $3.5\mathrm{e}2$ & $2.5$ $7.3$ & $1.7\mathrm{e}4$ $1.8\mathrm{e}4$ \\
+$240$ & $\mathbf{1.3}$ $2.4$ & $6.0\mathrm{e}{-2}$ $7.0\mathrm{e}{-2}$ & $4.6$ $8.0$ & $4.5\mathrm{e}2$ $4.6\mathrm{e}2$ & $2.1$ $6.8$ & $2.6\mathrm{e}4$ $2.7\mathrm{e}4$ \\
+$260$ & $1.9$ $4.9$ & $7.0\mathrm{e}{-2}$ $8.0\mathrm{e}{-2}$ & $5.6$ $8.0$ & $5.7\mathrm{e}2$ $5.8\mathrm{e}2$ & $\mathbf{1.9}$ $5.7$ & $3.9\mathrm{e}4$ $4.0\mathrm{e}4$ \\
+$280$ & $1.4$ $3.1$ & $7.0\mathrm{e}{-2}$ $9.0\mathrm{e}{-2}$ & $3.9$ $6.5$ & $7.2\mathrm{e}2$ $7.3\mathrm{e}2$ & $\mathbf{0.7}$ $2.4$ & $5.8\mathrm{e}4$ $5.9\mathrm{e}4$ \\
+$300$ & $1.2$ $2.9$ & $9.0\mathrm{e}{-2}$ $1.3\mathrm{e}{-1}$ & $4.9$ $6.7$ & $8.9\mathrm{e}2$ $9.1\mathrm{e}2$ & $\mathbf{1.1}$ $3.8$ & $7.7\mathrm{e}4$ $7.8\mathrm{e}4$ \\
+$320$ & $1.2$ $3.1$ & $9.0\mathrm{e}{-2}$ $1.2\mathrm{e}{-1}$ & $4.3$ $6.0$ & $1.1\mathrm{e}3$ $1.1\mathrm{e}3$ & $\mathbf{0.5}$ $1.8$ & $9.9\mathrm{e}4$ $1.0\mathrm{e}5$ \\
+$340$ & $1.1$ $3.0$ & $1.0\mathrm{e}{-1}$ $1.2\mathrm{e}{-1}$ & $4.6$ $6.6$ & $1.3\mathrm{e}3$ $1.3\mathrm{e}3$ & $\mathbf{0.2}$ $1.0$ & $1.3\mathrm{e}5$ $1.3\mathrm{e}5$ \\
+$360$ & $1.2$ $2.2$ & $1.1\mathrm{e}{-1}$ $1.3\mathrm{e}{-1}$ & $5.4$ $6.8$ & $1.6\mathrm{e}3$ $1.6\mathrm{e}3$ & $\mathbf{0.2}$ $1.4$ & $1.6\mathrm{e}5$ $1.6\mathrm{e}5$ \\
+$380$ & $1.6$ $3.3$ & $1.2\mathrm{e}{-1}$ $1.3\mathrm{e}{-1}$ & $5.2$ $7.3$ & $1.9\mathrm{e}3$ $2.0\mathrm{e}3$ & $\mathbf{0.4}$ $1.8$ & $2.1\mathrm{e}5$ $2.1\mathrm{e}5$ \\
+$400$ & $1.1$ $3.7$ & $2.0\mathrm{e}{-1}$ $4.3\mathrm{e}{-1}$ & $4.5$ $7.7$ & $2.7\mathrm{e}3$ $3.2\mathrm{e}3$ & $\mathbf{0.1}$ $0.7$ & $3.1\mathrm{e}5$ $3.5\mathrm{e}5$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
   \begin{axis}[
@@ -2100,62 +2045,100 @@ $400$ & \shortstack[r]{$1.11$ \\ {\scriptsize $3.71$}} & \shortstack[r]{$0.20$ \
 \label{fig:gap-large}
 \end{figure}
 
-The two scales are read for different things, and their tables show why. On the small scale the
-three methods end within a point of one another, the search having travelled the whole way to join
-the two rules; on the large one the rules stay within a few points of the bound at every size while
-the search falls through both, and it is there, and only there, that the population buys a value
-the rules do not reach.
+At this scale, then, the rules stay within a few points of the bound while the search falls
+through both, and it is there, and only there, that the population buys a value the rules do not
+reach. What the study reads is a division of labour rather than a ranking. The
+2-approximation is the cheapest method by six orders of magnitude and stays within five per cent
+of the optimum on the small scale and within $1.81$ per cent of $LB$ on the large one, which says
+that the factor of two of \Cref{thm:approx2} is loose by an order of magnitude on instances of
+this kind. What it cannot do is read anything but the weights, and that is the ground NEH takes:
+NEH reads the two processing times and no weight, which makes it the closest method at the bottom
+of the small scale and the furthest at the top of the large one, where its gap does not close as
+the instance grows.
 
-\subsection{Discussion}
-
-What the study reads, then, is a division of labour rather than a ranking. The 2-approximation is
-the cheapest method by six orders of magnitude and stays within five per cent of the optimum on
-the small scale and within $1.81$ per cent of $LB$ on the large one, which says that the factor of
-two of \Cref{thm:approx2} is loose by an order of magnitude on instances of this kind. What it
-cannot do is read anything but the weights, and that is the ground NEH takes: NEH reads the two
-processing times and no weight, which makes it the closest method at the bottom of the small
-scale and the furthest at the top of the large one, where its gap does not close as the instance
-grows.
-
-The two methods that carry the study beyond a rule sit at opposite ends of it. The dynamic
-program is the only one that certifies an optimum, and it does so cheaply where it applies --
-$1.47$\,s for forty jobs on $[1,40]$ -- but its applicability is the restriction: two weight
-classes, at most a hundred jobs, and a third class that exhausts the memory of the machine before
-the search starts. The genetic algorithm is the reverse. It certifies nothing, it costs three
-orders of magnitude more than the rules on the small scale and more than ninety times NEH on the
-large one, and it is nevertheless the only method that beats both rules, on $318$ of the $640$
-large instances and from about $260$ jobs on. Neither is read on the instances of the other --
-the dynamic program on a set of its own at $K=2$, the search on instances that carry up to thirty
-weight classes -- so what separates them is not a common benchmark but the question each answers:
-whether the optimum can be certified at all, or whether a schedule that beats every rule can be
-built at the sizes that arise. The reason the search needs the room is the start it is given:
-Johnson's rule carries no weight, so its early generations are spent building the criterion into
-the schedule before it can profit from it.
+The two methods that carry the study beyond a rule sit at opposite ends of it. The dynamic program
+is the only one that certifies an optimum, and it does so cheaply where it applies, at $1.47$\,s
+for forty jobs on $[1,40]$, but its applicability is the restriction: two weight classes, at most
+a hundred jobs, and a third class that exhausts the memory of the machine before the search
+starts. The genetic algorithm is the reverse. It certifies nothing, it costs three orders of
+magnitude more than the rules on the small scale and more than ninety times NEH on the large one,
+and it is nevertheless the only method that beats both rules, on $318$ of the $640$ large
+instances and from about $260$ jobs on. Neither is read on the instances of the other, the dynamic
+program on a set of its own at $K=2$ and the search on instances that carry up to thirty weight
+classes, so what separates them is not a common benchmark but the question each answers: whether
+the optimum can be certified at all, or whether a schedule that beats every rule can be built at
+the sizes that arise. The reason the search needs the room is the start it is given: Johnson's
+rule carries no weight, so its early generations are spent building the criterion into the
+schedule before it can profit from it.
 
 Two properties of the comparison are worth keeping in view. The large-scale gaps are distances to
-$LB$, which caps the optimum by the three prefix bounds of \cref{eq:lb} and is tight only where the
-heaviest jobs are also the earliest ones; what they order reliably is therefore the methods and not
-their absolute quality. And the answers depend on the processing-time range: the average advantage
-of the search over NEH, $3.97$ against $4.40$ per cent, is earned on $[1,80]$ alone.
+$LB$, which caps the optimum by the three prefix bounds of \cref{eq:lb} and is tight only where
+the heaviest jobs are also the earliest ones; what they order reliably is therefore the methods
+and not their absolute quality. And the answers depend on the processing-time range: the average
+advantage of the search over NEH, $3.97$ against $4.40$ per cent, is earned on $[1,80]$ alone.
 
 What would extend the study follows from each of its limits. On the exact side the dynamic program
-is stopped by memory, so dominance rules that drop a state another state beats, or a solution of one
-weight class at a time, are the way past $K=2$, with the scheme of \Cref{sub:fptas} the memory-lean
-alternative where they are not enough. On the side of the search, seeding the population with the
-order the 2-approximation returns costs microseconds and carries the weights the Johnson order
-lacks, which is the cheap way to move the size at which the search overtakes the rules. Both point
-at the same economy, of spending the budget where the criterion still moves, which the calibration
-of the large scale measured when it found the count of generations to be the lever of that scale and
-the width of the insertion descent nearly inert.
+is stopped by memory, so dominance rules that drop a state another state beats, or a solution of
+one weight class at a time, are the way past $K=2$, with the scheme of \Cref{sub:fptas} the
+memory-lean alternative where they are not enough. On the side of the search, seeding the
+population with the order the 2-approximation returns costs microseconds and carries the weights
+the Johnson order lacks, which is the cheap way to move the size at which the search overtakes the
+rules. Both point at the same economy, of spending the budget where the criterion still moves.
 
 \FloatBarrier
+\clearpage
 
 \section{Conclusion}
 \label{sec:conclusion}
-% 结论及未来展望
+
+This paper has shown that the two-machine flow shop with the maximum weighted completion time as
+its criterion is strongly NP-hard, and that it admits a structure on which exact computation
+becomes possible: an optimal schedule is a permutation, it splits into one block per distinct
+weight, Johnson's order holds inside a block, and the blocks follow the weights in non-increasing
+order. The dynamic program built on that structure prunes dominated states and runs in
+$O(nKV^{3K-3})$ time, the 2-approximation reads the weights alone and runs in $O(n\log n)$ time,
+the approximation scheme attains a $(1+\varepsilon)$ guarantee for a constant number of weights,
+and the two heuristics, an adapted NEH and a genetic algorithm, cover the sizes at which none of
+the exact methods reaches.
+
+The computational study places each of them in its range. The mixed integer model settles all
+$440$ small instances to optimality, and at $K=2$ the dynamic program certifies the optimum up to a
+hundred jobs on $[1,40]$ and to eighty on $[1,80]$, where it is the $600$\,s limit and not its
+correctness that stops it. Against the optimum the 2-approximation stays within $3.5$ per cent on
+average and NEH within $2.5$; against the lower bound on the large scale the same two rules stay
+within $1.8$ and $4.4$ per cent, while the genetic algorithm, the weakest of the three on small
+instances, is the only method whose gap falls as the instance grows, and it passes both rules
+beyond about $260$ jobs. The practical reading is a division of labour rather than a ranking: the
+rules are cheap and dependable, the exact methods certify within their reach, and the search buys
+values that neither rule reaches.
+
+Three extensions follow from the limits of the study, one for each of its methods. The first
+concerns the number of machines: the mixed integer formulation of \Cref{sec:preliminaries} is
+written for two machines and generalises, the assignment constraints and the completion-time
+recursions carrying over to $m>2$ machines with one sequence per machine in place of the single
+permutation, since the permutation property that holds for two machines fails in general with
+three or more. What the extension costs is size, a set of sequencing variables for every machine,
+and not principle.
+
+The second concerns the number of weight classes. The dynamic program is stopped at $K=3$ by its
+state space, bounded by $2^{K}V^{3K-3}$, which exhausts the memory of the machine before the search
+starts. Branch and bound is the natural successor there, and two of its ingredients are already in
+the paper: the block structure gives the branching rule, over the order of the blocks and over the
+jobs within one, and the three thresholds $LB_1$, $LB_2$ and $LB_3$ of \Cref{sub:approx2} give a
+bound at every node. What such a procedure would keep is part of the certification the program
+gives at $K=2$, on instances the program cannot reach.
+
+The third concerns the setting. Both heuristics read only the processing times and the weights, so
+they carry over to the distributed flow shop, where several identical flow shops process the jobs
+and the assignment of a job to a shop is added to the sequencing decision: the insertion test of
+NEH can be taken shop by shop, and the chromosome of the genetic algorithm can carry the assignment
+beside the permutation. Variants that keep a two-machine shop inside a larger problem admit the
+same treatment. Each of the three moves extends the reach of a method without changing the
+structure it exploits.
 
 \bibliographystyle{apalike}
 \bibliography{ref_IJPR}
 
 \end{sloppypar}
 \end{document}
+
