@@ -44,23 +44,11 @@
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{exam}{Example}[section]
 
-% Figures and tables are numbered sequentially over the whole paper as
-% "Figure 1", "Table 1", ... , independently of the section they appear
-% in.  The figures of Sections 2 to 5 are drawn with the number of the
-% figure inside the picture rather than captioned below it, so their blocks
-% step the counter by hand; the counter must therefore not be reset at a
-% section break.
+
 \renewcommand{\thefigure}{\arabic{figure}}
 \renewcommand{\thetable}{\arabic{table}}
 
-% The tables of the experiments share one row spacing and one width, so that
-% they read as one set.  Every one of them is opened with \resultstable and
-% drawn on a tabular* of \resultstabwidth, whose columns are then spread over
-% the whole width: the natural width of a table never has to match that of its
-% neighbours.  The four comparison tables carry two columns per method and a
-% pair of figures in every one of them, which is more than any of the others
-% has to hold; they are therefore set one size down, with a narrower column
-% separation, and the width below leaves them the room that the pair needs.
+
 \newlength{\resultstabwidth}
 \setlength{\resultstabwidth}{16.2cm}
 \newcommand{\resultstable}{%
@@ -77,30 +65,20 @@
 \renewcommand{\bottomfraction}{0.6}
 \renewcommand{\textfraction}{0.05}
 
-% A barrier is placed at every section heading, so that no table or figure of
-% one section is carried into the next.  The subsections are left without one:
-% the tables of Section 6 are tall and stand two and three to a subsection, and
-% with a barrier at the heading of each of them the text that follows a run of
-% floats cannot start until the run has been laid out, which is what leaves the
-% foot of the pages the tables land on empty.
+
 \let\origsection\section
 \renewcommand{\section}{\FloatBarrier\origsection}
 
-% Tables and figures are cited with \cref / \Cref, so that the whole
-% "Table 2" / "Figure 4" is one hyperlink rather than only its number,
-% and so that plurals and ranges ("Tables 4 to 6") come out right.
-% Loaded last: \cref has to see the counters and \newtheorem above.
+
 \usepackage[nameinlink]{cleveref}
 
-% Equations keep their bare "(1)" form, as \eqref produced, rather than
-% cleveref's default "eq. (1)".
+
 \crefname{equation}{}{}
 
-% The examples are cited as "Example 4.1", like the theorems and lemmas
-% above them, rather than in cleveref's fallback form.
 \crefname{exam}{Example}{Examples}
 
-\title{\LARGE\bf $F2 \parallel W C_{\max}$ Structural Properties and Dynamic Programming}
+\title{\LARGE\bf The two-machine flow shop with maximum weighted completion time: structure,
+algorithms and a computational study}
 \author{Author One$^{a,}$\footnote{Corresponding author. E-mail address: author@email.com}, Author Two$^{b}$\\
 {\small $^{a}$Institution One, Location, Country}\\
 {\small $^{b}$Institution Two, Location, Country}\\}
@@ -112,454 +90,327 @@
 \maketitle
 
 \begin{abstract}
-    Minimizing the maximum weighted completion time in a two-machine flow shop models a line
-    in which a few high-priority orders pace the shop. The problem is strongly NP-hard, and we
-    give a mixed integer programming formulation for it. We show that an optimal schedule
-    preserves the permutation property and has a block structure: one block per distinct
-    weight, Johnson's order within each block, and the blocks in non-increasing weight order.
-    On this structure we build three methods: a dynamic program that prunes dominated states
-    and runs in $O(nKV^{3K-3})$ time, where $K$ is the number of distinct weights and $V$ the
-    total processing time; a 2-approximation in $O(n\log n)$ time; and a fully polynomial-time
-    approximation scheme that attains a $(1+\varepsilon)$ guarantee for a constant number of
-    weights. For large instances we develop an adapted NEH heuristic and a genetic algorithm.
-    In a study with twenty instances per configuration, the model settles all $440$ small
-    instances, and at $K=2$ the dynamic program certifies the optimum up to eighty jobs on both
-    ranges and to a hundred on the narrower one; what stops it is cost, not correctness. The
-    2-approximation stays within $3.5$ per cent of the optimum on average and within $1.8$ per
-    cent of the lower bound, NEH within $2.5$ and $4.4$, and the genetic algorithm, the
-    weakest on small instances, is the only method whose gap falls as the instance grows,
-    passing both rules beyond about $260$ jobs.
+    The two-machine flow shop with maximum weighted completion time ($F2\parallel WC_{\max}$)
+    models a line dominated by a few high-priority orders. We give a mixed-integer linear
+    programming (MILP) formulation and prove that the problem is strongly NP-hard. An optimal
+    schedule can be taken to be a permutation schedule with one block per weight, Johnson's order
+    within each, and non-increasing weight order across blocks. An exact dynamic program runs in
+    $O(nK2^{K}V^{3K-3})$ time, where $K$ is the number of distinct weights and $V$ the total
+    processing time; we add a 2-approximation in $O(n\log n)$ time and an FPTAS for every fixed
+    $K$, and for large instances we adapt NEH and develop a genetic algorithm. In 440 small and
+    640 large instances, the MILP model solves all small ones to optimality; on a separate $K=2$
+    set, the dynamic program certifies optimality up to 80 jobs for processing times in $[1,40]$
+    and $[1,80]$, and up to 100 for $[1,40]$, the limit being time and memory rather than
+    correctness. On small instances the 2-approximation averages 3.5 per cent above the optimum
+    and NEH 2.5 per cent; on large ones, against a lower bound, they average 1.8 and 4.4 per cent.
+    The genetic algorithm has the largest gap at small sizes, but it is the only method that
+    overtakes the other two, at roughly 240 to 280 jobs, and at a much higher cost.
 \end{abstract}
 
-\noindent \textbf{Keywords:} Flow shop; Dynamic programming; Approximation algorithms; 
+\noindent \textbf{Keywords:} Scheduling; Two-machine flow shop; Dynamic programming; Weighted makespan; 
 
 \section{Introduction}
 \label{sec:intro}
 
-The two-machine flow shop is one of the best known models in scheduling. Its structure is
-that of a plant whose jobs are machined on one machine and finished on another: metal parts
-are cut and then coated, a casting is rolled after it is poured, a web is printed and then
-bound. A job must leave the first stage before it can enter the second, and each stage carries
-one job at a time. Johnson settled the sequencing decision for this model as early as 1954
-\citep{johnson1954optimal}, and the two-stage structure has remained a standard subject of
-sequencing theory, with its variants and solution methods reviewed in
-\citep{pinedo2022scheduling}.
+The maximum weighted completion time is a bottleneck objective in scheduling. With a few jobs
+carrying large weights, the schedule is judged by the job with a large weight and a late completion.
+The objective differs from the makespan, the completion time of the last job. The two objectives
+coincide for equal weights; with unequal weights, the weighted objective can favor a schedule with a
+larger makespan. Such a schedule serves the important jobs earlier. This paper studies the two-machine
+flow shop; Johnson's rule minimizes the makespan \citep{johnson1954optimal}. That rule ignores
+weights.
 
-The criterion of this paper is the maximum weighted completion time, also called the weighted
-makespan. It charges each job the product of its weight and its completion time and takes the
-largest of those products: where the makespan asks when the shop falls idle, the weighted
-makespan asks which job is left waiting and what that wait costs. The weight belongs to the
-order rather than to the plant as a whole, and in a plant it is rarely a continuum. A
-contractual penalty for lateness, the capital tied up in work in process and the priority a
-large customer has bought are three classes rather than a spectrum, and the most costly order
-is the one carrying the largest of them.
+Our objective is the maximum weighted completion time, also called the weighted makespan. Each job
+carries a weight, and its weighted completion time is the product of that weight and its completion
+time. The objective is the largest of these values: a schedule is judged by its worst job, and one job
+can decide the value of the whole schedule.
+The objective arises in a real sequencing problem in semiconductor fabrication. A wafer lot,
+typically a cassette of twenty-five wafers, undergoes photolithography, etching, deposition,
+implantation and polishing. A chip is built layer by layer, with each layer sending the lot back
+through photolithography and etching. A lot may visit the photolithography area dozens of times,
+usually the bottleneck of the line. The lots are not equally important: a few hot lots must be
+expedited and take priority over regular lots, with regular lots filling the remaining capacity. A
+hot lot can wait behind regular lots, delaying a customer order promised for early delivery. The
+two-machine flow shop in this paper is a simplified version of such a line, with each lot visiting
+each machine once. The scheduling problem is to order the lots and minimize the largest weighted
+completion time. In the model, a lot's weight reflects its priority, and the worst hot lot determines
+the value of the schedule.
 
-Much the same structure appears outside the factory. A system that serves large language model
-agents handles every step of a task in two phases: the step is reasoned about in the chain of
-thought \citep{wei2022chain}, and only then acted upon, by calling a tool or running code, in
-the chain of execution \citep{yao2023react}. A step is a job, the reasoning is the first
-machine and the acting is the second. A step cannot be acted upon before it has been reasoned
-about, each phase serves one step at a time, and the time a step spends in a phase is its
-processing time on that machine. The two phases draw on different resources, the model for the
-reasoning and the tool, the interpreter or the index for the acting, and the phases of
-different steps run alongside each other, so that when a step finishes is settled by the phase
-it is in and by the time the steps ahead of it have kept the resource it waits for. The steps
-are not equal: one bought by a paid tier, or one whose failure is costly, weighs more than the
-rest, and that cost is the weight of the job.
+For the flow shop itself, the makespan has been studied extensively beyond Johnson's rule. Insertion
+heuristics and their refinements build a schedule one job at a time
+\citep{nawaz1983heuristic,puka2024}. Branch-and-bound procedures address stochastic and re-entrant
+shops \citep{liu2024branch,liu2024robust}. The same objective has also been studied in distributed,
+assembly and transport variants
+\citep{han2024cooperative,ying2025minimising,becker2025distributed}. Weighted objectives have been
+studied for the sum rather than the maximum: the total weighted completion time is NP-hard already
+with two machines \citep{gareyjohnson1976complexity}. The methods for it rely on additivity, absent
+from the maximum. Flow shops with reentry have been studied for the total weighted completion time
+as well \citep{aspern2025flow}. To the best of our knowledge, the maximum weighted completion time
+has not been studied on two machines.
 
-Two features of this environment are not a choice of convenience. The two stages stand in
-series because a step has to be reasoned about before it is acted upon, and merging them would
-erase the overlap that makes the order of the steps matter at all: reasoning and acting consume
-different resources, and a step that waits for its tool leaves the model free for the next one.
-The criterion is a maximum rather than an average for the same reason, since what decides
-whether the service is acceptable is the step that matters most. On a single machine that step
-would not be a property of the schedule: its completion time would be settled by its position
-in the sequence, no earlier stage being there whose delay it could inherit. Two stages in
-series are what make the completion time of the decisive step depend on the whole schedule.
+Two features shape the difficulty. Two machines in series make each completion time depend on the
+idle time of its predecessors, and the objective is a maximum rather than a sum, so it is not
+additive across jobs. An exchange that shortens many completion times but lengthens the worst job
+does not improve the value. Johnson's rule has no direct extension to unequal weights. We will prove
+that the problem is strongly NP-hard, even with polynomially bounded processing times. The number of
+distinct weights, $K$, is the governing parameter: for $K=1$, the problem reduces to the makespan;
+the general case is a high-multiplicity problem \citep{koutecky2025complexity}. Jobs of equal weight
+are therefore interchangeable. An optimal schedule can be taken to be a permutation with one block
+per distinct weight, Johnson's order within each block, and the blocks in non-increasing weight
+order. The paper makes five contributions: (i) a mixed integer programming formulation; (ii) a proof
+of this hardness by a reduction from 3-Partition; (iii) this structural theorem; (iv) an exact
+dynamic program in $O(nK2^{K}V^{3K-3})$ time, a 2-approximation in $O(n\log n)$ time, and a fully
+polynomial-time approximation scheme for a fixed $K$; and (v) an adapted NEH heuristic, a genetic
+algorithm, and a computational study on $440$ small and $640$ large instances.
 
-In scheduling theory the criterion has been studied in several machine environments.
-Maximum-type criteria have a classical foundation: Lawler's backward rule minimizes, on a single
-machine, the maximum of arbitrary nondecreasing cost functions in quadratic time
-\citep{lawler1973optimal}, and weighted completion times are read as a maximum rather than a sum
-within that framework. In the online setting, where jobs are revealed over time, best-possible
-algorithms are known for the same criterion on one machine \citep{li2015best}, and a machine
-carrying one restricted rate-modifying activity has been treated for it as well
-\citep{zuo2026single}. On identical parallel
-machines, randomized approximation schemes have been developed for the weighted makespan
-\citep{sun2024randomized}, and the criterion has been combined with the decision of which
-orders to accept \citep{lu2025order}. Maximum-type criteria appear in other forms as well, such
-as the maximum earliness/tardiness cost of a single machine when jobs may be rejected
-\citep{guo2026maximum}. In all of these settings, however, a job occupies one machine for its
-entire processing time, so that the interaction between two consecutive stages, which is what
-defines the flow shop, does not arise.
+The rest of the paper is organized as follows. \Cref{sec:preliminaries} states the problem and gives
+the mixed integer programming formulation. \Cref{sec:complexity} gives the hardness proof.
+\Cref{sec:dp_algorithm} presents the structural theorem, the dynamic program, the 2-approximation
+and the approximation scheme. \Cref{sec:heuristics} describes the adapted NEH and the genetic
+algorithm. \Cref{sec:experiments} reports the computational study, and \Cref{sec:conclusion}
+concludes.
 
-The flow shop environment, by contrast, has been studied extensively, but for different
-criteria. The variant that has attracted most theoretical attention is the proportionate flow
-shop, in which every machine spends the same time on a given job; it is surveyed, with the
-ordered flow shop and related variants, in \citep{panwalkar2013review}. Its appeal is that it
-can often be reduced to a single-machine problem with the same criterion
-\citep{panwalkar2015equivalence}, so that results proved for one machine carry over. Weighted
-objectives have been treated within it as well, but the objective is the sum of the weighted
-completion times rather than their maximum \citep{shakhlevich1998minimizing}. For the general
-two-machine flow shop, the makespan is settled by Johnson's rule, and the criteria studied
-beyond it are the sums of the completion times and of the weighted completion times, which are
-NP-hard already with two machines \citep{gareyjohnson1976complexity}; the most recent study
-combines the makespan with the decision of which orders to reject
-\citep{shabtay2024coordinating}.
-
-The criterion and the machine environment are therefore each well established, while their
-combination is not: the criterion has been read on one machine at a time, and the flow shop for
-the makespan and for the sums of completion times, but not for their maximum. The two sets of
-results do not combine. The reductions that make
-the proportionate flow shop tractable require the processing times to be proportionate, and the
-general two-machine flow shop does not satisfy that assumption. More fundamentally, a total
-weighted completion time decomposes over the jobs and can be accumulated while a schedule is
-built, which is what allows a dynamic program to compare partial schedules with one another; a
-maximum does not decompose in this way, since a partial schedule carries no information about
-its final value until it is complete. Optimizing the maximum weighted completion time of a
-two-machine flow shop therefore requires structural properties of a kind that the earlier work
-does not supply, and the criterion matters for the systems above, where a wrong sequence delays
-the most costly step rather than the average one.
-
-In this paper we study this problem: the two-machine flow shop with the maximum weighted
-completion time as its criterion. Four features distinguish it from the settings reviewed above. (i) Two machines stand in series, so that each completion time
-depends on the idle time inherited from its predecessors. (ii) The objective is a maximum over
-weighted completion times rather than their sum. (iii) The processing times are general, with
-no proportionate assumption. (iv) No job may be rejected, so that every job must be scheduled.
-Replacing the weighted sum by a weighted maximum, and dropping the proportionality assumption,
-would already put the problem beyond the single-machine reduction. We show that it is in fact
-strongly NP-hard (\Cref{thm:snphard}). The difficulty is structural rather than a matter of the
-instance size. Because the objective is determined by a single job, an exchange that shortens
-many completion times while lengthening that one does not improve the objective value. Because
-the jobs carry unequal weights, moreover, Johnson's rule has no direct extension to the
-weighted case.
-
-Our results follow from the structure of an optimal schedule. Since the objective is a maximum,
-jobs of equal weight are interchangeable with respect to it. An optimal schedule can therefore
-be assumed to have a block structure, with one block per distinct weight, Johnson's order
-within each block, and blocks in non-increasing weight order. On this structure we build three
-methods, an exact dynamic program, a 2-approximation and an approximation scheme. The dynamic
-program runs in $O(nKV^{3K-3})$ time, where $K$ is the number of distinct weights and $V$ is
-the total processing time. It is practical when the weights fall into few classes, as in the
-plants described above. A 2-approximation runs in $O(n\log n)$ time, and rounding the input of
-the dynamic program gives a fully polynomial-time approximation scheme. The scheme attains a
-$(1+\varepsilon)$-approximation for constant $K$. For large instances the standard tools are
-constructive heuristics, of which NEH \citep{nawaz1983heuristic} is the reference, and genetic
-algorithms, whose operators and survival rules are adapted to the permutation encoding
-\citep{puka2024,qiao2022adaptive}. Because the exact methods remain exponential in $K$, we also
-develop two heuristics for large instances and report a computational study that compares them
-with the 2-approximation.
-
-The rest of the paper is organized as follows. \Cref{sec:preliminaries} fixes
-the notation, states the completion-time recurrence and gives the mixed integer programming
-formulation. \Cref{sec:complexity} establishes the complexity of the problem. \Cref{sec:dp_algorithm} proves the
-structural properties, develops the exact dynamic program, and presents the
-2-approximation and the approximation scheme. \Cref{sec:heuristics} describes
-the two heuristics. \Cref{sec:experiments} reports the computational study,
-and \Cref{sec:conclusion} concludes.
-
-\section{Preliminaries}
+\section{Problem description}    
 \label{sec:preliminaries}
-
-Let $\mathcal{J} = \{J_1, J_2, \dots, J_n\}$ be $n$ jobs processed on two machines $M_1$ and $M_2$ in series.
-Each job $J_j$ is processed first on $M_1$ for $a_j$ time units and then on $M_2$ for $b_j$ time units,
-without preemption, the processing times $a_j$ and $b_j$ being positive integers.
-Each machine processes at most one job at a time, and each job $J_j$ carries a weight $w_j > 0$.
-A schedule $\pi = (\pi(1), \pi(2), \dots, \pi(n))$ specifies the sequence on both machines, and it
-may be taken to be a permutation of the jobs, since an optimal schedule exists in which both
-machines process them in the same order \citep{baker1974introduction}.
-For a schedule $\pi$, let $A_j = \sum_{h=1}^{j} a_{\pi(h)}$ and $B_j = \sum_{h=1}^{j} b_{\pi(h)}$
-be the cumulative processing times on $M_1$ and $M_2$ after the first $j$ jobs. The completion time
-of the job in position $j$ on machine $M_2$ is
-\begin{equation}\label{eq:completion}
-C_{\pi(j)} = \max_{1\le i\le j}\Big\{\sum_{h=1}^{i}a_{\pi(h)} + \sum_{h=i}^{j}b_{\pi(h)}\Big\}.
-\end{equation}
-The objective is to find a schedule $\pi$ that minimizes the largest of the products
-$w_{\pi(j)}C_{\pi(j)}$ over the positions,
-\begin{equation}\label{eq:wcmax}
-W C_{\max}(\pi)=\max_{1\le j\le n}w_{\pi(j)}\,C_{\pi(j)}.
-\end{equation}
-Here $C_j$ is the completion time of job $J_j$ on $M_2$, and $C_{\pi(j)}$ is the completion time of
-the job in position $j$, given by \cref{eq:completion}.
-
-The problem is the two-machine flow shop with the maximum weighted completion time as its
-criterion. In the three-field notation of scheduling theory \citep{pinedo2022scheduling} it is
-denoted $F2 \parallel W C_{\max}$: the first field states the machine environment, a flow shop of
-two machines in series; the second field states any further restriction on the processing, and it
-is left empty because the data above impose none; and the third field states the criterion, the
-maximum weighted completion time of \cref{eq:wcmax}. The problem is referred to by this notation
-alone in what follows, and $W C_{\max}^{*}$ denotes its optimal value.
-
-The problem can be formulated as a mixed integer linear program (MILP). The positions of a
-permutation schedule are indexed by $k = 1,\dots,n$.
-We introduce the following decision variables:
-\begin{itemize}
-	\item $x_{jk} = 1$ if job $J_j$ is assigned to position $k$, and $0$ otherwise;
-	\item $C_k^1$ completion time of the job in position $k$ on $M_1$;
-	\item $C_k^2$ completion time of the job in position $k$ on $M_2$;
-	\item $C_j$ completion time of job $J_j$ on $M_2$;
-	\item $Z$ the maximum weighted completion time $W C_{\max}$;
-	\item $M$ a sufficiently large constant, taken as $2\sum_{j=1}^{n}(a_j + b_j)$.
-\end{itemize}
-The MILP model is:
-\begin{align}
-	\min \quad & Z \label{milp:obj} \\[4pt]
-	\text{s.t.} \quad & \sum_{k=1}^{n} x_{jk} = 1, \quad \, j = 1,\dots,n \label{milp:assign1} \\[4pt]
-	& \sum_{j=1}^{n} x_{jk} = 1, \quad \, k = 1,\dots,n \label{milp:assign2} \\[4pt]
-	& C_1^1 = \sum_{j=1}^{n} a_j x_{j1} \label{milp:m1_start} \\[4pt]
-	& C_k^1 = C_{k-1}^1 + \sum_{j=1}^{n} a_j x_{jk}, \quad \, k = 2,\dots,n \label{milp:m1_rec} \\[4pt]
-	& C_1^2 = C_1^1 + \sum_{j=1}^{n} b_j x_{j1} \label{milp:m2_start} \\[4pt]
-	& C_k^2 \ge C_k^1 + \sum_{j=1}^{n} b_j x_{jk}, \quad \, k = 2,\dots,n \label{milp:m2_a} \\[4pt]
-	& C_k^2 \ge C_{k-1}^2 + \sum_{j=1}^{n} b_j x_{jk}, \quad \, k = 2,\dots,n \label{milp:m2_b} \\[4pt]
-	& C_j \ge C_k^2 - M(1 - x_{jk}), \quad \, j = 1,\dots,n,\; k = 1,\dots,n \label{milp:link} \\[4pt]
-	& Z \ge w_j C_j, \quad \, j = 1,\dots,n \label{milp:wcmax} \\[4pt]
-	& x_{jk} \in \{0,1\},\quad \label{milp:x}\\[4pt]
-	& C_k^1, C_k^2, C_j \ge 0 \quad \label{milp:dom}
-\end{align}
-
-Constraints \cref{milp:assign1} and \cref{milp:assign2} assign every job to exactly one position and
-every position to exactly one job. Constraints \cref{milp:m1_start} and \cref{milp:m1_rec} compute
-the completion times on $M_1$, and \cref{milp:m2_start} to \cref{milp:m2_b} those on $M_2$: for
-$k \ge 2$ the job in position $k$ starts on $M_2$ only after it has completed $M_1$ and the
-preceding job has released $M_2$. Constraint \cref{milp:link} ties the position-based completion
-times to the job-based ones through a big-$M$ formulation, so that $C_j \ge C_k^2$ when
-$x_{jk} = 1$, while the constraint is inactive when $x_{jk} = 0$, its right-hand side becoming
-$C_k^2 - M \le 0$. Constraint \cref{milp:wcmax} enforces $Z \ge w_j C_j$ for every job, so that
-minimizing $Z$ yields the optimal $W C_{\max}$ of \cref{eq:wcmax}, and \cref{milp:x} and
-\cref{milp:dom} require the assignment variables to be binary and the completion times
-nonnegative.
+        
+        Consider a set $\mathcal{J} = \{J_1, J_2, \dots, J_n\}$ of $n$ independent and non-preemptive jobs to be scheduled in a two-machine flow shop with machines $M_1$ and $M_2$. All jobs are released at time zero and follow the same route, $M_1 \to M_2$. For $j=1, 2, \ldots, n$, job $J_j$ is represented by a triple $\Phi_j=(a_j, b_j, w_j)$, where $a_j$ and $b_j$ are its nonnegative integer processing times on $M_1$ and $M_2$, respectively, and $w_j$ is a weight reflecting its importance. Let $K$ be the number of distinct weights. For a feasible schedule $\pi$, let $C_j^1(\pi)$ and $C_j^2(\pi)$ denote the completion times of $J_j$ on $M_1$ and $M_2$, respectively; thus $C_j(\pi)=C_j^2(\pi)$ is its completion time. The makespan and the weighted makespan (i.e., the maximum weighted completion time) in $\pi$ are given by 
+        \begin{equation*}
+            C_{\max}(\pi)=\max_{1 \leq j \leq n} \{C_j(\pi)\} ~~ \mathrm{and} ~~ WC_{\max}(\pi)=\max_{1 \leq j \leq n} \{w_j C_j(\pi)\},
+        \end{equation*} 
+        respectively. The objective is to minimize $WC_{\max}$. Using the standard 3-field scheduling notation \citep{pinedo2022scheduling}, this problem is denoted by $F2 \mid \mid W C_{\max}$.
+        
+        In a two-machine flow shop, a schedule is called a \textit{permutation} schedule if the jobs are processed in the same order on both machines. \cite{johnson1954optimal} showed that an optimal permutation schedule exists for $F2 \mid \mid C_{\max}$. By a similar argument, an optimal permutation schedule also exists for $F2 \mid \mid WC_{\max}$. Hence, we restrict  attention to permutation schedules. Let $\pi = (\pi(1), \pi(2), \ldots, \pi(n))$ denote a feasible permutation schedule for $F2 \mid \mid W C_{\max}$, where $J_{\pi(j)}$ is the $j$-th job in $\pi$. By simple calculation, it follows that 
+        \begin{equation}\label{eq:completion}
+            C_{\pi(j)} = \max_{1 \leq i \leq j} \Big\{\sum_{h=1}^{i}a_{\pi(h)} + \sum_{h=i}^{j}b_{\pi(h)} \Big\}, ~~ j=1, 2, \ldots, n.
+        \end{equation}
+        Then, the weighted makespan of $\pi$ is given by 
+        \begin{equation}\label{eq:wcmax}
+            W C_{\max}(\pi)=\max_{1 \leq j \leq n}\{ w_{\pi(j)} C_{\pi(j)}\}.
+        \end{equation}
+        
+        To formulate the problem as a mixed integer linear program (MILP), we introduce the following decision variables:
+        \begin{itemize}
+            \item $x_{jk} = 1$ if job $J_j$ is the $k$-th job, and $0$ otherwise;
+            
+            \item $C_{[k]}^1$ is the completion time of the $k$-th job on $M_1$;
+            
+            \item $C_{[k]}^2$ is the completion time of the $k$-th job on $M_2$;
+            
+            \item $C_j$ is the completion time of job $J_j$;
+            
+            \item $M$ is a sufficiently large constant (e.g., $M=\sum_{j=1}^{n}(a_j + b_j)$).
+        \end{itemize}
+        
+        The MILP model can be formulated as follows:
+        \begin{align}
+            \min \quad & W C_{\max} \label{milp:obj} \\
+            \text{s.t.} \quad & \sum_{k=1}^{n} x_{jk} = 1, \quad \, j = 1, 2,\dots, n \label{milp:assign1} \\
+            & \sum_{j=1}^{n} x_{jk} = 1, \quad \, k = 1, 2, \ldots,n \label{milp:assign2} \\
+            & C_{[1]}^1 = \sum_{j=1}^{n} a_j x_{j1} \label{milp:m1_start} \\
+            & C_{[k]}^1 = C_{[k-1]}^1 + \sum_{j=1}^{n} a_j x_{jk}, \quad \, k = 2, 3, \ldots, n \label{milp:m1_rec} \\
+            & C_{[1]}^2 = C_{[1]}^1 + \sum_{j=1}^{n} b_j x_{j1} \label{milp:m2_start} \\
+            & C_{[k]}^2 \geq C_{[k]}^1 + \sum_{j=1}^{n} b_j x_{jk}, \quad \, k = 2, 3, \ldots, n \label{milp:m2_a} \\
+            & C_{[k]}^2 \geq C_{[k-1]}^2 + \sum_{j=1}^{n} b_j x_{jk}, \quad \, k = 2, 3, \ldots, n \label{milp:m2_b} \\
+            & C_j \geq C_{[k]}^2 - M(1 - x_{jk}), \quad \, j = 1, 2, \ldots, n; ~~ k = 1, 2, \ldots, n \label{milp:link} \\
+            & W C_{\max} \geq w_j C_j, \quad \, j = 1, 2, \ldots,n \label{milp:wcmax} \\
+            & x_{jk} \in \{0, 1\},\quad j=1, 2, \ldots, n; ~~ k=1, 2, \ldots, n \label{milp:x}\\
+            & C_j, C_{[k]}^1, C_{[k]}^2 \geq 0 \quad j=1, 2, \ldots, n; ~~ k=1, 2, \ldots, n \label{milp:dom}
+        \end{align}
+        
+        The objective is to minimize $W C_{\max}$, as expressed in \cref{milp:obj}. Constraints \cref{milp:assign1} and \cref{milp:assign2} assign each job to exactly one position and each position to exactly one job. Constraints \cref{milp:m1_start} and \cref{milp:m1_rec} determine the completion times on $M_1$, and \cref{milp:m2_start} through \cref{milp:m2_b} determine those those on $M_2$. In particular, for $k \geq 2$, the job in position $k$ can start on $M_2$ only after it has completed $M_1$ and the preceding job has finished on $M_2$. Constraint \cref{milp:link} relates the position-based completion times to the job-based ones via a big-$M$ formulation. Note that when $x_{jk} = 1$ (i.e., $J_j$ is assigned to the $k$-th position), it requires $C_j \geq C_{[k]}^2$; when $x_{jk} = 0$, it is inactive, since $C_{[k]}^2 - M \leq 0$ and $C_j \geq 0$. Constraint \cref{milp:wcmax} imposes  $W C_{\max} \geq w_j C_j$ for each job, so minimizing $W C_{\max}$ yields the optimal objective value of \cref{eq:wcmax}. Constraints \cref{milp:x} and \cref{milp:dom} require the decision variables $x_{jk}$ to be binary and the completion times nonnegative.
+        
 
 \section{Computational complexity}
 \label{sec:complexity}
-\begin{theorem}\label{thm:nphard}
-    $F2 \parallel W C_{\max}$ is NP-hard.
-\end{theorem}
-\begin{proof}
-We reduce from the Partition problem: given $r$ positive integers $x_1,\dots,x_r$ with
-$\sum_{i=1}^{r}x_i=2T$, do there exist disjoint subsets $Z_1,Z_2\subseteq\{1,\dots,r\}$ with
-$Z_1\cup Z_2=\{1,\dots,r\}$ and
-\[
-\sum_{i\in Z_1}x_i=\sum_{i\in Z_2}x_i=T?
-\]
 
-We construct an instance with $n=r+1$ jobs: for $j=1,\dots,n-1$ set
-$a_j=1$, $b_j=rx_j$ and $w_j=T+1$, and for the remaining job $J_n$ set $a_n=rT$, $b_n=1$ and
-$w_n=2T+1$. The question is whether some schedule satisfies
-\[
-W C_{\max}\le Y, \qquad\text{where}\qquad Y=r(T+1)(2T+1).
-\]
-\begin{figure}[H]
-\centering
-\refstepcounter{figure}
-\begin{tikzpicture}[x=0.15in, y=0.3in]
-	% machine index
-	\node[anchor=east] at (-0.5,5.5) {$M_1$};
-	\node[anchor=east] at (-0.5,4) {$M_2$};
-
-	% job on M_1 (all 6 jobs in Johnson Sequence )
-	\draw[fill=gray!20] (0,5)   rectangle (5,6)   node[midway] {$J_{j\in Z_1}$};
-	\draw[fill=gray!50] (5,5)   rectangle (20,6)   node[midway] {$J_n$};
-	\draw[fill=gray!80] (20,5)   rectangle (25,6)  node[midway] {$J_{j\in Z_2}$};
-
-	% job on M_2 (all 6 jobs, start when M1 finishes and M2 is free)
-	\draw[fill=gray!20] (1,3.5)  rectangle (16,4.5)  node[midway] {$J_{j\in Z_1}$};
-	\draw[fill=gray!50] (20,3.5)  rectangle (22,4.5) node[midway] {$J_n$};
-	\draw[fill=gray!80] (22,3.5) rectangle (37,4.5)  node[midway] {$J_{j\in Z_2}$};
-
-	% x-axis
-	\draw[thick] (0,2.2) -- (35,2.2);
-	\foreach \x/\label in {0/0 ,1/1 ,5/$|Z_1|$ ,20/$T{+}|Z_1|$ ,25/2T ,}
-    {
-		\draw (\x,2.2) -- (\x,2.4);
-		\node[below, font=\footnotesize] at (\x,2.0) {\label};
-	}
-
-	% caption
-	\node[below] at (17,0.5) {Figure~\thefigure: The reduction from Partition};
-\end{tikzpicture}
-\label{fig:nphard-partition}
-\end{figure}
-
-Job $J_n$ splits the remaining jobs into two subsets, and \Cref{fig:nphard-partition} shows the
-layout the split leaves on the two machines. The $M_2$ workloads of the subsets are unknown, but
-they sum to $2rT$, so they can be written as $r(T+\xi)$ and $r(T-\xi)$ for some $-T\le\xi\le T$. The completion times of $J_n$ are then
-\begin{equation}\label{eq:completetime1}
-    C_n^1 = |Z_1| + rT + 1,
-\end{equation}
-\begin{equation}\label{eq:completetime2}
-    C_n^2 = 1 + r(T+\xi) + 1,
-\end{equation}
-and $C_n = \max\{C_n^1, C_n^2\}$.
-
-If $\xi=0$, the two subsets carry the same $M_2$ load, and the Partition instance has a solution.
-In this case $C_n$ is given by \cref{eq:completetime1}, and
-\begin{align*}
-C_n &= |Z_1| + rT + 1 \le rT + r = r(T+1), \\
-w_nC_n &= (2T+1)\,r(T+1) = Y, \\
-W C_{\max} &= r(T+1)(C_n + rT) = Y,
-\end{align*}
-so $w_jC_j\le W C_{\max}=Y$.
-
-Conversely, suppose that some schedule satisfies $W C_{\max}\le Y$. When $\xi>0$, $C_n$ is given by
-\cref{eq:completetime2}, and
-\begin{align*}
-C_n &= 1 + r(T+\xi) + 1 \ge 1 + r(T+1) + 1, \\
-w_nC_n &\ge (2T+1)\bigl(1 + r(T+1) + 1\bigr) = Y.
-\end{align*}
-When $\xi<0$, $C_n$ is given by \cref{eq:completetime1}, and
-\begin{align*}
-C_{\max} &= C_n + \sum_{j\in Z_2}b_j \\
-         &= 1 + rT + |Z_1| + r(T-\xi) \\
-         &\ge rT + r + rT \\
-         &= r(2T+1) = Y, \\
-WC_{\max} &\ge r(T+1)\bigl(r(2T+1)\bigr) = Y,
-\end{align*}
-so $W C_{\max}>Y$, a contradiction.
-
-The Partition instance therefore admits a solution if and only if the constructed
-$F2 \parallel W C_{\max}$ instance admits a schedule with $W C_{\max}\le Y$.
-\end{proof}
-
-\begin{theorem}\label{thm:snphard}
-    $F2 \parallel W C_{\max}$ is strongly NP-hard.
-\end{theorem}
-\begin{proof}
-We reduce from the strongly NP-complete 3-Partition problem: given $3m$ positive integers $x_1,\dots,x_{3m}$ and an integer $B$ 
-satisfying $B/4 < x_i < B/2$ and $\sum_{i=1}^{3m}x_i=mB$, can the integers be partitioned into $m$ triples, each of sum $B$?
-
-Let $R=3m+5$, $D=RB+4$, and $T=mD$. We construct an instance with $3m$ element jobs $J_1,\dots,J_{3m}$ 
-and $m$ separator jobs $S_1,\dots,S_m$:
-\begin{itemize}
-  \item for every element job $J_j$, set $a_j=1$, $b_j=Rx_j+1$;
-  \item for every separator job $S_k$, set $a_{S_k}=RB+1$, $b_{S_k}=1$.
-\end{itemize}
-All processing times are positive integers. For $k=1,\dots,m$, define $d_k=kD+1$ and let $Q=(T+2)^3$. Set
-\[
- w_{S_k}=\left\lfloor\frac{Q}{d_k}\right\rfloor,
- \qquad
- w_j=\left\lfloor\frac{Q}{T}\right\rfloor\quad(j=1,\dots,3m),
-\]
-and use the decision threshold $Y=Q$. Since $d_k\le T+1$ and $Q\ge d_k(d_k+1)$, we have $\lfloor Q/d_k\rfloor>d_k$. 
-Thus, for every $d\in\{d_1,\dots,d_m,T\}$ and every integer completion time $C$,
-\begin{equation}\label{eq:deadline-encoding}
- \left\lfloor\frac{Q}{d}\right\rfloor C\le Q
- \quad\Longrightarrow\quad C\le d.
-\end{equation}
-Indeed, if $C\ge d+1$, write $Q=qd+r$ with $q=\lfloor Q/d\rfloor$ and $0\le r<d$. Then $q(d+1)=Q-r+q>Q$ because $q>d>r$.
-Suppose first that the 3-Partition instance is a yes-instance. Let $G_1,\dots,G_m$ be triples with
-$\sum_{J_j\in G_k}x_j=B$ for every $k$; each triple contains exactly three elements, since two of
-its members sum to less than $B$ and four to more. Schedule
-\[
-G_1,S_1,G_2,S_2,\dots,G_m,S_m.
-\]
-The three element jobs in $G_k$ use $3$ units on $M_1$, and $S_k$ uses $RB+1$ units, so $S_k$ completes on $M_1$
-at time $kD$. On $M_2$ the group $G_k$ occupies the machine from time $(k-1)D+1$, which is the
-completion of $S_{k-1}$ for $k\ge2$ and that of the first element of the group on $M_1$ for $k=1$,
-and it uses $RB+3$ units there; the last element of $G_k$ therefore completes at time $kD$. Thus
-\[
- C_{S_k}=kD+1=d_k.
-\]
-Every element job completes on $M_2$ no later than $T=mD$. By the definition of the weights, all weighted completion times 
-are at most $Q$, so $W C_{\max}\le Y$.
-
-Conversely, suppose that a schedule $\pi$ satisfies $W C_{\max}\le Y$. Since the objective is regular,
-the standard permutation-schedule property for two-machine flow shops \citep{baker1974introduction}
-lets us restrict attention to permutation schedules. The separator jobs have identical processing
-times, so if their positions are fixed, exchanging the labels of two separators that occur in the
-wrong order cannot increase the maximum weighted completion time: $d_k$ rises with $k$, so
-$w_{S_1}\ge w_{S_2}\ge\cdots\ge w_{S_m}$, and the exchange only moves a larger weight to an earlier
-completion. We may consequently assume that the separators occur in the order $S_1,S_2,\dots,S_m$.
-By \cref{eq:deadline-encoding},
-\[
- C_{S_k}\le kD+1\quad(k=1,\dots,m),
- \qquad C_j\le T\quad(j=1,\dots,3m).
-\]
-No element job can occur after $S_m$. Indeed, if at least one element job did so, consider the last such element job. 
-By the permutation-schedule property invoked above, the processing sequences on $M_1$ and $M_2$
-coincide, so this job is also the last job on $M_1$. All $m$ separators and all $3m$ element jobs
-therefore complete on $M_1$ no later than it, so its $M_1$ completion time is at least the total
-$M_1$ processing time
-\[
- m(RB+1)+3m=m(RB+4)=T.
-\]
-Its $M_2$ completion time would then be strictly greater than $T$, contradicting $C_j\le T$. The element
-jobs are therefore partitioned into the $m$ groups $G_k$ lying between $S_{k-1}$ and $S_k$, where $S_0$
-denotes the start of the schedule.
-Put
-\[
- B_k=\sum_{J_j\in G_k}x_j,
- \qquad E_k=\sum_{h=1}^{k}|G_h|,
- \qquad E_0=0.
-\]
-For $k=2,\dots,m$, the $M_2$ path gives
-\begin{equation}\label{eq:path-m2}
- C_{S_k}\ge C_{S_{k-1}}+RB_k+|G_k|+1,
-\end{equation}
-while the $M_1$ path to $S_{k-1}$ gives
-\begin{equation}\label{eq:path-m1}
- C_{S_{k-1}}\ge (k-1)(RB+1)+E_{k-1}+1.
-\end{equation}
-Combining \cref{eq:path-m2} and \cref{eq:path-m1} with $C_{S_k}\le kD+1$ yields
-\begin{equation}\label{eq:group-bound}
- R(B_k-B)+E_k\le 3k,\qquad k=2,\dots,m.
-\end{equation}
-For $k=1$, the $M_2$ path and $C_{S_1}\le D+1$ similarly give
-\begin{equation}\label{eq:group-bound-k1}
- R(B_1-B)+E_1\le4.
-\end{equation}
-Because $R=3m+5$, \cref{eq:group-bound} and \cref{eq:group-bound-k1} imply $B_k\le B$ for every
-$k$. Otherwise $B_k\ge B+1$, and the respective left-hand side exceeds $3k$, or exceeds $4$ when
-$k=1$. Since every element job belongs to one of the groups, $\sum_{k=1}^{m}B_k=mB$, and hence
-$B_k=B$ for every $k$.
-Finally, $B/4<x_j<B/2$ implies that a group with sum $B$ contains exactly three elements: at most two elements have sum strictly 
-less than $B$, while at least four elements have sum strictly greater than $B$. Thus $G_1,\dots,G_m$ is a valid 3-partition.
-
-The construction uses $4m$ jobs, and all processing times, weights and the threshold are bounded by a
-polynomial in $m$ and $B$. Since 3-Partition remains NP-complete when $B$ is polynomially bounded in
-$m$, this is a strong polynomial reduction, and $F2 \parallel W C_{\max}$ is strongly NP-hard.
-\end{proof}
-\begin{figure}[H]
-\centering
-\refstepcounter{figure}
-\begin{tikzpicture}[x=0.17in, y=0.33in, font=\footnotesize]
-	\tikzset{
-		elem/.style = {draw, fill=gray!18},
-		sep/.style  = {draw, fill=gray!45},
-	}
-	% ---- M1: a group of three elements, then a separator -----------------
-	\node[anchor=east] at (-0.4,5.7) {$M_1$};
-	\draw[elem] (0,5.2)    rectangle (1.5,6.2) node[midway] {$G_1$};
-	\draw[sep]  (1.5,5.2)  rectangle (6.5,6.2) node[midway, align=center] {$S_1$\\[-1pt]{\scriptsize $RB+1$}};
-	\draw[elem] (6.5,5.2)  rectangle (8,6.2)   node[midway] {$G_2$};
-	\draw[sep]  (8,5.2)    rectangle (13,6.2)  node[midway, align=center] {$S_2$\\[-1pt]{\scriptsize $RB+1$}};
-	\node at (15,5.7) {$\cdots$};
-	\draw[elem] (17,5.2)   rectangle (18.5,6.2) node[midway] {$G_m$};
-	\draw[sep]  (18.5,5.2) rectangle (23.5,6.2) node[midway, align=center] {$S_m$\\[-1pt]{\scriptsize $RB+1$}};
-
-	% ---- M2: the same groups, each closed by a separator of one unit -----
-	\node[anchor=east] at (-0.4,3.9) {$M_2$};
-	\draw[elem] (1,3.4)    rectangle (6.5,4.4) node[midway] {$G_1$};
-	\draw[sep]  (6.5,3.4)  rectangle (7,4.4);
-	\draw[elem] (7,3.4)    rectangle (12.5,4.4) node[midway] {$G_2$};
-	\draw[sep]  (12.5,3.4) rectangle (13,4.4);
-	\node at (15,3.9) {$\cdots$};
-	\draw[elem] (18,3.4)   rectangle (23.5,4.4) node[midway] {$G_m$};
-	\draw[sep]  (23.5,3.4) rectangle (24,4.4);
-	\node[above, font=\scriptsize] at (6.75,4.45) {$1$};
-
-	% ---- the separator completions that pin the groups -------------------
-	\draw[thick] (0,2.9) -- (24,2.9);
-	\foreach \x/\lab in {0/{$0$}, 7/{$D+1$}, 13/{$2D+1$}, 24/{$mD+1$}} {
-		\draw (\x,2.9) -- (\x,3.1);
-		\node[below, font=\scriptsize] at (\x,2.8) {\lab};
-	}
-
-	% ---- caption ---------------------------------------------------------
-	\node[below, text width=13.5cm, align=flush center] at (12,2.1)
-		{Figure~\thefigure: The reduction from 3-Partition};
-\end{tikzpicture}
-\label{fig:snphard-3partition}
-\end{figure}
+        When all jobs have unit weights (i.e., $w_j=1$ for $j=1, 2, \ldots, n$), $F2 \mid \mid W C_{\max}$ reduces to $F2 \mid \mid C_{\max}$, which is solvable in $O(n \log n)$ time \citep{johnson1954optimal}. In contrast, We show that $F2 \mid \mid W C_{\max}$ is ordinarily $\mathcal{NP}$-hard even with only two distinct weights and strongly $\mathcal{NP}$-hard when $K$ is arbitrary.
+        
+        \begin{theorem}\label{thm:nphard}
+            $F2 \mid \mid W C_{\max}$ is ordinarily $\mathcal{NP}$-hard even with only two distinct weights.
+        \end{theorem}
+        \begin{proof}
+            To establish the result, we give a polynomial-time reduction from \textsc{Partition}, which is $\mathcal{NP}$-complete in the ordinary sense \citep{garey1979computers}.
+            
+            \textsc{Partition}: Given $r$ positive integers $x_1, x_2, \ldots, x_r$ and an integer $X$ with
+            $\sum_{i=1}^{r}x_i=2X$, does there exist a partition of $\{1, 2, \ldots, r\}$ into two disjoint subsets $\mathcal{X}_1$ and $\mathcal{X}_2$ such that $\sum_{i \in \mathcal{X}_1} x_i=\sum_{i\in \mathcal{X}_2} x_i=X$?
+            
+            Given an arbitrary instance $(x_1, x_2, \ldots, x_r; X)$ of \textsc{Partition}, we construct an instance of $F2 \mid \mid W C_{\max}$ with $n=r+1$ jobs. For $j=1, 2, \ldots, n-1$, job $J_j$ has $a_j=1$, $b_j=r x_j$, and $w_j=X+1$; job $J_n$ has $a_n=rX$, $b_n=1$, and $w_n=2X+1$. Set the threshold to $Y=r(X+1)(2X+1)$. The question is whether there exists a schedule with $W C_{\max} \leq Y$.
+            
+            We demonstrate that $F2 \mid \mid W C_{\max}$ has a feasible schedule $\pi$ with $W C_{\max}(\pi) \leq Y$ if and only if \textsc{Partition} has a solution.
+            
+            Suppose that \textsc{Partition} admits a solution $(\mathcal{X}_1, \mathcal{X}_2)$ with $\sum_{j \in \mathcal{X}_1} x_j = \sum_{j \in \mathcal{X}_2} x_j=X$. Define $\mathcal{J}_1=\{J_j: j \in \mathcal{X}_1\}$ and $\mathcal{J}_2=\{J_{r+j}: j \in \mathcal{X}_2\}$. We build a feasible permutation schedule $\pi$ in which both machines process the jobs in the order $\mathcal{J}_1 \to J_n \to \mathcal{J}_2$, with the jobs in $\mathcal{J}_1$ and $\mathcal{J}_2$ processed in arbitrary order (see \Cref{fig:nphard-partition}). 
+            \begin{figure}[H]
+                \centering
+                \refstepcounter{figure}
+                \begin{tikzpicture}[x=0.15in, y=0.3in]
+                    
+                    \node[anchor=east] at (-0.5,5.5) {$M_1$};
+                    \node[anchor=east] at (-0.5,4) {$M_2$};
+                    
+                    \draw[fill=gray!20] (0,5)   rectangle (5,6)   node[midway] {$J_j \in \mathcal{J}_1$};
+                    \draw[fill=gray!50] (5,5)   rectangle (18,6)   node[midway] {$J_n$};
+                    \draw[fill=gray!80] (18,5)   rectangle (23,6)  node[midway] {$J_j \in \mathcal{J}_2$};
+                    
+                    \draw[fill=gray!20] (1,3.5)  rectangle (14,4.5)  node[midway] {$J_j \in \mathcal{J}_1$};
+                    \draw[fill=gray!50] (18,3.5)  rectangle (19,4.5) node[midway] {$J_n$};
+                    \draw[fill=gray!80] (19,3.5) rectangle (32,4.5)  node[midway] {$J_j \in \mathcal{J}_2$};
+                    
+                    \draw[thick] (0,2.6) -- (35,2.6);
+                    \foreach \x/\label in {0/0, 1/1, 5/$|\mathcal{X}_1|$, 14/$rX+1$, 18/$rX +|\mathcal{X}_1|$, 32/$2rX+|\mathcal{X}_1|+1$}
+                    {
+                        \draw (\x,2.6) -- (\x,2.7);
+                        \node[below, font=\footnotesize] at (\x,2.4) {\label};
+                    }
+                    
+                    % caption
+                    \node[below] at (17,1) {Figure~\thefigure: A feasible permutation scheule $\pi$};
+                \end{tikzpicture}
+                \label{fig:nphard-partition}
+            \end{figure}
+            
+            Since $a_j \leq b_j$ for each $j=1, 2, \ldots, r$ and $|\mathcal{X}_1| \leq r-1$, it can be easily verified that $C_n(\pi)=rX +|\mathcal{X}_1|+1 \leq r(X+1)$ and $C_{\max}(\pi)=2rX+|\mathcal{X}_1|+1 \leq r(2X+1)$. Hence, $W C_{\max}(\pi) \leq r(X+1)(2X+1)= Y$.
+            
+            Conversely, suppose that $F2 \mid \mid W C_{\max}$ admits a feasible schedule $\pi$ with $W C_{\max}(\pi) \leq Y$. Let $\mathcal{J}_1=\{J_j: C_j(\pi) <C_n(\pi)\}$ and $\mathcal{J}_2=\{J_j: C_j(\pi) > C_n(\pi)\}$ be the sets of jobs completed before and after $J_n$ in $\pi$, respectively, and let $\mathcal{X}_1=\{j: J_j \in \mathcal{J}_1\}$ and $\mathcal{X}_2=\{j: J_j \in \mathcal{J}_2\}$. By \cref{eq:completion}, we have
+            \begin{equation}\label{eq:completetime1}
+                C_n(\pi) \geq \sum_{j \in \mathcal{X}_1} a_j +a_n+ 1=|\mathcal{X}_1| +r X + 1
+            \end{equation}
+            and
+            \begin{equation}\label{eq:completetime2}
+                C_n(\pi) \geq a_{\pi(1)}+\sum_{j \in \mathcal{X}_1} b_j+b_n = r \sum_{j \in \mathcal{X}_1} x_j + 2.
+            \end{equation}
+            
+            \textbf{Case 1.} If $\sum_{j \in \mathcal{X}_1} x_j > X$, then $\sum_{j \in \mathcal{X}_1} x_j \geq X+1$ because the $x_j$ are integers. By \cref{eq:completetime2}, $W C_{\max}(\pi) \geq w_n C_n(\pi) \geq (2X+1) (r(X+1)+2) >r(X+1)(2X+1)=Y$, contradicting the assumption that $W C_{\max}(\pi) \leq Y$.  
+            
+            \textbf{Case 2.} If $\sum_{j \in \mathcal{X}_1} x_j < X$, then $\sum_{j \in \mathcal{X}_1} x_j \leq X-1$ because the $x_j$ are integers. Since $(\mathcal{X}_1, \mathcal{X}_2)$ is a partition of $\{1, 2, \ldots, r\}$, we have 
+            \begin{equation} \label{eq:sum}
+                \sum_{j \in \mathcal{X}_2} x_j =2X-\sum_{j \in \mathcal{X}_1} x_j \geq X+1.
+            \end{equation} 
+            By \cref{eq:completion}, \cref{eq:completetime1}, and \cref{eq:sum}, we have 
+            \begin{equation}\label{eq:completetime3}
+                C_{\pi(n)}(\pi)=C_{\max}(\pi) \geq C_n(\pi)+\sum_{j \in \mathcal{X}_2} b_j \geq |\mathcal{X}_1| +r X + 1+ r \sum_{j \in \mathcal{X}_2} x_j \geq r (2X + 1)+1.
+            \end{equation}
+            Using $w_{\pi(n)}=1$, \cref{eq:completetime3} yields
+            \begin{equation*}
+                W C_{\max}(\pi) \geq w_{\pi(n)} C_{\pi(n)}(\pi) \geq (X+1) (r(2X+1)+1) >r(X+1)(2X+1)=Y,
+            \end{equation*} 
+            This contradicts the assumption that $W C_{\max}(\pi) \leq Y$. 
+            
+            Combining the above two cases, we obtain that $\sum_{j \in \mathcal{X}_1} x_j = \sum_{j \in \mathcal{X}_2} x_j= X$. Therefore, $(\mathcal{X}_1, \mathcal{X}_2)$ is a solution to \textsc{Partition}.       
+        \end{proof}
+        
+        \begin{theorem}\label{thm:snphard}
+            $F2 \mid \mid W C_{\max}$ is strongly $\mathcal{NP}$-hard when $K$ is arbitrary.
+        \end{theorem}
+        \begin{proof}
+            To establish the result, we give a polynomial-time reduction from 3-\textsc{Partition}, which is strongly  $\mathcal{NP}$-complete \citep{garey1979computers}.
+            
+            3-\textsc{Partition}: Given $3r$ positive integers $x_1, x_2, \ldots, x_{3r}$ and an integer $X$ with
+            $\sum_{i=1}^{3r}x_i=rX$ and $\frac{X}{4} < x_j < \frac{X}{2}$ for each $j=1, 2, \ldots, 3r$, does there exist a partition of $\{1, 2, \ldots, 3r\}$ into $m$ disjoint subsets $\mathcal{X}_1, \mathcal{X}_2, \ldots, \mathcal{X}_r$ such that $\sum_{j \in \mathcal{X}_i} x_j=X$ for $i=1, 2, \ldots, r$?
+            
+            Given an arbitrary instance $(x_1, x_2, \ldots, x_{3r}; X)$ of 3-\textsc{Partition}, we construct an instance of $F2 \mid \mid W C_{\max}$ consisting of $r$ separating jobs and $3r$ basic jobs. For $j=1, 2, \ldots, r$, separating job $J_j$ has $a_j=4X$, $b_j=X$, and $w_j=\frac{5r+4}{5j}$; for $j=r+1, r+2, \ldots, 4r$, basic job $J_j$ has $a_j=x_{j-r}$, $b_j=4 x_{j-r}$, and $w_j=1$. Set the threshold to $Y=(5r+4)X$. The question is whether there exists a schedule with $W C_{\max} \leq Y$.
+            
+            We demonstrate that $F2 \mid \mid W C_{\max}$ has a feasible schedule $\pi$ with $W C_{\max}(\pi) \leq Y$ if and only if 3-\textsc{Partition} has a solution.
+            
+            Suppose that 3-\textsc{Partition} admits a solution $(\mathcal{X}_1, \mathcal{X}_2, \ldots, \mathcal{X}_r)$, so that $\sum_{j \in \mathcal{X}_i} x_j=X$ and $|\mathcal{X}_i|=3$ for all $i$. Let $\mathcal{J}_i=\{J_{r+j}: j \in \mathcal{X}_i\}$ for $i=1, 2, \ldots, r$. We build a feasible permutation schedule $\pi$ in which both machines process the jobs in the order 
+            \begin{equation*}
+                J_1 \to \mathcal{J}_1 \to J_2 \to \mathcal{J}_2 \to \cdots \to J_r \to \mathcal{J}_r,
+            \end{equation*} 
+            with the jobs in each $\mathcal{J}_i$ processed in arbitrary order (see \Cref{fig:nphard-3-partition}). 
+            
+            \begin{figure}[H]
+                \centering
+                \refstepcounter{figure}
+                \begin{tikzpicture}[x=0.15in, y=0.3in]
+                    
+                    \node[anchor=east] at (-0.5,5.5) {$M_1$};
+                    \node[anchor=east] at (-0.5,4) {$M_2$};
+                    
+                    \draw[fill=gray!20] (0,5)   rectangle (6,6)   node[midway] {$J_1$};
+                    \draw[fill=gray!60] (6,5)   rectangle (7.5,6)   node[midway] {$\mathcal{J}_1$};
+                    \draw[fill=gray!20] (7.5,5)   rectangle (13.5,6)  node[midway] {$J_2$};
+                    \draw[fill=gray!60] (13.5,5)   rectangle (15,6)   node[midway] {$\mathcal{J}_2$};
+                    \draw[fill=gray!120] (15,5)   rectangle (25,6)   node[midway] {$\cdots$};
+                    \draw[fill=gray!20] (25,5)   rectangle (31,6)   node[midway] {$J_{r}$};
+                    \draw[fill=gray!60] (31,5)   rectangle (32.5,6)   node[midway] {$\mathcal{J}_r$};
+                    
+                    \draw[fill=gray!20] (6,3.5)  rectangle (7.5,4.5)  node[midway] {$J_1$};
+                    \draw[fill=gray!60] (7.5,3.5)  rectangle (13.5,4.5) node[midway] {$\mathcal{J}_1$};
+                    \draw[fill=gray!20] (13.5,3.5) rectangle (15,4.5)  node[midway] {$J_2$};
+                    \draw[fill=gray!60] (15,3.5)  rectangle (21,4.5) node[midway] {$\mathcal{J}_2$};
+                    \draw[fill=gray!120] (21,3.5)  rectangle (31,4.5) node[midway] {$\cdots$};
+                    \draw[fill=gray!20] (31,3.5) rectangle (32.5,4.5)  node[midway] {$J_r$};
+                    \draw[fill=gray!60] (32.5,3.5)  rectangle (38.5,4.5) node[midway] {$\mathcal{J}_r$};
+                    
+                    \draw[thick] (0,2.6) -- (40,2.6);
+                    \foreach \x/\label in {0/0, 6/$4X$, 7.5/$5X$, 13.5/$9X$, 15/$10X$, 21/$14X$, 32.5/$5rX$, 38.5/$(5r+4)X$}
+                    {
+                        \draw (\x,2.6) -- (\x,2.8);
+                        \node[below, font=\footnotesize] at (\x,2.4) {\label};
+                    }
+                    
+                    % caption
+                    \node[below] at (17,1) {Figure~\thefigure: A feasible permutation scheule $\pi$};
+                \end{tikzpicture}
+                \label{fig:nphard-3-partition}
+            \end{figure}   
+            
+            According to \Cref{fig:nphard-3-partition}, it can be easily verified that $C_j(\pi)=5jX$ for $j=1, 2, \ldots, r$, and $C_j(\pi) \leq C_{\max}(\pi)=(5r+4)X$ for $j=r+1, r+2, \ldots, 4r$. Then $w_j C_j(\pi)=(5r+4)X=Y$ for $j=1, 2, \ldots, r$, and $w_j C_j(\pi) \leq w_j C_{\max}(\pi)=(5r+4)X=Y$ for $j=r+1, r+2, \ldots, 4r$.      
+            Hence, $W C_{\max}(\pi) \leq Y$.
+            
+            Conversely, suppose that $F2 \mid \mid W C_{\max}$ admits a feasible schedule $\pi$ with $W C_{\max}(\pi) \leq Y$. Because all separating jobs have the same processing time on $M_1$ and $M_2$ and weights $w_1 >w_2 > \cdots > w_r$, a standard interchange argument lets us assume they appear in $\pi$ in decreasing order of weight. 
+            
+            \textbf{Claim 1.} $C_{\max}(\pi) \leq Y=(5r+4)X$.
+            
+            \textit{Proof of Claim 1.}  Since $w_j \geq 1$ for all $1 \leq j \leq 4r$, we have $C_{\max}(\pi) \leq WC_{\max}(\pi) \leq Y=(5r+4)X$. \hfill$\blacksquare$
+            
+            \textbf{Claim 2.} $J_1$ is the first job scheduled in $\pi$.
+            
+            \textit{Proof of Claim 2.}  Since $WC_{\max}(\pi) \leq Y=(5r+4)X$ and $w_1=\frac{5r+4}{5}$, we have $a_1+b_1 \leq C_1(\pi) \leq \frac{WC_{\max}(\pi)}{w_1} \leq 5X=a_1+b_1$. This means that $J_1$ is the first job scheduled in $\pi$.  \hfill$\blacksquare$
+            
+            For $i=1, 2, \ldots, r-1$, let $\mathcal{B}_i=\{J_j: C_i(\pi) < C_j(\pi) < C_{i+1}(\pi)\}$ be the set of basic jobs scheduled between $J_i$ and $J_{i+1}$ in $\pi$, and let $\mathcal{B}_r=\{J_j: C_j(\pi) > C_r(\pi)\}$ be the set of basic jobs scheduled after $J_r$. For $i=1, 2, \ldots, r$, define $\mathcal{X}_i=\{j-r: J_j \in  \mathcal{B}_i\}$. Then, by Claim 2, $\pi$ can be written as 
+            \begin{equation} \label{eq:order}
+                \pi=(J_1 \to \mathcal{B}_1 \to J_2 \to \mathcal{B}_2 \to \cdots \to J_r \to \mathcal{B}_r).
+            \end{equation} 
+            
+            Since $(\mathcal{X}_1, \mathcal{X}_2, \ldots, \mathcal{X}_r)$ is a partition of $\{1, 2, \ldots, 3r\}$, we have 
+            \begin{equation} \label{eq:00}
+                \sum_{i=1}^r \sum_{j \in \mathcal{X}_i} x_j =\sum_{j=1}^{3r} x_j =rX.
+            \end{equation} 
+            
+            \textbf{Claim 3.} For $k=1, 2, \ldots, r-1$, $\sum_{i=1}^k \sum_{j \in \mathcal{X}_i} x_j \leq kX$. 
+            
+            \textit{Proof of Claim 3.} Suppose to the contrary that there exists some $m$ ($1 \leq m \leq r-1$) with $\sum_{i=1}^m \sum_{j \in \mathcal{X}_i} x_j > mX$. Since the $x_j$ are integers, this implies 
+            \begin{equation}\label{eq:10}
+                \sum_{i=1}^m \sum_{j \in \mathcal{X}_i} x_j \geq mX+1. 
+            \end{equation}
+            Because $a_j=4X$ and $b_j=X$ for $1 \leq j \leq r$, and $a_j=x_{j-r}$ for $r+1 \leq j \leq 4r$, \cref{eq:completion}, \cref{eq:order}, and \cref{eq:10} give  
+            \begin{equation} \label{eq:11}
+                C_{m+1}(\pi) \geq \sum_{j=1}^{m+1} a_j+\sum_{i=1}^m \sum_{j \in \mathcal{B}_i} a_j+b_{m+1} =4(m+1)X+\sum_{i=1}^m \sum_{j \in \mathcal{X}_i} x_j +X \geq 5(m+1)X+1.
+            \end{equation}
+            Using $w_{m+1}=\frac{5r+4}{5(m+1)}$, \cref{eq:11} yields
+            \begin{equation} \label{eq:12}
+                W C_{\max}(\pi) \geq w_{m+1} C_{m+1}(\pi) \geq \frac{5r+4}{5(m+1)} (5(m+1)X+1)>(5r+4)X=Y,
+            \end{equation} 
+            which contradicts the assumption that $W C_{\max}(\pi) \leq Y$. Hence, Claim 3 holds. \hfill$\blacksquare$
+            
+            \textbf{Claim 4.} For $k=1, 2, \ldots, r-1$, $\sum_{i=1}^k \sum_{j \in \mathcal{X}_i} x_j \geq kX$. 
+            
+            \textit{Proof of Claim 4.} Suppose to the contrary that there exists some $m$ ($1 \leq m \leq r-1$) with $\sum_{i=1}^m \sum_{j \in \mathcal{X}_i} x_j < mX$. By \cref{eq:00} and the $x_j$ are integers, we have
+            \begin{equation}\label{eq:20}
+                \sum_{i=m+1}^r \sum_{j \in \mathcal{X}_i} x_j=rX-\sum_{i=1}^m \sum_{j \in \mathcal{X}_i} x_j \geq (r-m)X+1. 
+            \end{equation}
+            Because $a_j=4X$ and $b_j=X$ for $1 \leq j \leq r$, and $a_j=x_{j-r}$ and $b_j=4 x_{j-r}$ for $r+1 \leq j \leq 4r$, \cref{eq:completion}, \cref{eq:order}, \cref{eq:00}, and \cref{eq:20} give 
+            \begin{align*}
+                C_{\max}(\pi) & \geq \sum_{j=1}^{m+1} a_j+\sum_{i=1}^m \sum_{j \in \mathcal{B}_i} a_j+\sum_{j=m+1}^r      b_j+\sum_{i=m+1}^r \sum_{j \in \mathcal{B}_i} b_j  \nonumber \\ 
+                &= 4(m+1)X+\sum_{i=1}^m \sum_{j \in \mathcal{X}_i} x_j +(r-m)X +\sum_{i=m+1}^r \sum_{j \in \mathcal{X}_i} 4 x_j \nonumber \\
+                &= 4(m+1)X +(r-m)X + rX+ 3 \sum_{i=m+1}^r \sum_{j \in \mathcal{X}_i} x_j \\
+                & \geq 4(m+1)X +(r-m)X + rX+ 3((r-m)X+1)  \nonumber \\
+                & = (5r+4)X +3 > (5r+4)X = Y. \nonumber
+            \end{align*} 
+            which contradicts Claim 1. Hence, Claim 4 holds. \hfill$\blacksquare$
+            
+            Combining Claims 3 and 4 with \cref{eq:00}, we obtain that $\sum_{j \in \mathcal{X}_i} x_j=X$ for $i=1, 2, \ldots, r$. Since $X/4 < x_j < X/2$ for each $j$, a sum equal to $X$ must contain exactly three elements; hence  $|\mathcal{X}_i|=3$ for each $i$. Therefore, $(\mathcal{X}_1, \mathcal{X}_2, \ldots, \mathcal{X}_r)$ is a solution to 3-\textsc{Partition}.
+        \end{proof}
 
 \section{Exact and approximation algorithms}
 \label{sec:dp_algorithm}
@@ -585,7 +436,7 @@ program into a $(1+\epsilon)$-approximation scheme for a fixed number of distinc
 
 \subsection{Block structure of an optimal schedule}
 Within the permutation schedules of \Cref{sec:preliminaries}, Johnson's rule
-\citep{johnson1954optimal} minimizes the makespan: the jobs with $a_j \le b_j$ are scheduled
+\citep{pinedo2022scheduling} minimizes the makespan: the jobs with $a_j \le b_j$ are scheduled
 first in non-decreasing order of $a_j$, and the remaining jobs follow in non-increasing order of
 $b_j$.
 
@@ -670,8 +521,8 @@ $\mathcal{B}_2=\{J_4,J_5\}$, and $\mathcal{B}_3=\{J_6\}$.
 \end{figure}
 
 \begin{lemma}\label{lem:block-johnson}
-For any schedule $\pi$, scheduling the jobs of each block by Johnson's rule~\citep{johnson1954optimal}
-and concatenating the blocks in their original order gives a schedule $\pi'$ with
+For any schedule $\pi$, scheduling the jobs of each block by Johnson's rule and concatenating the
+blocks in their original order gives a schedule $\pi'$ with
 $W C_{\max}(\pi') \le W C_{\max}(\pi)$.
 \end{lemma}
 \begin{proof}
@@ -1283,34 +1134,21 @@ W C_{\max}(\pi)=\max_{1\le t\le k} w_{\pi(t)}\, C_{\pi(t)},
 which is computed in $O(k)$ time.
 
 \subsection{The NEH heuristic}
-Constructive heuristics are attractive for $F2 \parallel W C_{\max}$ because they produce a
-complete schedule in a single pass, without the tuning effort of population-based
-metaheuristics. The NEH heuristic \citep{puka2024} is among the most effective
-constructive rules for permutation flow shops, and its core idea is to build a schedule by
-incrementally inserting jobs into a growing partial sequence, each time choosing the
-position that best serves the objective.
+Constructive heuristics build a complete schedule in a single pass and need no tuning, and NEH
+\citep{puka2024} is among the most effective of them for permutation flow shops: the jobs are
+inserted one at a time into a growing partial sequence, each at the position that best serves the
+objective.
 
-In the maximum weighted completion-time objective, two properties are particularly
-important. First, jobs with large total processing time $a_j+b_j$ tend to push the whole
-makespan forward and therefore should appear early so as not to delay other jobs. Second,
-given a fixed makespan, jobs with larger weight $w_j$ benefit more from occupying earlier
-positions, because their weighted completion time decreases. These two properties suggest a
-greedy priority in which large-$a_j+b_j$ jobs are placed first and large-$w_j$ jobs are used
-as a tie-breaker.
+Two properties of the objective shape the adaptation. A job with a large $a_j+b_j$ delays every
+job behind it on both machines and should therefore come early, and among jobs of similar length
+a larger weight $w_j$ gains more from an early position. The jobs are therefore sorted by
+non-increasing $a_j+b_j$, ties broken by non-increasing $w_j$, and each is inserted where
+$W C_{\max}$ is smallest; \Cref{alg:neh} gives the procedure.
 
-We adapt the NEH framework as follows. The jobs are first sorted by non-increasing
-$a_j+b_j$, breaking ties by non-increasing $w_j$, to obtain an initial sequence
-$J_1,\dots,J_n$. The schedule starts with the single job $J_1$. For each $k=2,\dots,n$, the
-next job $J_k$ is inserted into every one of the $k$ possible positions of the current
-partial schedule. Each candidate sequence is evaluated by \cref{eq:completion}, and the
-position that yields the smallest $W C_{\max}$ is retained. The pseudo-code is given in
-\Cref{alg:neh}.
-
-Because the partial schedule already contains $k-1$ jobs, the cost of evaluating all $k$
-insertions at step $k$ is $O(k^2)$ using the recurrence \cref{eq:completion}; the total
-running time is therefore $O(n^3)$ (\Cref{prop:neh-complexity}). The heuristic also
-produces a feasible permutation schedule by construction and requires no hyperparameter
-selection, so it serves as a fast standalone solver for large instances.
+Evaluating the $k$ insertions of step $k$ costs $O(k^2)$ by \cref{eq:completion}, so the run
+takes $O(n^3)$ time, as for the original algorithm \citep{nawaz1983heuristic}. The heuristic
+returns a permutation schedule by construction and needs no hyperparameter, which makes it the
+fast standalone solver for large instances.
 
 \begin{algorithm}[H]
 \small
@@ -1329,33 +1167,28 @@ let $J_{1},\dots,J_{n}$ be the resulting sequence. \;
 \KwOut{Schedule $\pi$.}
 \end{algorithm}
 
-\begin{theorem}\label{prop:neh-complexity}
-\Cref{alg:neh} runs in $O(n^3)$ time.
-\end{theorem}
-\begin{proof}
-At step $k$, the job $J_{k}$ is inserted into each of the $k$ positions of a partial
-schedule of $k-1$ jobs, and each candidate sequence is evaluated in $O(k)$ time by the
-recurrence above. Hence step $k$ costs $O(k^2)$, and the total running time is
-$O\bigl(\sum_{k=1}^{n}k^2\bigr)=O(n^3)$.
-\end{proof}
-
 \subsection{The genetic algorithm}
 \label{sub:ga}
 
-The objective $W C_{\max}$ is a bottleneck: a single \emph{critical} job attains the maximum
-and fixes the value of a schedule. An ordering can therefore be improved in only two ways, by
-lowering the completion time of that job or by shortening completion times across the board.
-High-weight jobs should occupy early positions, so that their weighted completion stays small,
-while the makespan should stay low so that no job is delayed unnecessarily, and a genetic
-algorithm for $F2 \parallel W C_{\max}$ cannot treat the jobs symmetrically.
+The objective is a maximum: one \emph{critical} job attains it, and its weighted
+completion time is the value of the whole schedule. An improvement must therefore lower the
+completion time of that job, and every other weighted completion time must stay below the new
+maximum. The two aims this sets pull in opposite directions. Placing heavy jobs early lowers their
+weighted completion times but pushes the light ones back and lengthens the makespan, while
+sequencing on the processing times alone shortens the makespan and ignores the weights. A genetic
+algorithm for $F2 \parallel W C_{\max}$ therefore cannot treat the jobs symmetrically.
 
-The genetic algorithm is a standard tool for flow-shop scheduling \citep{qiao2022adaptive}, and
-it is used here within its classical framework, organised in four parts: the encoding and
-decoding of a schedule, the generation of the initial population, the iteration of the
-population, and the mutation of the offspring. Nothing in that framework is built around the
-weight classes. The population starts from the order that is shortest on the two machines and
-knows nothing of the weights, and it is the mutation that moves the blocks of one weight, one
-block at a time, until the schedule carries the structure of \Cref{lem:block-johnson}.
+We use the genetic algorithm in the framework that \citet{qiao2022adaptive} propose for flow-shop
+scheduling: a permutation chromosome, an initial population of Johnson's schedule and $N-1$
+neighbours of it, binary tournament selection, partially mapped crossover, and, for survival, the
+non-dominated sorting and crowding distance of NSGA-II \citep{deb2002fast}, which recent flow-shop
+studies extend \citep{wang2023extended}. The survival ranks the pooled parents and offspring on the
+makespan, the weight of the closing job and the objective. The
+operators are those of that framework; what is adapted here is the mutation, which moves blocks of
+one weight rather than single jobs, so that the search follows the structure of
+\Cref{lem:block-johnson}. The run closes with a local search over the $k$ jobs that carry the
+largest weighted completion times, each reinserted at the position that lowers the objective most.
+\Cref{alg:pmx,alg:cm,alg:ga} give the operators and the algorithm.
 
 \subsubsection{Encoding and decoding}
 \textbf{Encoding.} A chromosome is a permutation $\pi=(\pi(1),\dots,\pi(n))$ of the $n$ jobs, in
@@ -1373,7 +1206,7 @@ value is that of \cref{eq:wcmax},
 \[
 W C_{\max}(\pi)=\max_{1\le t\le n}w_{\pi(t)}\,C_{\pi(t)}.
 \]
-The fitness of a schedule is the criterion itself, $W C_{\max}(\pi)$, and no normalised scale
+The fitness of a schedule is the objective itself, $W C_{\max}(\pi)$, and no normalised scale
 is fixed for it. \Cref{fig:encoding} shows the encoding and
 the decoding on the six-job instance of \Cref{ex:blocking}.
 
@@ -1423,76 +1256,16 @@ the decoding on the six-job instance of \Cref{ex:blocking}.
 \label{fig:encoding}
 \end{figure}
 
-\subsubsection{Initial population}
-Random starting populations waste most of the search effort.  The initial population $P_0$ of
-size $N$ is therefore built from Johnson's rule \citep{johnson1954optimal}.  Its first
-individual is the Johnson schedule $\pi^{\mathrm{J}}$ itself, which minimizes the makespan and
-so shortens every completion time at once.  The remaining $N-1$ individuals are neighbours of
-that schedule, each of them a copy of it with a few neighbouring jobs exchanged, the number of
-exchanges being drawn uniformly between one and $\lfloor n/4\rfloor$.  A uniformly random
-permutation carries nothing of the instance, while a neighbour of Johnson's order is already
-short on the makespan.  The rule reads the two processing times alone and knows nothing of the
-weights, so the population starts from the order that is shortest on the machines and the
-criterion is brought in by the block move that follows, one weight at a time. The population
-size grows with the instance and is capped, $N=\min(20,\max(6,\lceil n/2\rceil))$:
-a small instance is given a small population, and a large one keeps the same twenty
-individuals, which are enough for the block mutation and the local search to reach what
-a population as large as the instance reaches. A generation is dominated by the mutation,
-which evaluates $n$ positions of a block at $O(n)$ time each, and therefore costs
-$O(\lambda n^{2})$, where $\lambda$ is the number of offspring the generation produces.
+\subsubsection{Crossover and mutation}
 
-\subsubsection{Selection, crossover and survival}
-A generation turns the population into its successor by three moves.  The parents are
-selected, the parents are recombined into offspring, and the fittest of parents and
-offspring survive.  The algorithm runs $G$ generations of them, and each of them produces
-$\lambda$ offspring from its $N$ parents, so that the operators of one generation are run
-several times over the same parents.  The population it starts from carries nothing of the
-weights, so the generations are spent building the criterion into the schedule rather than
-moving an order that already has it, and both $G$ and $\lambda$ rise with the instance: the
-depth a run reaches grows with the number of generations, since the elite of one is a parent
-of the next, and the number of classes an instance has to be sorted into does not.
-A generation costs the evaluation of the $N+\lambda$ schedules it holds in $O(n)$ time each
-and one pass of the operators over the offspring, whose most expensive move is the mutation of
-a child in $O(n^{2})$, and the search therefore costs $O(G\lambda n^{2})$.  What is left of it
-after the last generation is the local search that closes the algorithm.
-
-\textbf{Selection.} Binary tournament selection forms the mating pool $M$. In each round, two
-individuals are drawn uniformly at random from $P_{g-1}$. The better of
-the two on the Pareto rank wins and is copied into the mating pool $M$, ties being broken by
-the crowding distance. Both individuals are returned to the population, so that a parent may
-be drawn more than once, and the round is repeated until $M_g$ contains $N$ individuals.
-Tournament selection is preferred over roulette-wheel selection because it compares two
-individuals directly rather than through a probability proportional to a fitness value. It
-therefore
-remains selective even as the population converges and the schedules of near-optimal
-individuals become very close.
-
-\textbf{Crossover.} The operator recombines two parent schedules into offspring. These inherit
-both the relative order and the absolute positions of jobs, the two ingredients a permutation
-schedule is built from. We use the partially mapped crossover (PMX), the standard operator for
-permutation-encoded genetic algorithms. Two cut points $p_1<p_2$ are drawn uniformly at
-random, and the middle segment $\pi_1[p_1..p_2]$ is copied verbatim into the child. The
-remaining positions are filled from the second parent $\pi_2$. A gene $\pi_2[t]$ of such a
-position $t\notin[p_1,p_2]$ clashes with the copy only when the copied segment already holds
-it. The outer positions receive pairwise distinct genes of $\pi_2$, so no other clash is
-possible, and a job cannot be written twice. Such a gene is replaced through the mapping that
-the segment induces between the two parents, $j\gets\pi_2[\pi_1^{-1}(j)]$. The job $\pi_1$
-holds at a segment position then gives way to the job $\pi_2$ holds at the same position. The
-replacement is repeated while the gene it yields already occurs in the child. The mapping is
-injective, so the chain it follows visits distinct jobs and stops after at most $p_2-p_1+1$
-replacements. Every position then receives exactly one job, and the child is always a valid
-permutation. PMX transfers contiguous blocks of jobs, which realize the front-heavy structure
-identified in \Cref{sec:dp_algorithm}, while still recombining the two parents' orders on the
-outer positions. Swapping the roles of
-$\pi_1$ and $\pi_2$ yields the second child, so that one application replaces the two parents
-by two offspring. \Cref{fig:pmx} shows both children of one application. Its two upper rows
-are the parents and its two lower rows the offspring, the grey cells are the middle segment the
-child copies ($\pi'$ takes the segment of $\pi_1$, $\pi''$ that of $\pi_2$), and the three
-double arrows between the parents are the mapping the segment induces. The red cells, numbered
-in the order in which they are visited, are those of the clash at position $1$ of $\pi'$: the
-gene taken there, $\pi_2[1]=J_6$, is one the segment already holds, at position $3$, and the
-chain $J_6\to J_1\to J_5$ stops at the free job $J_5$, which is the value the position
-finally receives.
+The crossover is the partially mapped crossover (PMX), the operator the framework uses for
+permutation chromosomes. Two cut points $p_1<p_2$ are drawn, the segment $\pi_1[p_1..p_2]$ is
+copied into the child, and the remaining positions are filled from $\pi_2$ through the mapping
+that the segment induces between the two parents, so that every position receives exactly one job
+and the child is always a valid permutation. \Cref{fig:pmx} shows one application: the grey cells
+are the copied segment, the three double arrows are the mapping it induces, and the red cells are
+the chain followed at position $1$ of the first child, where the gene taken from $\pi_2$ already
+occurs in the segment. \Cref{alg:pmx} gives the operator.
 
 \begin{figure}[H]
 \centering
@@ -1581,54 +1354,14 @@ finally receives.
 \KwOut{Child $\pi'$.}
 \end{algorithm}
 
-\textbf{Survival.} The parents of $P_{g-1}$ and the offspring $O_g$ are pooled, so that a good
-incumbent is never discarded. The $N$ survivors of $P_{g-1}\cup O_g$ are chosen by the
-non-dominated sorting and the crowding distance of NSGA-II
-\citep{deb2002fast}. Those rank the pooled individuals on three quantities, the
-makespan $C_{\max}(\pi)$ of the schedule, the weight $w_{\pi(n)}$ of the job that
-closes it, and the criterion $W C_{\max}(\pi)$ itself. Whole Pareto fronts are kept while they
-fit into the budget of $N$ individuals.
-The front that overflows it is cut by the crowding distance, its least crowded individuals
-first. The first two carry the criterion: the weighted completion
-of the closing job is exactly their product,
-\[
-w_{\pi(n)}\,C_{\max}(\pi)\le W C_{\max}(\pi),
-\]
-so ranking on them keeps both its ingredients in view, a schedule that ends early and one
-whose last job is light, and keeps the weights in the account, which a search that pressed the
-makespan alone would leave out. They are not the criterion, however, since a schedule can end
-early and light and still be a poor one, and a search that ranked them alone would spend its
-selection on the trade-off between them rather than on what the method is measured on. The
-criterion is therefore ranked with them rather than tracked beside them. It is also tracked
-on its own, over every child of every generation, and the best schedule seen on it is carried
-into the next generation: where the ranking does not keep it, it takes the place of the
-individual the ranking leaves last, so that an improvement is a parent of the generation that
-follows and not merely a value that was recorded once.
-
-\subsubsection{Mutation}
 The crossover reads nothing of the weights, so the mutation is what keeps the search moving
-across the weights: it moves whole weights rather than single jobs, and it is what carries the
-population across the block orders the criterion rewards.
-
-The move is the one the block structure of \Cref{lem:block-johnson} suggests.  An optimal
-schedule holds one block per distinct weight, the blocks in non-increasing order of it, and
-the arrangement the search has to reach is therefore an order of the blocks rather than of the
-jobs.  A single job moved at a time cannot reach it quickly: placing one job leaves the other
-jobs of its weight where they were, so the search would need as many accepted moves as there
-are jobs.  The mutation therefore moves a block.  The jobs of one weight leave the schedule,
-keeping the order they hold in it, and the run is put back at the position that minimizes
-$W C_{\max}$ over the whole schedule, which is evaluated by \cref{eq:completion} at every one
-of the positions the run can take.  The weight is the one of a job attaining
-$W C_{\max}(\pi)$, since that is the job that closes the criterion, and with probability
-$1/2$ a weight drawn at random is used instead, so that the order of the blocks is explored and
-not only repaired.
-
-The move is a variation and not an improvement.  Moving a block forward delays every job it
-passes, so the criterion may rise while the block order moves towards the one
-\Cref{lem:block-johnson} prescribes, and there are orders the criterion rewards that no
-sequence of accepted moves reaches.  The move is therefore proposed whether or not it lowers
-the criterion, and it is the survival of the generation, and the elite carried through it,
-that decide what becomes of it.
+across them. Rather than one job at a time, it removes the run of jobs that share one weight,
+keeping their order, and reinserts the run at the position that minimizes $W C_{\max}(\pi)$; the
+weight is that of a job attaining the maximum, or, with probability one half, one drawn at
+random, so that the order of the blocks is explored as well as repaired. Moving a block forward
+delays the jobs it passes, so the move is proposed whether or not it lowers the objective, and it
+is the survival of the generation that decides what becomes of it. \Cref{alg:cm} gives the
+operator.
 
 \begin{algorithm}[H]
 \small
@@ -1648,7 +1381,7 @@ them in, and remove it from $\pi$. \;
     $W C_{\max}(\pi^{(r)})$. \;
 }
 $\pi\gets\pi^{(r^{*})}$, where $r^{*}=\arg\min_{r} W C_{\max}(\pi^{(r)})$, whichever way the
-criterion moves. \;
+objective moves. \;
 \KwOut{Schedule $\pi$.}
 \end{algorithm}
 
@@ -1688,24 +1421,9 @@ it; evaluate all individuals; set $\pi^{*}$ to the best. \;
 \KwOut{Best schedule $\pi^{*}$.}
 \end{algorithm}
 
-\paragraph{The complete algorithm}
-The four parts above assemble into \Cref{alg:ga}, which runs as many generations as the
-instance is given: the population it starts from is short on the makespan but carries nothing
-of the weights, so the criterion has to be iterated into the schedule by the mutation before a
-good order appears. Its closing step is a local search on the
-schedule the population has reached, over the $k$ jobs that carry the largest weighted
-completion times, which are reinserted, each at the position that lowers the criterion most,
-the pass being repeated while it keeps lowering it. Those jobs are the ones that decide the
-criterion, so reinserting them is where an insertion can still pay. The descent stops as soon
-as none of them
-improves.
 
 \section{Experiments}
 \label{sec:experiments}
-
-% NOTE.  The token \TBD marks every value that must be filled in from an actual
-% run.  No experimental result is asserted in this section.
-\newcommand{\TBD}{\textcolor{red}{\textbf{TBD}}}
 
 All methods were coded in Python $3.13$ and run on a machine with an Intel Core Ultra 5 230F
 processor and $16$\,GB of memory, under Windows 11. The MILP model was solved with Gurobi
@@ -1719,7 +1437,7 @@ and on its running time. Every other method is read on its relative percentage g
 \text{gap}_A = \frac{z_A-z_{\text{base}}}{z_{\text{base}}},
 \end{equation}
 where $z_A$ is the objective value of the schedule it returned and $z_{\text{base}}$ the
-reference value of the instance, and on the CPU time it requires; the gap is reported in per
+reference value of the instance, and on the wall-clock time it requires; the gap is reported in per
 cent and the time in milliseconds, each by its mean and its maximum over the instances of the
 configuration. On the small scale the reference is the optimum, which is the value the model
 returns, so that the model is read on a gap of zero and every heuristic on its distance from the
@@ -1735,7 +1453,7 @@ reported, crosses the sizes $40$, $60$, $80$ and $100$ with the weight count $K=
 are the geometric ladder $1,10$, and with the two ranges $[1,40]$ and $[1,80]$. Its ladder rises
 by $20$ a step and stops where the time limit binds: at $[1,40]$ every instance is settled well
 within it, while on $[1,80]$ six of the twenty at a hundred jobs are cut short. This is not the
-set on which the methods are compared: the running time $O(nKV^{3K-3})$ grows so fast in the
+set on which the methods are compared: the running time $O(nK2^{K}V^{3K-3})$ grows so fast in the
 number $K$ of distinct weights that the sizes the other algorithms are read at are out of its
 reach, so the group is reported on a set of its own. The two groups that follow are the
 comparison, and both carry the two ranges of the first. Their instances hold at most thirty
@@ -1748,10 +1466,15 @@ exact and settles them, and the heuristics alone at the large ones, where the ga
 measured against $LB$ of \cref{eq:lb}. Every configuration is replicated over twenty independent
 instances and every figure below is their average, and a method that reaches the limit is
 recorded with the value it has attained. Every table reads the same way: a row is an instance
-size, the columns are grouped by method (by range in the table of the dynamic program), and an
-entry is the pair (mean, maximum), the two side by side; gaps are in per cent, running times in
-milliseconds in the form $1.5\mathrm{e}3$ for $1.5\times10^{3}$, and ``opt.'' counts the instances
-the dynamic program settles.
+size, the columns are grouped by method (by range in the table of the dynamic program), and every
+quantity is read from two columns, its mean under ``avg'' and its maximum under ``max''; gaps are
+in per cent, running times in milliseconds in the form $1.5\mathrm{e}3$ for $1.5\times10^{3}$, and
+``opt.'' counts the instances the dynamic program settles. The smallest mean gap of a row is set in
+bold, judged on the unrounded values. For brevity, \emph{the model} is the MILP formulation,
+\emph{the program} the dynamic program, \emph{the rules} the 2-approximation and NEH together, and
+\emph{the search} the genetic algorithm. The section answers four questions in turn: how far the
+dynamic program reaches, how close the two rules come and at what cost, when the search overtakes
+them and at what price, and how much room the lower bound leaves in the gaps of the large scale.
 
 \subsection{The dynamic program}
 
@@ -1766,8 +1489,8 @@ $K=3$ the memory of the machine the runs were made on is exhausted and the progr
 return, which is why the group is reported at $K=2$ alone. The second is the instance size and the
 width of the range, which enter through $V$ as well. At $a_j,b_j\in[1,40]$ the mean running time
 rises from $1.47$\,s at forty jobs to $14.23$\,s at sixty, $45.13$\,s at eighty and $89.59$\,s at
-a hundred -- a factor of $61$ over the ladder, against a criterion that grows only from $4335.0$
-to $10647.0$, a factor of $2.5$. The range multiplies that time by between $3.0$ and $3.7$ at
+a hundred -- a factor of $61$ over the ladder, against an objective that grows only from $4335.0$
+to $10647.0$, a factor of $2.5$. The range multiplies that time by between $2.9$ and $3.7$ at
 every size, the two extremes being $1.47$ against $4.98$\,s at forty jobs and $89.59$ against
 $329.01$\,s at a hundred. The two bounds meet at the top of the ladder: at a hundred jobs on
 $[1,80]$ the $600$\,s limit cuts six of the twenty instances short, so that the configuration
@@ -1780,18 +1503,24 @@ heuristics are read to four hundred.
 \resultstable
 \caption{The dynamic program, $K=2$}
 \label{tab:results-dp-k2}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l r r r @{\hspace{14pt}} r r r@{}}
+\setlength{\tabcolsep}{9.0pt}
+\begin{tabular*}{\resultstabwidth}{@{}l r r r r r @{\hspace{14pt}} r r r r r@{}}
 \toprule
-\multirow{2}{*}{$n$} & \multicolumn{3}{c}{$a_j,b_j\in[1,40]$} & \multicolumn{3}{c}{$a_j,b_j\in[1,80]$} \\
-\cmidrule(lr){2-4}\cmidrule(lr){5-7}
- & $W C_{\max}$ & time (ms) & opt. & $W C_{\max}$ & time (ms) & opt. \\
+\multirow{3}{*}{$n$} & \multicolumn{5}{c}{$a_j,b_j\in[1,40]$} & \multicolumn{5}{c}{$a_j,b_j\in[1,80]$} \\
+\cmidrule(lr){2-6}\cmidrule(lr){7-11}
+ & \multicolumn{2}{c}{$W C_{\max}$} & \multicolumn{2}{c}{time (ms)} & opt. & \multicolumn{2}{c}{$W C_{\max}$} & \multicolumn{2}{c}{time (ms)} & opt. \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){7-8}\cmidrule(lr){9-10}
+ & avg & max & avg & max &  & avg & max & avg & max &  \\
 \midrule
-$40$ & $4335.0$ $5480.0$ & $1.5\mathrm{e}3$ $4.3\mathrm{e}3$ & $20/20$ & $8604.5$ $10590.0$ & $5.0\mathrm{e}3$ $2.4\mathrm{e}4$ & $20/20$ \\
-$60$ & $6340.0$ $7270.0$ & $1.4\mathrm{e}4$ $3.1\mathrm{e}4$ & $20/20$ & $12344.5$ $15020.0$ & $5.3\mathrm{e}4$ $1.1\mathrm{e}5$ & $20/20$ \\
-$80$ & $8221.0$ $9750.0$ & $4.5\mathrm{e}4$ $1.1\mathrm{e}5$ & $20/20$ & $17341.5$ $19580.0$ & $1.3\mathrm{e}5$ $2.8\mathrm{e}5$ & $20/20$ \\
-$100$ & $10647.0$ $12350.0$ & $9.0\mathrm{e}4$ $1.7\mathrm{e}5$ & $20/20$ & $21544.3$ $24240.0$ & $3.3\mathrm{e}5$ $6.3\mathrm{e}5$ & $14/20$ \\
+$40$ & $4335.0$ & $5480.0$ & $1.5\mathrm{e}3$ & $4.3\mathrm{e}3$ & $20/20$ & $8604.5$ & $10590.0$ & $5.0\mathrm{e}3$ & $2.4\mathrm{e}4$ & $20/20$ \\
+$60$ & $6340.0$ & $7270.0$ & $1.4\mathrm{e}4$ & $3.1\mathrm{e}4$ & $20/20$ & $12344.5$ & $15020.0$ & $5.3\mathrm{e}4$ & $1.1\mathrm{e}5$ & $20/20$ \\
+$80$ & $8221.0$ & $9750.0$ & $4.5\mathrm{e}4$ & $1.1\mathrm{e}5$ & $20/20$ & $17341.5$ & $19580.0$ & $1.3\mathrm{e}5$ & $2.8\mathrm{e}5$ & $20/20$ \\
+$100$ & $10647.0$ & $12350.0$ & $9.0\mathrm{e}4$ & $1.7\mathrm{e}5$ & $20/20$ & $21544.3$ & $24240.0$ & $3.3\mathrm{e}5$ & $6.3\mathrm{e}5$ & $14/20$ \\
 \bottomrule
 \end{tabular*}
+\par\vspace{2pt}
+{\scriptsize Averages at $n=100$ on $[1,80]$ cover the $14$ instances settled within the
+$600$\,s limit; the other six are cut short.}
 \end{table}
 
 \subsection{The small scale}
@@ -1800,7 +1529,9 @@ The model settles every instance of the small scale to optimality -- $20$ of $20
 $22$ configurations, $440$ instances in all -- so the gaps reported against it are distances to
 an optimum and not to the incumbent of a run that ran out of time. What grows is its cost: the
 mean time of an instance rises from $50.6$\,ms at ten jobs to $80.1$\,s at sixty on $[1,40]$, and
-from $40.2$\,ms to $43.5$\,s on $[1,80]$, while the value it returns rises with the range as
+from $40.2$\,ms to $43.5$\,s on $[1,80]$. The cost is not monotone in the range: at four of the
+eleven sizes, sixty jobs among them, the wider set is the cheaper of the two, so the time is read
+against the range rather than averaged over both. The value rises with the range as
 well -- the mean optimum of a ten-job instance is $2510.7$ on $[1,40]$ and $5433.0$ on $[1,80]$,
 and that of a sixty-job instance $12323.6$ and $25266.1$. The slowest instance of the scale takes
 $299.6$\,s of the $600$\,s a run is allowed, so the exact side is complete here but not roomy:
@@ -1812,25 +1543,27 @@ per cent over the whole small scale -- $3.47$ on $[1,40]$ and $3.56$ on $[1,80]$
 the optimum on $36$ of the $440$ instances, its worst $16.71$ per cent away. NEH has a mean gap
 of $2.53$ per cent, $2.39$ and $2.67$ on the two ranges, reaches the optimum on $99$ of the
 $440$, and its worst instance is $11.27$ per cent away. The two reverse over the scale: NEH is
-the closer at nine of the eleven sizes on $[1,40]$ and at seven on $[1,80]$, and the
+the closer at nine of the eleven sizes on $[1,40]$ and at eight on $[1,80]$, and the
 2-approximation takes the lead at the largest sizes, where the order of the weights is what the
-criterion rewards. Their costs are not of the same order either: $0.02$\,ms an instance on
+objective rewards. Their costs are not of the same order either: $0.02$\,ms an instance on
 average for the 2-approximation, never above $0.05$\,ms, against $2.68$\,ms for NEH, which grows
-with the instance to $8$\,ms at sixty jobs; the model is a thousand times above both, at
-$13.85$\,s an instance on the average of the scale.
+with the instance to $8$\,ms at sixty jobs; the model is $5{,}200$ times above NEH and some
+$7\times10^{5}$ times above the 2-approximation, at $13.85$\,s an instance on the average of the
+scale.
 
-The genetic algorithm is the only method whose gap closes over the small scale, and that is its
-strength here: it approaches the optimum from far away. Its mean gap falls from $16.83$ to $3.92$
+The genetic algorithm starts furthest from the optimum and closes the distance over the small
+scale, which is its strength here. Its mean gap falls from $16.83$ to $3.92$
 per cent on $[1,40]$ and from $13.16$ to $3.24$ per cent on $[1,80]$, which leaves it within a
 point of both rules at sixty jobs. What the rest of the scale shows is what that approach costs.
-It starts as the worst of the three, at three to twenty times the gap of the rules at ten jobs;
-its course is not monotone, rising to $18.96$ and $18.97$ per cent at fifteen jobs and staying
-above $14$ per cent until thirty-five, where the instances are harder for it by more than the
-growth of its own budget makes up for; and over the $22$ configurations it stands at $10.75$ per
-cent, against $3.52$ for the 2-approximation and $2.53$ for NEH, with a worst instance $67.41$
-per cent from the optimum, at ten jobs. Its cost is above both rules by three orders of
-magnitude: $0.55$\,ms an instance at ten jobs and $1.65$\,s at sixty, against the $80.1$\,s the
-model needs at that size. On this scale the search neither beats the rules nor approaches them
+It starts as the worst of the three, at three to twenty times the gap of the rules at ten jobs.
+Its course is not monotone: it climbs from $15$ per cent at ten jobs to $19$ at fifteen,
+fluctuates between $9$ and $16$ through forty, where the instances are harder for it by more than
+the growth of its own budget makes up for, and falls away after that. Over the $22$ configurations
+it stands at $10.75$ per cent, against $3.52$ for the 2-approximation and $2.53$ for NEH, with a
+worst instance $67.41$ per cent from the optimum, at ten jobs. Its cost is two to five orders of
+magnitude above the rules: $0.55$\,ms an instance at ten jobs and $1.65$\,s at sixty, against
+$8$\,ms for NEH and $0.02$\,ms for the 2-approximation, though still less than a fiftieth of the
+$80.1$\,s the model needs at that size. On this scale the search neither beats the rules nor approaches them
 cheaply; what it shows is the direction in which it moves, and that is read on the large scale.
 \Crefrange{tab:results-small-40}{tab:results-small-80} give the two ranges in full, and
 \Cref{fig:gap-small} the course of the gap over the scale.
@@ -1839,25 +1572,27 @@ cheaply; what it shows is the direction in which it moves, and that is read on t
 \resultstable
 \caption{The small scale, $a_j,b_j\in[1,40]$: MILP, 2-approx., NEH, GA}
 \label{tab:results-small-40}
-\setlength{\tabcolsep}{3pt}
+\setlength{\tabcolsep}{3.95pt}
 \scriptsize
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l r r @{\hspace{5pt}} r r @{\hspace{5pt}} r r @{\hspace{5pt}} r r@{}}
+\begin{tabular*}{\resultstabwidth}{@{}l r r r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r@{}}
 \toprule
-\multirow{2}{*}{$n$} & \multicolumn{2}{c}{MILP} & \multicolumn{2}{c}{2-approx.} & \multicolumn{2}{c}{NEH} & \multicolumn{2}{c}{GA} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
- & $W C_{\max}$ & time (ms) & gap & time (ms) & gap & time (ms) & gap & time (ms) \\
+\multirow{3}{*}{$n$} & \multicolumn{4}{c}{MILP} & \multicolumn{4}{c}{2-approx.} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}
+ & \multicolumn{2}{c}{$W C_{\max}$} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}\cmidrule(lr){14-15}\cmidrule(lr){16-17}
+ & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
 \midrule
-$10$ & $2510.7$ $3192.0$ & $5.1\mathrm{e}1$ $8.0\mathrm{e}1$ & $4.9$ $14.2$ & $1.0\mathrm{e}{-2}$ $1.0\mathrm{e}{-2}$ & $\mathbf{0.8}$ $8.7$ & $8.0\mathrm{e}{-2}$ $2.7\mathrm{e}{-1}$ & $16.8$ $67.4$ & $5.5\mathrm{e}{-1}$ $7.5\mathrm{e}{-1}$ \\
-$15$ & $3682.3$ $4746.0$ & $1.4\mathrm{e}2$ $2.8\mathrm{e}2$ & $2.7$ $8.7$ & $1.0\mathrm{e}{-2}$ $2.0\mathrm{e}{-2}$ & $\mathbf{2.0}$ $8.0$ & $1.8\mathrm{e}{-1}$ $2.2\mathrm{e}{-1}$ & $19.0$ $42.0$ & $2.0\mathrm{e}0$ $3.0\mathrm{e}0$ \\
-$20$ & $4742.4$ $5759.0$ & $3.8\mathrm{e}2$ $8.9\mathrm{e}2$ & $4.6$ $9.5$ & $1.0\mathrm{e}{-2}$ $2.0\mathrm{e}{-2}$ & $\mathbf{2.3}$ $9.7$ & $3.9\mathrm{e}{-1}$ $4.2\mathrm{e}{-1}$ & $14.2$ $34.2$ & $1.0\mathrm{e}1$ $1.1\mathrm{e}1$ \\
-$25$ & $5736.1$ $7260.0$ & $7.3\mathrm{e}2$ $2.3\mathrm{e}3$ & $3.8$ $10.8$ & $1.0\mathrm{e}{-2}$ $2.0\mathrm{e}{-2}$ & $\mathbf{1.8}$ $9.2$ & $6.9\mathrm{e}{-1}$ $7.3\mathrm{e}{-1}$ & $11.5$ $27.9$ & $2.6\mathrm{e}1$ $2.9\mathrm{e}1$ \\
-$30$ & $6513.6$ $8892.0$ & $1.3\mathrm{e}3$ $2.4\mathrm{e}3$ & $4.4$ $9.3$ & $1.0\mathrm{e}{-2}$ $3.0\mathrm{e}{-2}$ & $\mathbf{2.9}$ $9.3$ & $1.0\mathrm{e}0$ $1.0\mathrm{e}0$ & $14.7$ $43.6$ & $6.0\mathrm{e}1$ $6.4\mathrm{e}1$ \\
-$35$ & $7836.4$ $8931.0$ & $3.0\mathrm{e}3$ $1.1\mathrm{e}4$ & $\mathbf{2.6}$ $9.7$ & $2.0\mathrm{e}{-2}$ $3.0\mathrm{e}{-2}$ & $2.7$ $7.7$ & $2.0\mathrm{e}0$ $2.0\mathrm{e}0$ & $15.0$ $30.7$ & $1.2\mathrm{e}2$ $1.3\mathrm{e}2$ \\
-$40$ & $8760.2$ $10153.0$ & $5.1\mathrm{e}3$ $1.6\mathrm{e}4$ & $3.1$ $7.7$ & $2.0\mathrm{e}{-2}$ $3.0\mathrm{e}{-2}$ & $\mathbf{2.5}$ $8.7$ & $3.0\mathrm{e}0$ $3.0\mathrm{e}0$ & $8.4$ $21.2$ & $2.4\mathrm{e}2$ $2.6\mathrm{e}2$ \\
-$45$ & $9564.3$ $11076.0$ & $1.3\mathrm{e}4$ $3.8\mathrm{e}4$ & $3.6$ $8.0$ & $2.0\mathrm{e}{-2}$ $3.0\mathrm{e}{-2}$ & $\mathbf{2.6}$ $7.1$ & $4.0\mathrm{e}0$ $4.0\mathrm{e}0$ & $6.0$ $17.0$ & $4.0\mathrm{e}2$ $4.4\mathrm{e}2$ \\
-$50$ & $10631.6$ $11774.0$ & $2.0\mathrm{e}4$ $6.2\mathrm{e}4$ & $2.7$ $7.2$ & $2.0\mathrm{e}{-2}$ $3.0\mathrm{e}{-2}$ & $\mathbf{2.5}$ $7.1$ & $5.0\mathrm{e}0$ $5.0\mathrm{e}0$ & $6.9$ $21.5$ & $6.6\mathrm{e}2$ $7.3\mathrm{e}2$ \\
-$55$ & $11760.6$ $12992.0$ & $3.7\mathrm{e}4$ $1.8\mathrm{e}5$ & $3.0$ $6.4$ & $2.0\mathrm{e}{-2}$ $5.0\mathrm{e}{-2}$ & $\mathbf{3.0}$ $8.1$ & $6.0\mathrm{e}0$ $6.0\mathrm{e}0$ & $3.3$ $10.8$ & $1.0\mathrm{e}3$ $1.1\mathrm{e}3$ \\
-$60$ & $12323.6$ $14703.0$ & $8.0\mathrm{e}4$ $3.0\mathrm{e}5$ & $\mathbf{2.9}$ $8.9$ & $2.0\mathrm{e}{-2}$ $4.0\mathrm{e}{-2}$ & $3.3$ $6.7$ & $8.0\mathrm{e}0$ $8.0\mathrm{e}0$ & $3.9$ $10.1$ & $1.7\mathrm{e}3$ $1.7\mathrm{e}3$ \\
+$10$ & $2510.7$ & $3192.0$ & $5.1\mathrm{e}1$ & $8.0\mathrm{e}1$ & $4.9$ & $14.2$ & $1.0\mathrm{e}{-2}$ & $1.0\mathrm{e}{-2}$ & $\mathbf{0.8}$ & $8.7$ & $8.0\mathrm{e}{-2}$ & $2.7\mathrm{e}{-1}$ & $16.8$ & $67.4$ & $5.5\mathrm{e}{-1}$ & $7.5\mathrm{e}{-1}$ \\
+$15$ & $3682.3$ & $4746.0$ & $1.4\mathrm{e}2$ & $2.8\mathrm{e}2$ & $2.7$ & $8.7$ & $1.0\mathrm{e}{-2}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{2.0}$ & $8.0$ & $1.8\mathrm{e}{-1}$ & $2.2\mathrm{e}{-1}$ & $19.0$ & $42.0$ & $2.0\mathrm{e}0$ & $3.0\mathrm{e}0$ \\
+$20$ & $4742.4$ & $5759.0$ & $3.8\mathrm{e}2$ & $8.9\mathrm{e}2$ & $4.6$ & $9.5$ & $1.0\mathrm{e}{-2}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{2.3}$ & $9.7$ & $3.9\mathrm{e}{-1}$ & $4.2\mathrm{e}{-1}$ & $14.2$ & $34.2$ & $1.0\mathrm{e}1$ & $1.1\mathrm{e}1$ \\
+$25$ & $5736.1$ & $7260.0$ & $7.3\mathrm{e}2$ & $2.3\mathrm{e}3$ & $3.8$ & $10.8$ & $1.0\mathrm{e}{-2}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{1.8}$ & $9.2$ & $6.9\mathrm{e}{-1}$ & $7.3\mathrm{e}{-1}$ & $11.5$ & $27.9$ & $2.6\mathrm{e}1$ & $2.9\mathrm{e}1$ \\
+$30$ & $6513.6$ & $8892.0$ & $1.3\mathrm{e}3$ & $2.4\mathrm{e}3$ & $4.4$ & $9.3$ & $1.0\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{2.9}$ & $9.3$ & $1.0\mathrm{e}0$ & $1.0\mathrm{e}0$ & $14.7$ & $43.6$ & $6.0\mathrm{e}1$ & $6.4\mathrm{e}1$ \\
+$35$ & $7836.4$ & $8931.0$ & $3.0\mathrm{e}3$ & $1.1\mathrm{e}4$ & $\mathbf{2.6}$ & $9.7$ & $2.0\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $2.7$ & $7.7$ & $2.0\mathrm{e}0$ & $2.0\mathrm{e}0$ & $15.0$ & $30.7$ & $1.2\mathrm{e}2$ & $1.3\mathrm{e}2$ \\
+$40$ & $8760.2$ & $10153.0$ & $5.1\mathrm{e}3$ & $1.6\mathrm{e}4$ & $3.1$ & $7.7$ & $2.0\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{2.5}$ & $8.7$ & $3.0\mathrm{e}0$ & $3.0\mathrm{e}0$ & $8.4$ & $21.2$ & $2.4\mathrm{e}2$ & $2.6\mathrm{e}2$ \\
+$45$ & $9564.3$ & $11076.0$ & $1.3\mathrm{e}4$ & $3.8\mathrm{e}4$ & $3.6$ & $8.0$ & $2.0\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{2.6}$ & $7.1$ & $4.0\mathrm{e}0$ & $4.0\mathrm{e}0$ & $6.0$ & $17.0$ & $4.0\mathrm{e}2$ & $4.4\mathrm{e}2$ \\
+$50$ & $10631.6$ & $11774.0$ & $2.0\mathrm{e}4$ & $6.2\mathrm{e}4$ & $2.7$ & $7.2$ & $2.0\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{2.5}$ & $7.1$ & $5.0\mathrm{e}0$ & $5.0\mathrm{e}0$ & $6.9$ & $21.5$ & $6.6\mathrm{e}2$ & $7.3\mathrm{e}2$ \\
+$55$ & $11760.6$ & $12992.0$ & $3.7\mathrm{e}4$ & $1.8\mathrm{e}5$ & $3.0$ & $6.4$ & $2.0\mathrm{e}{-2}$ & $5.0\mathrm{e}{-2}$ & $\mathbf{3.0}$ & $8.1$ & $6.0\mathrm{e}0$ & $6.0\mathrm{e}0$ & $3.3$ & $10.8$ & $1.0\mathrm{e}3$ & $1.1\mathrm{e}3$ \\
+$60$ & $12323.6$ & $14703.0$ & $8.0\mathrm{e}4$ & $3.0\mathrm{e}5$ & $\mathbf{2.9}$ & $8.9$ & $2.0\mathrm{e}{-2}$ & $4.0\mathrm{e}{-2}$ & $3.3$ & $6.7$ & $8.0\mathrm{e}0$ & $8.0\mathrm{e}0$ & $3.9$ & $10.1$ & $1.7\mathrm{e}3$ & $1.7\mathrm{e}3$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1866,25 +1601,27 @@ $60$ & $12323.6$ $14703.0$ & $8.0\mathrm{e}4$ $3.0\mathrm{e}5$ & $\mathbf{2.9}$ 
 \resultstable
 \caption{The small scale, $a_j,b_j\in[1,80]$: MILP, 2-approx., NEH, GA}
 \label{tab:results-small-80}
-\setlength{\tabcolsep}{3pt}
+\setlength{\tabcolsep}{3.95pt}
 \scriptsize
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l r r @{\hspace{5pt}} r r @{\hspace{5pt}} r r @{\hspace{5pt}} r r@{}}
+\begin{tabular*}{\resultstabwidth}{@{}l r r r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r@{}}
 \toprule
-\multirow{2}{*}{$n$} & \multicolumn{2}{c}{MILP} & \multicolumn{2}{c}{2-approx.} & \multicolumn{2}{c}{NEH} & \multicolumn{2}{c}{GA} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
- & $W C_{\max}$ & time (ms) & gap & time (ms) & gap & time (ms) & gap & time (ms) \\
+\multirow{3}{*}{$n$} & \multicolumn{4}{c}{MILP} & \multicolumn{4}{c}{2-approx.} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}
+ & \multicolumn{2}{c}{$W C_{\max}$} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}\cmidrule(lr){14-15}\cmidrule(lr){16-17}
+ & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
 \midrule
-$10$ & $5433.0$ $7365.0$ & $4.0\mathrm{e}1$ $8.7\mathrm{e}1$ & $4.6$ $16.7$ & $1.0\mathrm{e}{-2}$ $1.0\mathrm{e}{-2}$ & $\mathbf{0.6}$ $2.1$ & $8.0\mathrm{e}{-2}$ $1.6\mathrm{e}{-1}$ & $13.2$ $41.9$ & $5.3\mathrm{e}{-1}$ $5.8\mathrm{e}{-1}$ \\
-$15$ & $6941.7$ $9035.0$ & $1.6\mathrm{e}2$ $3.0\mathrm{e}2$ & $4.2$ $11.7$ & $1.0\mathrm{e}{-2}$ $2.0\mathrm{e}{-2}$ & $\mathbf{2.2}$ $8.2$ & $1.8\mathrm{e}{-1}$ $2.0\mathrm{e}{-1}$ & $19.0$ $37.2$ & $2.0\mathrm{e}0$ $3.0\mathrm{e}0$ \\
-$20$ & $9029.8$ $10906.0$ & $3.9\mathrm{e}2$ $6.5\mathrm{e}2$ & $3.8$ $13.7$ & $1.0\mathrm{e}{-2}$ $2.0\mathrm{e}{-2}$ & $\mathbf{1.3}$ $7.4$ & $3.9\mathrm{e}{-1}$ $4.9\mathrm{e}{-1}$ & $12.6$ $37.3$ & $1.0\mathrm{e}1$ $1.1\mathrm{e}1$ \\
-$25$ & $10971.5$ $13013.0$ & $6.9\mathrm{e}2$ $1.4\mathrm{e}3$ & $4.0$ $11.1$ & $1.0\mathrm{e}{-2}$ $3.0\mathrm{e}{-2}$ & $\mathbf{3.1}$ $10.7$ & $7.1\mathrm{e}{-1}$ $7.5\mathrm{e}{-1}$ & $16.0$ $27.1$ & $2.6\mathrm{e}1$ $2.8\mathrm{e}1$ \\
-$30$ & $12832.5$ $15232.0$ & $1.9\mathrm{e}3$ $9.4\mathrm{e}3$ & $3.9$ $8.8$ & $1.0\mathrm{e}{-2}$ $2.0\mathrm{e}{-2}$ & $\mathbf{3.4}$ $7.9$ & $1.0\mathrm{e}0$ $1.0\mathrm{e}0$ & $12.9$ $30.6$ & $5.8\mathrm{e}1$ $6.6\mathrm{e}1$ \\
-$35$ & $15171.0$ $16940.0$ & $3.3\mathrm{e}3$ $1.1\mathrm{e}4$ & $3.8$ $7.8$ & $2.0\mathrm{e}{-2}$ $2.0\mathrm{e}{-2}$ & $\mathbf{3.1}$ $11.3$ & $2.0\mathrm{e}0$ $2.0\mathrm{e}0$ & $10.0$ $19.8$ & $1.2\mathrm{e}2$ $1.2\mathrm{e}2$ \\
-$40$ & $16912.4$ $19513.0$ & $8.3\mathrm{e}3$ $2.5\mathrm{e}4$ & $\mathbf{2.9}$ $11.3$ & $2.0\mathrm{e}{-2}$ $3.0\mathrm{e}{-2}$ & $3.1$ $11.0$ & $3.0\mathrm{e}0$ $3.0\mathrm{e}0$ & $10.4$ $29.7$ & $2.4\mathrm{e}2$ $2.6\mathrm{e}2$ \\
-$45$ & $19067.3$ $23062.0$ & $9.2\mathrm{e}3$ $1.8\mathrm{e}4$ & $3.0$ $7.3$ & $2.0\mathrm{e}{-2}$ $4.0\mathrm{e}{-2}$ & $\mathbf{2.6}$ $7.8$ & $4.0\mathrm{e}0$ $4.0\mathrm{e}0$ & $7.1$ $23.5$ & $4.1\mathrm{e}2$ $4.4\mathrm{e}2$ \\
-$50$ & $20795.4$ $23505.0$ & $2.2\mathrm{e}4$ $5.1\mathrm{e}4$ & $3.5$ $9.6$ & $2.0\mathrm{e}{-2}$ $3.0\mathrm{e}{-2}$ & $\mathbf{3.4}$ $9.7$ & $5.0\mathrm{e}0$ $5.0\mathrm{e}0$ & $5.5$ $15.0$ & $6.6\mathrm{e}2$ $7.1\mathrm{e}2$ \\
-$55$ & $22517.8$ $27573.0$ & $5.5\mathrm{e}4$ $1.4\mathrm{e}5$ & $\mathbf{2.8}$ $9.3$ & $2.0\mathrm{e}{-2}$ $5.0\mathrm{e}{-2}$ & $3.7$ $10.1$ & $6.0\mathrm{e}0$ $6.0\mathrm{e}0$ & $6.8$ $17.6$ & $1.0\mathrm{e}3$ $1.2\mathrm{e}3$ \\
-$60$ & $25266.1$ $29614.0$ & $4.4\mathrm{e}4$ $1.0\mathrm{e}5$ & $\mathbf{2.7}$ $8.4$ & $3.0\mathrm{e}{-2}$ $4.0\mathrm{e}{-2}$ & $2.8$ $6.9$ & $8.0\mathrm{e}0$ $8.0\mathrm{e}0$ & $3.2$ $8.9$ & $1.7\mathrm{e}3$ $1.8\mathrm{e}3$ \\
+$10$ & $5433.0$ & $7365.0$ & $4.0\mathrm{e}1$ & $8.7\mathrm{e}1$ & $4.6$ & $16.7$ & $1.0\mathrm{e}{-2}$ & $1.0\mathrm{e}{-2}$ & $\mathbf{0.6}$ & $2.1$ & $8.0\mathrm{e}{-2}$ & $1.6\mathrm{e}{-1}$ & $13.2$ & $41.9$ & $5.3\mathrm{e}{-1}$ & $5.8\mathrm{e}{-1}$ \\
+$15$ & $6941.7$ & $9035.0$ & $1.6\mathrm{e}2$ & $3.0\mathrm{e}2$ & $4.2$ & $11.7$ & $1.0\mathrm{e}{-2}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{2.2}$ & $8.2$ & $1.8\mathrm{e}{-1}$ & $2.0\mathrm{e}{-1}$ & $19.0$ & $37.2$ & $2.0\mathrm{e}0$ & $3.0\mathrm{e}0$ \\
+$20$ & $9029.8$ & $10906.0$ & $3.9\mathrm{e}2$ & $6.5\mathrm{e}2$ & $3.8$ & $13.7$ & $1.0\mathrm{e}{-2}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{1.3}$ & $7.4$ & $3.9\mathrm{e}{-1}$ & $4.9\mathrm{e}{-1}$ & $12.6$ & $37.3$ & $1.0\mathrm{e}1$ & $1.1\mathrm{e}1$ \\
+$25$ & $10971.5$ & $13013.0$ & $6.9\mathrm{e}2$ & $1.4\mathrm{e}3$ & $4.0$ & $11.1$ & $1.0\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{3.1}$ & $10.7$ & $7.1\mathrm{e}{-1}$ & $7.5\mathrm{e}{-1}$ & $16.0$ & $27.1$ & $2.6\mathrm{e}1$ & $2.8\mathrm{e}1$ \\
+$30$ & $12832.5$ & $15232.0$ & $1.9\mathrm{e}3$ & $9.4\mathrm{e}3$ & $3.9$ & $8.8$ & $1.0\mathrm{e}{-2}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{3.4}$ & $7.9$ & $1.0\mathrm{e}0$ & $1.0\mathrm{e}0$ & $12.9$ & $30.6$ & $5.8\mathrm{e}1$ & $6.6\mathrm{e}1$ \\
+$35$ & $15171.0$ & $16940.0$ & $3.3\mathrm{e}3$ & $1.1\mathrm{e}4$ & $3.8$ & $7.8$ & $2.0\mathrm{e}{-2}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{3.1}$ & $11.3$ & $2.0\mathrm{e}0$ & $2.0\mathrm{e}0$ & $10.0$ & $19.8$ & $1.2\mathrm{e}2$ & $1.2\mathrm{e}2$ \\
+$40$ & $16912.4$ & $19513.0$ & $8.3\mathrm{e}3$ & $2.5\mathrm{e}4$ & $\mathbf{2.9}$ & $11.3$ & $2.0\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $3.1$ & $11.0$ & $3.0\mathrm{e}0$ & $3.0\mathrm{e}0$ & $10.4$ & $29.7$ & $2.4\mathrm{e}2$ & $2.6\mathrm{e}2$ \\
+$45$ & $19067.3$ & $23062.0$ & $9.2\mathrm{e}3$ & $1.8\mathrm{e}4$ & $3.0$ & $7.3$ & $2.0\mathrm{e}{-2}$ & $4.0\mathrm{e}{-2}$ & $\mathbf{2.6}$ & $7.8$ & $4.0\mathrm{e}0$ & $4.0\mathrm{e}0$ & $7.1$ & $23.5$ & $4.1\mathrm{e}2$ & $4.4\mathrm{e}2$ \\
+$50$ & $20795.4$ & $23505.0$ & $2.2\mathrm{e}4$ & $5.1\mathrm{e}4$ & $3.5$ & $9.6$ & $2.0\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{3.4}$ & $9.7$ & $5.0\mathrm{e}0$ & $5.0\mathrm{e}0$ & $5.5$ & $15.0$ & $6.6\mathrm{e}2$ & $7.1\mathrm{e}2$ \\
+$55$ & $22517.8$ & $27573.0$ & $5.5\mathrm{e}4$ & $1.4\mathrm{e}5$ & $\mathbf{2.8}$ & $9.3$ & $2.0\mathrm{e}{-2}$ & $5.0\mathrm{e}{-2}$ & $3.7$ & $10.1$ & $6.0\mathrm{e}0$ & $6.0\mathrm{e}0$ & $6.8$ & $17.6$ & $1.0\mathrm{e}3$ & $1.2\mathrm{e}3$ \\
+$60$ & $25266.1$ & $29614.0$ & $4.4\mathrm{e}4$ & $1.0\mathrm{e}5$ & $\mathbf{2.7}$ & $8.4$ & $3.0\mathrm{e}{-2}$ & $4.0\mathrm{e}{-2}$ & $2.8$ & $6.9$ & $8.0\mathrm{e}0$ & $8.0\mathrm{e}0$ & $3.2$ & $8.9$ & $1.7\mathrm{e}3$ & $1.8\mathrm{e}3$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1917,14 +1654,14 @@ $60$ & $25266.1$ $29614.0$ & $4.4\mathrm{e}4$ $1.0\mathrm{e}5$ & $\mathbf{2.7}$ 
         \addlegendentry{GA $[1{,}80]$}
   \end{axis}
 \end{tikzpicture}
-\caption{Mean relative gap of the three heuristics on the small scale, against the optimum the model returned. A solid line is $a_j,b_j\in[1,40]$, a dashed line $a_j,b_j\in[1,80]$.}
+\caption{Mean relative gap of the 2-approximation and the two heuristics on the small scale, against the optimum the model returned. A solid line is $a_j,b_j\in[1,40]$, a dashed line $a_j,b_j\in[1,80]$.}
 \label{fig:gap-small}
 \end{figure}
 
 On this scale the three methods end within a point of one another, the search having travelled the
 whole way to join the two rules. What still separates them is the price: the model is exact but
 close to the limit of its budget, NEH is the closer of the two rules at the bottom of the scale
-and the 2-approximation at the top, and the search pays three orders of magnitude above both
+and the 2-approximation at the top, and the search pays two to five orders of magnitude above the
 rules for a gap of the same order. What that price buys is read on the large scale.
 
 \subsection{The large scale}
@@ -1934,22 +1671,23 @@ is the closest on average at $1.81$ per cent over the $32$ configurations, its m
 $3.20$ per cent and its worst instance $7.57$ per cent away, and NEH is the furthest at $4.40$
 per cent, its gap hardly moving over the scale -- $5.02$ at a hundred jobs against $3.60$ at four
 hundred on $[1,40]$, and $5.39$ against $4.47$ on $[1,80]$, with a worst instance $12.64$ per
-cent away. The genetic algorithm is the only method whose gap falls as the instance grows, and it
-falls steeply: $10.88$ per cent at a hundred and eighty jobs, $5.49$ at two hundred, $2.09$ at
+cent away. The genetic algorithm is the only method that overtakes the other two, and its gap falls
+steeply as the instance grows: $10.88$ per cent at a hundred and eighty jobs, $5.49$ at two hundred, $2.09$ at
 two hundred and forty and $0.22$ at four hundred on $[1,40]$, and $6.99$, $6.34$, $2.09$ and
 $0.13$ per cent on $[1,80]$. It passes NEH at $240$ jobs and the 2-approximation at about $260$
 on $[1,80]$ and $280$ on $[1,40]$, and over the $640$ instances of the scale it attains the best
-value on $318$ of them, against $283$ for the 2-approximation and $42$ for NEH. What it costs is
-time and the bottom of the scale: $70.8$\,s an instance on average, against $0.076$\,ms for the
-2-approximation and $0.76$\,s for NEH, with $313.5$\,s on its slowest instance of the $600$\,s a
-run allows, and its worst configuration and its worst instance both at the bottom, at $10.88$ and
+value on $318$ of them, against $283$ for the 2-approximation and $42$ for NEH, a tie counted for
+every method that attains the value. What it costs is time and the bottom of the scale: $70.8$\,s an
+instance on average, against $0.076$\,ms for the 2-approximation and $0.76$\,s for NEH, and
+$350.4$\,s on its slowest instance of the $600$\,s a run allows; its worst configuration is early
+in the scale, $10.88$ per cent at a hundred and eighty jobs, and its worst instance at a hundred,
 $28.17$ per cent.
 
 The two ranges agree on the ordering of the two rules and disagree on the search. The
 2-approximation is closer on the wider range, $1.70$ per cent against $1.92$, and NEH further from
-it, $4.79$ against $4.02$, so that the 2-approximation leads NEH on both ranges while the search
-overtakes it on one: $4.28$ against $4.02$ per cent on $[1,40]$, where the two are within a quarter
-of a point of one another, and $3.65$ against $4.79$ on $[1,80]$.
+it, $4.79$ against $4.02$, so that the 2-approximation leads NEH on both ranges. The search
+overtakes NEH only on $[1,80]$, at $3.65$ per cent against $4.79$, and does not on $[1,40]$, where
+it stands at $4.28$ against $4.02$.
 \Crefrange{tab:results-large-40}{tab:results-large-80} give the two ranges in full, and
 \Cref{fig:gap-large} the course of the gap over the scale.
 
@@ -1957,28 +1695,31 @@ of a point of one another, and $3.65$ against $4.79$ on $[1,80]$.
 \resultstable
 \caption{The large scale, $a_j,b_j\in[1,40]$: 2-approx., NEH, GA}
 \label{tab:results-large-40}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l r r @{\hspace{14pt}} r r @{\hspace{14pt}} r r@{}}
+\setlength{\tabcolsep}{8.15pt}
+\begin{tabular*}{\resultstabwidth}{@{}l r r r r @{\hspace{14pt}} r r r r @{\hspace{14pt}} r r r r@{}}
 \toprule
-\multirow{2}{*}{$n$} & \multicolumn{2}{c}{2-approx.} & \multicolumn{2}{c}{NEH} & \multicolumn{2}{c}{GA} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
- & gap & time (ms) & gap & time (ms) & gap & time (ms) \\
+\multirow{3}{*}{$n$} & \multicolumn{4}{c}{2-approx.} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}
+ & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}
+ & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
 \midrule
-$100$ & $\mathbf{3.2}$ $7.6$ & $3.0\mathrm{e}{-2}$ $7.0\mathrm{e}{-2}$ & $5.0$ $7.7$ & $3.5\mathrm{e}1$ $3.6\mathrm{e}1$ & $10.6$ $28.2$ & $1.4\mathrm{e}3$ $1.4\mathrm{e}3$ \\
-$120$ & $\mathbf{2.9}$ $5.1$ & $3.0\mathrm{e}{-2}$ $5.0\mathrm{e}{-2}$ & $4.3$ $11.0$ & $6.1\mathrm{e}1$ $6.7\mathrm{e}1$ & $9.7$ $21.4$ & $2.2\mathrm{e}3$ $2.3\mathrm{e}3$ \\
-$140$ & $\mathbf{2.7}$ $6.1$ & $3.0\mathrm{e}{-2}$ $4.0\mathrm{e}{-2}$ & $4.1$ $6.2$ & $9.2\mathrm{e}1$ $9.7\mathrm{e}1$ & $10.8$ $23.2$ & $3.2\mathrm{e}3$ $3.3\mathrm{e}3$ \\
-$160$ & $\mathbf{1.9}$ $3.7$ & $4.0\mathrm{e}{-2}$ $4.0\mathrm{e}{-2}$ & $4.6$ $7.1$ & $1.3\mathrm{e}2$ $1.4\mathrm{e}2$ & $9.6$ $20.5$ & $4.6\mathrm{e}3$ $4.7\mathrm{e}3$ \\
-$180$ & $\mathbf{2.4}$ $5.3$ & $4.0\mathrm{e}{-2}$ $7.0\mathrm{e}{-2}$ & $4.1$ $7.3$ & $1.9\mathrm{e}2$ $2.0\mathrm{e}2$ & $10.9$ $20.4$ & $6.4\mathrm{e}3$ $6.6\mathrm{e}3$ \\
-$200$ & $\mathbf{2.1}$ $5.1$ & $5.0\mathrm{e}{-2}$ $6.0\mathrm{e}{-2}$ & $3.9$ $8.5$ & $2.6\mathrm{e}2$ $2.7\mathrm{e}2$ & $5.5$ $14.2$ & $1.1\mathrm{e}4$ $1.1\mathrm{e}4$ \\
-$220$ & $\mathbf{2.0}$ $5.1$ & $6.0\mathrm{e}{-2}$ $1.0\mathrm{e}{-1}$ & $3.9$ $5.9$ & $3.5\mathrm{e}2$ $3.5\mathrm{e}2$ & $4.3$ $10.8$ & $1.7\mathrm{e}4$ $1.8\mathrm{e}4$ \\
-$240$ & $\mathbf{1.7}$ $3.5$ & $6.0\mathrm{e}{-2}$ $1.0\mathrm{e}{-1}$ & $4.2$ $7.2$ & $4.5\mathrm{e}2$ $4.6\mathrm{e}2$ & $2.1$ $8.1$ & $2.6\mathrm{e}4$ $2.7\mathrm{e}4$ \\
-$260$ & $\mathbf{1.7}$ $3.9$ & $7.0\mathrm{e}{-2}$ $8.0\mathrm{e}{-2}$ & $4.0$ $6.7$ & $5.7\mathrm{e}2$ $5.8\mathrm{e}2$ & $1.7$ $6.0$ & $3.9\mathrm{e}4$ $4.0\mathrm{e}4$ \\
-$280$ & $1.6$ $4.6$ & $7.0\mathrm{e}{-2}$ $8.0\mathrm{e}{-2}$ & $4.0$ $7.3$ & $7.2\mathrm{e}2$ $7.4\mathrm{e}2$ & $\mathbf{0.8}$ $3.8$ & $5.8\mathrm{e}4$ $5.9\mathrm{e}4$ \\
-$300$ & $2.1$ $5.4$ & $8.0\mathrm{e}{-2}$ $1.1\mathrm{e}{-1}$ & $4.1$ $6.2$ & $8.9\mathrm{e}2$ $9.1\mathrm{e}2$ & $\mathbf{0.7}$ $2.0$ & $7.7\mathrm{e}4$ $7.9\mathrm{e}4$ \\
-$320$ & $1.4$ $2.7$ & $9.0\mathrm{e}{-2}$ $1.4\mathrm{e}{-1}$ & $3.6$ $6.1$ & $1.1\mathrm{e}3$ $1.1\mathrm{e}3$ & $\mathbf{0.6}$ $2.4$ & $1.0\mathrm{e}5$ $1.0\mathrm{e}5$ \\
-$340$ & $1.3$ $4.0$ & $1.0\mathrm{e}{-1}$ $1.5\mathrm{e}{-1}$ & $3.5$ $5.5$ & $1.3\mathrm{e}3$ $1.3\mathrm{e}3$ & $\mathbf{0.4}$ $1.9$ & $1.3\mathrm{e}5$ $1.3\mathrm{e}5$ \\
-$360$ & $1.2$ $2.9$ & $1.1\mathrm{e}{-1}$ $1.4\mathrm{e}{-1}$ & $3.7$ $7.2$ & $1.6\mathrm{e}3$ $1.6\mathrm{e}3$ & $\mathbf{0.2}$ $0.9$ & $1.6\mathrm{e}5$ $1.6\mathrm{e}5$ \\
-$380$ & $1.3$ $3.1$ & $1.2\mathrm{e}{-1}$ $1.5\mathrm{e}{-1}$ & $3.8$ $6.0$ & $1.9\mathrm{e}3$ $2.1\mathrm{e}3$ & $\mathbf{0.4}$ $1.6$ & $2.1\mathrm{e}5$ $2.2\mathrm{e}5$ \\
-$400$ & $1.5$ $3.0$ & $2.0\mathrm{e}{-1}$ $8.9\mathrm{e}{-1}$ & $3.6$ $4.9$ & $2.4\mathrm{e}3$ $2.9\mathrm{e}3$ & $\mathbf{0.2}$ $1.1$ & $2.8\mathrm{e}5$ $3.3\mathrm{e}5$ \\
+$100$ & $\mathbf{3.2}$ & $7.6$ & $3.0\mathrm{e}{-2}$ & $7.0\mathrm{e}{-2}$ & $5.0$ & $7.7$ & $3.5\mathrm{e}1$ & $3.6\mathrm{e}1$ & $10.6$ & $28.2$ & $1.4\mathrm{e}3$ & $1.4\mathrm{e}3$ \\
+$120$ & $\mathbf{2.9}$ & $5.1$ & $3.0\mathrm{e}{-2}$ & $5.0\mathrm{e}{-2}$ & $4.3$ & $11.0$ & $6.1\mathrm{e}1$ & $6.7\mathrm{e}1$ & $9.7$ & $21.4$ & $2.2\mathrm{e}3$ & $2.3\mathrm{e}3$ \\
+$140$ & $\mathbf{2.7}$ & $6.1$ & $3.0\mathrm{e}{-2}$ & $4.0\mathrm{e}{-2}$ & $4.1$ & $6.2$ & $9.2\mathrm{e}1$ & $9.7\mathrm{e}1$ & $10.8$ & $23.2$ & $3.2\mathrm{e}3$ & $3.3\mathrm{e}3$ \\
+$160$ & $\mathbf{1.9}$ & $3.7$ & $4.0\mathrm{e}{-2}$ & $4.0\mathrm{e}{-2}$ & $4.6$ & $7.1$ & $1.3\mathrm{e}2$ & $1.4\mathrm{e}2$ & $9.6$ & $20.5$ & $4.6\mathrm{e}3$ & $4.7\mathrm{e}3$ \\
+$180$ & $\mathbf{2.4}$ & $5.3$ & $4.0\mathrm{e}{-2}$ & $7.0\mathrm{e}{-2}$ & $4.1$ & $7.3$ & $1.9\mathrm{e}2$ & $2.0\mathrm{e}2$ & $10.9$ & $20.4$ & $6.4\mathrm{e}3$ & $6.6\mathrm{e}3$ \\
+$200$ & $\mathbf{2.1}$ & $5.1$ & $5.0\mathrm{e}{-2}$ & $6.0\mathrm{e}{-2}$ & $3.9$ & $8.5$ & $2.6\mathrm{e}2$ & $2.7\mathrm{e}2$ & $5.5$ & $14.2$ & $1.1\mathrm{e}4$ & $1.1\mathrm{e}4$ \\
+$220$ & $\mathbf{2.0}$ & $5.1$ & $6.0\mathrm{e}{-2}$ & $1.0\mathrm{e}{-1}$ & $3.9$ & $5.9$ & $3.5\mathrm{e}2$ & $3.5\mathrm{e}2$ & $4.3$ & $10.8$ & $1.7\mathrm{e}4$ & $1.8\mathrm{e}4$ \\
+$240$ & $\mathbf{1.7}$ & $3.5$ & $6.0\mathrm{e}{-2}$ & $1.0\mathrm{e}{-1}$ & $4.2$ & $7.2$ & $4.5\mathrm{e}2$ & $4.6\mathrm{e}2$ & $2.1$ & $8.1$ & $2.6\mathrm{e}4$ & $2.7\mathrm{e}4$ \\
+$260$ & $\mathbf{1.7}$ & $3.9$ & $7.0\mathrm{e}{-2}$ & $8.0\mathrm{e}{-2}$ & $4.0$ & $6.7$ & $5.7\mathrm{e}2$ & $5.8\mathrm{e}2$ & $1.7$ & $6.0$ & $3.9\mathrm{e}4$ & $4.0\mathrm{e}4$ \\
+$280$ & $1.6$ & $4.6$ & $7.0\mathrm{e}{-2}$ & $8.0\mathrm{e}{-2}$ & $4.0$ & $7.3$ & $7.2\mathrm{e}2$ & $7.4\mathrm{e}2$ & $\mathbf{0.8}$ & $3.8$ & $5.8\mathrm{e}4$ & $5.9\mathrm{e}4$ \\
+$300$ & $2.1$ & $5.4$ & $8.0\mathrm{e}{-2}$ & $1.1\mathrm{e}{-1}$ & $4.1$ & $6.2$ & $8.9\mathrm{e}2$ & $9.1\mathrm{e}2$ & $\mathbf{0.7}$ & $2.0$ & $7.7\mathrm{e}4$ & $7.9\mathrm{e}4$ \\
+$320$ & $1.4$ & $2.7$ & $9.0\mathrm{e}{-2}$ & $1.4\mathrm{e}{-1}$ & $3.6$ & $6.1$ & $1.1\mathrm{e}3$ & $1.1\mathrm{e}3$ & $\mathbf{0.6}$ & $2.4$ & $1.0\mathrm{e}5$ & $1.0\mathrm{e}5$ \\
+$340$ & $1.3$ & $4.0$ & $1.0\mathrm{e}{-1}$ & $1.5\mathrm{e}{-1}$ & $3.5$ & $5.5$ & $1.3\mathrm{e}3$ & $1.3\mathrm{e}3$ & $\mathbf{0.4}$ & $1.9$ & $1.3\mathrm{e}5$ & $1.3\mathrm{e}5$ \\
+$360$ & $1.2$ & $2.9$ & $1.1\mathrm{e}{-1}$ & $1.4\mathrm{e}{-1}$ & $3.7$ & $7.2$ & $1.6\mathrm{e}3$ & $1.6\mathrm{e}3$ & $\mathbf{0.2}$ & $0.9$ & $1.6\mathrm{e}5$ & $1.6\mathrm{e}5$ \\
+$380$ & $1.3$ & $3.1$ & $1.2\mathrm{e}{-1}$ & $1.5\mathrm{e}{-1}$ & $3.8$ & $6.0$ & $1.9\mathrm{e}3$ & $2.1\mathrm{e}3$ & $\mathbf{0.4}$ & $1.6$ & $2.1\mathrm{e}5$ & $2.2\mathrm{e}5$ \\
+$400$ & $1.5$ & $3.0$ & $2.0\mathrm{e}{-1}$ & $8.9\mathrm{e}{-1}$ & $3.6$ & $4.9$ & $2.4\mathrm{e}3$ & $2.9\mathrm{e}3$ & $\mathbf{0.2}$ & $1.1$ & $2.8\mathrm{e}5$ & $3.3\mathrm{e}5$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1987,28 +1728,31 @@ $400$ & $1.5$ $3.0$ & $2.0\mathrm{e}{-1}$ $8.9\mathrm{e}{-1}$ & $3.6$ $4.9$ & $2
 \resultstable
 \caption{The large scale, $a_j,b_j\in[1,80]$: 2-approx., NEH, GA}
 \label{tab:results-large-80}
-\begin{tabular*}{\resultstabwidth}{@{\extracolsep{\fill}}l r r @{\hspace{14pt}} r r @{\hspace{14pt}} r r@{}}
+\setlength{\tabcolsep}{8.15pt}
+\begin{tabular*}{\resultstabwidth}{@{}l r r r r @{\hspace{14pt}} r r r r @{\hspace{14pt}} r r r r@{}}
 \toprule
-\multirow{2}{*}{$n$} & \multicolumn{2}{c}{2-approx.} & \multicolumn{2}{c}{NEH} & \multicolumn{2}{c}{GA} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
- & gap & time (ms) & gap & time (ms) & gap & time (ms) \\
+\multirow{3}{*}{$n$} & \multicolumn{4}{c}{2-approx.} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}
+ & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}
+ & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
 \midrule
-$100$ & $\mathbf{2.8}$ $5.3$ & $3.0\mathrm{e}{-2}$ $5.0\mathrm{e}{-2}$ & $5.4$ $12.6$ & $3.6\mathrm{e}1$ $3.7\mathrm{e}1$ & $9.0$ $23.6$ & $1.4\mathrm{e}3$ $1.5\mathrm{e}3$ \\
-$120$ & $\mathbf{2.4}$ $4.7$ & $3.0\mathrm{e}{-2}$ $6.0\mathrm{e}{-2}$ & $4.6$ $6.5$ & $6.0\mathrm{e}1$ $6.6\mathrm{e}1$ & $9.1$ $20.9$ & $2.2\mathrm{e}3$ $2.2\mathrm{e}3$ \\
-$140$ & $\mathbf{2.2}$ $6.0$ & $3.0\mathrm{e}{-2}$ $4.0\mathrm{e}{-2}$ & $4.8$ $8.4$ & $9.1\mathrm{e}1$ $9.3\mathrm{e}1$ & $7.2$ $15.1$ & $3.1\mathrm{e}3$ $3.2\mathrm{e}3$ \\
-$160$ & $\mathbf{2.6}$ $5.5$ & $4.0\mathrm{e}{-2}$ $4.0\mathrm{e}{-2}$ & $4.0$ $7.5$ & $1.4\mathrm{e}2$ $1.4\mathrm{e}2$ & $10.2$ $21.9$ & $4.6\mathrm{e}3$ $4.7\mathrm{e}3$ \\
-$180$ & $\mathbf{2.1}$ $4.7$ & $4.0\mathrm{e}{-2}$ $5.0\mathrm{e}{-2}$ & $4.7$ $7.2$ & $1.9\mathrm{e}2$ $2.0\mathrm{e}2$ & $7.0$ $17.1$ & $6.4\mathrm{e}3$ $6.7\mathrm{e}3$ \\
-$200$ & $\mathbf{1.9}$ $6.6$ & $5.0\mathrm{e}{-2}$ $7.0\mathrm{e}{-2}$ & $5.0$ $8.6$ & $2.6\mathrm{e}2$ $2.7\mathrm{e}2$ & $6.3$ $17.5$ & $1.1\mathrm{e}4$ $1.1\mathrm{e}4$ \\
-$220$ & $\mathbf{1.4}$ $3.0$ & $5.0\mathrm{e}{-2}$ $6.0\mathrm{e}{-2}$ & $5.1$ $7.6$ & $3.4\mathrm{e}2$ $3.5\mathrm{e}2$ & $2.5$ $7.3$ & $1.7\mathrm{e}4$ $1.8\mathrm{e}4$ \\
-$240$ & $\mathbf{1.3}$ $2.4$ & $6.0\mathrm{e}{-2}$ $7.0\mathrm{e}{-2}$ & $4.6$ $8.0$ & $4.5\mathrm{e}2$ $4.6\mathrm{e}2$ & $2.1$ $6.8$ & $2.6\mathrm{e}4$ $2.7\mathrm{e}4$ \\
-$260$ & $1.9$ $4.9$ & $7.0\mathrm{e}{-2}$ $8.0\mathrm{e}{-2}$ & $5.6$ $8.0$ & $5.7\mathrm{e}2$ $5.8\mathrm{e}2$ & $\mathbf{1.9}$ $5.7$ & $3.9\mathrm{e}4$ $4.0\mathrm{e}4$ \\
-$280$ & $1.4$ $3.1$ & $7.0\mathrm{e}{-2}$ $9.0\mathrm{e}{-2}$ & $3.9$ $6.5$ & $7.2\mathrm{e}2$ $7.3\mathrm{e}2$ & $\mathbf{0.7}$ $2.4$ & $5.8\mathrm{e}4$ $5.9\mathrm{e}4$ \\
-$300$ & $1.2$ $2.9$ & $9.0\mathrm{e}{-2}$ $1.3\mathrm{e}{-1}$ & $4.9$ $6.7$ & $8.9\mathrm{e}2$ $9.1\mathrm{e}2$ & $\mathbf{1.1}$ $3.8$ & $7.7\mathrm{e}4$ $7.8\mathrm{e}4$ \\
-$320$ & $1.2$ $3.1$ & $9.0\mathrm{e}{-2}$ $1.2\mathrm{e}{-1}$ & $4.3$ $6.0$ & $1.1\mathrm{e}3$ $1.1\mathrm{e}3$ & $\mathbf{0.5}$ $1.8$ & $9.9\mathrm{e}4$ $1.0\mathrm{e}5$ \\
-$340$ & $1.1$ $3.0$ & $1.0\mathrm{e}{-1}$ $1.2\mathrm{e}{-1}$ & $4.6$ $6.6$ & $1.3\mathrm{e}3$ $1.3\mathrm{e}3$ & $\mathbf{0.2}$ $1.0$ & $1.3\mathrm{e}5$ $1.3\mathrm{e}5$ \\
-$360$ & $1.2$ $2.2$ & $1.1\mathrm{e}{-1}$ $1.3\mathrm{e}{-1}$ & $5.4$ $6.8$ & $1.6\mathrm{e}3$ $1.6\mathrm{e}3$ & $\mathbf{0.2}$ $1.4$ & $1.6\mathrm{e}5$ $1.6\mathrm{e}5$ \\
-$380$ & $1.6$ $3.3$ & $1.2\mathrm{e}{-1}$ $1.3\mathrm{e}{-1}$ & $5.2$ $7.3$ & $1.9\mathrm{e}3$ $2.0\mathrm{e}3$ & $\mathbf{0.4}$ $1.8$ & $2.1\mathrm{e}5$ $2.1\mathrm{e}5$ \\
-$400$ & $1.1$ $3.7$ & $2.0\mathrm{e}{-1}$ $4.3\mathrm{e}{-1}$ & $4.5$ $7.7$ & $2.7\mathrm{e}3$ $3.2\mathrm{e}3$ & $\mathbf{0.1}$ $0.7$ & $3.1\mathrm{e}5$ $3.5\mathrm{e}5$ \\
+$100$ & $\mathbf{2.8}$ & $5.3$ & $3.0\mathrm{e}{-2}$ & $5.0\mathrm{e}{-2}$ & $5.4$ & $12.6$ & $3.6\mathrm{e}1$ & $3.7\mathrm{e}1$ & $9.0$ & $23.6$ & $1.4\mathrm{e}3$ & $1.5\mathrm{e}3$ \\
+$120$ & $\mathbf{2.4}$ & $4.7$ & $3.0\mathrm{e}{-2}$ & $6.0\mathrm{e}{-2}$ & $4.6$ & $6.5$ & $6.0\mathrm{e}1$ & $6.6\mathrm{e}1$ & $9.1$ & $20.9$ & $2.2\mathrm{e}3$ & $2.2\mathrm{e}3$ \\
+$140$ & $\mathbf{2.2}$ & $6.0$ & $3.0\mathrm{e}{-2}$ & $4.0\mathrm{e}{-2}$ & $4.8$ & $8.4$ & $9.1\mathrm{e}1$ & $9.3\mathrm{e}1$ & $7.2$ & $15.1$ & $3.1\mathrm{e}3$ & $3.2\mathrm{e}3$ \\
+$160$ & $\mathbf{2.6}$ & $5.5$ & $4.0\mathrm{e}{-2}$ & $4.0\mathrm{e}{-2}$ & $4.0$ & $7.5$ & $1.4\mathrm{e}2$ & $1.4\mathrm{e}2$ & $10.2$ & $21.9$ & $4.6\mathrm{e}3$ & $4.7\mathrm{e}3$ \\
+$180$ & $\mathbf{2.1}$ & $4.7$ & $4.0\mathrm{e}{-2}$ & $5.0\mathrm{e}{-2}$ & $4.7$ & $7.2$ & $1.9\mathrm{e}2$ & $2.0\mathrm{e}2$ & $7.0$ & $17.1$ & $6.4\mathrm{e}3$ & $6.7\mathrm{e}3$ \\
+$200$ & $\mathbf{1.9}$ & $6.6$ & $5.0\mathrm{e}{-2}$ & $7.0\mathrm{e}{-2}$ & $5.0$ & $8.6$ & $2.6\mathrm{e}2$ & $2.7\mathrm{e}2$ & $6.3$ & $17.5$ & $1.1\mathrm{e}4$ & $1.1\mathrm{e}4$ \\
+$220$ & $\mathbf{1.4}$ & $3.0$ & $5.0\mathrm{e}{-2}$ & $6.0\mathrm{e}{-2}$ & $5.1$ & $7.6$ & $3.4\mathrm{e}2$ & $3.5\mathrm{e}2$ & $2.5$ & $7.3$ & $1.7\mathrm{e}4$ & $1.8\mathrm{e}4$ \\
+$240$ & $\mathbf{1.3}$ & $2.4$ & $6.0\mathrm{e}{-2}$ & $7.0\mathrm{e}{-2}$ & $4.6$ & $8.0$ & $4.5\mathrm{e}2$ & $4.6\mathrm{e}2$ & $2.1$ & $6.8$ & $2.6\mathrm{e}4$ & $2.7\mathrm{e}4$ \\
+$260$ & $1.9$ & $4.9$ & $7.0\mathrm{e}{-2}$ & $8.0\mathrm{e}{-2}$ & $5.6$ & $8.0$ & $5.7\mathrm{e}2$ & $5.8\mathrm{e}2$ & $\mathbf{1.9}$ & $5.7$ & $3.9\mathrm{e}4$ & $4.0\mathrm{e}4$ \\
+$280$ & $1.4$ & $3.1$ & $7.0\mathrm{e}{-2}$ & $9.0\mathrm{e}{-2}$ & $3.9$ & $6.5$ & $7.2\mathrm{e}2$ & $7.3\mathrm{e}2$ & $\mathbf{0.7}$ & $2.4$ & $5.8\mathrm{e}4$ & $5.9\mathrm{e}4$ \\
+$300$ & $1.2$ & $2.9$ & $9.0\mathrm{e}{-2}$ & $1.3\mathrm{e}{-1}$ & $4.9$ & $6.7$ & $8.9\mathrm{e}2$ & $9.1\mathrm{e}2$ & $\mathbf{1.1}$ & $3.8$ & $7.7\mathrm{e}4$ & $7.8\mathrm{e}4$ \\
+$320$ & $1.2$ & $3.1$ & $9.0\mathrm{e}{-2}$ & $1.2\mathrm{e}{-1}$ & $4.3$ & $6.0$ & $1.1\mathrm{e}3$ & $1.1\mathrm{e}3$ & $\mathbf{0.5}$ & $1.8$ & $9.9\mathrm{e}4$ & $1.0\mathrm{e}5$ \\
+$340$ & $1.1$ & $3.0$ & $1.0\mathrm{e}{-1}$ & $1.2\mathrm{e}{-1}$ & $4.6$ & $6.6$ & $1.3\mathrm{e}3$ & $1.3\mathrm{e}3$ & $\mathbf{0.2}$ & $1.0$ & $1.3\mathrm{e}5$ & $1.3\mathrm{e}5$ \\
+$360$ & $1.2$ & $2.2$ & $1.1\mathrm{e}{-1}$ & $1.3\mathrm{e}{-1}$ & $5.4$ & $6.8$ & $1.6\mathrm{e}3$ & $1.6\mathrm{e}3$ & $\mathbf{0.2}$ & $1.4$ & $1.6\mathrm{e}5$ & $1.6\mathrm{e}5$ \\
+$380$ & $1.6$ & $3.3$ & $1.2\mathrm{e}{-1}$ & $1.3\mathrm{e}{-1}$ & $5.2$ & $7.3$ & $1.9\mathrm{e}3$ & $2.0\mathrm{e}3$ & $\mathbf{0.4}$ & $1.8$ & $2.1\mathrm{e}5$ & $2.1\mathrm{e}5$ \\
+$400$ & $1.1$ & $3.7$ & $2.0\mathrm{e}{-1}$ & $4.3\mathrm{e}{-1}$ & $4.5$ & $7.7$ & $2.7\mathrm{e}3$ & $3.2\mathrm{e}3$ & $\mathbf{0.1}$ & $0.7$ & $3.1\mathrm{e}5$ & $3.5\mathrm{e}5$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -2041,49 +1785,46 @@ $400$ & $1.1$ $3.7$ & $2.0\mathrm{e}{-1}$ $4.3\mathrm{e}{-1}$ & $4.5$ $7.7$ & $2
         \addlegendentry{GA $[1{,}80]$}
   \end{axis}
 \end{tikzpicture}
-\caption{Mean relative gap of the three heuristics on the large scale, against the lower bound $LB$. A solid line is $a_j,b_j\in[1,40]$, a dashed line $a_j,b_j\in[1,80]$.}
+\caption{Mean relative gap of the 2-approximation and the two heuristics on the large scale, against the lower bound $LB$. A solid line is $a_j,b_j\in[1,40]$, a dashed line $a_j,b_j\in[1,80]$.}
 \label{fig:gap-large}
 \end{figure}
 
 At this scale, then, the rules stay within a few points of the bound while the search falls
 through both, and it is there, and only there, that the population buys a value the rules do not
 reach. What the study reads is a division of labour rather than a ranking. The
-2-approximation is the cheapest method by six orders of magnitude and stays within five per cent
-of the optimum on the small scale and within $1.81$ per cent of $LB$ on the large one, which says
-that the factor of two of \Cref{thm:approx2} is loose by an order of magnitude on instances of
-this kind. What it cannot do is read anything but the weights, and that is the ground NEH takes:
-NEH reads the two processing times and no weight, which makes it the closest method at the bottom
-of the small scale and the furthest at the top of the large one, where its gap does not close as
-the instance grows.
+2-approximation is the cheapest method by six orders of magnitude and averages $3.52$ per cent
+above the optimum on the small scale, with a worst instance at $16.71$, and $1.81$ per cent above
+$LB$ on the large one, with a worst at $7.57$, which says that the factor of two of
+\Cref{thm:approx2} is loose by more than an order of magnitude on instances of this kind. What it
+cannot do is read anything but the weights, and that is the ground NEH takes: NEH's initial order
+reads the processing times alone, and each insertion is judged by the weighted objective, which
+makes it the closest method at the bottom of the small scale and the furthest at the top of the
+large one, where its gap does not close as the instance grows.
 
 The two methods that carry the study beyond a rule sit at opposite ends of it. The dynamic program
 is the only one that certifies an optimum, and it does so cheaply where it applies, at $1.47$\,s
 for forty jobs on $[1,40]$, but its applicability is the restriction: two weight classes, at most
 a hundred jobs, and a third class that exhausts the memory of the machine before the search
-starts. The genetic algorithm is the reverse. It certifies nothing, it costs three orders of
+starts. The genetic algorithm is the reverse. It certifies nothing, it costs two to five orders of
 magnitude more than the rules on the small scale and more than ninety times NEH on the large one,
-and it is nevertheless the only method that beats both rules, on $318$ of the $640$ large
-instances and from about $260$ jobs on. Neither is read on the instances of the other, the dynamic
+and it is nevertheless the one that beats both rules from about $240$ to $280$ jobs on, best on
+$318$ of the $640$ large instances against $283$ and $42$. Neither is read on the instances of the other, the dynamic
 program on a set of its own at $K=2$ and the search on instances that carry up to thirty weight
 classes, so what separates them is not a common benchmark but the question each answers: whether
 the optimum can be certified at all, or whether a schedule that beats every rule can be built at
 the sizes that arise. The reason the search needs the room is the start it is given: Johnson's
-rule carries no weight, so its early generations are spent building the criterion into the
+rule carries no weight, so its early generations are spent building the objective into the
 schedule before it can profit from it.
 
 Two properties of the comparison are worth keeping in view. The large-scale gaps are distances to
-$LB$, which caps the optimum by the three prefix bounds of \cref{eq:lb} and is tight only where
+$LB$, which bounds the optimum from below through the three prefix bounds of \cref{eq:lb} and is tight only where
 the heaviest jobs are also the earliest ones; what they order reliably is therefore the methods
 and not their absolute quality. And the answers depend on the processing-time range: the average
 advantage of the search over NEH, $3.97$ against $4.40$ per cent, is earned on $[1,80]$ alone.
 
-What would extend the study follows from each of its limits. On the exact side the dynamic program
-is stopped by memory, so dominance rules that drop a state another state beats, or a solution of
-one weight class at a time, are the way past $K=2$, with the scheme of \Cref{sub:fptas} the
-memory-lean alternative where they are not enough. On the side of the search, seeding the
-population with the order the 2-approximation returns costs microseconds and carries the weights
-the Johnson order lacks, which is the cheap way to move the size at which the search overtakes the
-rules. Both point at the same economy, of spending the budget where the criterion still moves.
+One lever is left unpulled on the side of the search. Seeding its population with the order the
+2-approximation returns costs microseconds and carries the weights the Johnson order lacks, which
+is the cheap way to move the size at which the search overtakes the rules.
 
 \FloatBarrier
 \clearpage
@@ -2092,11 +1833,11 @@ rules. Both point at the same economy, of spending the budget where the criterio
 \label{sec:conclusion}
 
 This paper has shown that the two-machine flow shop with the maximum weighted completion time as
-its criterion is strongly NP-hard, and that it admits a structure on which exact computation
+its objective is strongly NP-hard, and that it admits a structure on which exact computation
 becomes possible: an optimal schedule is a permutation, it splits into one block per distinct
 weight, Johnson's order holds inside a block, and the blocks follow the weights in non-increasing
 order. The dynamic program built on that structure prunes dominated states and runs in
-$O(nKV^{3K-3})$ time, the 2-approximation reads the weights alone and runs in $O(n\log n)$ time,
+$O(nK2^{K}V^{3K-3})$ time, the 2-approximation reads the weights alone and runs in $O(n\log n)$ time,
 the approximation scheme attains a $(1+\varepsilon)$ guarantee for a constant number of weights,
 and the two heuristics, an adapted NEH and a genetic algorithm, cover the sizes at which none of
 the exact methods reaches.
@@ -2107,8 +1848,7 @@ hundred jobs on $[1,40]$ and to eighty on $[1,80]$, where it is the $600$\,s lim
 correctness that stops it. Against the optimum the 2-approximation stays within $3.5$ per cent on
 average and NEH within $2.5$; against the lower bound on the large scale the same two rules stay
 within $1.8$ and $4.4$ per cent, while the genetic algorithm, the weakest of the three on small
-instances, is the only method whose gap falls as the instance grows, and it passes both rules
-beyond about $260$ jobs. The practical reading is a division of labour rather than a ranking: the
+instances, is the only method that overtakes both rules, passing them at about $240$ to $280$ jobs. The practical reading is a division of labour rather than a ranking: the
 rules are cheap and dependable, the exact methods certify within their reach, and the search buys
 values that neither rule reaches.
 
