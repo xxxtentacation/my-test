@@ -112,63 +112,70 @@ algorithms and a computational study}
 \section{Introduction}
 \label{sec:intro}
 
-The maximum weighted completion time is a bottleneck objective in scheduling. With a few jobs
-carrying large weights, the schedule is judged by the job with a large weight and a late completion.
-The objective differs from the makespan, the completion time of the last job. The two objectives
-coincide for equal weights; with unequal weights, the weighted objective can favor a schedule with a
-larger makespan. Such a schedule serves the important jobs earlier. This paper studies the two-machine
-flow shop; Johnson's rule minimizes the makespan \citep{johnson1954optimal}. That rule ignores
-weights.
+The maximum weighted completion time is a special class of weighted problem models, 
+which arises in certain specific steps of wafer manufacturing. A wafer lot, typically a cassette of
+twenty-five wafers, passes layer by layer through lithography, etching, deposition, implantation and
+polishing.Where photolithography is a few hot lots must be expedited ahead of regular lots. 
+The two-machine flow shop studied here is a simplified version of such a line, with each
+lot visiting each machine once. Also called the weighted makespan, the objective takes the largest
+product of a job's weight and its completion time. A lot's weight reflects its priority, so the
+schedule is judged by the worst job. The objective differs from the makespan, the completion time of the last
+job. The two objectives coincide for equal weights; with unequal weights, the weighted objective can
+favor a schedule with a larger makespan. Such a schedule serves the important jobs earlier. Johnson's
+rule minimizes the makespan of the two-machine flow shop \citep{johnson1954optimal}, but that rule
+ignores weights.
 
-Our objective is the maximum weighted completion time, also called the weighted makespan. Each job
-carries a weight, and its weighted completion time is the product of that weight and its completion
-time. The objective is the largest of these values: a schedule is judged by its worst job, and one job
-can decide the value of the whole schedule.
-The objective arises in a real sequencing problem in semiconductor fabrication. A wafer lot,
-typically a cassette of twenty-five wafers, undergoes photolithography, etching, deposition,
-implantation and polishing. A chip is built layer by layer, with each layer sending the lot back
-through photolithography and etching. A lot may visit the photolithography area dozens of times,
-usually the bottleneck of the line. The lots are not equally important: a few hot lots must be
-expedited and take priority over regular lots, with regular lots filling the remaining capacity. A
-hot lot can wait behind regular lots, delaying a customer order promised for early delivery. The
-two-machine flow shop in this paper is a simplified version of such a line, with each lot visiting
-each machine once. The scheduling problem is to order the lots and minimize the largest weighted
-completion time. In the model, a lot's weight reflects its priority, and the worst hot lot determines
-the value of the schedule.
+The two-machine flow shop scheduling problem remains a central topic in scheduling theory
+\citep{pinedo2022scheduling}. The problem was first studied in \citep{johnson1954optimal}, where an
+optimal permutation schedule was shown to exist for the makespan objective. The same objective
+becomes strongly $\mathcal{NP}$-hard when a third machine is added
+\citep{gareyjohnson1976complexity}. For larger shops, constructive heuristics build a schedule one
+job at a time, beginning with the NEH heuristic \citep{nawaz1983heuristic}. A simple and effective
+iterated greedy algorithm improves the makespan at a higher computational cost
+\citep{ruiz2007simple}, and NEH has been refined into the deterministic constructive vN-NEH+
+algorithm \citep{puka2024}. Branch-and-bound algorithms remain the main exact approach, and a
+computationally efficient implementation has been developed \citep{gmys2020branch}. Johnson's rule
+has recently been revisited: a full sort can often be avoided, so that an optimal schedule is
+obtained in $O(n)$ time with high probability under uniformly distributed processing times
+\citep{dellacroce2026revisiting}. Beyond the deterministic makespan, the two-machine shop has also
+been studied under disruption and in extended settings. For a random breakdown on the first machine
+with a service-level constraint on its stochastic start time, two mixed integer linear models have
+been strengthened with lower bounds and a valid inequality \citep{hnaien2023random}. A
+branch-and-bound algorithm has been proposed to minimize the value-at-risk of the makespan in a
+stochastic two-machine flow shop \citep{liu2024branch}, and the approach has been extended to a
+two-machine re-entrant flow shop using Markovian activity networks and phase-type distributions
+\citep{liu2024robust}. Scheduling and rejection decisions have been coordinated in a two-machine
+flow shop, with exact and approximation algorithms that include a fixed-parameter algorithm, a
+pseudo-polynomial algorithm and a fully polynomial-time approximation scheme (FPTAS)
+\citep{shabtay2024coordinating}. A distributed flow shop with inter-factory transportation has also
+been studied \citep{becker2025distributed}.
 
-For the flow shop itself, the makespan has been studied extensively beyond Johnson's rule. Insertion
-heuristics and their refinements build a schedule one job at a time
-\citep{nawaz1983heuristic,puka2024}. Branch-and-bound procedures address stochastic and re-entrant
-shops \citep{liu2024branch,liu2024robust}. The same objective has also been studied in distributed,
-assembly and transport variants
-\citep{han2024cooperative,ying2025minimising,becker2025distributed}. Weighted objectives have been
-studied for the sum rather than the maximum: the total weighted completion time is NP-hard already
-with two machines \citep{gareyjohnson1976complexity}. The methods for it rely on additivity, absent
-from the maximum. Flow shops with reentry have been studied for the total weighted completion time
-as well \citep{aspern2025flow}. To the best of our knowledge, the maximum weighted completion time
-has not been studied on two machines.
+On two machines, the objectives studied beyond the makespan include the total completion time and
+the total weighted completion time. Both are $\mathcal{NP}$-hard \citep{gareyjohnson1976complexity}.
+For the total completion time, branch-and-bound algorithms based on a network-flow formulation have
+been developed \citep{detienne2016two}. The total weighted completion time has also been studied in
+flow shops with reentry \citep{aspern2025flow}. These methods exploit additivity, a property absent
+from the maximum. Research on the weighted makespan has developed in several other directions. In
+two-agent scheduling on a single machine, one agent minimizes the maximum weighted completion time
+and the other the total weighted completion time, and a 2-approximation algorithm and a
+polynomial-time approximation scheme have been given when the number of jobs of the first agent is
+fixed \citep{NongChengNg2011EJOR}. In online scheduling on identical machines, a best possible
+algorithm has been given when all jobs have a common processing time, and on a single machine the
+algorithm has a competitive ratio of 3, against a lower bound of 2 \citep{Li-Wenjie2015APJOR}. For
+identical parallel machines, a 2-approximation algorithm and randomized approximation schemes have
+been given \citep{Sun2024JOCO}. Order acceptance and scheduling with rejection has been studied,
+where the objective is the weighted makespan of the accepted jobs plus the total rejection cost
+\citep{LuZuoZhangOu20254OR}. For a single machine with a restricted rate-modifying activity, two
+variants are binary $\mathcal{NP}$-hard, and pseudo-polynomial dynamic programs and fully
+polynomial-time approximation schemes have been provided \citep{ZuoZhangShiFan2026DAM}. However, to
+our knowledge, the weighted makespan has not yet been investigated in the two-machine flow shop.
 
-Two features shape the difficulty. Two machines in series make each completion time depend on the
-idle time of its predecessors, and the objective is a maximum rather than a sum, so it is not
-additive across jobs. An exchange that shortens many completion times but lengthens the worst job
-does not improve the value. Johnson's rule has no direct extension to unequal weights. We will prove
-that the problem is strongly NP-hard, even with polynomially bounded processing times. The number of
-distinct weights, $K$, is the governing parameter: for $K=1$, the problem reduces to the makespan;
-the general case is a high-multiplicity problem \citep{koutecky2025complexity}. Jobs of equal weight
-are therefore interchangeable. An optimal schedule can be taken to be a permutation with one block
-per distinct weight, Johnson's order within each block, and the blocks in non-increasing weight
-order. The paper makes five contributions: (i) a mixed integer programming formulation; (ii) a proof
-of this hardness by a reduction from 3-Partition; (iii) this structural theorem; (iv) an exact
-dynamic program in $O(nK2^{K}V^{3K-3})$ time, a 2-approximation in $O(n\log n)$ time, and a fully
-polynomial-time approximation scheme for a fixed $K$; and (v) an adapted NEH heuristic, a genetic
-algorithm, and a computational study on $440$ small and $640$ large instances.
-
-The rest of the paper is organized as follows. \Cref{sec:preliminaries} states the problem and gives
-the mixed integer programming formulation. \Cref{sec:complexity} gives the hardness proof.
-\Cref{sec:dp_algorithm} presents the structural theorem, the dynamic program, the 2-approximation
-and the approximation scheme. \Cref{sec:heuristics} describes the adapted NEH and the genetic
-algorithm. \Cref{sec:experiments} reports the computational study, and \Cref{sec:conclusion}
-concludes.
+The paper makes five contributions: a mixed integer programming formulation, a strong NP-hardness
+proof, this structural theorem, three algorithms (an exact dynamic program, a 2-approximation and an
+approximation scheme), and an adapted NEH heuristic, a genetic algorithm and a computational study
+on $440$ small and $640$ large instances. \Cref{sec:preliminaries} and \Cref{sec:complexity} give the formulation and the hardness
+proof, \Cref{sec:dp_algorithm} the structural theorem and the algorithms, \Cref{sec:heuristics} the
+heuristics, and \Cref{sec:experiments} the computational study; \Cref{sec:conclusion} concludes.
 
 \section{Problem description}    
 \label{sec:preliminaries}
@@ -1119,19 +1126,13 @@ completion-time rounding.
 \section{Heuristic algorithms}
 \label{sec:heuristics}
 
-The exact dynamic program of \Cref{sec:dp_algorithm} is pseudo-polynomial, and the
-running time of the FPTAS of \Cref{sub:fptas} is exponential in the number $K$ of
-distinct weights. Fast heuristics are therefore the practical route for large instances.
-This section presents two of them for $F2 \parallel W C_{\max}$: an adaptation of the NEH
-algorithm \citep{puka2024} and a genetic algorithm \citep{qiao2022adaptive}.
+The exact dynamic program of \Cref{sec:dp_algorithm} is pseudo-polynomial, and the FPTAS of
+\Cref{sub:fptas} is exponential in the number $K$ of distinct weights, so large instances call
+for heuristics. This section presents two: an adaptation of the NEH heuristic and a genetic
+algorithm.
 
-Throughout this section, the objective of a permutation
-$\pi=(\pi(1),\dots,\pi(k))$ of $k$ jobs is evaluated by \cref{eq:completion} and
-\cref{eq:wcmax}, so that
-\[
-W C_{\max}(\pi)=\max_{1\le t\le k} w_{\pi(t)}\, C_{\pi(t)},
-\]
-which is computed in $O(k)$ time.
+Throughout this section, the objective of a permutation is evaluated by \cref{eq:completion} and
+\cref{eq:wcmax}.
 
 \subsection{The NEH heuristic}
 Constructive heuristics build a complete schedule in a single pass and need no tuning, and NEH
@@ -1170,102 +1171,17 @@ let $J_{1},\dots,J_{n}$ be the resulting sequence. \;
 \subsection{The genetic algorithm}
 \label{sub:ga}
 
-The objective is a maximum: one \emph{critical} job attains it, and its weighted
-completion time is the value of the whole schedule. An improvement must therefore lower the
-completion time of that job, and every other weighted completion time must stay below the new
-maximum. The two aims this sets pull in opposite directions. Placing heavy jobs early lowers their
-weighted completion times but pushes the light ones back and lengthens the makespan, while
-sequencing on the processing times alone shortens the makespan and ignores the weights. A genetic
-algorithm for $F2 \parallel W C_{\max}$ therefore cannot treat the jobs symmetrically.
+The criterion is a maximum, so a single job fixes the value of a schedule: the search must lower
+the weighted completion time of \emph{that} job without raising any other above it. Ordering by
+the weights and ordering by the processing times pull in opposite directions, so the jobs cannot
+be treated symmetrically.
 
-We use the genetic algorithm in the framework that \citet{qiao2022adaptive} propose for flow-shop
-scheduling: a permutation chromosome, an initial population of Johnson's schedule and $N-1$
-neighbours of it, binary tournament selection, partially mapped crossover, and, for survival, the
-non-dominated sorting and crowding distance of NSGA-II \citep{deb2002fast}, which recent flow-shop
-studies extend \citep{wang2023extended}. The survival ranks the pooled parents and offspring on the
-makespan, the weight of the closing job and the objective. The
-operators are those of that framework; what is adapted here is the mutation, which moves blocks of
-one weight rather than single jobs, so that the search follows the structure of
-\Cref{lem:block-johnson}. The run closes with a local search over the $k$ jobs that carry the
-largest weighted completion times, each reinserted at the position that lowers the objective most.
-\Cref{alg:pmx,alg:cm,alg:ga} give the operators and the algorithm.
-
-\subsubsection{Encoding and decoding}
-\textbf{Encoding.} A chromosome is a permutation $\pi=(\pi(1),\dots,\pi(n))$ of the $n$ jobs, in
-which the gene at position $t$ is the job scheduled $t$-th. Its length is the number of jobs and
-its alphabet the job set $\mathcal{J}$, and since both machines process the jobs in the order the
-chromosome gives, every chromosome stands for a permutation schedule and every permutation
-schedule for exactly one chromosome. No repair operator is therefore needed to restore feasibility
-after crossover or mutation.
-
-\textbf{Decoding.} Both machines process the jobs in the order $\pi(1),\dots,\pi(n)$. The
-completion time $C_{\pi(t)}$ of the $t$-th job follows from the closed form
-\cref{eq:completion}, which is evaluated in $O(n)$ time using the prefix sums
-$A_t=\sum_{h=1}^{t}a_{\pi(h)}$ and $B_t=\sum_{h=1}^{t}b_{\pi(h)}$; the objective
-value is that of \cref{eq:wcmax},
-\[
-W C_{\max}(\pi)=\max_{1\le t\le n}w_{\pi(t)}\,C_{\pi(t)}.
-\]
-The fitness of a schedule is the objective itself, $W C_{\max}(\pi)$, and no normalised scale
-is fixed for it. \Cref{fig:encoding} shows the encoding and
-the decoding on the six-job instance of \Cref{ex:blocking}.
-
-\begin{figure}[H]
-\centering
-\refstepcounter{figure}
-\begin{tikzpicture}[x=0.16in, y=0.32in, font=\footnotesize]
-	% the chromosome: the gene at position t is the job scheduled t-th
-	\node[anchor=east] at (-0.8,9.5) {$\pi$};
-	\foreach \x/\y/\job/\t in {0/4/{$J_5$}/1, 4/6/{$J_1$}/2, 6/12/{$J_3$}/3,
-	                           12/15/{$J_6$}/4, 15/23/{$J_4$}/5, 23/28/{$J_2$}/6} {
-		\draw[fill=gray!15] (\x,9.0) rectangle (\y,10.0) node[midway] {\job};
-		\node[font=\scriptsize] at ({(\x+\y)/2},10.35) {\t};
-	}
-	\node[anchor=west, font=\scriptsize] at (28.6,10.35) {$t$};
-
-	% decoding
-	\node at (14,8.35) {$\big\downarrow$ decode by \cref{eq:completion}};
-
-	% M_1 processes the jobs in the order of the genes
-	\node[anchor=east] at (-0.8,6.5) {$M_1$};
-	\foreach \x/\y/\job in {0/4/{$J_5$}, 4/6/{$J_1$}, 6/12/{$J_3$},
-	                        12/15/{$J_6$}, 15/23/{$J_4$}, 23/28/{$J_2$}} {
-		\draw[fill=gray!25] (\x,6.0) rectangle (\y,7.0) node[midway] {\job};
-	}
-
-	% M_2 starts each job when M_1 has finished it and M_2 is free
-	\node[anchor=east] at (-0.8,4.0) {$M_2$};
-	\foreach \x/\y/\job/\c/\v/\f in {4/7/{$J_5$}/7/28/gray!25,
-	                                 7/12/{$J_1$}/12/24/gray!25,
-	                                 12/21/{$J_3$}/21/105/gray!75,
-	                                 21/23/{$J_6$}/23/46/gray!25,
-	                                 23/27/{$J_4$}/27/54/gray!25,
-	                                 28/35/{$J_2$}/35/70/gray!25} {
-		\draw[fill=\f] (\x,3.5) rectangle (\y,4.5) node[midway] {\job};
-		\draw (\y,3.0) -- (\y,2.82);
-		\node[font=\scriptsize] at (\y,2.6) {\c};
-		\node[font=\scriptsize] at ({(\x+\y)/2},1.9) {\v};
-	}
-	\node[anchor=east] at (-0.8,1.9) {$w_jC_j$};
-	\draw[rounded corners=1pt] (15.55,1.6) rectangle (17.45,2.2);
-	\draw[thick] (0,3.0) -- (35,3.0);
-
-	% caption
-	\node[below, align=flush center] at (17.5,0.6) {Figure~\thefigure: Encoding and decoding};
-\end{tikzpicture}
-\label{fig:encoding}
-\end{figure}
-
-\subsubsection{Crossover and mutation}
-
-The crossover is the partially mapped crossover (PMX), the operator the framework uses for
-permutation chromosomes. Two cut points $p_1<p_2$ are drawn, the segment $\pi_1[p_1..p_2]$ is
-copied into the child, and the remaining positions are filled from $\pi_2$ through the mapping
-that the segment induces between the two parents, so that every position receives exactly one job
-and the child is always a valid permutation. \Cref{fig:pmx} shows one application: the grey cells
-are the copied segment, the three double arrows are the mapping it induces, and the red cells are
-the chain followed at position $1$ of the first child, where the gene taken from $\pi_2$ already
-occurs in the segment. \Cref{alg:pmx} gives the operator.
+The algorithm follows the permutation framework of \citet{qiao2022adaptive} and the survival rule of
+NSGA-II \citep{deb2002fast}, as recent flow-shop studies apply it \citep{wang2023extended}: a
+population seeded by Johnson's schedule, binary tournament selection, partially mapped crossover
+(\Cref{fig:pmx}), and non-dominated sorting with crowding distance. The mutation follows \Cref{lem:block-johnson}: it
+moves the run of jobs that share one weight rather than a single job. A local search then
+reinserts the jobs with the largest weighted completion times. \Cref{alg:ga} gives the procedure.
 
 \begin{figure}[H]
 \centering
@@ -1335,55 +1251,56 @@ occurs in the segment. \Cref{alg:pmx} gives the operator.
 \label{fig:pmx}
 \end{figure}
 
-\begin{algorithm}[H]
-\small
-\linespread{1.2}\selectfont
-\SetAlgoLined
-\DontPrintSemicolon
-\caption{Partially Mapped Crossover (PMX) for $F2 \parallel W C_{\max}$}\label{alg:pmx}
-\KwIn{Parents $\pi_1,\pi_2$; cut points $p_1<p_2$.}
-\BlankLine
-\textbf{Step 1.} [Copy segment] Set $\pi'[t]\gets\pi_1[t]$ for $t=p_1,\dots,p_2$. \;
-\textbf{Step 2.} [Fill outer positions] \For{$t=1$ \KwTo $n$, $t\notin[p_1,p_2]$}{
-    $j\gets\pi_2[t]$ \;
-    \While{$j$ occurs in $\pi'$}{
-        $j\gets\pi_2[\pi_1^{-1}(j)]$ \tcp*{follow the PMX mapping}
-    }
-    $\pi'[t]\gets j$ \;
-}
-\KwOut{Child $\pi'$.}
-\end{algorithm}
+\subsubsection{Encoding and decoding}
+A chromosome is a permutation of the jobs, read by both machines in the same order, so crossover
+and mutation always return feasible schedules. Its objective follows from \cref{eq:completion} and
+\cref{eq:wcmax} in linear time; \Cref{fig:encoding} gives an example.
 
-The crossover reads nothing of the weights, so the mutation is what keeps the search moving
-across them. Rather than one job at a time, it removes the run of jobs that share one weight,
-keeping their order, and reinserts the run at the position that minimizes $W C_{\max}(\pi)$; the
-weight is that of a job attaining the maximum, or, with probability one half, one drawn at
-random, so that the order of the blocks is explored as well as repaired. Moving a block forward
-delays the jobs it passes, so the move is proposed whether or not it lowers the objective, and it
-is the survival of the generation that decides what becomes of it. \Cref{alg:cm} gives the
-operator.
+\begin{figure}[H]
+\centering
+\refstepcounter{figure}
+\begin{tikzpicture}[x=0.16in, y=0.32in, font=\footnotesize]
+	% the chromosome: the gene at position t is the job scheduled t-th
+	\node[anchor=east] at (-0.8,9.5) {$\pi$};
+	\foreach \x/\y/\job/\t in {0/4/{$J_5$}/1, 4/6/{$J_1$}/2, 6/12/{$J_3$}/3,
+	                           12/15/{$J_6$}/4, 15/23/{$J_4$}/5, 23/28/{$J_2$}/6} {
+		\draw[fill=gray!15] (\x,9.0) rectangle (\y,10.0) node[midway] {\job};
+		\node[font=\scriptsize] at ({(\x+\y)/2},10.35) {\t};
+	}
+	\node[anchor=west, font=\scriptsize] at (28.6,10.35) {$t$};
 
-\begin{algorithm}[H]
-\small
-\linespread{1.2}\selectfont
-\SetAlgoLined
-\DontPrintSemicolon
-\caption{Block Mutation for $F2 \parallel W C_{\max}$}\label{alg:cm}
-\KwIn{Schedule $\pi$; weights $w_j$.}
-\BlankLine
-\textbf{Step 1.} [Block] Evaluate $W C_{\max}(\pi)$ by \cref{eq:completion} and let $j^{*}$ be
-a job attaining the maximum; with probability $1/2$ let $W\gets w_{j^{*}}$, otherwise let
-$W$ be a weight drawn at random from the instance. \;
-\textbf{Step 2.} [Move] Form the run of the jobs of weight $W$, keeping the order $\pi$ holds
-them in, and remove it from $\pi$. \;
-\For{every position $r$ of the remaining schedule}{
-    Form $\pi^{(r)}$ by inserting the run at position $r$ and evaluate
-    $W C_{\max}(\pi^{(r)})$. \;
-}
-$\pi\gets\pi^{(r^{*})}$, where $r^{*}=\arg\min_{r} W C_{\max}(\pi^{(r)})$, whichever way the
-objective moves. \;
-\KwOut{Schedule $\pi$.}
-\end{algorithm}
+	% decoding
+	\node at (14,8.35) {$\big\downarrow$ decode by \cref{eq:completion}};
+
+	% M_1 processes the jobs in the order of the genes
+	\node[anchor=east] at (-0.8,6.5) {$M_1$};
+	\foreach \x/\y/\job in {0/4/{$J_5$}, 4/6/{$J_1$}, 6/12/{$J_3$},
+	                        12/15/{$J_6$}, 15/23/{$J_4$}, 23/28/{$J_2$}} {
+		\draw[fill=gray!25] (\x,6.0) rectangle (\y,7.0) node[midway] {\job};
+	}
+
+	% M_2 starts each job when M_1 has finished it and M_2 is free
+	\node[anchor=east] at (-0.8,4.0) {$M_2$};
+	\foreach \x/\y/\job/\c/\v/\f in {4/7/{$J_5$}/7/28/gray!25,
+	                                 7/12/{$J_1$}/12/24/gray!25,
+	                                 12/21/{$J_3$}/21/105/gray!75,
+	                                 21/23/{$J_6$}/23/46/gray!25,
+	                                 23/27/{$J_4$}/27/54/gray!25,
+	                                 28/35/{$J_2$}/35/70/gray!25} {
+		\draw[fill=\f] (\x,3.5) rectangle (\y,4.5) node[midway] {\job};
+		\draw (\y,3.0) -- (\y,2.82);
+		\node[font=\scriptsize] at (\y,2.6) {\c};
+		\node[font=\scriptsize] at ({(\x+\y)/2},1.9) {\v};
+	}
+	\node[anchor=east] at (-0.8,1.9) {$w_jC_j$};
+	\draw[rounded corners=1pt] (15.55,1.6) rectangle (17.45,2.2);
+	\draw[thick] (0,3.0) -- (35,3.0);
+
+	% caption
+	\node[below, align=flush center] at (17.5,0.6) {Figure~\thefigure: Encoding and decoding};
+\end{tikzpicture}
+\label{fig:encoding}
+\end{figure}
 
 \begin{algorithm}[H]
 \small
@@ -1400,10 +1317,10 @@ it; evaluate all individuals; set $\pi^{*}$ to the best. \;
     \textbf{Selection} Form the mating pool $M_g$ from $P_{g-1}$ by binary tournament
     selection. \;
     \textbf{Crossover} \While{$|O_g|<\lambda$}{
-        Draw two parents from $M_g$; with probability $p_c$ apply \Cref{alg:pmx} to
+        Draw two parents from $M_g$; with probability $p_c$ apply the crossover to
         obtain two children, otherwise copy the parents into the offspring set $O_g$. \;
     }
-    \textbf{Mutation} Apply \Cref{alg:cm} to each offspring with probability $p_m$;
+    \textbf{Mutation} Apply the block mutation to each offspring with probability $p_m$;
     evaluate every child by \cref{eq:completion}. \;
     \textbf{Survival} $P_g\gets$ the $N$ survivors of $P_{g-1}\cup O_g$, taken by
     non-dominated sorting on the three objectives and, on the last front, by crowding
