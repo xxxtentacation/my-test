@@ -90,7 +90,7 @@ algorithms and a computational study}
 \maketitle
 
 \begin{abstract}
-    The two-machine flow shop with maximum weighted completion time ($F2\parallel WC_{\max}$)
+    The two-machine flow shop with maximum weighted completion time ($F2 \parallel WC_{\max}$)
     models a line dominated by a few high-priority orders. We give a mixed-integer linear
     programming (MILP) formulation and prove that the problem is strongly NP-hard. An optimal
     schedule can be taken to be a permutation schedule with one block per weight, Johnson's order
@@ -112,63 +112,50 @@ algorithms and a computational study}
 \section{Introduction}
 \label{sec:intro}
 
-The maximum weighted completion time is a special class of weighted problem models, 
-which arises in certain specific steps of wafer manufacturing. A wafer lot, typically a cassette of
-twenty-five wafers, passes layer by layer through lithography, etching, deposition, implantation and
-polishing.Where photolithography is a few hot lots must be expedited ahead of regular lots. 
-The two-machine flow shop studied here is a simplified version of such a line, with each
-lot visiting each machine once. Also called the weighted makespan, the objective takes the largest
-product of a job's weight and its completion time. A lot's weight reflects its priority, so the
-schedule is judged by the worst job. The objective differs from the makespan, the completion time of the last
-job. The two objectives coincide for equal weights; with unequal weights, the weighted objective can
-favor a schedule with a larger makespan. Such a schedule serves the important jobs earlier. Johnson's
-rule minimizes the makespan of the two-machine flow shop \citep{johnson1954optimal}, but that rule
-ignores weights.
+We study the two-machine flow shop with maximum weighted completion time, also called the weighted
+makespan. Every job passes first one machine and then the other, each job carries a weight, and the
+criterion is the largest product of a job's weight and its completion time, so it measures the worst
+weighted service level rather than the average. The criterion differs from the makespan, the latest
+completion time, which treats all jobs alike and coincides with the weighted criterion only when all
+weights are equal. It also differs from the total weighted completion time, which sums the weighted
+completion times: the sum is additive, so a partial schedule fixes the value of its extensions,
+whereas a maximum is not, and the methods built on additivity do not carry over.
 
-The two-machine flow shop scheduling problem remains a central topic in scheduling theory
-\citep{pinedo2022scheduling}. The problem was first studied in \citep{johnson1954optimal}, where an
-optimal permutation schedule was shown to exist for the makespan objective. The same objective
-becomes strongly $\mathcal{NP}$-hard when a third machine is added
-\citep{gareyjohnson1976complexity}. For larger shops, constructive heuristics build a schedule one
-job at a time, beginning with the NEH heuristic \citep{nawaz1983heuristic}. A simple and effective
-iterated greedy algorithm improves the makespan at a higher computational cost
-\citep{ruiz2007simple}, and NEH has been refined into the deterministic constructive vN-NEH+
-algorithm \citep{puka2024}. Branch-and-bound algorithms remain the main exact approach, and a
-computationally efficient implementation has been developed \citep{gmys2020branch}. Johnson's rule
-has recently been revisited: a full sort can often be avoided, so that an optimal schedule is
-obtained in $O(n)$ time with high probability under uniformly distributed processing times
-\citep{dellacroce2026revisiting}. Beyond the deterministic makespan, the two-machine shop has also
-been studied under disruption and in extended settings. For a random breakdown on the first machine
-with a service-level constraint on its stochastic start time, two mixed integer linear models have
-been strengthened with lower bounds and a valid inequality \citep{hnaien2023random}. A
-branch-and-bound algorithm has been proposed to minimize the value-at-risk of the makespan in a
-stochastic two-machine flow shop \citep{liu2024branch}, and the approach has been extended to a
-two-machine re-entrant flow shop using Markovian activity networks and phase-type distributions
-\citep{liu2024robust}. Scheduling and rejection decisions have been coordinated in a two-machine
-flow shop, with exact and approximation algorithms that include a fixed-parameter algorithm, a
-pseudo-polynomial algorithm and a fully polynomial-time approximation scheme (FPTAS)
-\citep{shabtay2024coordinating}. A distributed flow shop with inter-factory transportation has also
-been studied \citep{becker2025distributed}.
+The study of the two-machine flow shop scheduling problem, initiated by the seminal work of
+\citet{johnson1954optimal}, remains a central topic in scheduling theory. Johnson's rule orders the
+jobs optimally for the makespan, and the problem becomes strongly $\mathcal{NP}$-hard when a third
+machine is added \citep{gareyjohnson1976complexity}. This area still generates significant academic
+interest. Constructive heuristics beginning with NEH build a schedule by insertion
+\citep{nawaz1983heuristic}, and branch-and-bound remains the exact approach for larger shops
+\citep{gmys2020branch}. Johnson's rule has recently been revisited: a full sort can often be
+avoided, so that an optimal schedule is obtained in linear time with high probability when the
+processing times are uniformly distributed \citep{dellacroce2026revisiting}. A random breakdown on
+the first machine has been handled by two mixed integer linear models strengthened with lower bounds
+and a valid inequality \citep{hnaien2023random}. The value-at-risk of the makespan has been minimized
+by branch-and-bound in a stochastic shop \citep{liu2024branch}, an approach extended to re-entrant
+shops through Markovian activity networks and phase-type distributions \citep{liu2024robust}. For the
+total completion time, branch-and-bound has been built on a network-flow formulation
+\citep{detienne2016two}, and scheduling and rejection decisions have been coordinated with exact and
+approximation algorithms that include an FPTAS \citep{shabtay2024coordinating}. The shop has also been
+extended to distributed settings with inter-factory transportation \citep{becker2025distributed}. The
+model closely mirrors real production systems. For instance, in semiconductor fabrication, a lot
+passes through lithography and then etching; similarly, in textile production, a lot is dyed and
+then dried.
 
-On two machines, the objectives studied beyond the makespan include the total completion time and
-the total weighted completion time. Both are $\mathcal{NP}$-hard \citep{gareyjohnson1976complexity}.
-For the total completion time, branch-and-bound algorithms based on a network-flow formulation have
-been developed \citep{detienne2016two}. The total weighted completion time has also been studied in
-flow shops with reentry \citep{aspern2025flow}. These methods exploit additivity, a property absent
-from the maximum. Research on the weighted makespan has developed in several other directions. In
-two-agent scheduling on a single machine, one agent minimizes the maximum weighted completion time
-and the other the total weighted completion time, and a 2-approximation algorithm and a
-polynomial-time approximation scheme have been given when the number of jobs of the first agent is
-fixed \citep{NongChengNg2011EJOR}. In online scheduling on identical machines, a best possible
-algorithm has been given when all jobs have a common processing time, and on a single machine the
-algorithm has a competitive ratio of 3, against a lower bound of 2 \citep{Li-Wenjie2015APJOR}. For
-identical parallel machines, a 2-approximation algorithm and randomized approximation schemes have
-been given \citep{Sun2024JOCO}. Order acceptance and scheduling with rejection has been studied,
-where the objective is the weighted makespan of the accepted jobs plus the total rejection cost
-\citep{LuZuoZhangOu20254OR}. For a single machine with a restricted rate-modifying activity, two
-variants are binary $\mathcal{NP}$-hard, and pseudo-polynomial dynamic programs and fully
-polynomial-time approximation schemes have been provided \citep{ZuoZhangShiFan2026DAM}. However, to
-our knowledge, the weighted makespan has not yet been investigated in the two-machine flow shop.
+The maximum weighted completion time has been examined mainly in environments other than the
+two-machine shop. On a single machine, two-agent scheduling has been studied with one agent
+minimizing the maximum weighted completion time and the other the total, and a 2-approximation and a
+polynomial-time approximation scheme have been given for a fixed number of jobs of the first agent
+\citep{NongChengNg2011EJOR}. A best possible online algorithm has been given on identical machines
+with a common processing time, and on a single machine one with a competitive ratio of 3 against a
+lower bound of 2 \citep{Li-Wenjie2015APJOR}. For identical parallel machines, a 2-approximation and
+randomized schemes have been given \citep{Sun2024JOCO}. Order acceptance and rejection have been
+combined with the weighted makespan \citep{LuZuoZhangOu20254OR}, and pseudo-polynomial programs and
+approximation schemes have been given for a single machine with a rate-modifying activity
+\citep{ZuoZhangShiFan2026DAM}. The same line supplies the maximum criterion: a few hot lots must finish ahead of 
+the regular ones, and the penalty of a late lot differs by customer and layer, so the line is judged 
+by its worst weighted completion, not by the last lot. Although the criterion has been studied in these environments, 
+it has not been investigated in the two-machine flow shop.
 
 The paper makes five contributions: a mixed integer programming formulation, a strong NP-hardness
 proof, this structural theorem, three algorithms (an exact dynamic program, a 2-approximation and an
@@ -184,9 +171,9 @@ heuristics, and \Cref{sec:experiments} the computational study; \Cref{sec:conclu
         \begin{equation*}
             C_{\max}(\pi)=\max_{1 \leq j \leq n} \{C_j(\pi)\} ~~ \mathrm{and} ~~ WC_{\max}(\pi)=\max_{1 \leq j \leq n} \{w_j C_j(\pi)\},
         \end{equation*} 
-        respectively. The objective is to minimize $WC_{\max}$. Using the standard 3-field scheduling notation \citep{pinedo2022scheduling}, this problem is denoted by $F2 \mid \mid W C_{\max}$.
+        respectively. The objective is to minimize $WC_{\max}$. Using the standard 3-field scheduling notation \citep{pinedo2022scheduling}, this problem is denoted by $F2 \parallel WC_{\max}$.
         
-        In a two-machine flow shop, a schedule is called a \textit{permutation} schedule if the jobs are processed in the same order on both machines. \cite{johnson1954optimal} showed that an optimal permutation schedule exists for $F2 \mid \mid C_{\max}$. By a similar argument, an optimal permutation schedule also exists for $F2 \mid \mid WC_{\max}$. Hence, we restrict  attention to permutation schedules. Let $\pi = (\pi(1), \pi(2), \ldots, \pi(n))$ denote a feasible permutation schedule for $F2 \mid \mid W C_{\max}$, where $J_{\pi(j)}$ is the $j$-th job in $\pi$. By simple calculation, it follows that 
+        In a two-machine flow shop, a schedule is called a \textit{permutation} schedule if the jobs are processed in the same order on both machines. \cite{johnson1954optimal} showed that an optimal permutation schedule exists for $F2 \parallel C_{\max}$. By a similar argument, an optimal permutation schedule also exists for $F2 \parallel WC_{\max}$. Hence, we restrict  attention to permutation schedules. Let $\pi = (\pi(1), \pi(2), \ldots, \pi(n))$ denote a feasible permutation schedule for $F2 \parallel WC_{\max}$, where $J_{\pi(j)}$ is the $j$-th job in $\pi$. By simple calculation, it follows that 
         \begin{equation}\label{eq:completion}
             C_{\pi(j)} = \max_{1 \leq i \leq j} \Big\{\sum_{h=1}^{i}a_{\pi(h)} + \sum_{h=i}^{j}b_{\pi(h)} \Big\}, ~~ j=1, 2, \ldots, n.
         \end{equation}
@@ -230,10 +217,10 @@ heuristics, and \Cref{sec:experiments} the computational study; \Cref{sec:conclu
 \section{Computational complexity}
 \label{sec:complexity}
 
-        When all jobs have unit weights (i.e., $w_j=1$ for $j=1, 2, \ldots, n$), $F2 \mid \mid W C_{\max}$ reduces to $F2 \mid \mid C_{\max}$, which is solvable in $O(n \log n)$ time \citep{johnson1954optimal}. In contrast, We show that $F2 \mid \mid W C_{\max}$ is ordinarily $\mathcal{NP}$-hard even with only two distinct weights and strongly $\mathcal{NP}$-hard when $K$ is arbitrary.
+        When all jobs have unit weights (i.e., $w_j=1$ for $j=1, 2, \ldots, n$), $F2 \parallel WC_{\max}$ reduces to $F2 \parallel C_{\max}$, which is solvable in $O(n \log n)$ time \citep{johnson1954optimal}. In contrast, We show that $F2 \parallel WC_{\max}$ is ordinarily $\mathcal{NP}$-hard even with only two distinct weights and strongly $\mathcal{NP}$-hard when $K$ is arbitrary.
         
         \begin{theorem}\label{thm:nphard}
-            $F2 \mid \mid W C_{\max}$ is ordinarily $\mathcal{NP}$-hard even with only two distinct weights.
+            $F2 \parallel WC_{\max}$ is ordinarily $\mathcal{NP}$-hard even with only two distinct weights.
         \end{theorem}
         \begin{proof}
             To establish the result, we give a polynomial-time reduction from \textsc{Partition}, which is $\mathcal{NP}$-complete in the ordinary sense \citep{garey1979computers}.
@@ -241,9 +228,9 @@ heuristics, and \Cref{sec:experiments} the computational study; \Cref{sec:conclu
             \textsc{Partition}: Given $r$ positive integers $x_1, x_2, \ldots, x_r$ and an integer $X$ with
             $\sum_{i=1}^{r}x_i=2X$, does there exist a partition of $\{1, 2, \ldots, r\}$ into two disjoint subsets $\mathcal{X}_1$ and $\mathcal{X}_2$ such that $\sum_{i \in \mathcal{X}_1} x_i=\sum_{i\in \mathcal{X}_2} x_i=X$?
             
-            Given an arbitrary instance $(x_1, x_2, \ldots, x_r; X)$ of \textsc{Partition}, we construct an instance of $F2 \mid \mid W C_{\max}$ with $n=r+1$ jobs. For $j=1, 2, \ldots, n-1$, job $J_j$ has $a_j=1$, $b_j=r x_j$, and $w_j=X+1$; job $J_n$ has $a_n=rX$, $b_n=1$, and $w_n=2X+1$. Set the threshold to $Y=r(X+1)(2X+1)$. The question is whether there exists a schedule with $W C_{\max} \leq Y$.
+            Given an arbitrary instance $(x_1, x_2, \ldots, x_r; X)$ of \textsc{Partition}, we construct an instance of $F2 \parallel WC_{\max}$ with $n=r+1$ jobs. For $j=1, 2, \ldots, n-1$, job $J_j$ has $a_j=1$, $b_j=r x_j$, and $w_j=X+1$; job $J_n$ has $a_n=rX$, $b_n=1$, and $w_n=2X+1$. Set the threshold to $Y=r(X+1)(2X+1)$. The question is whether there exists a schedule with $W C_{\max} \leq Y$.
             
-            We demonstrate that $F2 \mid \mid W C_{\max}$ has a feasible schedule $\pi$ with $W C_{\max}(\pi) \leq Y$ if and only if \textsc{Partition} has a solution.
+            We demonstrate that $F2 \parallel WC_{\max}$ has a feasible schedule $\pi$ with $W C_{\max}(\pi) \leq Y$ if and only if \textsc{Partition} has a solution.
             
             Suppose that \textsc{Partition} admits a solution $(\mathcal{X}_1, \mathcal{X}_2)$ with $\sum_{j \in \mathcal{X}_1} x_j = \sum_{j \in \mathcal{X}_2} x_j=X$. Define $\mathcal{J}_1=\{J_j: j \in \mathcal{X}_1\}$ and $\mathcal{J}_2=\{J_{r+j}: j \in \mathcal{X}_2\}$. We build a feasible permutation schedule $\pi$ in which both machines process the jobs in the order $\mathcal{J}_1 \to J_n \to \mathcal{J}_2$, with the jobs in $\mathcal{J}_1$ and $\mathcal{J}_2$ processed in arbitrary order (see \Cref{fig:nphard-partition}). 
             \begin{figure}[H]
@@ -277,7 +264,7 @@ heuristics, and \Cref{sec:experiments} the computational study; \Cref{sec:conclu
             
             Since $a_j \leq b_j$ for each $j=1, 2, \ldots, r$ and $|\mathcal{X}_1| \leq r-1$, it can be easily verified that $C_n(\pi)=rX +|\mathcal{X}_1|+1 \leq r(X+1)$ and $C_{\max}(\pi)=2rX+|\mathcal{X}_1|+1 \leq r(2X+1)$. Hence, $W C_{\max}(\pi) \leq r(X+1)(2X+1)= Y$.
             
-            Conversely, suppose that $F2 \mid \mid W C_{\max}$ admits a feasible schedule $\pi$ with $W C_{\max}(\pi) \leq Y$. Let $\mathcal{J}_1=\{J_j: C_j(\pi) <C_n(\pi)\}$ and $\mathcal{J}_2=\{J_j: C_j(\pi) > C_n(\pi)\}$ be the sets of jobs completed before and after $J_n$ in $\pi$, respectively, and let $\mathcal{X}_1=\{j: J_j \in \mathcal{J}_1\}$ and $\mathcal{X}_2=\{j: J_j \in \mathcal{J}_2\}$. By \cref{eq:completion}, we have
+            Conversely, suppose that $F2 \parallel WC_{\max}$ admits a feasible schedule $\pi$ with $W C_{\max}(\pi) \leq Y$. Let $\mathcal{J}_1=\{J_j: C_j(\pi) <C_n(\pi)\}$ and $\mathcal{J}_2=\{J_j: C_j(\pi) > C_n(\pi)\}$ be the sets of jobs completed before and after $J_n$ in $\pi$, respectively, and let $\mathcal{X}_1=\{j: J_j \in \mathcal{J}_1\}$ and $\mathcal{X}_2=\{j: J_j \in \mathcal{J}_2\}$. By \cref{eq:completion}, we have
             \begin{equation}\label{eq:completetime1}
                 C_n(\pi) \geq \sum_{j \in \mathcal{X}_1} a_j +a_n+ 1=|\mathcal{X}_1| +r X + 1
             \end{equation}
@@ -306,7 +293,7 @@ heuristics, and \Cref{sec:experiments} the computational study; \Cref{sec:conclu
         \end{proof}
         
         \begin{theorem}\label{thm:snphard}
-            $F2 \mid \mid W C_{\max}$ is strongly $\mathcal{NP}$-hard when $K$ is arbitrary.
+            $F2 \parallel WC_{\max}$ is strongly $\mathcal{NP}$-hard when $K$ is arbitrary.
         \end{theorem}
         \begin{proof}
             To establish the result, we give a polynomial-time reduction from 3-\textsc{Partition}, which is strongly  $\mathcal{NP}$-complete \citep{garey1979computers}.
@@ -314,9 +301,9 @@ heuristics, and \Cref{sec:experiments} the computational study; \Cref{sec:conclu
             3-\textsc{Partition}: Given $3r$ positive integers $x_1, x_2, \ldots, x_{3r}$ and an integer $X$ with
             $\sum_{i=1}^{3r}x_i=rX$ and $\frac{X}{4} < x_j < \frac{X}{2}$ for each $j=1, 2, \ldots, 3r$, does there exist a partition of $\{1, 2, \ldots, 3r\}$ into $m$ disjoint subsets $\mathcal{X}_1, \mathcal{X}_2, \ldots, \mathcal{X}_r$ such that $\sum_{j \in \mathcal{X}_i} x_j=X$ for $i=1, 2, \ldots, r$?
             
-            Given an arbitrary instance $(x_1, x_2, \ldots, x_{3r}; X)$ of 3-\textsc{Partition}, we construct an instance of $F2 \mid \mid W C_{\max}$ consisting of $r$ separating jobs and $3r$ basic jobs. For $j=1, 2, \ldots, r$, separating job $J_j$ has $a_j=4X$, $b_j=X$, and $w_j=\frac{5r+4}{5j}$; for $j=r+1, r+2, \ldots, 4r$, basic job $J_j$ has $a_j=x_{j-r}$, $b_j=4 x_{j-r}$, and $w_j=1$. Set the threshold to $Y=(5r+4)X$. The question is whether there exists a schedule with $W C_{\max} \leq Y$.
+            Given an arbitrary instance $(x_1, x_2, \ldots, x_{3r}; X)$ of 3-\textsc{Partition}, we construct an instance of $F2 \parallel WC_{\max}$ consisting of $r$ separating jobs and $3r$ basic jobs. For $j=1, 2, \ldots, r$, separating job $J_j$ has $a_j=4X$, $b_j=X$, and $w_j=\frac{5r+4}{5j}$; for $j=r+1, r+2, \ldots, 4r$, basic job $J_j$ has $a_j=x_{j-r}$, $b_j=4 x_{j-r}$, and $w_j=1$. Set the threshold to $Y=(5r+4)X$. The question is whether there exists a schedule with $W C_{\max} \leq Y$.
             
-            We demonstrate that $F2 \mid \mid W C_{\max}$ has a feasible schedule $\pi$ with $W C_{\max}(\pi) \leq Y$ if and only if 3-\textsc{Partition} has a solution.
+            We demonstrate that $F2 \parallel WC_{\max}$ has a feasible schedule $\pi$ with $W C_{\max}(\pi) \leq Y$ if and only if 3-\textsc{Partition} has a solution.
             
             Suppose that 3-\textsc{Partition} admits a solution $(\mathcal{X}_1, \mathcal{X}_2, \ldots, \mathcal{X}_r)$, so that $\sum_{j \in \mathcal{X}_i} x_j=X$ and $|\mathcal{X}_i|=3$ for all $i$. Let $\mathcal{J}_i=\{J_{r+j}: j \in \mathcal{X}_i\}$ for $i=1, 2, \ldots, r$. We build a feasible permutation schedule $\pi$ in which both machines process the jobs in the order 
             \begin{equation*}
@@ -364,7 +351,7 @@ heuristics, and \Cref{sec:experiments} the computational study; \Cref{sec:conclu
             According to \Cref{fig:nphard-3-partition}, it can be easily verified that $C_j(\pi)=5jX$ for $j=1, 2, \ldots, r$, and $C_j(\pi) \leq C_{\max}(\pi)=(5r+4)X$ for $j=r+1, r+2, \ldots, 4r$. Then $w_j C_j(\pi)=(5r+4)X=Y$ for $j=1, 2, \ldots, r$, and $w_j C_j(\pi) \leq w_j C_{\max}(\pi)=(5r+4)X=Y$ for $j=r+1, r+2, \ldots, 4r$.      
             Hence, $W C_{\max}(\pi) \leq Y$.
             
-            Conversely, suppose that $F2 \mid \mid W C_{\max}$ admits a feasible schedule $\pi$ with $W C_{\max}(\pi) \leq Y$. Because all separating jobs have the same processing time on $M_1$ and $M_2$ and weights $w_1 >w_2 > \cdots > w_r$, a standard interchange argument lets us assume they appear in $\pi$ in decreasing order of weight. 
+            Conversely, suppose that $F2 \parallel WC_{\max}$ admits a feasible schedule $\pi$ with $W C_{\max}(\pi) \leq Y$. Because all separating jobs have the same processing time on $M_1$ and $M_2$ and weights $w_1 >w_2 > \cdots > w_r$, a standard interchange argument lets us assume they appear in $\pi$ in decreasing order of weight. 
             
             \textbf{Claim 1.} $C_{\max}(\pi) \leq Y=(5r+4)X$.
             
@@ -670,7 +657,7 @@ states and yields $\mathscr{H}_{j}$.
 \linespread{1.2}\selectfont
 \SetAlgoLined
 \DontPrintSemicolon
-\caption{DP for $F2 \parallel W C_{\max}$}\label{alg:dp}
+\caption{DP for $F2 \parallel WC_{\max}$}\label{alg:dp}
 \KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$; block count $K$; weights $W_1>\cdots>W_K$.}
 \BlankLine
 \textbf{Step 1.} [Initialization] Set $L_i\gets 0$ for $i=1,\dots,K$, set
@@ -707,7 +694,7 @@ according to Johnson's rule (\Cref{lem:block-johnson}) and concatenating the blo
 an optimal schedule $\pi^{*}$ with $W C_{\max}(\pi^{*}) = Z^{*}$.
 
 \begin{theorem}\label{thm:complexity}
-\Cref{alg:dp} solves $F2 \parallel W C_{\max}$ optimally in
+\Cref{alg:dp} solves $F2 \parallel WC_{\max}$ optimally in
 $O\bigl(n \cdot K \cdot |\mathscr{H}|_{\max}\bigr)$ time, where
 $|\mathscr{H}|_{\max} \le 2^{K}V^{\,3K-3}$ and $V = \sum_{j=1}^{n}a_j + \sum_{j=1}^{n}b_j$.
 For constant $K$, this is $O(nV^{\,3K-3})$.
@@ -760,7 +747,7 @@ following elementary rule suffices.
 \linespread{1.2}\selectfont
 \SetAlgoLined
 \DontPrintSemicolon
-\caption{2-Approximation for $F2 \parallel W C_{\max}$}\label{alg:approx2}
+\caption{2-Approximation for $F2 \parallel WC_{\max}$}\label{alg:approx2}
 \KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$.}
 \BlankLine
 \textbf{Step 1.} Sort the jobs by non-increasing weight $w_j$, breaking ties by non-increasing
@@ -910,7 +897,7 @@ states never exceeds the number of labels.
 \linespread{1.2}\selectfont
 \SetAlgoLined
 \DontPrintSemicolon
-\caption{State-class FPTAS for $F2 \parallel W C_{\max}$}\label{alg:fptas}
+\caption{State-class FPTAS for $F2 \parallel WC_{\max}$}\label{alg:fptas}
 \KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$; block count $K$; accuracy $\epsilon$.}
 \BlankLine
 \textbf{Step 1.} [Initialization] Set $\theta=1+\epsilon/(2n)$; set $Z^{*}\gets+\infty$; 
@@ -1135,28 +1122,18 @@ Throughout this section, the objective of a permutation is evaluated by \cref{eq
 \cref{eq:wcmax}.
 
 \subsection{The NEH heuristic}
-Constructive heuristics build a complete schedule in a single pass and need no tuning, and NEH
-\citep{puka2024} is among the most effective of them for permutation flow shops: the jobs are
-inserted one at a time into a growing partial sequence, each at the position that best serves the
-objective.
-
-Two properties of the objective shape the adaptation. A job with a large $a_j+b_j$ delays every
-job behind it on both machines and should therefore come early, and among jobs of similar length
-a larger weight $w_j$ gains more from an early position. The jobs are therefore sorted by
-non-increasing $a_j+b_j$, ties broken by non-increasing $w_j$, and each is inserted where
-$W C_{\max}$ is smallest; \Cref{alg:neh} gives the procedure.
-
-Evaluating the $k$ insertions of step $k$ costs $O(k^2)$ by \cref{eq:completion}, so the run
-takes $O(n^3)$ time, as for the original algorithm \citep{nawaz1983heuristic}. The heuristic
-returns a permutation schedule by construction and needs no hyperparameter, which makes it the
-fast standalone solver for large instances.
+The NEH heuristic inserts the jobs one at a time into a growing sequence. A long job delays every
+job behind it on both machines, so the jobs enter by non-increasing $a_j+b_j$, ties broken by
+non-increasing $w_j$, and each is placed where the objective is smallest; \Cref{alg:neh} gives the
+procedure. Evaluating the $k$ insertions of step $k$ costs $O(k^2)$ by \cref{eq:completion}, so the
+run takes $O(n^3)$ time, as for the original algorithm \citep{nawaz1983heuristic}.
 
 \begin{algorithm}[H]
 \small
 \linespread{1.2}\selectfont
 \SetAlgoLined
 \DontPrintSemicolon
-\caption{NEH heuristic for $F2 \parallel W C_{\max}$}\label{alg:neh}
+\caption{NEH heuristic for $F2 \parallel WC_{\max}$}\label{alg:neh}
 \KwIn{Jobs $\mathcal{J}$ with $(a_j,b_j,w_j)$.}
 \BlankLine
 \textbf{Step 1.} [Sequence] Sort the jobs by non-increasing $a_j+b_j$, breaking ties by $w_j$; 
@@ -1307,7 +1284,7 @@ and mutation always return feasible schedules. Its objective follows from \cref{
 \linespread{1.2}\selectfont
 \SetAlgoLined
 \DontPrintSemicolon
-\caption{Genetic Algorithm for $F2 \parallel W C_{\max}$}\label{alg:ga}
+\caption{Genetic Algorithm for $F2 \parallel WC_{\max}$}\label{alg:ga}
 \KwIn{Jobs $\mathcal{J}$; population size $N$; generations $G$; offspring
 $\lambda$; probabilities $p_c$, $p_m$; reinsertion count $k$.}
 \BlankLine
