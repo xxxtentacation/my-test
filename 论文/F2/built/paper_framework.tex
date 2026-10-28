@@ -1315,79 +1315,23 @@ it; evaluate all individuals; set $\pi^{*}$ to the best. \;
 \section{Experiments}
 \label{sec:experiments}
 
-All methods were coded in Python $3.13$ and run on a machine with an Intel Core Ultra 5 230F
-processor and $16$\,GB of memory, under Windows 11. The MILP model was solved with Gurobi
-$13.0$ on a single thread, so that the reported times are comparable across configurations.
-Every method is run once on every instance and given the same $600$\,s budget, and all of them
-evaluate the objective by the same recurrence \cref{eq:completion}, so that the comparison holds
-the objective fixed and varies only the search. Two readings are taken. The dynamic program, the
-only exact method of the study, is read on the number of instances whose optimum it establishes
-and on its running time. Every other method is read on its relative percentage gap
+All algorithms were implemented in Python 3.13 and tested on a machine equipped with an Intel Core Ultra 5 230F processor and 16 GB RAM running Windows 11. The MILP model was solved using Gurobi 13.0 with a single thread. Each method was executed once per instance under a common time limit of 600 s, and all objective values were evaluated using the same recurrence \cref{eq:completion} to ensure a consistent comparison. The dynamic programming (DP) algorithm, the only exact method considered, was evaluated by the number of instances solved to optimality and its running time. The remaining methods were assessed in terms of their relative percentage gap and computational time, where
 \begin{equation}\label{eq:gap}
-\text{gap}_A = \frac{z_A-z_{\text{base}}}{z_{\text{base}}},
+\text{gap}_A = \frac{z_A-z_{\text{base}}}{z_{\text{base}}}\times 100\%,
 \end{equation}
-where $z_A$ is the objective value of the schedule it returned and $z_{\text{base}}$ the
-reference value of the instance, and on the wall-clock time it requires; the gap is reported in per
-cent and the time in milliseconds, each by its mean and its maximum over the instances of the
-configuration. On the small scale the reference is the optimum, which is the value the model
-returns, so that the model is read on a gap of zero and every heuristic on its distance from the
-optimum. On the large scale, where no exact method is within reach, the reference is the lower
-bound $LB$ of \cref{eq:lb}, the largest of the three thresholds $LB_1$, $LB_2$ and $LB_3$ of
-\Cref{sub:approx2}, each of which the instance determines on its own, so that no schedule of a
-method enters the denominator of its gap.
+with \(z_A\) denoting the objective value obtained by method \(A\) and \(z_{\text{base}}\) the reference value. Both metrics are summarized by their mean and maximum across the instances in each configuration. For small instances, the optimal value obtained by the MILP model serves as the reference, whereas for large instances, the lower bound \(LB=\max\{LB_1,LB_2,LB_3\}\) defined in \cref{eq:lb} is used. Thus, the large-instance gaps are independent of the solutions produced by the competing methods.
 
-The instances were generated in three groups, every integer of an instance drawn from a normal
-distribution on the integers of its range: the mean at the middle, the standard deviation a sixth
-of the width, the draw rounded and clamped. The first group, on which the dynamic program is
-reported, crosses the sizes $40$, $60$, $80$ and $100$ with the weight count $K=2$, whose weights
-are the geometric ladder $1,10$, and with the two ranges $[1,40]$ and $[1,80]$. Its ladder rises
-by $20$ a step and stops where the time limit binds: at $[1,40]$ every instance is settled well
-within it, while on $[1,80]$ six of the twenty at a hundred jobs are cut short. This is not the
-set on which the methods are compared: the running time $O(nK2^{K}V^{3K-3})$ grows so fast in the
-number $K$ of distinct weights that the sizes the other algorithms are read at are out of its
-reach, so the group is reported on a set of its own. The two groups that follow are the
-comparison, and both carry the two ranges of the first. Their instances hold at most thirty
-distinct weights, drawn by the same rule on $\{1,\dots,30\}$, so that the classes are neighbouring
-integers rather than the decades of the first group; their processing times are drawn the same
-way, independently for every job, on one of $[1,40]$ and $[1,80]$, named in the caption of every
-table. The small group varies the instance size over $10,15,\dots,60$ and the large one over
-$100,120,\dots,400$: the model is compared with the heuristics at the small sizes, where it is
-exact and settles them, and the heuristics alone at the large ones, where the gap of each is
-measured against $LB$ of \cref{eq:lb}. Every configuration is replicated over twenty independent
-instances and every figure below is their average, and a method that reaches the limit is
-recorded with the value it has attained. Every table reads the same way: a row is an instance
-size, the columns are grouped by method (by range in the table of the dynamic program), and every
-quantity is read from two columns, its mean under ``avg'' and its maximum under ``max''; gaps are
-in per cent, running times in milliseconds in the form $1.5\mathrm{e}3$ for $1.5\times10^{3}$, and
-``opt.'' counts the instances the dynamic program settles. The smallest mean gap of a row is set in
-bold, judged on the unrounded values. For brevity, \emph{the model} is the MILP formulation,
-\emph{the program} the dynamic program, \emph{the rules} the 2-approximation and NEH together, and
-\emph{the search} the genetic algorithm. The section answers four questions in turn: how far the
-dynamic program reaches, how close the two rules come and at what cost, when the search overtakes
-them and at what price, and how much room the lower bound leaves in the gaps of the large scale.
+Three instance groups were generated using integer-valued normal distributions, with the mean at the midpoint of the specified range, a standard deviation equal to one-sixth of its width, and rounded draws clamped to the range. The first group evaluates the DP algorithm, considering \(n\in\{40,60,80,100\}\), \(K=2\), weights \(\{1,10\}\), and processing-time ranges \([1,40]\) and \([1,80]\). The weight set is extended geometrically, with a growth factor of 20, until the time limit is reached. All instances in the first range are solved within the limit, whereas six of the twenty instances with \(n=100\) in the second range remain unsolved. This group is reported separately because the DP complexity, \(O(nK2^K V^{3K-3})\), makes it computationally prohibitive for the larger instances considered in the algorithmic comparison.
+
+The remaining two groups are designed to compare the MILP model and heuristic methods. Both use the same two processing-time ranges, while the number of distinct weights is at most 30, with weights independently drawn from \(\{1,\ldots,30\}\). Processing times are independently generated for each job using the same distribution. The small-instance group considers \(n=10,15,\ldots,60\), allowing the MILP model to provide optimal reference values, while the large-instance group considers \(n=100,120,\ldots,400\), where all heuristic gaps are measured against \(LB\). Each configuration contains twenty independently generated instances. Methods reaching the time limit are evaluated using their best solutions obtained within the available budget.
+
+All reported results are summarized by the mean (avg) and maximum (max) across the twenty instances, with gaps expressed as percentages and running times in milliseconds. Scientific notation is used for large running times, and opt. denotes the number of instances solved to optimality by the DP algorithm. The smallest mean gap in each row is highlighted in bold based on unrounded values. For concise presentation, the MILP formulation, DP algorithm, the 2-approximation and NEH heuristics, and the genetic algorithm are subsequently referred to as the model, program, rules, and search, respectively. The experiments address four questions: the scalability of the DP algorithm, the effectiveness and computational cost of the approximation rules, the performance gains and computational overhead of the genetic algorithm, and the remaining optimality gap indicated by the lower bound.
 
 \subsection{The dynamic program}
 
-The dynamic program is the only method of the study that certifies an optimum, and its strength is
-that it is exact wherever it returns: seven of the eight configurations settle all twenty of their
-instances, and a forty-job instance costs $1.47$\,s on $[1,40]$ and $4.98$\,s on $[1,80]$
-(\Cref{tab:results-dp-k2}). Its
-weakness is reach, and it is bounded from two sides. The first is the number of weight classes.
-Its state space is bounded by $2^{K}V^{\,3K-3}$, with $V$ the total processing time of the instance
-(\Cref{sec:dp_algorithm}), so that a third class multiplies the number of states by $2V^{\,3}$: at
-$K=3$ the memory of the machine the runs were made on is exhausted and the program does not
-return, which is why the group is reported at $K=2$ alone. The second is the instance size and the
-width of the range, which enter through $V$ as well. At $a_j,b_j\in[1,40]$ the mean running time
-rises from $1.47$\,s at forty jobs to $14.23$\,s at sixty, $45.13$\,s at eighty and $89.59$\,s at
-a hundred -- a factor of $61$ over the ladder, against an objective that grows only from $4335.0$
-to $10647.0$, a factor of $2.5$. The range multiplies that time by between $2.9$ and $3.7$ at
-every size, the two extremes being $1.47$ against $4.98$\,s at forty jobs and $89.59$ against
-$329.01$\,s at a hundred. The two bounds meet at the top of the ladder: at a hundred jobs on
-$[1,80]$ the $600$\,s limit cuts six of the twenty instances short, so that the configuration
-settles $14/20$, and over the fourteen it settles the mean time is $329.01$\,s with a largest of
-$628.50$\,s, past the limit because the deadline is checked once per job and not inside one. The
-exact method is therefore cheap at forty jobs and out of reach beyond a hundred, while the
-heuristics are read to four hundred.
+The dynamic programming (DP) algorithm is the only exact method considered in this study and guarantees optimality whenever it terminates. It solves all twenty instances in seven of the eight configurations, with mean running times of 1.47 s and 4.98 s for forty-job instances under processing-time ranges of [1,40] and [1,80], respectively (\Cref{tab:results-dp-k2}). However, its scalability is limited by both the number of distinct weight classes and the instance size. Specifically, the state-space complexity is bounded by \(2^K V^{3K-3}\), where \(K\) is the number of weight classes and \(V\) is the total processing time (\Cref{sec:dp_algorithm}). Increasing \(K\) from two to three multiplies the state-space bound by \(2V^3\), exhausting the available memory and preventing the algorithm from returning a solution. This explains why the DP experiments are restricted to \(K=2\).
+
+Instance size and processing-time range further affect computational performance through \(V\). For processing times in [1,40], the mean running time increases from 1.47 s for forty jobs to 89.59 s for one hundred jobs, a 61-fold increase, whereas the mean objective value grows by only 2.5 times. Extending the processing-time range to [1,80] further increases the running time by factors of 2.9–3.7 across the tested instance sizes. The computational limit is reached for one hundred jobs under [1,80], where six of the twenty instances cannot be solved within the 600 s budget. Among the fourteen completed instances, the mean and maximum running times are 329.01 s and 628.50 s, respectively; the latter exceeds the nominal time limit because the termination condition is checked only once per job. Overall, the DP algorithm is computationally effective for small instances but becomes impractical as the instance size and processing-time range increase, whereas the heuristic methods remain applicable to instances with up to 400 jobs.
 
 \begin{table}[H]
 \resultstable
@@ -1415,48 +1359,11 @@ $600$\,s limit; the other six are cut short.}
 
 \subsection{The small scale}
 
-The model settles every instance of the small scale to optimality -- $20$ of $20$ in each of its
-$22$ configurations, $440$ instances in all -- so the gaps reported against it are distances to
-an optimum and not to the incumbent of a run that ran out of time. What grows is its cost: the
-mean time of an instance rises from $50.6$\,ms at ten jobs to $80.1$\,s at sixty on $[1,40]$, and
-from $40.2$\,ms to $43.5$\,s on $[1,80]$. The cost is not monotone in the range: at four of the
-eleven sizes, sixty jobs among them, the wider set is the cheaper of the two, so the time is read
-against the range rather than averaged over both. The value rises with the range as
-well -- the mean optimum of a ten-job instance is $2510.7$ on $[1,40]$ and $5433.0$ on $[1,80]$,
-and that of a sixty-job instance $12323.6$ and $25266.1$. The slowest instance of the scale takes
-$299.6$\,s of the $600$\,s a run is allowed, so the exact side is complete here but not roomy:
-the limit is close by the top of the scale.
+The MILP model solves all 440 small-scale instances to optimality across the 22 configurations, providing exact reference values for evaluating the heuristic methods. However, its computational cost increases substantially with instance size. The mean running time rises from 50.6 ms to 80.1 s on [1,40] and from 40.2 ms to 43.5 s on [1,80] as the number of jobs increases from 10 to 60. Processing-time range does not have a consistent effect on running time, as the wider range is computationally cheaper in four of the eleven tested sizes. Nevertheless, it leads to considerably larger objective values. For example, the mean optimal objective value increases from 2,510.7 to 5,433.0 for ten jobs and from 12,323.6 to 25,266.1 for sixty jobs. The longest run takes 299.6 s, indicating that although the model solves all small-scale instances to optimality, its computational capacity becomes increasingly constrained at larger sizes.
 
-The two rules that read an instance without searching it are close to the optimum and far apart
-in what they cost. The 2-approximation, which reads the weights alone, has a mean gap of $3.52$
-per cent over the whole small scale -- $3.47$ on $[1,40]$ and $3.56$ on $[1,80]$ -- and reaches
-the optimum on $36$ of the $440$ instances, its worst $16.71$ per cent away. NEH has a mean gap
-of $2.53$ per cent, $2.39$ and $2.67$ on the two ranges, reaches the optimum on $99$ of the
-$440$, and its worst instance is $11.27$ per cent away. The two reverse over the scale: NEH is
-the closer at nine of the eleven sizes on $[1,40]$ and at eight on $[1,80]$, and the
-2-approximation takes the lead at the largest sizes, where the order of the weights is what the
-objective rewards. Their costs are not of the same order either: $0.02$\,ms an instance on
-average for the 2-approximation, never above $0.05$\,ms, against $2.68$\,ms for NEH, which grows
-with the instance to $8$\,ms at sixty jobs; the model is $5{,}200$ times above NEH and some
-$7\times10^{5}$ times above the 2-approximation, at $13.85$\,s an instance on the average of the
-scale.
+Among the two constructive heuristics, NEH generally produces better solutions, whereas the 2-approximation offers substantially lower computational cost. Across all small-scale instances, their mean gaps are 2.53% and 3.52%, respectively, with NEH reaching optimality in 99 instances compared with 36 for the 2-approximation. Their worst-case gaps are 11.27% and 16.71%, respectively. NEH achieves smaller gaps in most configurations, outperforming the 2-approximation at nine of eleven sizes under [1,40] and eight under [1,80]. However, the 2-approximation becomes more competitive at larger sizes. In terms of computational efficiency, its average running time is only 0.02 ms, with a maximum of 0.05 ms, compared with 2.68 ms for NEH. Thus, the 2-approximation provides an extremely efficient alternative, while NEH offers better solution quality at a moderate additional cost.
 
-The genetic algorithm starts furthest from the optimum and closes the distance over the small
-scale, which is its strength here. Its mean gap falls from $16.83$ to $3.92$
-per cent on $[1,40]$ and from $13.16$ to $3.24$ per cent on $[1,80]$, which leaves it within a
-point of both rules at sixty jobs. What the rest of the scale shows is what that approach costs.
-It starts as the worst of the three, at three to twenty times the gap of the rules at ten jobs.
-Its course is not monotone: it climbs from $15$ per cent at ten jobs to $19$ at fifteen,
-fluctuates between $9$ and $16$ through forty, where the instances are harder for it by more than
-the growth of its own budget makes up for, and falls away after that. Over the $22$ configurations
-it stands at $10.75$ per cent, against $3.52$ for the 2-approximation and $2.53$ for NEH, with a
-worst instance $67.41$ per cent from the optimum, at ten jobs. Its cost is two to five orders of
-magnitude above the rules: $0.55$\,ms an instance at ten jobs and $1.65$\,s at sixty, against
-$8$\,ms for NEH and $0.02$\,ms for the 2-approximation, though still less than a fiftieth of the
-$80.1$\,s the model needs at that size. On this scale the search neither beats the rules nor approaches them
-cheaply; what it shows is the direction in which it moves, and that is read on the large scale.
-\Crefrange{tab:results-small-40}{tab:results-small-80} give the two ranges in full, and
-\Cref{fig:gap-small} the course of the gap over the scale.
+The genetic algorithm (GA) exhibits a different performance pattern. Its mean gap decreases with instance size, from 16.83% to 3.92% under [1,40] and from 13.16% to 3.24% under [1,80], approaching the performance of the two constructive heuristics at sixty jobs. However, its overall mean gap remains considerably higher at 10.75%, compared with 3.52% for the 2-approximation and 2.53% for NEH. Its worst-case gap reaches 67.41%, indicating substantial variability in solution quality. The improvement is also non-monotonic, with the gap fluctuating considerably across intermediate instance sizes. This performance comes at a higher computational cost: the mean running time increases from 0.55 ms for ten jobs to 1.65 s for sixty jobs, substantially exceeding those of both constructive heuristics. Nevertheless, GA remains considerably faster than the MILP model at the largest tested size. Overall, GA does not outperform the constructive heuristics on the small scale, but its improving performance as instance size increases motivates further evaluation on larger instances. The detailed results for both processing-time ranges are reported in \Crefrange{tab:results-small-40}{tab:results-small-80}, while \Cref{fig:gap-small} illustrates the gap trends across instance sizes.
 
 \begin{table}[H]
 \resultstable
@@ -1548,38 +1455,13 @@ $60$ & $25266.1$ & $29614.0$ & $4.4\mathrm{e}4$ & $1.0\mathrm{e}5$ & $\mathbf{2.
 \label{fig:gap-small}
 \end{figure}
 
-On this scale the three methods end within a point of one another, the search having travelled the
-whole way to join the two rules. What still separates them is the price: the model is exact but
-close to the limit of its budget, NEH is the closer of the two rules at the bottom of the scale
-and the 2-approximation at the top, and the search pays two to five orders of magnitude above the
-rules for a gap of the same order. What that price buys is read on the large scale.
+Overall, the three heuristic methods achieve comparable solution quality at the largest small-instance size, with their mean gaps differing by less than one percentage point. The GA progressively closes the gap with the two constructive heuristics as the instance size increases. However, their computational costs remain substantially different. While the MILP model guarantees optimality, its running time approaches the imposed limit. Among the constructive heuristics, NEH generally performs better on smaller instances, whereas the 2-approximation becomes more competitive at larger sizes. Although GA achieves comparable solution quality, it incurs a computational cost two to five orders of magnitude higher than that of the constructive heuristics. Whether this additional computational effort translates into improved solution quality on larger instances is investigated next.
 
 \subsection{The large scale}
 
-On the large scale the three methods separate for good. The rules are flat: the 2-approximation
-is the closest on average at $1.81$ per cent over the $32$ configurations, its mean never above
-$3.20$ per cent and its worst instance $7.57$ per cent away, and NEH is the furthest at $4.40$
-per cent, its gap hardly moving over the scale -- $5.02$ at a hundred jobs against $3.60$ at four
-hundred on $[1,40]$, and $5.39$ against $4.47$ on $[1,80]$, with a worst instance $12.64$ per
-cent away. The genetic algorithm is the only method that overtakes the other two, and its gap falls
-steeply as the instance grows: $10.88$ per cent at a hundred and eighty jobs, $5.49$ at two hundred, $2.09$ at
-two hundred and forty and $0.22$ at four hundred on $[1,40]$, and $6.99$, $6.34$, $2.09$ and
-$0.13$ per cent on $[1,80]$. It passes NEH at $240$ jobs and the 2-approximation at about $260$
-on $[1,80]$ and $280$ on $[1,40]$, and over the $640$ instances of the scale it attains the best
-value on $318$ of them, against $283$ for the 2-approximation and $42$ for NEH, a tie counted for
-every method that attains the value. What it costs is time and the bottom of the scale: $70.8$\,s an
-instance on average, against $0.076$\,ms for the 2-approximation and $0.76$\,s for NEH, and
-$350.4$\,s on its slowest instance of the $600$\,s a run allows; its worst configuration is early
-in the scale, $10.88$ per cent at a hundred and eighty jobs, and its worst instance at a hundred,
-$28.17$ per cent.
+The three heuristic methods exhibit increasingly distinct performance as the instance size grows. The 2-approximation achieves the best overall performance among the constructive heuristics, with a mean gap of 1.81% across the 32 configurations, a maximum configuration-level mean gap of 3.20%, and a worst-instance gap of 7.57%. In contrast, NEH yields a higher mean gap of 4.40%, with relatively stable performance across instance sizes and a worst-instance gap of 12.64%. The GA, however, shows substantial improvement as the instance size increases. Its mean gap decreases from 10.88% to 0.22% under [1,40] and from 6.99% to 0.13% under [1,80], eventually outperforming NEH at 240 jobs and the 2-approximation at approximately 280 and 260 jobs, respectively. Across the 640 instances, GA achieves the best objective value in 318 instances, compared with 283 for the 2-approximation and 42 for NEH, with ties counted for every method attaining the best value. These improvements come at a considerable computational cost: GA requires an average of 70.8 s per instance, compared with 0.076 ms for the 2-approximation and 0.76 s for NEH. Its maximum running time is 350.4 s, while its largest gaps occur at smaller instance sizes, reaching 10.88% at 180 jobs and 28.17% on an individual 100-job instance.
 
-The two ranges agree on the ordering of the two rules and disagree on the search. The
-2-approximation is closer on the wider range, $1.70$ per cent against $1.92$, and NEH further from
-it, $4.79$ against $4.02$, so that the 2-approximation leads NEH on both ranges. The search
-overtakes NEH only on $[1,80]$, at $3.65$ per cent against $4.79$, and does not on $[1,40]$, where
-it stands at $4.28$ against $4.02$.
-\Crefrange{tab:results-large-40}{tab:results-large-80} give the two ranges in full, and
-\Cref{fig:gap-large} the course of the gap over the scale.
+The two processing-time ranges yield consistent rankings between the constructive heuristics but different outcomes for GA. The 2-approximation achieves a lower mean gap than NEH under both [1,40] and [1,80], with respective gaps of 1.92% versus 4.02% and 1.70% versus 4.79%. GA outperforms NEH under [1,80], achieving a mean gap of 3.65% compared with 4.79%, but remains slightly inferior under [1,40], with gaps of 4.28% and 4.02%, respectively. Thus, the advantage of GA over the constructive heuristics depends on the processing-time range, despite its substantial improvement on larger instances. The detailed results for both ranges are reported in \Crefrange{tab:results-large-40}{tab:results-large-80}, while \Cref{fig:gap-large} illustrates the evolution of the solution gaps across instance sizes.
 
 \begin{table}[H]
 \resultstable
@@ -1679,42 +1561,13 @@ $400$ & $1.1$ & $3.7$ & $2.0\mathrm{e}{-1}$ & $4.3\mathrm{e}{-1}$ & $4.5$ & $7.7
 \label{fig:gap-large}
 \end{figure}
 
-At this scale, then, the rules stay within a few points of the bound while the search falls
-through both, and it is there, and only there, that the population buys a value the rules do not
-reach. What the study reads is a division of labour rather than a ranking. The
-2-approximation is the cheapest method by six orders of magnitude and averages $3.52$ per cent
-above the optimum on the small scale, with a worst instance at $16.71$, and $1.81$ per cent above
-$LB$ on the large one, with a worst at $7.57$, which says that the factor of two of
-\Cref{thm:approx2} is loose by more than an order of magnitude on instances of this kind. What it
-cannot do is read anything but the weights, and that is the ground NEH takes: NEH's initial order
-reads the processing times alone, and each insertion is judged by the weighted objective, which
-makes it the closest method at the bottom of the small scale and the furthest at the top of the
-large one, where its gap does not close as the instance grows.
+The large-scale results show that the constructive heuristics remain relatively close to the lower bound, whereas the GA progressively outperforms both as the instance size increases. This suggests that the methods are better understood in terms of their complementary strengths than through a single overall ranking. The 2-approximation is the most computationally efficient method, requiring approximately six orders of magnitude less time than the GA on large instances. It achieves a mean gap of 3.52% from the optimum on small instances, with a worst-instance gap of 16.71%, and a mean gap of 1.81% from the lower bound on large instances, with a worst-instance gap of 7.57%. These results indicate that the theoretical approximation guarantee in \Cref{thm:approx2} is conservative for the tested instances. NEH offers a different balance: its initial sequence is constructed using processing-time information alone, while its insertion decisions are evaluated according to the weighted objective. Consequently, NEH performs particularly well on smaller instances but becomes less competitive as the instance size increases, with its gap remaining relatively stable rather than decreasing substantially.
 
-The two methods that carry the study beyond a rule sit at opposite ends of it. The dynamic program
-is the only one that certifies an optimum, and it does so cheaply where it applies, at $1.47$\,s
-for forty jobs on $[1,40]$, but its applicability is the restriction: two weight classes, at most
-a hundred jobs, and a third class that exhausts the memory of the machine before the search
-starts. The genetic algorithm is the reverse. It certifies nothing, it costs two to five orders of
-magnitude more than the rules on the small scale and more than ninety times NEH on the large one,
-and it is nevertheless the one that beats both rules from about $240$ to $280$ jobs on, best on
-$318$ of the $640$ large instances against $283$ and $42$. Neither is read on the instances of the other, the dynamic
-program on a set of its own at $K=2$ and the search on instances that carry up to thirty weight
-classes, so what separates them is not a common benchmark but the question each answers: whether
-the optimum can be certified at all, or whether a schedule that beats every rule can be built at
-the sizes that arise. The reason the search needs the room is the start it is given: Johnson's
-rule carries no weight, so its early generations are spent building the objective into the
-schedule before it can profit from it.
+The two methods that extend the comparison beyond constructive heuristics serve fundamentally different purposes. The dynamic programming algorithm is the only method that certifies optimality. It remains computationally manageable for the instances to which it applies, requiring an average of 1.47 s for 40 jobs under the [1,40] processing-time range. Its applicability, however, is restricted to instances with two distinct weight classes and at most 100 jobs in the tested settings; extending the number of weight classes to three exceeds the available memory. The GA exhibits the opposite characteristics. It provides no optimality certificate and incurs substantially higher computational costs than the constructive heuristics, yet it achieves better objective values than both rules on a considerable proportion of large instances. Its average running time is more than 90 times that of NEH, and it attains the best objective value in 318 of the 640 large-scale instances, compared with 283 for the 2-approximation and 42 for NEH, with ties counted for every method attaining the best value. The GA begins to outperform NEH at around 240 jobs and the 2-approximation at around 260 jobs under [1,80] and 280 jobs under [1,40]. These comparisons should be interpreted in light of the different instance sets: the dynamic programming algorithm is evaluated on instances with two weight classes, whereas the GA is tested on instances with up to 30 distinct weight values. Thus, the two methods address different computational questions: whether optimality can be certified for restricted instances, and whether high-quality schedules can be constructed for larger and more general instances. One possible explanation for the GA's slower improvement is its initialization strategy. Since Johnson's rule does not account for job weights, the initial population may require additional generations to develop schedules that reflect the weighted objective.
 
-Two properties of the comparison are worth keeping in view. The large-scale gaps are distances to
-$LB$, which bounds the optimum from below through the three prefix bounds of \cref{eq:lb} and is tight only where
-the heaviest jobs are also the earliest ones; what they order reliably is therefore the methods
-and not their absolute quality. And the answers depend on the processing-time range: the average
-advantage of the search over NEH, $3.97$ against $4.40$ per cent, is earned on $[1,80]$ alone.
+Two qualifications are important when interpreting these results. First, the large-scale gaps are measured relative to \(LB\), which is obtained from the three prefix-based lower bounds in \cref{eq:lb}, rather than relative to the unknown optimum. The lower bound is tight only under the specified condition that the heaviest jobs also appear earliest in the sequence. Accordingly, these gaps provide a consistent basis for comparing the methods, but do not directly establish their distances from the optimal objective values. Second, the relative performance of the heuristics depends on the processing-time range. In particular, the GA's overall mean gap of 3.97% is lower than NEH's 4.40%, but this advantage is attributable to the [1,80] range: under [1,40], GA achieves a mean gap of 4.28%, slightly higher than NEH's 4.02%.
 
-One lever is left unpulled on the side of the search. Seeding its population with the order the
-2-approximation returns costs microseconds and carries the weights the Johnson order lacks, which
-is the cheap way to move the size at which the search overtakes the rules.
+A promising direction for improving the GA is to incorporate the solution generated by the 2-approximation into its initial population. Such an initialization would introduce a weight-aware schedule at negligible additional computational cost, potentially reducing the number of generations required to obtain high-quality solutions and shifting the instance size at which the GA begins to outperform the constructive heuristics. This strategy provides a natural direction for further investigation.
 
 \FloatBarrier
 \clearpage
@@ -1722,49 +1575,15 @@ is the cheap way to move the size at which the search overtakes the rules.
 \section{Conclusion}
 \label{sec:conclusion}
 
-This paper has shown that the two-machine flow shop with the maximum weighted completion time as
-its objective is strongly NP-hard, and that it admits a structure on which exact computation
-becomes possible: an optimal schedule is a permutation, it splits into one block per distinct
-weight, Johnson's order holds inside a block, and the blocks follow the weights in non-increasing
-order. The dynamic program built on that structure prunes dominated states and runs in
-$O(nK2^{K}V^{3K-3})$ time, the 2-approximation reads the weights alone and runs in $O(n\log n)$ time,
-the approximation scheme attains a $(1+\varepsilon)$ guarantee for a constant number of weights,
-and the two heuristics, an adapted NEH and a genetic algorithm, cover the sizes at which none of
-the exact methods reaches.
+This paper investigates the two-machine flow shop scheduling problem with the maximum weighted completion time as its objective. We establish its strong NP-hardness and identify a structural property that enables exact solution methods: an optimal schedule can be represented as a permutation partitioned into one block for each distinct weight, with Johnson's order within each block and the blocks arranged in non-increasing order of weight. Based on this structure, we develop a dynamic programming algorithm that eliminates dominated states and runs in \(O(nK2^{K}V^{3K-3})\) time. We also propose a 2-approximation algorithm with an \(O(n\log n)\) running time, an approximation scheme that achieves a \((1+\varepsilon)\) guarantee for a fixed number of weight classes, and two heuristics—an adapted NEH algorithm and a genetic algorithm—to address instances beyond the reach of the exact methods.
 
-The computational study places each of them in its range. The mixed integer model settles all
-$440$ small instances to optimality, and at $K=2$ the dynamic program certifies the optimum up to a
-hundred jobs on $[1,40]$ and to eighty on $[1,80]$, where it is the $600$\,s limit and not its
-correctness that stops it. Against the optimum the 2-approximation stays within $3.5$ per cent on
-average and NEH within $2.5$; against the lower bound on the large scale the same two rules stay
-within $1.8$ and $4.4$ per cent, while the genetic algorithm, the weakest of the three on small
-instances, is the only method that overtakes both rules, passing them at about $240$ to $280$ jobs. The practical reading is a division of labour rather than a ranking: the
-rules are cheap and dependable, the exact methods certify within their reach, and the search buys
-values that neither rule reaches.
+The computational study demonstrates the complementary strengths and limitations of these methods. The mixed-integer linear programming (MILP) model solves all 440 small-scale instances to optimality. For \(K=2\), the dynamic programming algorithm also certifies optimality for instances with up to 100 jobs under the [1,40] processing-time range and up to 80 jobs under [1,80], with its scalability constrained by the 600-s time limit. On small instances, the 2-approximation and NEH achieve average gaps of 3.52% and 2.53%, respectively, relative to the optimum. On large instances, their average gaps relative to the lower bound are 1.81% and 4.40%, respectively. Although the genetic algorithm performs less favorably on small instances, it is the only heuristic that eventually outperforms both constructive methods as the instance size increases, with the crossover occurring at approximately 240–280 jobs, depending on the processing-time range. These findings suggest that the methods are best viewed as complementary rather than competing alternatives: the constructive heuristics offer computational efficiency, the exact methods provide optimality certificates within their applicable ranges, and the genetic algorithm can deliver further improvements on sufficiently large instances.
 
-Three extensions follow from the limits of the study, one for each of its methods. The first
-concerns the number of machines: the mixed integer formulation of \Cref{sec:preliminaries} is
-written for two machines and generalises, the assignment constraints and the completion-time
-recursions carrying over to $m>2$ machines with one sequence per machine in place of the single
-permutation, since the permutation property that holds for two machines fails in general with
-three or more. What the extension costs is size, a set of sequencing variables for every machine,
-and not principle.
+Several directions for future research follow from the limitations of the present study. The first is to extend the problem to more than two machines. The MILP formulation in \Cref{sec:preliminaries} provides a possible starting point, as its assignment and completion-time constraints can be reformulated for \(m>2\) machines. However, the single-permutation property established for the two-machine problem does not generally hold when three or more machines are involved. The extended formulation must therefore account for the sequencing decisions on individual machines and the precedence relationships between operations. This extension is conceptually feasible, although it is likely to introduce substantially more sequencing variables and constraints.
 
-The second concerns the number of weight classes. The dynamic program is stopped at $K=3$ by its
-state space, bounded by $2^{K}V^{3K-3}$, which exhausts the memory of the machine before the search
-starts. Branch and bound is the natural successor there, and two of its ingredients are already in
-the paper: the block structure gives the branching rule, over the order of the blocks and over the
-jobs within one, and the three thresholds $LB_1$, $LB_2$ and $LB_3$ of \Cref{sub:approx2} give a
-bound at every node. What such a procedure would keep is part of the certification the program
-gives at $K=2$, on instances the program cannot reach.
+The second direction is to develop exact methods for problems with more weight classes. The state-space bound of the dynamic programming algorithm, \(2^{K}V^{3K-3}\), grows rapidly with \(K\), making the algorithm impractical when \(K=3\) under the available memory. A branch-and-bound framework is a promising alternative. The structural properties established in this paper can guide branching decisions over the ordering of weight blocks and the sequencing of jobs within each block. Moreover, the three lower bounds, \(LB_1\), \(LB_2\), and \(LB_3\), developed in \Cref{sub:approx2} can be incorporated to evaluate partial schedules and prune unpromising search nodes. Such a framework may extend optimality certification to instances that are beyond the practical reach of the current dynamic programming algorithm.
 
-The third concerns the setting. Both heuristics read only the processing times and the weights, so
-they carry over to the distributed flow shop, where several identical flow shops process the jobs
-and the assignment of a job to a shop is added to the sequencing decision: the insertion test of
-NEH can be taken shop by shop, and the chromosome of the genetic algorithm can carry the assignment
-beside the permutation. Variants that keep a two-machine shop inside a larger problem admit the
-same treatment. Each of the three moves extends the reach of a method without changing the
-structure it exploits.
+The third direction is to consider more general production environments, particularly distributed flow shops. Since the proposed heuristics use processing times and job weights to construct schedules, they provide a basis for extensions to settings with multiple identical flow shops, where both shop assignment and job sequencing must be determined. For example, the NEH heuristic could be adapted to evaluate job insertions across candidate shops, while the genetic algorithm could encode both shop assignments and job sequences in its chromosomes. Related extensions to larger production systems containing multiple two-machine flow-shop units may also be investigated. These extensions would broaden the applicability of the proposed methods while retaining the key scheduling principles developed in this study.
 
 \bibliographystyle{apalike}
 \bibliography{ref_IJPR}
