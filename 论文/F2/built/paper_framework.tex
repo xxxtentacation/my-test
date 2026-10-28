@@ -112,50 +112,36 @@ algorithms and a computational study}
 \section{Introduction}
 \label{sec:intro}
 
-We study the two-machine flow shop with maximum weighted completion time, also called the weighted
-makespan. Every job passes first one machine and then the other, each job carries a weight, and the
-criterion is the largest product of a job's weight and its completion time, so it measures the worst
-weighted service level rather than the average. The criterion differs from the makespan, the latest
-completion time, which treats all jobs alike and coincides with the weighted criterion only when all
-weights are equal. It also differs from the total weighted completion time, which sums the weighted
-completion times: the sum is additive, so a partial schedule fixes the value of its extensions,
-whereas a maximum is not, and the methods built on additivity do not carry over.
+Scheduling plays a critical role in semiconductor wafer fabrication, where each wafer lot undergoes hundreds of processing 
+operations and its completion time determines the delivery time of the corresponding customer order. 
+In practice, high-priority hot lots must be completed ahead of regular lots, while their tardiness penalties may vary across 
+customers and processing layers. Therefore, scheduling decisions should not only optimize overall production performance 
+but also protect high-priority lots from excessive delays. Two commonly adopted objectives are the total weighted completion time, 
+which minimizes the sum of weighted completion times, and the weighted makespan, which minimizes their maximum. 
+Unlike the conventional makespan, the weighted makespan accounts for differences in lot priorities and focuses on 
+the worst-case weighted completion performance. These two makespan measures coincide only when all lots have identical weights.
 
-The study of the two-machine flow shop scheduling problem, initiated by the seminal work of
-\citet{johnson1954optimal}, remains a central topic in scheduling theory. Johnson's rule orders the
-jobs optimally for the makespan, and the problem becomes strongly $\mathcal{NP}$-hard when a third
-machine is added \citep{gareyjohnson1976complexity}. This area still generates significant academic
-interest. Constructive heuristics beginning with NEH build a schedule by insertion
-\citep{nawaz1983heuristic}, and branch-and-bound remains the exact approach for larger shops
-\citep{gmys2020branch}. Johnson's rule has recently been revisited: a full sort can often be
-avoided, so that an optimal schedule is obtained in linear time with high probability when the
-processing times are uniformly distributed \citep{dellacroce2026revisiting}. A random breakdown on
-the first machine has been handled by two mixed integer linear models strengthened with lower bounds
-and a valid inequality \citep{hnaien2023random}. The value-at-risk of the makespan has been minimized
-by branch-and-bound in a stochastic shop \citep{liu2024branch}, an approach extended to re-entrant
-shops through Markovian activity networks and phase-type distributions \citep{liu2024robust}. For the
-total completion time, branch-and-bound has been built on a network-flow formulation
-\citep{detienne2016two}, and scheduling and rejection decisions have been coordinated with exact and
-approximation algorithms that include an FPTAS \citep{shabtay2024coordinating}. The shop has also been
-extended to distributed settings with inter-factory transportation \citep{becker2025distributed}. The
-model closely mirrors real production systems. For instance, in semiconductor fabrication, a lot
-passes through lithography and then etching; similarly, in textile production, a lot is dyed and
-then dried.
+Research on the maximum weighted completion time has primarily focused on single-machine and parallel-machine environments. 
+For single-machine scheduling, approximation algorithms and polynomial-time approximation schemes have been developed in 
+two-agent settings \citep{NongChengNg2011EJOR}. Online variants have also been extensively investigated, 
+with competitive algorithms established for both preemptive and non-preemptive settings \citep{Li-Wenjie2015APJOR,chai2018best}. 
+Further extensions consider release dates, preemption, and multiple objectives in multi-agent scheduling \citep{yuan2020scheduling}, 
+as well as identical parallel machines \citep{Sun2024JOCO}. The objective has also been incorporated into order acceptance and
+ rejection decisions and single-machine scheduling with rate-modifying activities \citep{LuZuoZhangOu20254OR,ZuoZhangShiFan2026DAM}. 
+ Despite these advances, its application to flow-shop environments, particularly the two-machine flow shop, remains largely 
+ unexplored. This gap is practically relevant to semiconductor manufacturing, where delays in high-priority lots may postpone 
+ the delivery of entire customer orders. Accordingly, we investigate the two-machine flow-shop scheduling problem with 
+ the objective of minimizing the maximum weighted completion time.
 
-The maximum weighted completion time has been examined mainly in environments other than the
-two-machine shop. On a single machine, two-agent scheduling has been studied with one agent
-minimizing the maximum weighted completion time and the other the total, and a 2-approximation and a
-polynomial-time approximation scheme have been given for a fixed number of jobs of the first agent
-\citep{NongChengNg2011EJOR}. A best possible online algorithm has been given on identical machines
-with a common processing time, and on a single machine one with a competitive ratio of 3 against a
-lower bound of 2 \citep{Li-Wenjie2015APJOR}. For identical parallel machines, a 2-approximation and
-randomized schemes have been given \citep{Sun2024JOCO}. Order acceptance and rejection have been
-combined with the weighted makespan \citep{LuZuoZhangOu20254OR}, and pseudo-polynomial programs and
-approximation schemes have been given for a single machine with a rate-modifying activity
-\citep{ZuoZhangShiFan2026DAM}. The same line supplies the maximum criterion: a few hot lots must finish ahead of 
-the regular ones, and the penalty of a late lot differs by customer and layer, so the line is judged 
-by its worst weighted completion, not by the last lot. Although the criterion has been studied in these environments, 
-it has not been investigated in the two-machine flow shop.
+The two-machine flow shop has been extensively studied since the seminal work of \citet{johnson1954optimal}, who established 
+Johnson's rule for makespan minimization. The corresponding three-machine problem is 
+strongly $\mathcal{NP}$-hard \citep{gareyjohnson1976complexity}. Subsequent research has developed constructive
+heuristics \citep{nawaz1983heuristic}, branch-and-bound algorithms \citep{gmys2020branch}, and refinements of 
+Johnson's rule \citep{dellacroce2026revisiting}, while extending the problem to disruptions, reentrant production, 
+alternative objectives, and distributed manufacturing 
+environments \citep{hnaien2023random,liu2024branch,liu2024robust,detienne2016two,shabtay2024coordinating,becker2025distributed}. 
+Such production structures arise in various industries, including semiconductor manufacturing, where lots undergo lithography 
+followed by etching, and textile manufacturing, where dyeing precedes drying.
 
 The paper makes five contributions: a mixed integer programming formulation, a strong NP-hardness
 proof, this structural theorem, three algorithms (an exact dynamic program, a 2-approximation and an
@@ -166,38 +152,48 @@ heuristics, and \Cref{sec:experiments} the computational study; \Cref{sec:conclu
 
 \section{Problem description}    
 \label{sec:preliminaries}
+
+Consider a set $\mathcal{J} = \{J_1, J_2, \dots, J_n\}$ of $n$ independent and non-preemptive jobs to be scheduled 
+in a two-machine flow shop with machines $M_1$ and $M_2$. All jobs are released at time zero and follow the same route,
+$M_1 \to M_2$. For $j=1, 2, \ldots, n$, job $J_j$ is represented by a triple $\Phi_j=(a_j, b_j, w_j)$, where $a_j$ 
+and $b_j$ are its nonnegative integer processing times on $M_1$ and $M_2$, respectively, and $w_j$ is a weight 
+reflecting its importance. Let $K$ be the number of distinct weights.
+For a feasible schedule $\pi$, let $C_j^1(\pi)$ and $C_j^2(\pi)$ denote the completion times of $J_j$ on $M_1$ and $M_2$, 
+respectively; thus $C_j(\pi)=C_j^2(\pi)$ is its completion time. The makespan and 
+the weighted makespan (i.e., the maximum weighted completion time) in $\pi$ are given by 
+\begin{equation*}
+C_{\max}(\pi)=\max_{1 \leq j \leq n} \{C_j(\pi)\} ~~ \mathrm{and} ~~ WC_{\max}(\pi)=\max_{1 \leq j \leq n} \{w_j C_j(\pi)\},
+\end{equation*}
+respectively. The objective is to minimize $WC_{\max}$. 
+Using the standard 3-field scheduling notation \citep{pinedo2022scheduling}, 
+this problem is denoted by $F2 \parallel WC_{\max}$.
+
+In a two-machine flow shop, a schedule is called a \textit{permutation} schedule if the jobs are processed 
+in the same order on both machines. \cite{johnson1954optimal} showed that an optimal permutation schedule exists 
+for $F2 \parallel C_{\max}$. By a similar argument, an optimal permutation schedule also exists for
+$F2 \parallel WC_{\max}$. Hence, we restrict  attention to permutation schedules. 
+Let $\pi = (\pi(1), \pi(2), \ldots, \pi(n))$ denote a feasible permutation schedule for $F2 \parallel WC_{\max}$, 
+where $J_{\pi(j)}$ is the $j$-th job in $\pi$. By simple calculation, it follows that 
+\begin{equation}\label{eq:completion}
+C_{\pi(j)} = \max_{1 \leq i \leq j} \Big\{\sum_{h=1}^{i}a_{\pi(h)} + \sum_{h=i}^{j}b_{\pi(h)} \Big\}, ~~ j=1, 2, \ldots, n.
+\end{equation}
+Then, the weighted makespan of $\pi$ is given by 
+\begin{equation}\label{eq:wcmax}
+W C_{\max}(\pi)=\max_{1 \leq j \leq n}\{ w_{\pi(j)} C_{\pi(j)}\}.
+\end{equation}
+
+To formulate the problem as a mixed integer linear program (MILP), we introduce the following decision variables:
+\begin{itemize}
+\item $x_{jk} = 1$ if job $J_j$ is the $k$-th job, and $0$ otherwise;
+\item $C_{[k]}^1$ is the completion time of the $k$-th job on $M_1$;
+\item $C_{[k]}^2$ is the completion time of the $k$-th job on $M_2$;
+\item $C_j$ is the completion time of job $J_j$;
+\item $M$ is a sufficiently large constant (e.g., $M=\sum_{j=1}^{n}(a_j + b_j)$).
+\end{itemize}
         
-        Consider a set $\mathcal{J} = \{J_1, J_2, \dots, J_n\}$ of $n$ independent and non-preemptive jobs to be scheduled in a two-machine flow shop with machines $M_1$ and $M_2$. All jobs are released at time zero and follow the same route, $M_1 \to M_2$. For $j=1, 2, \ldots, n$, job $J_j$ is represented by a triple $\Phi_j=(a_j, b_j, w_j)$, where $a_j$ and $b_j$ are its nonnegative integer processing times on $M_1$ and $M_2$, respectively, and $w_j$ is a weight reflecting its importance. Let $K$ be the number of distinct weights. For a feasible schedule $\pi$, let $C_j^1(\pi)$ and $C_j^2(\pi)$ denote the completion times of $J_j$ on $M_1$ and $M_2$, respectively; thus $C_j(\pi)=C_j^2(\pi)$ is its completion time. The makespan and the weighted makespan (i.e., the maximum weighted completion time) in $\pi$ are given by 
-        \begin{equation*}
-            C_{\max}(\pi)=\max_{1 \leq j \leq n} \{C_j(\pi)\} ~~ \mathrm{and} ~~ WC_{\max}(\pi)=\max_{1 \leq j \leq n} \{w_j C_j(\pi)\},
-        \end{equation*} 
-        respectively. The objective is to minimize $WC_{\max}$. Using the standard 3-field scheduling notation \citep{pinedo2022scheduling}, this problem is denoted by $F2 \parallel WC_{\max}$.
-        
-        In a two-machine flow shop, a schedule is called a \textit{permutation} schedule if the jobs are processed in the same order on both machines. \cite{johnson1954optimal} showed that an optimal permutation schedule exists for $F2 \parallel C_{\max}$. By a similar argument, an optimal permutation schedule also exists for $F2 \parallel WC_{\max}$. Hence, we restrict  attention to permutation schedules. Let $\pi = (\pi(1), \pi(2), \ldots, \pi(n))$ denote a feasible permutation schedule for $F2 \parallel WC_{\max}$, where $J_{\pi(j)}$ is the $j$-th job in $\pi$. By simple calculation, it follows that 
-        \begin{equation}\label{eq:completion}
-            C_{\pi(j)} = \max_{1 \leq i \leq j} \Big\{\sum_{h=1}^{i}a_{\pi(h)} + \sum_{h=i}^{j}b_{\pi(h)} \Big\}, ~~ j=1, 2, \ldots, n.
-        \end{equation}
-        Then, the weighted makespan of $\pi$ is given by 
-        \begin{equation}\label{eq:wcmax}
-            W C_{\max}(\pi)=\max_{1 \leq j \leq n}\{ w_{\pi(j)} C_{\pi(j)}\}.
-        \end{equation}
-        
-        To formulate the problem as a mixed integer linear program (MILP), we introduce the following decision variables:
-        \begin{itemize}
-            \item $x_{jk} = 1$ if job $J_j$ is the $k$-th job, and $0$ otherwise;
-            
-            \item $C_{[k]}^1$ is the completion time of the $k$-th job on $M_1$;
-            
-            \item $C_{[k]}^2$ is the completion time of the $k$-th job on $M_2$;
-            
-            \item $C_j$ is the completion time of job $J_j$;
-            
-            \item $M$ is a sufficiently large constant (e.g., $M=\sum_{j=1}^{n}(a_j + b_j)$).
-        \end{itemize}
-        
-        The MILP model can be formulated as follows:
-        \begin{align}
-            \min \quad & W C_{\max} \label{milp:obj} \\
+The MILP model can be formulated as follows:
+\begin{align}
+\min \quad & W C_{\max} \label{milp:obj} \\
             \text{s.t.} \quad & \sum_{k=1}^{n} x_{jk} = 1, \quad \, j = 1, 2,\dots, n \label{milp:assign1} \\
             & \sum_{j=1}^{n} x_{jk} = 1, \quad \, k = 1, 2, \ldots,n \label{milp:assign2} \\
             & C_{[1]}^1 = \sum_{j=1}^{n} a_j x_{j1} \label{milp:m1_start} \\
@@ -1148,7 +1144,7 @@ let $J_{1},\dots,J_{n}$ be the resulting sequence. \;
 \subsection{The genetic algorithm}
 \label{sub:ga}
 
-The criterion is a maximum, so a single job fixes the value of a schedule: the search must lower
+The objective is a maximum, so a single job fixes the value of a schedule: the search must lower
 the weighted completion time of \emph{that} job without raising any other above it. Ordering by
 the weights and ordering by the processing times pull in opposite directions, so the jobs cannot
 be treated symmetrically.
