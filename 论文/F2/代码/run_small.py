@@ -128,7 +128,7 @@ SCALE = "small"
 WEIGHT_COUNT = 30
 
 #: the processing-time ranges of the scale, by the upper end of the range on
-#: the integers of which both processing times are drawn normally; the two of
+#: the integers of which both processing times are drawn uniformly; the two of
 #: them are crossed with the instance sizes
 RANGES = (40, 80)
 

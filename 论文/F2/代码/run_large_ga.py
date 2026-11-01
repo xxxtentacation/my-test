@@ -17,18 +17,12 @@ LB_3} of paper Section 4.3, the gap of the method is measured against it, and
 the records of the run go to the same directory as those of run_large.py, under
 a name that carries the time the run started.
 
-The instances differ from those of run_large.py in two points.  Every integer of
-an instance -- both processing times of a job and its weight, and the exponent
-of the geometric ladder -- is drawn from a normal distribution on the integers
-of its range rather than uniformly, with the mean at the middle of the range and
-the standard deviation a sixth of its width, the draw rounded to an integer and
-clamped to the range.  And the configurations are shorter: one of the two
-processing-time ranges is left out, so that a run covers the range [1,40] and
-not [1,80], and the sizes it covers are the seven of every fiftieth job,
-100, 150, ..., 400, rather than the sixteen of every twentieth.  The rule of
-run_large.py, and the generator of NEH.py under it, are left untouched, so the
-other drivers of the study keep the uniform instances, both ranges and all
-sixteen sizes they were calibrated on.
+The instances are drawn with the generator of the study (NEH.gen_instance), the
+same one run_large.py uses: processing times uniformly on the integers of their
+range, weights from a normal distribution on theirs.  The configurations are
+shorter: one of the two processing-time ranges is left out, so that a run covers
+the range [1,40] and not [1,80], and the sizes it covers are the seven of every
+fiftieth job, 100, 150, ..., 400, rather than the sixteen of every twentieth.
 
 The algorithm differs from the one of GA.py in the three points the search of a
 weight-blind start needs to close its gap as the instance grows: the elite is
@@ -65,60 +59,12 @@ import NEH
 import run_large
 
 
-def _normal_int(rng, lo, hi):
-    """
-    One integer drawn from a normal distribution on lo, ..., hi.
-
-    The mean is the middle of the range and the standard deviation a sixth of
-    its width, so that the range spans three standard deviations on either side
-    of the mean: the values near the middle are the likely ones and the two ends
-    are rare without being out of reach.  The draw is rounded to an integer and
-    clamped to the range, and the small probability mass outside the range is
-    folded onto its two ends.
-    """
-    if hi <= lo:
-        return lo
-    return max(lo, min(hi, int(round(rng.gauss(0.5 * (lo + hi), (hi - lo) / 6.0)))))
-
-
-class _NormalStream:
-    """
-    The random stream of an instance, with every integer drawn normally.
-
-    The generator of NEH.py asks its stream for `randint(lo, hi)` -- the two
-    processing times of a job, and its weight -- and for `randrange(k)`, the
-    exponent of the geometric ladder.  This proxy answers both from the normal
-    distribution on the integers of the range, and passes every other attribute
-    through to the stream it wraps, so that the instance keeps the structure and
-    the order of draws of the generator of the study and only the distribution
-    of the values changes.
-    """
-
-    def __init__(self, rng):
-        self._rng = rng
-
-    def randint(self, lo, hi):
-        return _normal_int(self._rng, lo, hi)
-
-    def randrange(self, k):
-        return _normal_int(self._rng, 0, k - 1)
-
-    def __getattr__(self, name):
-        return getattr(self._rng, name)
-
-
 _NEH_GEN_INSTANCE = NEH.gen_instance
 
 
 def gen_instance(n, K, rng, **kwargs):
-    """
-    One instance of the scale, every integer of it drawn normally.
-
-    The generator of NEH.py is called with its stream wrapped, so that the
-    instance is drawn the way the study draws it and only the distribution of
-    the values differs.
-    """
-    return _NEH_GEN_INSTANCE(n, K, _NormalStream(rng), **kwargs)
+    """One instance of the scale, drawn by the generator of the study."""
+    return _NEH_GEN_INSTANCE(n, K, rng, **kwargs)
 
 
 # The drivers of the study draw their instances through NEH.gen_instance, which
@@ -434,8 +380,8 @@ def main(argv=None):
     for, while every other argument keeps the meaning it has there.
     """
     tail = list(sys.argv[1:] if argv is None else argv)
-    print("instances : every integer drawn from a normal distribution "
-          "on the integers of its range (this script)", flush=True)
+    print("instances : the generator of the study (processing times uniform, "
+          "weights normal)", flush=True)
     print("algorithm : the GA of GA.py with the elite fed back into the "
           "population, the criterion ranked in the survival, and a mutation "
           "that moves a whole weight class (this script)", flush=True)

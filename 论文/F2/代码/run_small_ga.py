@@ -14,9 +14,9 @@ the optimum of the instance this script draws; where a configuration has no
 recorded optimum yet, its gap falls back on the lower bound LB of paper Section
 4.3, and the run says which sizes those were.
 
-The instances are drawn with the generator of this script rather than with the
-one of NEH.py: every integer of an instance -- both processing times of a job
-and its weight -- comes from a normal distribution on the integers of its range,
+The instances are drawn with the generator of the study (NEH.gen_instance): the
+two processing times of a job are drawn uniformly on the integers of their
+range, and its weight from a normal distribution on the integers of its range,
 with the mean at the middle of the range and the standard deviation a sixth of
 its width, the draw rounded to an integer and clamped to the range.
 
@@ -52,38 +52,15 @@ INSTANCES = 20
 
 
 # ---------------------------------------------------------------------------
-# the instances: the generator of the study, every integer of it drawn normally
+# the instances: the generator of the study, processing times drawn uniformly
 # ---------------------------------------------------------------------------
-
-def _normal_int(rng, lo, hi):
-    """One integer drawn from a normal distribution on lo, ..., hi."""
-    if hi <= lo:
-        return lo
-    return max(lo, min(hi, int(round(rng.gauss(0.5 * (lo + hi), (hi - lo) / 6.0)))))
-
-
-class _NormalStream:
-    """The random stream of an instance, with every integer drawn normally."""
-
-    def __init__(self, rng):
-        self._rng = rng
-
-    def randint(self, lo, hi):
-        return _normal_int(self._rng, lo, hi)
-
-    def randrange(self, k):
-        return _normal_int(self._rng, 0, k - 1)
-
-    def __getattr__(self, name):
-        return getattr(self._rng, name)
-
 
 _NEH_GEN_INSTANCE = NEH.gen_instance
 
 
 def gen_instance(n, K, rng, **kwargs):
-    """One instance of this test, every integer of it drawn normally."""
-    return _NEH_GEN_INSTANCE(n, K, _NormalStream(rng), **kwargs)
+    """One instance of this test, drawn by the generator of the study."""
+    return _NEH_GEN_INSTANCE(n, K, rng, **kwargs)
 
 
 NEH.gen_instance = gen_instance

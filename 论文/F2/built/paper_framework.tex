@@ -98,13 +98,14 @@ algorithms and a computational study}
     $O(nK2^{K}V^{3K-3})$ time, where $K$ is the number of distinct weights and $V$ the total
     processing time; we add a 2-approximation in $O(n\log n)$ time and an FPTAS for every fixed
     $K$, and for large instances we adapt NEH and develop a genetic algorithm. In 440 small and
-    640 large instances, the MILP model solves all small ones to optimality; on a separate $K=2$
-    set, the dynamic program certifies optimality up to 80 jobs for processing times in $[1,40]$
-    and $[1,80]$, and up to 100 for $[1,40]$, the limit being time and memory rather than
-    correctness. On small instances the 2-approximation averages 3.5 per cent above the optimum
-    and NEH 2.5 per cent; on large ones, against a lower bound, they average 1.8 and 4.4 per cent.
-    The genetic algorithm has the largest gap at small sizes, but it is the only method that
-    overtakes the other two, at roughly 240 to 280 jobs, and at a much higher cost.
+    640 large instances, the MILP model settles 436 of the small ones to optimality; on a separate
+    $K=2$ set, the dynamic program certifies optimality up to 80 jobs for processing times in
+    $[1,40]$ and $[1,80]$, and up to 100 for $[1,40]$, the limit being time and memory rather than
+    correctness. On small instances the 2-approximation averages 5.8 per cent above the reference
+    and NEH 3.1 per cent; on large ones, against a lower bound, they average 2.7 and 5.1 per cent.
+    The genetic algorithm has the largest gap at small sizes but becomes the closest method at the
+    top of that scale, and it overtakes both rules at roughly 220 to 240 jobs, at a much higher
+    cost.
 \end{abstract}
 
 \noindent \textbf{Keywords:} Scheduling; Two-machine flow shop; Dynamic programming; Weighted makespan; 
@@ -112,44 +113,66 @@ algorithms and a computational study}
 \section{Introduction}
 \label{sec:intro}
 
-Scheduling plays a critical role in semiconductor wafer fabrication, where each wafer lot undergoes hundreds of processing 
-operations and its completion time determines the delivery time of the corresponding customer order. 
-In practice, high-priority hot lots must be completed ahead of regular lots, while their tardiness penalties may vary across 
-customers and processing layers. Therefore, scheduling decisions should not only optimize overall production performance 
-but also protect high-priority lots from excessive delays. Two commonly adopted objectives are the total weighted completion time, 
-which minimizes the sum of weighted completion times, and the weighted makespan, which minimizes their maximum. 
-Unlike the conventional makespan, the weighted makespan accounts for differences in lot priorities and focuses on 
-the worst-case weighted completion performance. These two makespan measures coincide only when all lots have identical weights.
+Scheduling plays a critical role in semiconductor wafer fabrication, where each wafer lot
+undergoes hundreds of processing operations and its completion time determines the delivery
+time of the corresponding customer order. In practice, high-priority hot lots must be completed
+ahead of regular lots, and the penalties associated with delays may vary across customers and
+processing layers. Scheduling decisions should therefore not only improve overall production
+performance but also prevent excessive delays to high-priority lots. Two commonly studied
+objectives in this context are the total weighted completion time, which minimizes the sum of
+weighted completion times, and the maximum weighted completion time, which minimizes the
+largest weighted completion time. Unlike the conventional makespan, the maximum weighted
+completion time accounts for differences in lot priorities and focuses on the worst-case weighted
+completion performance. When all lots have unit weights, it reduces to the conventional
+makespan.
 
-Research on the maximum weighted completion time has primarily focused on single-machine and parallel-machine environments. 
-For single-machine scheduling, approximation algorithms and polynomial-time approximation schemes have been developed in 
-two-agent settings \citep{NongChengNg2011EJOR}. Online variants have also been extensively investigated, 
-with competitive algorithms established for both preemptive and non-preemptive settings \citep{Li-Wenjie2015APJOR,chai2018best}. 
-Further extensions consider release dates, preemption, and multiple objectives in multi-agent scheduling \citep{yuan2020scheduling}, 
-as well as identical parallel machines \citep{Sun2024JOCO}. The objective has also been incorporated into order acceptance and
- rejection decisions and single-machine scheduling with rate-modifying activities \citep{LuZuoZhangOu20254OR,ZuoZhangShiFan2026DAM}. 
- Despite these advances, its application to flow-shop environments, particularly the two-machine flow shop, remains largely 
- unexplored. This gap is practically relevant to semiconductor manufacturing, where delays in high-priority lots may postpone 
- the delivery of entire customer orders. Accordingly, we investigate the two-machine flow-shop scheduling problem with 
- the objective of minimizing the maximum weighted completion time.
+Research on the maximum weighted completion time has primarily focused on single-machine
+and parallel-machine environments. For single-machine scheduling, approximation algorithms
+and polynomial-time approximation schemes have been developed in two-agent settings
+\citep{NongChengNg2011EJOR}, while online variants have been extensively investigated, with
+competitive algorithms established for both preemptive and non-preemptive settings
+\citep{Li-Wenjie2015APJOR}. Online algorithms with best-possible guarantees were subsequently
+developed \citep{chai2018best}. Later studies have considered release dates, preemption, and
+multiple objectives in multi-agent scheduling \citep{yuan2020scheduling}, lot scheduling with
+the maximum weighted tardiness objective \citep{mosheiov2023note}, and identical parallel
+machines \citep{Sun2024JOCO}. More recent work has addressed order acceptance and rejection
+decisions \citep{LuZuoZhangOu20254OR}, lot scheduling under the same objective
+\citep{zheng2025lot}, online scheduling on an unbounded parallel-batch machine
+\citep{zhang2025online}, online settings under (dis)agreeability conditions
+\citep{fan2026online}, and scheduling with restricted rate- or weight-modifying activities
+\citep{ZuoZhangShiFan2026DAM,zuo2026weight}. Despite these advances, the maximum weighted
+completion time objective has received limited attention in flow-shop environments, particularly
+in the two-machine setting. This gap is practically relevant to semiconductor manufacturing,
+where delays in high-priority lots may postpone the delivery of entire customer orders.
+Motivated by this application, we investigate the two-machine flow-shop scheduling problem
+with the objective of minimizing the maximum weighted completion time.
 
-The two-machine flow shop has been extensively studied since the seminal work of \citet{johnson1954optimal}, who established 
-Johnson's rule for makespan minimization. The corresponding three-machine problem is 
-strongly $\mathcal{NP}$-hard \citep{gareyjohnson1976complexity}. Subsequent research has developed constructive
-heuristics \citep{nawaz1983heuristic}, branch-and-bound algorithms \citep{gmys2020branch}, and refinements of 
-Johnson's rule \citep{dellacroce2026revisiting}, while extending the problem to disruptions, reentrant production, 
-alternative objectives, and distributed manufacturing 
-environments \citep{hnaien2023random,liu2024branch,liu2024robust,detienne2016two,shabtay2024coordinating,becker2025distributed}. 
-Such production structures arise in various industries, including semiconductor manufacturing, where lots undergo lithography 
-followed by etching, and textile manufacturing, where dyeing precedes drying.
+The two-machine flow shop has been extensively studied since Johnson established his rule for
+makespan minimization \citep{johnson1954optimal}. Subsequent research has developed
+constructive heuristics for various flow-shop settings \citep{shao2021constructive}, while the
+corresponding three-machine problem remains strongly $\mathcal{NP}$-hard
+\citep{pinedo2022scheduling}. Genetic algorithms have likewise been adapted to related flow-shop
+settings \citep{qiao2022adaptive,wang2023extended}. Research has also extended the problem to
+settings involving disruptions \citep{hnaien2023random}, branch-and-bound methods
+\citep{liu2024branch}, reentrant production \citep{liu2024robust}, alternative objective functions
+\citep{shabtay2024coordinating}, refined NEH constructions \citep{puka2024deterministic}, and
+distributed manufacturing environments \citep{becker2025distributed}. Meanwhile, refinements of Johnson's rule continue to attract
+research interest \citep{dellacroce2026revisiting}. These production structures arise in various
+industries, including semiconductor manufacturing, where lots undergo lithography followed
+by etching, and textile manufacturing, where dyeing precedes drying.
 
-The paper makes five contributions: a mixed integer programming formulation, a strong NP-hardness
-proof, this structural theorem, three algorithms (an exact dynamic program, a 2-approximation and an
-approximation scheme), and an adapted NEH heuristic, a genetic algorithm and a computational study
-on $440$ small and $640$ large instances. \Cref{sec:preliminaries} and \Cref{sec:complexity} give the formulation and the hardness
-proof, \Cref{sec:dp_algorithm} the structural theorem and the algorithms, \Cref{sec:heuristics} the
-heuristics, and \Cref{sec:experiments} the computational study; \Cref{sec:conclusion} concludes.
-
+This paper makes five main contributions. First, we formulate the problem as a mixed-integer
+programming model. Second, we establish its strong $\mathcal{NP}$-hardness. Third, we derive a
+structural theorem characterizing an optimal schedule. Fourth, based on this structure, we
+develop three algorithms: an exact dynamic programming algorithm, a 2-approximation
+algorithm, and an approximation scheme. Finally, we propose an adapted NEH heuristic and a
+genetic algorithm, and conduct a computational study involving 440 small-scale and 640
+large-scale instances. The remainder of the paper is organized as follows.
+\Cref{sec:preliminaries} presents the problem formulation, and \Cref{sec:complexity}
+establishes its computational complexity. \Cref{sec:dp_algorithm} presents the structural
+theorem and the associated algorithms, while \Cref{sec:heuristics} describes the heuristic
+methods. \Cref{sec:experiments} reports the computational results, and
+\Cref{sec:conclusion} concludes the paper.
 \section{Problem description}    
 \label{sec:preliminaries}
 
@@ -1109,20 +1132,20 @@ completion-time rounding.
 \section{Heuristic algorithms}
 \label{sec:heuristics}
 
-The exact dynamic program of \Cref{sec:dp_algorithm} is pseudo-polynomial, and the FPTAS of
-\Cref{sub:fptas} is exponential in the number $K$ of distinct weights, so large instances call
-for heuristics. This section presents two: an adaptation of the NEH heuristic and a genetic
-algorithm.
-
-Throughout this section, the objective of a permutation is evaluated by \cref{eq:completion} and
-\cref{eq:wcmax}.
+This section presents two heuristic methods for instances that are too large to be solved efficiently 
+by the exact methods: an adaptation of the NEH heuristic, which constructs a schedule through sequential job insertion, 
+and a genetic algorithm, which searches the space of job permutations.
 
 \subsection{The NEH heuristic}
-The NEH heuristic inserts the jobs one at a time into a growing sequence. A long job delays every
-job behind it on both machines, so the jobs enter by non-increasing $a_j+b_j$, ties broken by
-non-increasing $w_j$, and each is placed where the objective is smallest; \Cref{alg:neh} gives the
-procedure. Evaluating the $k$ insertions of step $k$ costs $O(k^2)$ by \cref{eq:completion}, so the
-run takes $O(n^3)$ time, as for the original algorithm \citep{nawaz1983heuristic}.
+The NEH heuristic constructs a sequence by inserting jobs one at a time. 
+Since a long job delays the completion of all jobs scheduled after it on both machines, 
+jobs are considered in non-increasing order of \(a_j+b_j\), with ties broken by non-increasing order of \(w_j\). 
+Each job is then inserted into the position that yields the smallest objective value. 
+The detailed procedure is presented in \Cref{alg:neh}. 
+Evaluating all \(k\) possible insertion positions at iteration \(k\) requires \(O(k^2)\) time using \cref{eq:completion}. 
+Summing over all iterations gives an overall running time of \(O(n^3)\),
+the same complexity as that of the original NEH heuristic; NEH-based constructions for the permutation
+flow shop have since refined this insertion scheme \citep{puka2024deterministic}.
 
 \begin{algorithm}[H]
 \small
@@ -1144,25 +1167,26 @@ let $J_{1},\dots,J_{n}$ be the resulting sequence. \;
 \subsection{The genetic algorithm}
 \label{sub:ga}
 
-The objective is a maximum, so a single job fixes the value of a schedule: the search must lower
-the weighted completion time of \emph{that} job without raising any other above it. Ordering by
-the weights and ordering by the processing times pull in opposite directions, so the jobs cannot
-be treated symmetrically.
+The objective is a maximum, so the value of a schedule is determined by its job with the largest weighted completion time. 
+The search must therefore reduce the weighted completion time of the critical job 
+without causing any other job's weighted completion time to exceed it. 
+Since the weight-based and processing-time-based ordering criteria may conflict, 
+the jobs cannot be treated symmetrically.
 
-The algorithm follows the permutation framework of \citet{qiao2022adaptive} and the survival rule of
-NSGA-II \citep{deb2002fast}, as recent flow-shop studies apply it \citep{wang2023extended}: a
-population seeded by Johnson's schedule, binary tournament selection, partially mapped crossover
-(\Cref{fig:pmx}), and non-dominated sorting with crowding distance. The mutation follows \Cref{lem:block-johnson}: it
-moves the run of jobs that share one weight rather than a single job. A local search then
-reinserts the jobs with the largest weighted completion times. \Cref{alg:ga} gives the procedure.
+The algorithm adopts the permutation-based framework of \citet{qiao2022adaptive}, 
+following their applications in recent flow-shop studies \citep{wang2023extended}. 
+Specifically, it employs a population initialized with Johnson's schedule, binary tournament selection, 
+partially mapped crossover (\Cref{fig:pmx}), and non-dominated sorting with crowding distance. 
+Guided by \Cref{lem:block-johnson}, 
+the mutation operator moves an entire block of jobs sharing the same weight rather than a single job. 
+A subsequent local search reinserts the jobs with the largest weighted completion times. 
+The complete procedure is presented in \Cref{alg:ga}.
 
 \begin{figure}[H]
 \centering
 \refstepcounter{figure}
 \begin{tikzpicture}[x=0.44in, y=0.32in, font=\footnotesize]
-	% Two cues, kept apart on purpose: the grey fill marks the segment a child
-	% inherits from one parent, and the red frame with the red path below marks
-	% the cells that the clash at position 1 of the first child passes through.
+
 	\tikzset{
 		plaincell/.style = {draw},
 		segcell/.style   = {draw, fill=gray!40},
@@ -1172,7 +1196,6 @@ reinserts the jobs with the largest weighted completion times. \Cref{alg:ga} giv
 		segclash/.style   = {segcell, clashcell},
 		fillclash/.style  = {fillcell, clashcell},
 	}
-	% ---- the two parents -----------------------------------------------------
 	\node[anchor=east] at (-0.15,7.15) {$\pi_1$};
 	\foreach \t/\job/\st in {1/{$J_2$}/plaincell, 2/{$J_4$}/segcell,
 	                         3/{$J_6$}/segclash, 4/{$J_1$}/segclash,
@@ -1186,7 +1209,6 @@ reinserts the jobs with the largest weighted completion times. \Cref{alg:ga} giv
 	                         5/{$J_2$}/plaincell, 6/{$J_4$}/plaincell}
 		\draw[\st] ({(\t-1)*1.6},4.7) rectangle ({\t*1.6},5.8) node[midway] {\job};
 
-	% the cut points of the segment, and the mapping it induces between them
 	\foreach \x/\lab in {1.6/{$p_1$}, 6.4/{$p_2$}} {
 		\draw[dashed] (\x,0.3) -- (\x,8.1);
 		\node[font=\scriptsize] at (\x,8.3) {\lab};
@@ -1195,7 +1217,6 @@ reinserts the jobs with the largest weighted completion times. \Cref{alg:ga} giv
 		\draw[<->, shorten >= 1.5pt, shorten <= 1.5pt]
 			({(\t-0.5)*1.6},6.55) -- ({(\t-0.5)*1.6},5.85);
 
-	% ---- the two offspring ---------------------------------------------------
 
 	\node[anchor=east] at (-0.15,2.95) {$\pi'$};
 	\foreach \t/\job/\st in {1/{$J_5$}/fillclash, 2/{$J_4$}/segcell,
@@ -1209,15 +1230,11 @@ reinserts the jobs with the largest weighted completion times. \Cref{alg:ga} giv
 	                         5/{$J_4$}/fillcell, 6/{$J_6$}/fillcell}
 		\draw[\st] ({(\t-1)*1.6},0.5) rectangle ({\t*1.6},1.6) node[midway] {\job};
 
-	% the order in which the clash at position 1 of the first child visits the
-	% red cells: 1 the gene taken from pi_2, 2 and 4 the cells of the segment that
-	% already hold it, 3 and 5 the cells the mapping sends it to, 6 where it lands
 	\foreach \x/\y/\k in {0/5.8/1, 3.2/7.7/2, 3.2/5.8/3, 4.8/7.7/4, 4.8/5.8/5,
 	                      0/3.5/6}
 		\node[anchor=north west, font=\tiny, text=red!55!black]
 			at ({\x+0.1},{\y-0.05}) {\k};
 
-	% caption
 	\node[below, text width=13.5cm, align=flush center] at (4.8,-0.6) {Figure~\thefigure: One
 		application of the partially mapped crossover, with $p_1=2$ and $p_2=4$};
 \end{tikzpicture}
@@ -1233,7 +1250,6 @@ and mutation always return feasible schedules. Its objective follows from \cref{
 \centering
 \refstepcounter{figure}
 \begin{tikzpicture}[x=0.16in, y=0.32in, font=\footnotesize]
-	% the chromosome: the gene at position t is the job scheduled t-th
 	\node[anchor=east] at (-0.8,9.5) {$\pi$};
 	\foreach \x/\y/\job/\t in {0/4/{$J_5$}/1, 4/6/{$J_1$}/2, 6/12/{$J_3$}/3,
 	                           12/15/{$J_6$}/4, 15/23/{$J_4$}/5, 23/28/{$J_2$}/6} {
@@ -1242,17 +1258,14 @@ and mutation always return feasible schedules. Its objective follows from \cref{
 	}
 	\node[anchor=west, font=\scriptsize] at (28.6,10.35) {$t$};
 
-	% decoding
 	\node at (14,8.35) {$\big\downarrow$ decode by \cref{eq:completion}};
 
-	% M_1 processes the jobs in the order of the genes
 	\node[anchor=east] at (-0.8,6.5) {$M_1$};
 	\foreach \x/\y/\job in {0/4/{$J_5$}, 4/6/{$J_1$}, 6/12/{$J_3$},
 	                        12/15/{$J_6$}, 15/23/{$J_4$}, 23/28/{$J_2$}} {
 		\draw[fill=gray!25] (\x,6.0) rectangle (\y,7.0) node[midway] {\job};
 	}
 
-	% M_2 starts each job when M_1 has finished it and M_2 is free
 	\node[anchor=east] at (-0.8,4.0) {$M_2$};
 	\foreach \x/\y/\job/\c/\v/\f in {4/7/{$J_5$}/7/28/gray!25,
 	                                 7/12/{$J_1$}/12/24/gray!25,
@@ -1269,7 +1282,6 @@ and mutation always return feasible schedules. Its objective follows from \cref{
 	\draw[rounded corners=1pt] (15.55,1.6) rectangle (17.45,2.2);
 	\draw[thick] (0,3.0) -- (35,3.0);
 
-	% caption
 	\node[below, align=flush center] at (17.5,0.6) {Figure~\thefigure: Encoding and decoding};
 \end{tikzpicture}
 \label{fig:encoding}
@@ -1315,23 +1327,73 @@ it; evaluate all individuals; set $\pi^{*}$ to the best. \;
 \section{Experiments}
 \label{sec:experiments}
 
-All algorithms were implemented in Python 3.13 and tested on a machine equipped with an Intel Core Ultra 5 230F processor and 16 GB RAM running Windows 11. The MILP model was solved using Gurobi 13.0 with a single thread. Each method was executed once per instance under a common time limit of 600 s, and all objective values were evaluated using the same recurrence \cref{eq:completion} to ensure a consistent comparison. The dynamic programming (DP) algorithm, the only exact method considered, was evaluated by the number of instances solved to optimality and its running time. The remaining methods were assessed in terms of their relative percentage gap and computational time, where
+All algorithms were implemented in Python 3.13 and tested on a machine equipped with an Intel Core Ultra 5 230F processor
+ and 16 GB RAM running Windows 11. The MILP model was solved using Gurobi 13.0 with a single thread. 
+ Each method was executed once per instance under a common time limit of 600 s, and all objective values were 
+ evaluated using the same recurrence \cref{eq:completion} to ensure a consistent comparison. 
+ The dynamic programming (DP) algorithm, the only exact method considered, was evaluated by the number of instances 
+ solved to optimality and its running time. The remaining methods were assessed in terms of their relative percentage 
+ gap and computational time, where
 \begin{equation}\label{eq:gap}
 \text{gap}_A = \frac{z_A-z_{\text{base}}}{z_{\text{base}}}\times 100\%,
 \end{equation}
-with \(z_A\) denoting the objective value obtained by method \(A\) and \(z_{\text{base}}\) the reference value. Both metrics are summarized by their mean and maximum across the instances in each configuration. For small instances, the optimal value obtained by the MILP model serves as the reference, whereas for large instances, the lower bound \(LB=\max\{LB_1,LB_2,LB_3\}\) defined in \cref{eq:lb} is used. Thus, the large-instance gaps are independent of the solutions produced by the competing methods.
+with \(z_A\) denoting the objective value obtained by method \(A\) and \(z_{\text{base}}\) the reference value. 
+Both metrics are summarized by their mean and maximum across the instances in each configuration. For small instances, 
+the value returned by the MILP model serves as the reference, which is the optimum wherever the model closes the instance, 
+whereas for large instances, the lower bound \(LB=\max\{LB_1,LB_2,LB_3\}\) defined in \cref{eq:lb} is used. 
+Thus, the large-instance gaps are independent of the solutions produced by the competing methods.
 
-Three instance groups were generated using integer-valued normal distributions, with the mean at the midpoint of the specified range, a standard deviation equal to one-sixth of its width, and rounded draws clamped to the range. The first group evaluates the DP algorithm, considering \(n\in\{40,60,80,100\}\), \(K=2\), weights \(\{1,10\}\), and processing-time ranges \([1,40]\) and \([1,80]\). The weight set is extended geometrically, with a growth factor of 20, until the time limit is reached. All instances in the first range are solved within the limit, whereas six of the twenty instances with \(n=100\) in the second range remain unsolved. This group is reported separately because the DP complexity, \(O(nK2^K V^{3K-3})\), makes it computationally prohibitive for the larger instances considered in the algorithmic comparison.
+Three instance groups were generated using integer-valued normal distributions, with the mean at the midpoint of 
+the specified range, a standard deviation equal to one-sixth of its width, and rounded draws clamped to the range. 
+The first group evaluates the DP algorithm, considering \(n\in\{40,60,80,100\}\), \(K=2\), weights \(\{1,10\}\), 
+and processing-time ranges \([1,40]\) and \([1,80]\). The weight set is extended geometrically, 
+with a growth factor of 20, until the time limit is reached. All instances in the first range are solved within the limit, 
+whereas six of the twenty instances with \(n=100\) in the second range remain unsolved. 
+This group is reported separately because the DP does not scale to the larger instances considered in the algorithmic comparison.
 
-The remaining two groups are designed to compare the MILP model and heuristic methods. Both use the same two processing-time ranges, while the number of distinct weights is at most 30, with weights independently drawn from \(\{1,\ldots,30\}\). Processing times are independently generated for each job using the same distribution. The small-instance group considers \(n=10,15,\ldots,60\), allowing the MILP model to provide optimal reference values, while the large-instance group considers \(n=100,120,\ldots,400\), where all heuristic gaps are measured against \(LB\). Each configuration contains twenty independently generated instances. Methods reaching the time limit are evaluated using their best solutions obtained within the available budget.
+The remaining two groups are designed to compare the MILP model and heuristic methods. 
+Both use the same two processing-time ranges, while the number of distinct weights is at most 30, 
+with weights independently drawn from \(\{1,\ldots,30\}\). 
+Processing times are independently generated for each job using the same distribution. 
+The small-instance group considers \(n=10,15,\ldots,60\), allowing the MILP model to provide the reference value, 
+while the large-instance group considers \(n=100,120,\ldots,400\), 
+where all heuristic gaps are measured against \(LB\). 
+Each configuration contains twenty independently generated instances. 
+Methods reaching the time limit are evaluated using their best solutions obtained within the available budget.
 
-All reported results are summarized by the mean (avg) and maximum (max) across the twenty instances, with gaps expressed as percentages and running times in milliseconds. Scientific notation is used for large running times, and opt. denotes the number of instances solved to optimality by the DP algorithm. The smallest mean gap in each row is highlighted in bold based on unrounded values. For concise presentation, the MILP formulation, DP algorithm, the 2-approximation and NEH heuristics, and the genetic algorithm are subsequently referred to as the model, program, rules, and search, respectively. The experiments address four questions: the scalability of the DP algorithm, the effectiveness and computational cost of the approximation rules, the performance gains and computational overhead of the genetic algorithm, and the remaining optimality gap indicated by the lower bound.
+All reported results are summarized by the mean (avg) and maximum (max) across the twenty instances, 
+with gaps expressed as percentages and running times in milliseconds. 
+Scientific notation is used for large running times, and opt. denotes the number of instances solved to optimality 
+by the DP algorithm. The smallest mean gap in each row is highlighted in bold based on unrounded values. 
+For concise presentation, the MILP formulation, DP algorithm, the 2-approximation and NEH heuristics, 
+and the genetic algorithm are subsequently referred to as the model, program, rules, and search, respectively. 
+The experiments address four questions: the scalability of the DP algorithm, 
+the effectiveness and computational cost of the approximation rules, 
+the performance gains and computational overhead of the genetic algorithm, 
+and the remaining optimality gap indicated by the lower bound.
 
 \subsection{The dynamic program}
 
-The dynamic programming (DP) algorithm is the only exact method considered in this study and guarantees optimality whenever it terminates. It solves all twenty instances in seven of the eight configurations, with mean running times of 1.47 s and 4.98 s for forty-job instances under processing-time ranges of [1,40] and [1,80], respectively (\Cref{tab:results-dp-k2}). However, its scalability is limited by both the number of distinct weight classes and the instance size. Specifically, the state-space complexity is bounded by \(2^K V^{3K-3}\), where \(K\) is the number of weight classes and \(V\) is the total processing time (\Cref{sec:dp_algorithm}). Increasing \(K\) from two to three multiplies the state-space bound by \(2V^3\), exhausting the available memory and preventing the algorithm from returning a solution. This explains why the DP experiments are restricted to \(K=2\).
+The dynamic programming (DP) algorithm is the only exact method considered in this study and 
+guarantees optimality whenever it terminates. 
+It solves all twenty instances in seven of the eight configurations, 
+with mean running times of 1.47 s and 4.98 s for forty-job instances under processing-time ranges of [1,40] and [1,80], 
+respectively (\Cref{tab:results-dp-k2}). 
+However, its scalability is limited by both the number of distinct weight classes and the instance size: 
+the state space grows rapidly with both (\Cref{sec:dp_algorithm}), 
+and a third weight class exhausts the available memory before the search starts. This explains why the DP experiments 
+are restricted to \(K=2\).
 
-Instance size and processing-time range further affect computational performance through \(V\). For processing times in [1,40], the mean running time increases from 1.47 s for forty jobs to 89.59 s for one hundred jobs, a 61-fold increase, whereas the mean objective value grows by only 2.5 times. Extending the processing-time range to [1,80] further increases the running time by factors of 2.9–3.7 across the tested instance sizes. The computational limit is reached for one hundred jobs under [1,80], where six of the twenty instances cannot be solved within the 600 s budget. Among the fourteen completed instances, the mean and maximum running times are 329.01 s and 628.50 s, respectively; the latter exceeds the nominal time limit because the termination condition is checked only once per job. Overall, the DP algorithm is computationally effective for small instances but becomes impractical as the instance size and processing-time range increase, whereas the heuristic methods remain applicable to instances with up to 400 jobs.
+Instance size and processing-time range further affect computational performance through \(V\). 
+For processing times in [1,40], the mean running time increases from 1.47 s for forty jobs to 89.59 s for one hundred jobs, 
+a 61-fold increase, whereas the mean objective value grows by only 2.5 times. 
+Extending the processing-time range to [1,80] further increases the running time by factors of 2.9–3.7 
+across the tested instance sizes. The computational limit is reached for one hundred jobs under [1,80], 
+where six of the twenty instances cannot be solved within the 600 s budget. Among the fourteen completed instances, 
+the mean and maximum running times are 329.01 s and 628.50 s, respectively; 
+the latter exceeds the nominal time limit because the termination condition is checked only once per job. Overall, 
+the DP algorithm is computationally effective for small instances but becomes impractical as the instance size and 
+processing-time range increase, whereas the heuristic methods remain applicable to instances with up to 400 jobs.
 
 \begin{table}[H]
 \resultstable
@@ -1359,11 +1421,51 @@ $600$\,s limit; the other six are cut short.}
 
 \subsection{The small scale}
 
-The MILP model solves all 440 small-scale instances to optimality across the 22 configurations, providing exact reference values for evaluating the heuristic methods. However, its computational cost increases substantially with instance size. The mean running time rises from 50.6 ms to 80.1 s on [1,40] and from 40.2 ms to 43.5 s on [1,80] as the number of jobs increases from 10 to 60. Processing-time range does not have a consistent effect on running time, as the wider range is computationally cheaper in four of the eleven tested sizes. Nevertheless, it leads to considerably larger objective values. For example, the mean optimal objective value increases from 2,510.7 to 5,433.0 for ten jobs and from 12,323.6 to 25,266.1 for sixty jobs. The longest run takes 299.6 s, indicating that although the model solves all small-scale instances to optimality, its computational capacity becomes increasingly constrained at larger sizes.
+The MILP model solves 436 of the 440 small-scale instances to optimality and 
+provides the reference values for all instances solved to optimality. 
+Its computational cost increases substantially with instance size: 
+the mean running time rises from 70 ms to 160.7 s under [1,40] and from 50.6 ms to 192.0 s under [1,80] 
+as the number of jobs increases from 10 to 60. 
+At the largest instance size, four instances reach the 600-s time limit without being solved to optimality. 
+The processing-time range has no consistent effect on computational time, 
+with the wider range requiring less time in only three of the eleven instance sizes. 
+However, it substantially increases the mean objective value, 
+from 2,607.8 to 5,029.9 for 10 jobs and from 13,051.7 to 26,079.5 for 60 jobs.
 
-Among the two constructive heuristics, NEH generally produces better solutions, whereas the 2-approximation offers substantially lower computational cost. Across all small-scale instances, their mean gaps are 2.53% and 3.52%, respectively, with NEH reaching optimality in 99 instances compared with 36 for the 2-approximation. Their worst-case gaps are 11.27% and 16.71%, respectively. NEH achieves smaller gaps in most configurations, outperforming the 2-approximation at nine of eleven sizes under [1,40] and eight under [1,80]. However, the 2-approximation becomes more competitive at larger sizes. In terms of computational efficiency, its average running time is only 0.02 ms, with a maximum of 0.05 ms, compared with 2.68 ms for NEH. Thus, the 2-approximation provides an extremely efficient alternative, while NEH offers better solution quality at a moderate additional cost.
+NEH consistently outperforms the 2-approximation across all 22 configurations, 
+achieving a mean gap of 3.14\% compared with 5.77\% for the latter. 
+Their worst-instance gaps are 24.89\% and 21.49\%, respectively, occurring at 10 and 25 jobs. 
+The 2-approximation, however, offers a substantial computational advantage, 
+with a mean running time of 0.02 ms and a maximum of 0.05 ms, 
+approximately two orders of magnitude lower than the 2.66-ms average of NEH. 
+It is therefore an attractive alternative when computational efficiency is more important 
+than the improvement in solution quality offered by NEH.
 
-The genetic algorithm (GA) exhibits a different performance pattern. Its mean gap decreases with instance size, from 16.83% to 3.92% under [1,40] and from 13.16% to 3.24% under [1,80], approaching the performance of the two constructive heuristics at sixty jobs. However, its overall mean gap remains considerably higher at 10.75%, compared with 3.52% for the 2-approximation and 2.53% for NEH. Its worst-case gap reaches 67.41%, indicating substantial variability in solution quality. The improvement is also non-monotonic, with the gap fluctuating considerably across intermediate instance sizes. This performance comes at a higher computational cost: the mean running time increases from 0.55 ms for ten jobs to 1.65 s for sixty jobs, substantially exceeding those of both constructive heuristics. Nevertheless, GA remains considerably faster than the MILP model at the largest tested size. Overall, GA does not outperform the constructive heuristics on the small scale, but its improving performance as instance size increases motivates further evaluation on larger instances. The detailed results for both processing-time ranges are reported in \Crefrange{tab:results-small-40}{tab:results-small-80}, while \Cref{fig:gap-small} illustrates the gap trends across instance sizes.
+The genetic algorithm (GA) exhibits a different performance trend. 
+Its mean gap decreases from 12.61\% to 1.70\% under [1,40] and from 14.29\% to 3.90\% under [1,80] 
+as the number of jobs increases from 10 to 60. 
+At 60 jobs, it achieves the best solution quality among the three heuristics, 
+although its overall mean gap of 10.07\% remains considerably higher than those of the 2-approximation and NEH. 
+The improvement is not monotonic: the worst configuration-level mean gap is 18.21\% at 15 jobs, 
+while the worst individual-instance gap reaches 57.53\% at 25 jobs. 
+This improvement in solution quality comes at a higher computational cost, 
+with the mean running time increasing from 0.64 ms for 10 jobs to 1.69 s for 60 jobs. 
+Nevertheless, the GA remains substantially faster than the MILP model at the largest instance size. 
+Its relatively weak performance on smaller instances, together with its substantial improvement on larger ones, 
+motivates a further evaluation on large-scale instances. 
+The results for both processing-time ranges are reported in \Crefrange{tab:results-small-40}{tab:results-small-80}, 
+while \Cref{fig:gap-small} illustrates the corresponding gap trends.
+
+Overall, at the largest small-instance size, the three heuristics achieve comparable solution quality, 
+with their mean gaps differing by less than three percentage points under both processing-time ranges. 
+The GA progressively closes the gap with the constructive heuristics as the instance size increases, 
+although this improvement comes at a substantially higher computational cost, 
+with running times differing by up to five orders of magnitude. Among the constructive methods, 
+NEH generally produces better schedules, 
+whereas the 2-approximation offers a more favorable trade-off in computational efficiency. 
+Whether the additional computational effort required by the GA translates into further improvements 
+in solution quality on larger instances is investigated next.
+
 
 \begin{table}[H]
 \resultstable
@@ -1379,17 +1481,17 @@ The genetic algorithm (GA) exhibits a different performance pattern. Its mean ga
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}\cmidrule(lr){14-15}\cmidrule(lr){16-17}
  & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
 \midrule
-$10$ & $2510.7$ & $3192.0$ & $5.1\mathrm{e}1$ & $8.0\mathrm{e}1$ & $4.9$ & $14.2$ & $1.0\mathrm{e}{-2}$ & $1.0\mathrm{e}{-2}$ & $\mathbf{0.8}$ & $8.7$ & $8.0\mathrm{e}{-2}$ & $2.7\mathrm{e}{-1}$ & $16.8$ & $67.4$ & $5.5\mathrm{e}{-1}$ & $7.5\mathrm{e}{-1}$ \\
-$15$ & $3682.3$ & $4746.0$ & $1.4\mathrm{e}2$ & $2.8\mathrm{e}2$ & $2.7$ & $8.7$ & $1.0\mathrm{e}{-2}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{2.0}$ & $8.0$ & $1.8\mathrm{e}{-1}$ & $2.2\mathrm{e}{-1}$ & $19.0$ & $42.0$ & $2.0\mathrm{e}0$ & $3.0\mathrm{e}0$ \\
-$20$ & $4742.4$ & $5759.0$ & $3.8\mathrm{e}2$ & $8.9\mathrm{e}2$ & $4.6$ & $9.5$ & $1.0\mathrm{e}{-2}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{2.3}$ & $9.7$ & $3.9\mathrm{e}{-1}$ & $4.2\mathrm{e}{-1}$ & $14.2$ & $34.2$ & $1.0\mathrm{e}1$ & $1.1\mathrm{e}1$ \\
-$25$ & $5736.1$ & $7260.0$ & $7.3\mathrm{e}2$ & $2.3\mathrm{e}3$ & $3.8$ & $10.8$ & $1.0\mathrm{e}{-2}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{1.8}$ & $9.2$ & $6.9\mathrm{e}{-1}$ & $7.3\mathrm{e}{-1}$ & $11.5$ & $27.9$ & $2.6\mathrm{e}1$ & $2.9\mathrm{e}1$ \\
-$30$ & $6513.6$ & $8892.0$ & $1.3\mathrm{e}3$ & $2.4\mathrm{e}3$ & $4.4$ & $9.3$ & $1.0\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{2.9}$ & $9.3$ & $1.0\mathrm{e}0$ & $1.0\mathrm{e}0$ & $14.7$ & $43.6$ & $6.0\mathrm{e}1$ & $6.4\mathrm{e}1$ \\
-$35$ & $7836.4$ & $8931.0$ & $3.0\mathrm{e}3$ & $1.1\mathrm{e}4$ & $\mathbf{2.6}$ & $9.7$ & $2.0\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $2.7$ & $7.7$ & $2.0\mathrm{e}0$ & $2.0\mathrm{e}0$ & $15.0$ & $30.7$ & $1.2\mathrm{e}2$ & $1.3\mathrm{e}2$ \\
-$40$ & $8760.2$ & $10153.0$ & $5.1\mathrm{e}3$ & $1.6\mathrm{e}4$ & $3.1$ & $7.7$ & $2.0\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{2.5}$ & $8.7$ & $3.0\mathrm{e}0$ & $3.0\mathrm{e}0$ & $8.4$ & $21.2$ & $2.4\mathrm{e}2$ & $2.6\mathrm{e}2$ \\
-$45$ & $9564.3$ & $11076.0$ & $1.3\mathrm{e}4$ & $3.8\mathrm{e}4$ & $3.6$ & $8.0$ & $2.0\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{2.6}$ & $7.1$ & $4.0\mathrm{e}0$ & $4.0\mathrm{e}0$ & $6.0$ & $17.0$ & $4.0\mathrm{e}2$ & $4.4\mathrm{e}2$ \\
-$50$ & $10631.6$ & $11774.0$ & $2.0\mathrm{e}4$ & $6.2\mathrm{e}4$ & $2.7$ & $7.2$ & $2.0\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{2.5}$ & $7.1$ & $5.0\mathrm{e}0$ & $5.0\mathrm{e}0$ & $6.9$ & $21.5$ & $6.6\mathrm{e}2$ & $7.3\mathrm{e}2$ \\
-$55$ & $11760.6$ & $12992.0$ & $3.7\mathrm{e}4$ & $1.8\mathrm{e}5$ & $3.0$ & $6.4$ & $2.0\mathrm{e}{-2}$ & $5.0\mathrm{e}{-2}$ & $\mathbf{3.0}$ & $8.1$ & $6.0\mathrm{e}0$ & $6.0\mathrm{e}0$ & $3.3$ & $10.8$ & $1.0\mathrm{e}3$ & $1.1\mathrm{e}3$ \\
-$60$ & $12323.6$ & $14703.0$ & $8.0\mathrm{e}4$ & $3.0\mathrm{e}5$ & $\mathbf{2.9}$ & $8.9$ & $2.0\mathrm{e}{-2}$ & $4.0\mathrm{e}{-2}$ & $3.3$ & $6.7$ & $8.0\mathrm{e}0$ & $8.0\mathrm{e}0$ & $3.9$ & $10.1$ & $1.7\mathrm{e}3$ & $1.7\mathrm{e}3$ \\
+$10$ & $2607.8$ & $4369.0$ & $7.0\mathrm{e}1$ & $1.2\mathrm{e}2$ & $7.3$ & $17.2$ & $8.8\mathrm{e}{-3}$ & $2.5\mathrm{e}{-2}$ & $\mathbf{3.4}$ & $24.9$ & $7.3\mathrm{e}{-2}$ & $7.9\mathrm{e}{-2}$ & $12.6$ & $30.6$ & $6.4\mathrm{e}{-1}$ & $7.2\mathrm{e}{-1}$ \\
+$15$ & $3758.2$ & $5049.0$ & $1.9\mathrm{e}2$ & $4.7\mathrm{e}2$ & $6.8$ & $16.9$ & $9.9\mathrm{e}{-3}$ & $1.9\mathrm{e}{-2}$ & $\mathbf{2.1}$ & $8.5$ & $1.9\mathrm{e}{-1}$ & $2.0\mathrm{e}{-1}$ & $18.2$ & $49.5$ & $2.6\mathrm{e}0$ & $2.9\mathrm{e}0$ \\
+$20$ & $4811.3$ & $5967.0$ & $5.6\mathrm{e}2$ & $1.9\mathrm{e}3$ & $6.2$ & $19.9$ & $1.3\mathrm{e}{-2}$ & $2.3\mathrm{e}{-2}$ & $\mathbf{2.7}$ & $11.7$ & $3.8\mathrm{e}{-1}$ & $4.1\mathrm{e}{-1}$ & $12.1$ & $33.0$ & $1.0\mathrm{e}1$ & $1.1\mathrm{e}1$ \\
+$25$ & $5590.8$ & $7059.0$ & $1.5\mathrm{e}3$ & $5.7\mathrm{e}3$ & $5.6$ & $21.5$ & $1.4\mathrm{e}{-2}$ & $2.5\mathrm{e}{-2}$ & $\mathbf{3.7}$ & $17.5$ & $7.0\mathrm{e}{-1}$ & $7.4\mathrm{e}{-1}$ & $15.3$ & $57.5$ & $2.8\mathrm{e}1$ & $3.3\mathrm{e}1$ \\
+$30$ & $6888.1$ & $8025.0$ & $2.8\mathrm{e}3$ & $1.0\mathrm{e}4$ & $5.6$ & $14.9$ & $1.4\mathrm{e}{-2}$ & $2.6\mathrm{e}{-2}$ & $\mathbf{3.9}$ & $10.8$ & $1.1\mathrm{e}0$ & $1.2\mathrm{e}0$ & $11.6$ & $26.7$ & $6.2\mathrm{e}1$ & $7.0\mathrm{e}1$ \\
+$35$ & $7719.7$ & $9373.0$ & $8.4\mathrm{e}3$ & $3.6\mathrm{e}4$ & $5.7$ & $12.2$ & $1.4\mathrm{e}{-2}$ & $2.4\mathrm{e}{-2}$ & $\mathbf{3.2}$ & $13.8$ & $1.8\mathrm{e}0$ & $1.8\mathrm{e}0$ & $12.8$ & $38.7$ & $1.2\mathrm{e}2$ & $1.3\mathrm{e}2$ \\
+$40$ & $8830.8$ & $10309.0$ & $2.1\mathrm{e}4$ & $1.2\mathrm{e}5$ & $4.9$ & $10.6$ & $1.7\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{2.4}$ & $6.2$ & $2.5\mathrm{e}0$ & $2.6\mathrm{e}0$ & $7.0$ & $17.5$ & $2.4\mathrm{e}2$ & $2.5\mathrm{e}2$ \\
+$45$ & $9669.2$ & $11791.0$ & $3.1\mathrm{e}4$ & $2.5\mathrm{e}5$ & $6.0$ & $19.0$ & $1.8\mathrm{e}{-2}$ & $3.8\mathrm{e}{-2}$ & $\mathbf{3.7}$ & $10.3$ & $3.5\mathrm{e}0$ & $3.7\mathrm{e}0$ & $8.8$ & $24.7$ & $4.1\mathrm{e}2$ & $4.5\mathrm{e}2$ \\
+$50$ & $10904.9$ & $12558.0$ & $8.4\mathrm{e}4$ & $5.1\mathrm{e}5$ & $4.5$ & $13.0$ & $1.8\mathrm{e}{-2}$ & $3.1\mathrm{e}{-2}$ & $\mathbf{3.6}$ & $8.4$ & $4.8\mathrm{e}0$ & $4.9\mathrm{e}0$ & $6.5$ & $22.9$ & $6.7\mathrm{e}2$ & $7.3\mathrm{e}2$ \\
+$55$ & $11858.3$ & $14340.0$ & $1.1\mathrm{e}5$ & $5.2\mathrm{e}5$ & $4.7$ & $10.9$ & $2.7\mathrm{e}{-2}$ & $4.7\mathrm{e}{-2}$ & $\mathbf{3.1}$ & $11.9$ & $6.2\mathrm{e}0$ & $6.4\mathrm{e}0$ & $4.2$ & $14.6$ & $1.0\mathrm{e}3$ & $1.2\mathrm{e}3$ \\
+$60$ & $13051.7$ & $15330.0$ & $1.6\mathrm{e}5$ & $6.0\mathrm{e}5$ & $4.7$ & $11.7$ & $2.5\mathrm{e}{-2}$ & $4.2\mathrm{e}{-2}$ & $4.3$ & $8.8$ & $8.0\mathrm{e}0$ & $8.2\mathrm{e}0$ & $\mathbf{1.7}$ & $8.2$ & $1.7\mathrm{e}3$ & $1.9\mathrm{e}3$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1408,17 +1510,17 @@ $60$ & $12323.6$ & $14703.0$ & $8.0\mathrm{e}4$ & $3.0\mathrm{e}5$ & $\mathbf{2.
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}\cmidrule(lr){14-15}\cmidrule(lr){16-17}
  & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
 \midrule
-$10$ & $5433.0$ & $7365.0$ & $4.0\mathrm{e}1$ & $8.7\mathrm{e}1$ & $4.6$ & $16.7$ & $1.0\mathrm{e}{-2}$ & $1.0\mathrm{e}{-2}$ & $\mathbf{0.6}$ & $2.1$ & $8.0\mathrm{e}{-2}$ & $1.6\mathrm{e}{-1}$ & $13.2$ & $41.9$ & $5.3\mathrm{e}{-1}$ & $5.8\mathrm{e}{-1}$ \\
-$15$ & $6941.7$ & $9035.0$ & $1.6\mathrm{e}2$ & $3.0\mathrm{e}2$ & $4.2$ & $11.7$ & $1.0\mathrm{e}{-2}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{2.2}$ & $8.2$ & $1.8\mathrm{e}{-1}$ & $2.0\mathrm{e}{-1}$ & $19.0$ & $37.2$ & $2.0\mathrm{e}0$ & $3.0\mathrm{e}0$ \\
-$20$ & $9029.8$ & $10906.0$ & $3.9\mathrm{e}2$ & $6.5\mathrm{e}2$ & $3.8$ & $13.7$ & $1.0\mathrm{e}{-2}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{1.3}$ & $7.4$ & $3.9\mathrm{e}{-1}$ & $4.9\mathrm{e}{-1}$ & $12.6$ & $37.3$ & $1.0\mathrm{e}1$ & $1.1\mathrm{e}1$ \\
-$25$ & $10971.5$ & $13013.0$ & $6.9\mathrm{e}2$ & $1.4\mathrm{e}3$ & $4.0$ & $11.1$ & $1.0\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{3.1}$ & $10.7$ & $7.1\mathrm{e}{-1}$ & $7.5\mathrm{e}{-1}$ & $16.0$ & $27.1$ & $2.6\mathrm{e}1$ & $2.8\mathrm{e}1$ \\
-$30$ & $12832.5$ & $15232.0$ & $1.9\mathrm{e}3$ & $9.4\mathrm{e}3$ & $3.9$ & $8.8$ & $1.0\mathrm{e}{-2}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{3.4}$ & $7.9$ & $1.0\mathrm{e}0$ & $1.0\mathrm{e}0$ & $12.9$ & $30.6$ & $5.8\mathrm{e}1$ & $6.6\mathrm{e}1$ \\
-$35$ & $15171.0$ & $16940.0$ & $3.3\mathrm{e}3$ & $1.1\mathrm{e}4$ & $3.8$ & $7.8$ & $2.0\mathrm{e}{-2}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{3.1}$ & $11.3$ & $2.0\mathrm{e}0$ & $2.0\mathrm{e}0$ & $10.0$ & $19.8$ & $1.2\mathrm{e}2$ & $1.2\mathrm{e}2$ \\
-$40$ & $16912.4$ & $19513.0$ & $8.3\mathrm{e}3$ & $2.5\mathrm{e}4$ & $\mathbf{2.9}$ & $11.3$ & $2.0\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $3.1$ & $11.0$ & $3.0\mathrm{e}0$ & $3.0\mathrm{e}0$ & $10.4$ & $29.7$ & $2.4\mathrm{e}2$ & $2.6\mathrm{e}2$ \\
-$45$ & $19067.3$ & $23062.0$ & $9.2\mathrm{e}3$ & $1.8\mathrm{e}4$ & $3.0$ & $7.3$ & $2.0\mathrm{e}{-2}$ & $4.0\mathrm{e}{-2}$ & $\mathbf{2.6}$ & $7.8$ & $4.0\mathrm{e}0$ & $4.0\mathrm{e}0$ & $7.1$ & $23.5$ & $4.1\mathrm{e}2$ & $4.4\mathrm{e}2$ \\
-$50$ & $20795.4$ & $23505.0$ & $2.2\mathrm{e}4$ & $5.1\mathrm{e}4$ & $3.5$ & $9.6$ & $2.0\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{3.4}$ & $9.7$ & $5.0\mathrm{e}0$ & $5.0\mathrm{e}0$ & $5.5$ & $15.0$ & $6.6\mathrm{e}2$ & $7.1\mathrm{e}2$ \\
-$55$ & $22517.8$ & $27573.0$ & $5.5\mathrm{e}4$ & $1.4\mathrm{e}5$ & $\mathbf{2.8}$ & $9.3$ & $2.0\mathrm{e}{-2}$ & $5.0\mathrm{e}{-2}$ & $3.7$ & $10.1$ & $6.0\mathrm{e}0$ & $6.0\mathrm{e}0$ & $6.8$ & $17.6$ & $1.0\mathrm{e}3$ & $1.2\mathrm{e}3$ \\
-$60$ & $25266.1$ & $29614.0$ & $4.4\mathrm{e}4$ & $1.0\mathrm{e}5$ & $\mathbf{2.7}$ & $8.4$ & $3.0\mathrm{e}{-2}$ & $4.0\mathrm{e}{-2}$ & $2.8$ & $6.9$ & $8.0\mathrm{e}0$ & $8.0\mathrm{e}0$ & $3.2$ & $8.9$ & $1.7\mathrm{e}3$ & $1.8\mathrm{e}3$ \\
+$10$ & $5029.9$ & $7345.0$ & $5.1\mathrm{e}1$ & $1.0\mathrm{e}2$ & $8.1$ & $17.5$ & $8.5\mathrm{e}{-3}$ & $1.8\mathrm{e}{-2}$ & $\mathbf{0.8}$ & $5.7$ & $7.2\mathrm{e}{-2}$ & $7.8\mathrm{e}{-2}$ & $14.3$ & $47.5$ & $6.1\mathrm{e}{-1}$ & $6.8\mathrm{e}{-1}$ \\
+$15$ & $7182.1$ & $8624.0$ & $2.9\mathrm{e}2$ & $1.8\mathrm{e}3$ & $7.7$ & $19.7$ & $9.5\mathrm{e}{-3}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{2.4}$ & $14.5$ & $1.9\mathrm{e}{-1}$ & $2.1\mathrm{e}{-1}$ & $15.9$ & $37.5$ & $2.6\mathrm{e}0$ & $2.9\mathrm{e}0$ \\
+$20$ & $9328.9$ & $12103.0$ & $4.5\mathrm{e}2$ & $1.8\mathrm{e}3$ & $4.5$ & $11.8$ & $1.2\mathrm{e}{-2}$ & $2.9\mathrm{e}{-2}$ & $\mathbf{2.6}$ & $9.6$ & $3.8\mathrm{e}{-1}$ & $4.1\mathrm{e}{-1}$ & $16.3$ & $39.1$ & $1.0\mathrm{e}1$ & $1.2\mathrm{e}1$ \\
+$25$ & $10816.3$ & $14100.0$ & $1.6\mathrm{e}3$ & $4.6\mathrm{e}3$ & $4.7$ & $16.2$ & $1.2\mathrm{e}{-2}$ & $2.1\mathrm{e}{-2}$ & $\mathbf{2.1}$ & $7.9$ & $7.0\mathrm{e}{-1}$ & $7.4\mathrm{e}{-1}$ & $15.7$ & $37.6$ & $2.8\mathrm{e}1$ & $3.0\mathrm{e}1$ \\
+$30$ & $12972.5$ & $16005.0$ & $3.2\mathrm{e}3$ & $9.5\mathrm{e}3$ & $5.6$ & $11.7$ & $1.5\mathrm{e}{-2}$ & $2.9\mathrm{e}{-2}$ & $\mathbf{2.6}$ & $13.6$ & $1.2\mathrm{e}0$ & $1.2\mathrm{e}0$ & $14.4$ & $34.2$ & $6.1\mathrm{e}1$ & $6.6\mathrm{e}1$ \\
+$35$ & $15093.3$ & $17667.0$ & $8.7\mathrm{e}3$ & $4.1\mathrm{e}4$ & $7.0$ & $18.1$ & $1.8\mathrm{e}{-2}$ & $3.1\mathrm{e}{-2}$ & $\mathbf{4.3}$ & $7.9$ & $1.8\mathrm{e}0$ & $1.8\mathrm{e}0$ & $11.5$ & $27.5$ & $1.2\mathrm{e}2$ & $1.3\mathrm{e}2$ \\
+$40$ & $16757.4$ & $20146.0$ & $2.4\mathrm{e}4$ & $1.5\mathrm{e}5$ & $6.3$ & $20.8$ & $1.8\mathrm{e}{-2}$ & $3.1\mathrm{e}{-2}$ & $\mathbf{2.4}$ & $7.6$ & $2.5\mathrm{e}0$ & $2.6\mathrm{e}0$ & $5.5$ & $15.9$ & $2.5\mathrm{e}2$ & $2.7\mathrm{e}2$ \\
+$45$ & $19621.4$ & $24528.0$ & $6.8\mathrm{e}4$ & $3.8\mathrm{e}5$ & $4.8$ & $12.3$ & $1.6\mathrm{e}{-2}$ & $1.9\mathrm{e}{-2}$ & $\mathbf{2.8}$ & $11.9$ & $3.5\mathrm{e}0$ & $3.7\mathrm{e}0$ & $5.3$ & $13.1$ & $4.2\mathrm{e}2$ & $4.5\mathrm{e}2$ \\
+$50$ & $21338.0$ & $25044.0$ & $7.7\mathrm{e}4$ & $4.8\mathrm{e}5$ & $6.2$ & $12.4$ & $1.9\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{3.8}$ & $11.1$ & $4.7\mathrm{e}0$ & $4.8\mathrm{e}0$ & $4.2$ & $12.0$ & $6.6\mathrm{e}2$ & $7.4\mathrm{e}2$ \\
+$55$ & $23019.6$ & $25376.0$ & $1.4\mathrm{e}5$ & $4.7\mathrm{e}5$ & $5.0$ & $11.4$ & $2.2\mathrm{e}{-2}$ & $3.9\mathrm{e}{-2}$ & $5.0$ & $16.2$ & $6.2\mathrm{e}0$ & $6.5\mathrm{e}0$ & $\mathbf{3.5}$ & $14.7$ & $1.1\mathrm{e}3$ & $1.2\mathrm{e}3$ \\
+$60$ & $26079.5$ & $31320.0$ & $1.9\mathrm{e}5$ & $6.0\mathrm{e}5$ & $5.0$ & $13.5$ & $2.8\mathrm{e}{-2}$ & $4.4\mathrm{e}{-2}$ & $4.4$ & $15.4$ & $8.0\mathrm{e}0$ & $8.2\mathrm{e}0$ & $\mathbf{3.9}$ & $20.8$ & $1.7\mathrm{e}3$ & $1.8\mathrm{e}3$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1437,17 +1539,17 @@ $60$ & $25266.1$ & $29614.0$ & $4.4\mathrm{e}4$ & $1.0\mathrm{e}5$ & $\mathbf{2.
       legend style={font=\scriptsize, at={(0.5,-0.30)}, anchor=north, draw=none,
         /tikz/every even column/.append style={column sep=10pt}},
       ]
-      \addplot[apxblue] coordinates {(10,4.90) (15,2.73) (20,4.57) (25,3.75) (30,4.37) (35,2.55) (40,3.08) (45,3.63) (50,2.65) (55,3.02) (60,2.93)};
+      \addplot[apxblue] coordinates {(10,7.33) (15,6.77) (20,6.15) (25,5.60) (30,5.63) (35,5.68) (40,4.90) (45,6.00) (50,4.53) (55,4.70) (60,4.73)};
         \addlegendentry{2-approx. $[1{,}40]$}
-      \addplot[nehred] coordinates {(10,0.78) (15,2.03) (20,2.29) (25,1.83) (30,2.85) (35,2.67) (40,2.50) (45,2.64) (50,2.45) (55,2.96) (60,3.31)};
+      \addplot[nehred] coordinates {(10,3.44) (15,2.15) (20,2.68) (25,3.68) (30,3.85) (35,3.18) (40,2.36) (45,3.71) (50,3.56) (55,3.07) (60,4.26)};
         \addlegendentry{NEH $[1{,}40]$}
-      \addplot[gagreen] coordinates {(10,16.83) (15,18.96) (20,14.22) (25,11.49) (30,14.67) (35,15.00) (40,8.42) (45,6.03) (50,6.88) (55,3.32) (60,3.92)};
+      \addplot[gagreen] coordinates {(10,12.61) (15,18.21) (20,12.14) (25,15.28) (30,11.57) (35,12.83) (40,7.04) (45,8.83) (50,6.53) (55,4.24) (60,1.70)};
         \addlegendentry{GA $[1{,}40]$}
-      \addplot[apxblue, dashed] coordinates {(10,4.63) (15,4.17) (20,3.84) (25,3.97) (30,3.86) (35,3.83) (40,2.94) (45,2.96) (50,3.52) (55,2.77) (60,2.71)};
+      \addplot[apxblue, dashed] coordinates {(10,8.06) (15,7.66) (20,4.54) (25,4.72) (30,5.58) (35,7.02) (40,6.33) (45,4.81) (50,6.21) (55,5.00) (60,5.04)};
         \addlegendentry{2-approx. $[1{,}80]$}
-      \addplot[nehred, dashed] coordinates {(10,0.62) (15,2.15) (20,1.31) (25,3.08) (30,3.40) (35,3.09) (40,3.12) (45,2.62) (50,3.44) (55,3.72) (60,2.80)};
+      \addplot[nehred, dashed] coordinates {(10,0.84) (15,2.36) (20,2.59) (25,2.13) (30,2.60) (35,4.29) (40,2.40) (45,2.76) (50,3.78) (55,4.99) (60,4.42)};
         \addlegendentry{NEH $[1{,}80]$}
-      \addplot[gagreen, dashed] coordinates {(10,13.16) (15,18.97) (20,12.60) (25,16.01) (30,12.93) (35,10.00) (40,10.37) (45,7.10) (50,5.54) (55,6.76) (60,3.24)};
+      \addplot[gagreen, dashed] coordinates {(10,14.29) (15,15.90) (20,16.30) (25,15.66) (30,14.43) (35,11.52) (40,5.53) (45,5.28) (50,4.18) (55,3.51) (60,3.90)};
         \addlegendentry{GA $[1{,}80]$}
   \end{axis}
 \end{tikzpicture}
@@ -1455,13 +1557,71 @@ $60$ & $25266.1$ & $29614.0$ & $4.4\mathrm{e}4$ & $1.0\mathrm{e}5$ & $\mathbf{2.
 \label{fig:gap-small}
 \end{figure}
 
-Overall, the three heuristic methods achieve comparable solution quality at the largest small-instance size, with their mean gaps differing by less than one percentage point. The GA progressively closes the gap with the two constructive heuristics as the instance size increases. However, their computational costs remain substantially different. While the MILP model guarantees optimality, its running time approaches the imposed limit. Among the constructive heuristics, NEH generally performs better on smaller instances, whereas the 2-approximation becomes more competitive at larger sizes. Although GA achieves comparable solution quality, it incurs a computational cost two to five orders of magnitude higher than that of the constructive heuristics. Whether this additional computational effort translates into improved solution quality on larger instances is investigated next.
 
 \subsection{The large scale}
 
-The three heuristic methods exhibit increasingly distinct performance as the instance size grows. The 2-approximation achieves the best overall performance among the constructive heuristics, with a mean gap of 1.81% across the 32 configurations, a maximum configuration-level mean gap of 3.20%, and a worst-instance gap of 7.57%. In contrast, NEH yields a higher mean gap of 4.40%, with relatively stable performance across instance sizes and a worst-instance gap of 12.64%. The GA, however, shows substantial improvement as the instance size increases. Its mean gap decreases from 10.88% to 0.22% under [1,40] and from 6.99% to 0.13% under [1,80], eventually outperforming NEH at 240 jobs and the 2-approximation at approximately 280 and 260 jobs, respectively. Across the 640 instances, GA achieves the best objective value in 318 instances, compared with 283 for the 2-approximation and 42 for NEH, with ties counted for every method attaining the best value. These improvements come at a considerable computational cost: GA requires an average of 70.8 s per instance, compared with 0.076 ms for the 2-approximation and 0.76 s for NEH. Its maximum running time is 350.4 s, while its largest gaps occur at smaller instance sizes, reaching 10.88% at 180 jobs and 28.17% on an individual 100-job instance.
+The three heuristics exhibit increasingly distinct performance as the instance size grows. 
+The 2-approximation is the better constructive method, achieving a mean gap of 2.67\% across the 32 configurations, 
+a maximum configuration-level mean gap of 4.42\%, and a worst-instance gap of 12.92\%. 
+In contrast, NEH has a higher mean gap of 5.06\%, with relatively stable performance across instance sizes 
+and a worst-instance gap of 10.77\%. The GA shows a markedly different trend, 
+with its mean gap decreasing from 18.33\% to 0.62\% under [1,40] and from 16.01\% to 0.82\% under [1,80]. 
+It outperforms NEH at 220 jobs under both ranges and surpasses the 2-approximation at 220 jobs under [1,40] 
+and 240 jobs under [1,80]. Across the 640 instances, the GA achieves the best objective value in 328 instances, 
+compared with 250 for the 2-approximation and 62 for NEH. 
+These improvements come at a substantially higher computational cost: 
+the GA requires an average of 42.2 s per instance, with a maximum of 129.6 s, 
+compared with 0.74 s for NEH and 0.09 ms for the 2-approximation. Its largest gaps occur among smaller instances, 
+reaching 18.33\% as a configuration-level mean at 100 jobs and 38.46\% on an individual 120-job instance.
 
-The two processing-time ranges yield consistent rankings between the constructive heuristics but different outcomes for GA. The 2-approximation achieves a lower mean gap than NEH under both [1,40] and [1,80], with respective gaps of 1.92% versus 4.02% and 1.70% versus 4.79%. GA outperforms NEH under [1,80], achieving a mean gap of 3.65% compared with 4.79%, but remains slightly inferior under [1,40], with gaps of 4.28% and 4.02%, respectively. Thus, the advantage of GA over the constructive heuristics depends on the processing-time range, despite its substantial improvement on larger instances. The detailed results for both ranges are reported in \Crefrange{tab:results-large-40}{tab:results-large-80}, while \Cref{fig:gap-large} illustrates the evolution of the solution gaps across instance sizes.
+The two processing-time ranges yield the same overall ranking of the three heuristics in terms of mean gap. 
+The 2-approximation remains the best-performing method, with mean gaps of 2.74\% and 2.59\% under [1,40] and [1,80], 
+respectively, compared with 4.75\% and 5.36\% for NEH. The GA achieves intermediate mean gaps of 4.44\% and 4.96\%, 
+outperforming NEH under both ranges but remaining behind the 2-approximation in overall average performance. 
+Its advantage over the 2-approximation emerges only at the largest instance sizes. 
+The detailed results for both processing-time ranges are reported in \Crefrange{tab:results-large-40}{tab:results-large-80}, 
+while \Cref{fig:gap-large} illustrates the evolution of the gaps across instance sizes.
+
+Overall, the large-scale results show that the constructive heuristics remain relatively close to the lower bound, 
+whereas the GA progressively improves and eventually surpasses both. 
+The methods are therefore better viewed as complementary rather than as competitors in a single ranking. 
+The 2-approximation is by far the most computationally efficient method, 
+running approximately six orders of magnitude faster than the GA on large instances. 
+Its small empirical gaps suggest that the theoretical guarantee in \Cref{thm:approx2} is conservative for the tested instances. 
+NEH offers a different balance: its initial sequence is constructed using processing times alone, 
+whereas its insertion decisions account for job weights. 
+This explains its competitive performance on smaller instances, 
+although its gap remains relatively stable as the instance size increases.
+
+The dynamic programming algorithm and the GA address different computational challenges beyond those handled 
+by the constructive heuristics. 
+The dynamic program provides optimality certificates for instances with two weight classes, 
+solving instances with up to 100 jobs under [1,40] in the tested settings, 
+with an average running time of 1.47 s for 40 jobs. 
+Its applicability is nevertheless limited by the number of weight classes and instance size. 
+The GA, in contrast, does not provide optimality certificates and requires more than 50 times 
+the average running time of NEH. Nevertheless, 
+it achieves the best objective value in 328 of the 640 large-scale instances and handles instances 
+with up to 30 distinct weight values. These results highlight the different roles of the two methods: 
+the dynamic program certifies optimality on restricted instances, 
+whereas the GA seeks high-quality solutions for larger and more general instances. 
+One possible explanation for the GA's slower improvement is its initialization strategy. 
+Since Johnson's rule ignores job weights, 
+early generations may need to recover the weighted structure through evolutionary search.
+
+Two qualifications are important when interpreting these results. 
+First, the large-scale gaps are measured relative to the lower bound \(LB\) defined in \cref{eq:lb}, 
+rather than the unknown optimum. 
+Since \(LB\) is tight only when the heaviest jobs also appear earliest in the sequence, 
+these gaps provide a consistent basis for comparing the methods but do not directly establish their distances from optimality. 
+Second, the relative performance of the GA depends on the processing-time range and instance size. 
+Although its mean gap is higher than that of the 2-approximation under both ranges, 
+it eventually surpasses the latter on the largest instances.
+
+A promising direction for improving the GA is to seed its initial population with the schedule 
+generated by the 2-approximation. 
+This would provide a weight-aware initial solution at negligible additional computational cost 
+and could potentially reduce the instance size at which the GA begins to outperform the constructive heuristics.
 
 \begin{table}[H]
 \resultstable
@@ -1476,22 +1636,22 @@ The two processing-time ranges yield consistent rankings between the constructiv
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}
  & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
 \midrule
-$100$ & $\mathbf{3.2}$ & $7.6$ & $3.0\mathrm{e}{-2}$ & $7.0\mathrm{e}{-2}$ & $5.0$ & $7.7$ & $3.5\mathrm{e}1$ & $3.6\mathrm{e}1$ & $10.6$ & $28.2$ & $1.4\mathrm{e}3$ & $1.4\mathrm{e}3$ \\
-$120$ & $\mathbf{2.9}$ & $5.1$ & $3.0\mathrm{e}{-2}$ & $5.0\mathrm{e}{-2}$ & $4.3$ & $11.0$ & $6.1\mathrm{e}1$ & $6.7\mathrm{e}1$ & $9.7$ & $21.4$ & $2.2\mathrm{e}3$ & $2.3\mathrm{e}3$ \\
-$140$ & $\mathbf{2.7}$ & $6.1$ & $3.0\mathrm{e}{-2}$ & $4.0\mathrm{e}{-2}$ & $4.1$ & $6.2$ & $9.2\mathrm{e}1$ & $9.7\mathrm{e}1$ & $10.8$ & $23.2$ & $3.2\mathrm{e}3$ & $3.3\mathrm{e}3$ \\
-$160$ & $\mathbf{1.9}$ & $3.7$ & $4.0\mathrm{e}{-2}$ & $4.0\mathrm{e}{-2}$ & $4.6$ & $7.1$ & $1.3\mathrm{e}2$ & $1.4\mathrm{e}2$ & $9.6$ & $20.5$ & $4.6\mathrm{e}3$ & $4.7\mathrm{e}3$ \\
-$180$ & $\mathbf{2.4}$ & $5.3$ & $4.0\mathrm{e}{-2}$ & $7.0\mathrm{e}{-2}$ & $4.1$ & $7.3$ & $1.9\mathrm{e}2$ & $2.0\mathrm{e}2$ & $10.9$ & $20.4$ & $6.4\mathrm{e}3$ & $6.6\mathrm{e}3$ \\
-$200$ & $\mathbf{2.1}$ & $5.1$ & $5.0\mathrm{e}{-2}$ & $6.0\mathrm{e}{-2}$ & $3.9$ & $8.5$ & $2.6\mathrm{e}2$ & $2.7\mathrm{e}2$ & $5.5$ & $14.2$ & $1.1\mathrm{e}4$ & $1.1\mathrm{e}4$ \\
-$220$ & $\mathbf{2.0}$ & $5.1$ & $6.0\mathrm{e}{-2}$ & $1.0\mathrm{e}{-1}$ & $3.9$ & $5.9$ & $3.5\mathrm{e}2$ & $3.5\mathrm{e}2$ & $4.3$ & $10.8$ & $1.7\mathrm{e}4$ & $1.8\mathrm{e}4$ \\
-$240$ & $\mathbf{1.7}$ & $3.5$ & $6.0\mathrm{e}{-2}$ & $1.0\mathrm{e}{-1}$ & $4.2$ & $7.2$ & $4.5\mathrm{e}2$ & $4.6\mathrm{e}2$ & $2.1$ & $8.1$ & $2.6\mathrm{e}4$ & $2.7\mathrm{e}4$ \\
-$260$ & $\mathbf{1.7}$ & $3.9$ & $7.0\mathrm{e}{-2}$ & $8.0\mathrm{e}{-2}$ & $4.0$ & $6.7$ & $5.7\mathrm{e}2$ & $5.8\mathrm{e}2$ & $1.7$ & $6.0$ & $3.9\mathrm{e}4$ & $4.0\mathrm{e}4$ \\
-$280$ & $1.6$ & $4.6$ & $7.0\mathrm{e}{-2}$ & $8.0\mathrm{e}{-2}$ & $4.0$ & $7.3$ & $7.2\mathrm{e}2$ & $7.4\mathrm{e}2$ & $\mathbf{0.8}$ & $3.8$ & $5.8\mathrm{e}4$ & $5.9\mathrm{e}4$ \\
-$300$ & $2.1$ & $5.4$ & $8.0\mathrm{e}{-2}$ & $1.1\mathrm{e}{-1}$ & $4.1$ & $6.2$ & $8.9\mathrm{e}2$ & $9.1\mathrm{e}2$ & $\mathbf{0.7}$ & $2.0$ & $7.7\mathrm{e}4$ & $7.9\mathrm{e}4$ \\
-$320$ & $1.4$ & $2.7$ & $9.0\mathrm{e}{-2}$ & $1.4\mathrm{e}{-1}$ & $3.6$ & $6.1$ & $1.1\mathrm{e}3$ & $1.1\mathrm{e}3$ & $\mathbf{0.6}$ & $2.4$ & $1.0\mathrm{e}5$ & $1.0\mathrm{e}5$ \\
-$340$ & $1.3$ & $4.0$ & $1.0\mathrm{e}{-1}$ & $1.5\mathrm{e}{-1}$ & $3.5$ & $5.5$ & $1.3\mathrm{e}3$ & $1.3\mathrm{e}3$ & $\mathbf{0.4}$ & $1.9$ & $1.3\mathrm{e}5$ & $1.3\mathrm{e}5$ \\
-$360$ & $1.2$ & $2.9$ & $1.1\mathrm{e}{-1}$ & $1.4\mathrm{e}{-1}$ & $3.7$ & $7.2$ & $1.6\mathrm{e}3$ & $1.6\mathrm{e}3$ & $\mathbf{0.2}$ & $0.9$ & $1.6\mathrm{e}5$ & $1.6\mathrm{e}5$ \\
-$380$ & $1.3$ & $3.1$ & $1.2\mathrm{e}{-1}$ & $1.5\mathrm{e}{-1}$ & $3.8$ & $6.0$ & $1.9\mathrm{e}3$ & $2.1\mathrm{e}3$ & $\mathbf{0.4}$ & $1.6$ & $2.1\mathrm{e}5$ & $2.2\mathrm{e}5$ \\
-$400$ & $1.5$ & $3.0$ & $2.0\mathrm{e}{-1}$ & $8.9\mathrm{e}{-1}$ & $3.6$ & $4.9$ & $2.4\mathrm{e}3$ & $2.9\mathrm{e}3$ & $\mathbf{0.2}$ & $1.1$ & $2.8\mathrm{e}5$ & $3.3\mathrm{e}5$ \\
+$100$ & $\mathbf{4.4}$ & $10.0$ & $3.4\mathrm{e}{-2}$ & $6.2\mathrm{e}{-2}$ & $5.2$ & $9.7$ & $3.7\mathrm{e}1$ & $6.3\mathrm{e}1$ & $18.3$ & $29.2$ & $9.7\mathrm{e}2$ & $1.1\mathrm{e}3$ \\
+$120$ & $\mathbf{3.5}$ & $6.5$ & $4.8\mathrm{e}{-2}$ & $1.1\mathrm{e}{-1}$ & $4.8$ & $10.0$ & $6.1\mathrm{e}1$ & $6.3\mathrm{e}1$ & $13.8$ & $32.1$ & $1.8\mathrm{e}3$ & $1.8\mathrm{e}3$ \\
+$140$ & $\mathbf{3.0}$ & $6.6$ & $5.8\mathrm{e}{-2}$ & $1.2\mathrm{e}{-1}$ & $5.3$ & $8.5$ & $9.7\mathrm{e}1$ & $1.0\mathrm{e}2$ & $9.3$ & $20.6$ & $3.1\mathrm{e}3$ & $3.2\mathrm{e}3$ \\
+$160$ & $\mathbf{3.4}$ & $7.5$ & $6.7\mathrm{e}{-2}$ & $1.3\mathrm{e}{-1}$ & $4.2$ & $7.4$ & $1.4\mathrm{e}2$ & $1.5\mathrm{e}2$ & $6.5$ & $14.4$ & $5.1\mathrm{e}3$ & $5.3\mathrm{e}3$ \\
+$180$ & $\mathbf{2.6}$ & $7.8$ & $7.1\mathrm{e}{-2}$ & $9.8\mathrm{e}{-2}$ & $4.9$ & $7.6$ & $2.0\mathrm{e}2$ & $2.2\mathrm{e}2$ & $5.3$ & $13.8$ & $8.0\mathrm{e}3$ & $8.4\mathrm{e}3$ \\
+$200$ & $\mathbf{2.6}$ & $5.6$ & $7.5\mathrm{e}{-2}$ & $1.2\mathrm{e}{-1}$ & $4.4$ & $7.6$ & $2.7\mathrm{e}2$ & $2.9\mathrm{e}2$ & $4.5$ & $15.7$ & $1.2\mathrm{e}4$ & $1.3\mathrm{e}4$ \\
+$220$ & $3.4$ & $8.6$ & $8.7\mathrm{e}{-2}$ & $1.1\mathrm{e}{-1}$ & $5.0$ & $8.2$ & $3.6\mathrm{e}2$ & $3.8\mathrm{e}2$ & $\mathbf{3.0}$ & $11.7$ & $1.8\mathrm{e}4$ & $1.8\mathrm{e}4$ \\
+$240$ & $\mathbf{2.8}$ & $5.9$ & $8.5\mathrm{e}{-2}$ & $1.1\mathrm{e}{-1}$ & $4.7$ & $7.3$ & $4.9\mathrm{e}2$ & $5.1\mathrm{e}2$ & $2.8$ & $7.4$ & $2.6\mathrm{e}4$ & $2.7\mathrm{e}4$ \\
+$260$ & $2.6$ & $6.0$ & $1.0\mathrm{e}{-1}$ & $1.5\mathrm{e}{-1}$ & $5.4$ & $8.7$ & $5.7\mathrm{e}2$ & $5.8\mathrm{e}2$ & $\mathbf{1.6}$ & $4.7$ & $3.2\mathrm{e}4$ & $3.3\mathrm{e}4$ \\
+$280$ & $2.5$ & $7.8$ & $9.7\mathrm{e}{-2}$ & $1.2\mathrm{e}{-1}$ & $5.1$ & $7.7$ & $7.2\mathrm{e}2$ & $7.4\mathrm{e}2$ & $\mathbf{0.8}$ & $3.9$ & $4.3\mathrm{e}4$ & $4.4\mathrm{e}4$ \\
+$300$ & $2.0$ & $4.9$ & $1.1\mathrm{e}{-1}$ & $1.8\mathrm{e}{-1}$ & $4.9$ & $8.6$ & $9.0\mathrm{e}2$ & $9.1\mathrm{e}2$ & $\mathbf{0.9}$ & $5.0$ & $5.3\mathrm{e}4$ & $5.4\mathrm{e}4$ \\
+$320$ & $3.0$ & $7.6$ & $1.1\mathrm{e}{-1}$ & $1.2\mathrm{e}{-1}$ & $4.4$ & $7.4$ & $1.1\mathrm{e}3$ & $1.1\mathrm{e}3$ & $\mathbf{1.2}$ & $6.3$ & $6.5\mathrm{e}4$ & $6.6\mathrm{e}4$ \\
+$340$ & $1.5$ & $3.7$ & $1.3\mathrm{e}{-1}$ & $2.4\mathrm{e}{-1}$ & $4.7$ & $7.1$ & $1.3\mathrm{e}3$ & $1.3\mathrm{e}3$ & $\mathbf{1.2}$ & $8.0$ & $7.8\mathrm{e}4$ & $7.9\mathrm{e}4$ \\
+$360$ & $2.2$ & $5.5$ & $1.3\mathrm{e}{-1}$ & $1.6\mathrm{e}{-1}$ & $4.7$ & $7.0$ & $1.6\mathrm{e}3$ & $1.6\mathrm{e}3$ & $\mathbf{0.9}$ & $7.1$ & $9.3\mathrm{e}4$ & $9.6\mathrm{e}4$ \\
+$380$ & $2.3$ & $6.2$ & $1.4\mathrm{e}{-1}$ & $1.5\mathrm{e}{-1}$ & $4.5$ & $8.7$ & $1.9\mathrm{e}3$ & $1.9\mathrm{e}3$ & $\mathbf{0.3}$ & $1.5$ & $1.1\mathrm{e}5$ & $1.1\mathrm{e}5$ \\
+$400$ & $2.0$ & $5.9$ & $1.5\mathrm{e}{-1}$ & $1.7\mathrm{e}{-1}$ & $3.9$ & $8.0$ & $2.2\mathrm{e}3$ & $2.2\mathrm{e}3$ & $\mathbf{0.6}$ & $2.7$ & $1.3\mathrm{e}5$ & $1.3\mathrm{e}5$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1509,22 +1669,22 @@ $400$ & $1.5$ & $3.0$ & $2.0\mathrm{e}{-1}$ & $8.9\mathrm{e}{-1}$ & $3.6$ & $4.9
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}
  & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
 \midrule
-$100$ & $\mathbf{2.8}$ & $5.3$ & $3.0\mathrm{e}{-2}$ & $5.0\mathrm{e}{-2}$ & $5.4$ & $12.6$ & $3.6\mathrm{e}1$ & $3.7\mathrm{e}1$ & $9.0$ & $23.6$ & $1.4\mathrm{e}3$ & $1.5\mathrm{e}3$ \\
-$120$ & $\mathbf{2.4}$ & $4.7$ & $3.0\mathrm{e}{-2}$ & $6.0\mathrm{e}{-2}$ & $4.6$ & $6.5$ & $6.0\mathrm{e}1$ & $6.6\mathrm{e}1$ & $9.1$ & $20.9$ & $2.2\mathrm{e}3$ & $2.2\mathrm{e}3$ \\
-$140$ & $\mathbf{2.2}$ & $6.0$ & $3.0\mathrm{e}{-2}$ & $4.0\mathrm{e}{-2}$ & $4.8$ & $8.4$ & $9.1\mathrm{e}1$ & $9.3\mathrm{e}1$ & $7.2$ & $15.1$ & $3.1\mathrm{e}3$ & $3.2\mathrm{e}3$ \\
-$160$ & $\mathbf{2.6}$ & $5.5$ & $4.0\mathrm{e}{-2}$ & $4.0\mathrm{e}{-2}$ & $4.0$ & $7.5$ & $1.4\mathrm{e}2$ & $1.4\mathrm{e}2$ & $10.2$ & $21.9$ & $4.6\mathrm{e}3$ & $4.7\mathrm{e}3$ \\
-$180$ & $\mathbf{2.1}$ & $4.7$ & $4.0\mathrm{e}{-2}$ & $5.0\mathrm{e}{-2}$ & $4.7$ & $7.2$ & $1.9\mathrm{e}2$ & $2.0\mathrm{e}2$ & $7.0$ & $17.1$ & $6.4\mathrm{e}3$ & $6.7\mathrm{e}3$ \\
-$200$ & $\mathbf{1.9}$ & $6.6$ & $5.0\mathrm{e}{-2}$ & $7.0\mathrm{e}{-2}$ & $5.0$ & $8.6$ & $2.6\mathrm{e}2$ & $2.7\mathrm{e}2$ & $6.3$ & $17.5$ & $1.1\mathrm{e}4$ & $1.1\mathrm{e}4$ \\
-$220$ & $\mathbf{1.4}$ & $3.0$ & $5.0\mathrm{e}{-2}$ & $6.0\mathrm{e}{-2}$ & $5.1$ & $7.6$ & $3.4\mathrm{e}2$ & $3.5\mathrm{e}2$ & $2.5$ & $7.3$ & $1.7\mathrm{e}4$ & $1.8\mathrm{e}4$ \\
-$240$ & $\mathbf{1.3}$ & $2.4$ & $6.0\mathrm{e}{-2}$ & $7.0\mathrm{e}{-2}$ & $4.6$ & $8.0$ & $4.5\mathrm{e}2$ & $4.6\mathrm{e}2$ & $2.1$ & $6.8$ & $2.6\mathrm{e}4$ & $2.7\mathrm{e}4$ \\
-$260$ & $1.9$ & $4.9$ & $7.0\mathrm{e}{-2}$ & $8.0\mathrm{e}{-2}$ & $5.6$ & $8.0$ & $5.7\mathrm{e}2$ & $5.8\mathrm{e}2$ & $\mathbf{1.9}$ & $5.7$ & $3.9\mathrm{e}4$ & $4.0\mathrm{e}4$ \\
-$280$ & $1.4$ & $3.1$ & $7.0\mathrm{e}{-2}$ & $9.0\mathrm{e}{-2}$ & $3.9$ & $6.5$ & $7.2\mathrm{e}2$ & $7.3\mathrm{e}2$ & $\mathbf{0.7}$ & $2.4$ & $5.8\mathrm{e}4$ & $5.9\mathrm{e}4$ \\
-$300$ & $1.2$ & $2.9$ & $9.0\mathrm{e}{-2}$ & $1.3\mathrm{e}{-1}$ & $4.9$ & $6.7$ & $8.9\mathrm{e}2$ & $9.1\mathrm{e}2$ & $\mathbf{1.1}$ & $3.8$ & $7.7\mathrm{e}4$ & $7.8\mathrm{e}4$ \\
-$320$ & $1.2$ & $3.1$ & $9.0\mathrm{e}{-2}$ & $1.2\mathrm{e}{-1}$ & $4.3$ & $6.0$ & $1.1\mathrm{e}3$ & $1.1\mathrm{e}3$ & $\mathbf{0.5}$ & $1.8$ & $9.9\mathrm{e}4$ & $1.0\mathrm{e}5$ \\
-$340$ & $1.1$ & $3.0$ & $1.0\mathrm{e}{-1}$ & $1.2\mathrm{e}{-1}$ & $4.6$ & $6.6$ & $1.3\mathrm{e}3$ & $1.3\mathrm{e}3$ & $\mathbf{0.2}$ & $1.0$ & $1.3\mathrm{e}5$ & $1.3\mathrm{e}5$ \\
-$360$ & $1.2$ & $2.2$ & $1.1\mathrm{e}{-1}$ & $1.3\mathrm{e}{-1}$ & $5.4$ & $6.8$ & $1.6\mathrm{e}3$ & $1.6\mathrm{e}3$ & $\mathbf{0.2}$ & $1.4$ & $1.6\mathrm{e}5$ & $1.6\mathrm{e}5$ \\
-$380$ & $1.6$ & $3.3$ & $1.2\mathrm{e}{-1}$ & $1.3\mathrm{e}{-1}$ & $5.2$ & $7.3$ & $1.9\mathrm{e}3$ & $2.0\mathrm{e}3$ & $\mathbf{0.4}$ & $1.8$ & $2.1\mathrm{e}5$ & $2.1\mathrm{e}5$ \\
-$400$ & $1.1$ & $3.7$ & $2.0\mathrm{e}{-1}$ & $4.3\mathrm{e}{-1}$ & $4.5$ & $7.7$ & $2.7\mathrm{e}3$ & $3.2\mathrm{e}3$ & $\mathbf{0.1}$ & $0.7$ & $3.1\mathrm{e}5$ & $3.5\mathrm{e}5$ \\
+$100$ & $\mathbf{3.6}$ & $8.9$ & $4.1\mathrm{e}{-2}$ & $1.3\mathrm{e}{-1}$ & $4.6$ & $10.8$ & $3.6\mathrm{e}1$ & $4.1\mathrm{e}1$ & $16.0$ & $30.1$ & $9.6\mathrm{e}2$ & $1.0\mathrm{e}3$ \\
+$120$ & $\mathbf{4.4}$ & $12.9$ & $4.3\mathrm{e}{-2}$ & $7.1\mathrm{e}{-2}$ & $5.4$ & $9.3$ & $6.1\mathrm{e}1$ & $6.2\mathrm{e}1$ & $17.1$ & $38.5$ & $1.8\mathrm{e}3$ & $1.8\mathrm{e}3$ \\
+$140$ & $\mathbf{3.5}$ & $10.7$ & $5.2\mathrm{e}{-2}$ & $9.4\mathrm{e}{-2}$ & $4.4$ & $7.7$ & $9.6\mathrm{e}1$ & $9.9\mathrm{e}1$ & $12.6$ & $25.3$ & $3.1\mathrm{e}3$ & $3.2\mathrm{e}3$ \\
+$160$ & $\mathbf{3.2}$ & $11.4$ & $6.8\mathrm{e}{-2}$ & $1.1\mathrm{e}{-1}$ & $5.8$ & $9.9$ & $1.4\mathrm{e}2$ & $1.5\mathrm{e}2$ & $8.1$ & $25.8$ & $5.1\mathrm{e}3$ & $5.2\mathrm{e}3$ \\
+$180$ & $\mathbf{3.0}$ & $7.3$ & $6.7\mathrm{e}{-2}$ & $9.6\mathrm{e}{-2}$ & $5.3$ & $9.0$ & $2.1\mathrm{e}2$ & $2.5\mathrm{e}2$ & $5.9$ & $14.3$ & $8.3\mathrm{e}3$ & $8.5\mathrm{e}3$ \\
+$200$ & $\mathbf{2.7}$ & $8.6$ & $9.3\mathrm{e}{-2}$ & $2.5\mathrm{e}{-1}$ & $4.7$ & $7.2$ & $2.8\mathrm{e}2$ & $2.9\mathrm{e}2$ & $4.9$ & $10.1$ & $1.2\mathrm{e}4$ & $1.3\mathrm{e}4$ \\
+$220$ & $\mathbf{2.9}$ & $8.0$ & $8.0\mathrm{e}{-2}$ & $1.1\mathrm{e}{-1}$ & $4.8$ & $8.7$ & $3.8\mathrm{e}2$ & $4.0\mathrm{e}2$ & $3.6$ & $9.0$ & $1.8\mathrm{e}4$ & $1.9\mathrm{e}4$ \\
+$240$ & $2.9$ & $6.4$ & $8.9\mathrm{e}{-2}$ & $1.2\mathrm{e}{-1}$ & $6.0$ & $8.9$ & $4.5\mathrm{e}2$ & $4.8\mathrm{e}2$ & $\mathbf{1.9}$ & $6.5$ & $2.4\mathrm{e}4$ & $2.5\mathrm{e}4$ \\
+$260$ & $1.8$ & $5.3$ & $9.1\mathrm{e}{-2}$ & $1.1\mathrm{e}{-1}$ & $5.2$ & $9.3$ & $5.7\mathrm{e}2$ & $5.8\mathrm{e}2$ & $\mathbf{1.6}$ & $8.0$ & $3.2\mathrm{e}4$ & $3.3\mathrm{e}4$ \\
+$280$ & $2.3$ & $4.8$ & $1.0\mathrm{e}{-1}$ & $1.3\mathrm{e}{-1}$ & $5.5$ & $9.2$ & $7.2\mathrm{e}2$ & $7.3\mathrm{e}2$ & $\mathbf{0.8}$ & $4.3$ & $4.3\mathrm{e}4$ & $4.4\mathrm{e}4$ \\
+$300$ & $2.8$ & $6.3$ & $1.0\mathrm{e}{-1}$ & $1.2\mathrm{e}{-1}$ & $5.4$ & $7.5$ & $9.0\mathrm{e}2$ & $9.1\mathrm{e}2$ & $\mathbf{2.0}$ & $11.8$ & $5.3\mathrm{e}4$ & $5.4\mathrm{e}4$ \\
+$320$ & $1.9$ & $4.7$ & $1.2\mathrm{e}{-1}$ & $2.3\mathrm{e}{-1}$ & $5.7$ & $8.5$ & $1.1\mathrm{e}3$ & $1.1\mathrm{e}3$ & $\mathbf{1.4}$ & $6.1$ & $6.5\mathrm{e}4$ & $6.6\mathrm{e}4$ \\
+$340$ & $1.4$ & $3.0$ & $1.2\mathrm{e}{-1}$ & $1.3\mathrm{e}{-1}$ & $5.6$ & $8.6$ & $1.3\mathrm{e}3$ & $1.4\mathrm{e}3$ & $\mathbf{0.8}$ & $3.3$ & $7.8\mathrm{e}4$ & $8.0\mathrm{e}4$ \\
+$360$ & $1.7$ & $3.2$ & $1.3\mathrm{e}{-1}$ & $1.5\mathrm{e}{-1}$ & $5.8$ & $8.2$ & $1.6\mathrm{e}3$ & $1.6\mathrm{e}3$ & $\mathbf{1.1}$ & $7.3$ & $9.3\mathrm{e}4$ & $9.4\mathrm{e}4$ \\
+$380$ & $1.8$ & $4.0$ & $1.4\mathrm{e}{-1}$ & $1.6\mathrm{e}{-1}$ & $5.9$ & $9.1$ & $1.9\mathrm{e}3$ & $1.9\mathrm{e}3$ & $\mathbf{0.8}$ & $2.9$ & $1.1\mathrm{e}5$ & $1.1\mathrm{e}5$ \\
+$400$ & $1.7$ & $4.6$ & $1.5\mathrm{e}{-1}$ & $2.1\mathrm{e}{-1}$ & $5.8$ & $9.1$ & $2.2\mathrm{e}3$ & $2.3\mathrm{e}3$ & $\mathbf{0.8}$ & $2.9$ & $1.3\mathrm{e}5$ & $1.3\mathrm{e}5$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -1536,24 +1696,24 @@ $400$ & $1.1$ & $3.7$ & $2.0\mathrm{e}{-1}$ & $4.3\mathrm{e}{-1}$ & $4.5$ & $7.7
       width=0.88\textwidth, height=5.4cm,
       xlabel={instance size $n$}, ylabel={mean gap (\%)},
       xtick={100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400}, xticklabels={100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400},
-      ymin=0, ymax=11,
+      ymin=0, ymax=20,
       tick label style={font=\scriptsize}, label style={font=\small},
       every axis plot/.append style={line width=0.9pt},
       legend columns=3,
       legend style={font=\scriptsize, at={(0.5,-0.30)}, anchor=north, draw=none,
         /tikz/every even column/.append style={column sep=10pt}},
       ]
-      \addplot[apxblue] coordinates {(100,3.20) (120,2.87) (140,2.69) (160,1.89) (180,2.35) (200,2.06) (220,2.00) (240,1.65) (260,1.67) (280,1.63) (300,2.05) (320,1.35) (340,1.31) (360,1.16) (380,1.31) (400,1.51)};
+      \addplot[apxblue] coordinates {(100,4.42) (120,3.53) (140,3.01) (160,3.38) (180,2.56) (200,2.56) (220,3.45) (240,2.84) (260,2.61) (280,2.49) (300,2.05) (320,2.98) (340,1.46) (360,2.20) (380,2.26) (400,2.05)};
         \addlegendentry{2-approx. $[1{,}40]$}
-      \addplot[nehred] coordinates {(100,5.02) (120,4.26) (140,4.08) (160,4.59) (180,4.11) (200,3.89) (220,3.90) (240,4.21) (260,4.02) (280,3.97) (300,4.11) (320,3.59) (340,3.54) (360,3.67) (380,3.79) (400,3.60)};
+      \addplot[nehred] coordinates {(100,5.17) (120,4.78) (140,5.27) (160,4.21) (180,4.86) (200,4.42) (220,4.97) (240,4.67) (260,5.38) (280,5.13) (300,4.94) (320,4.37) (340,4.69) (360,4.72) (380,4.52) (400,3.94)};
         \addlegendentry{NEH $[1{,}40]$}
-      \addplot[gagreen] coordinates {(100,10.58) (120,9.71) (140,10.76) (160,9.58) (180,10.88) (200,5.49) (220,4.33) (240,2.09) (260,1.73) (280,0.81) (300,0.68) (320,0.59) (340,0.43) (360,0.19) (380,0.37) (400,0.22)};
+      \addplot[gagreen] coordinates {(100,18.33) (120,13.77) (140,9.35) (160,6.47) (180,5.30) (200,4.47) (220,3.04) (240,2.85) (260,1.59) (280,0.83) (300,0.91) (320,1.22) (340,1.22) (360,0.85) (380,0.30) (400,0.62)};
         \addlegendentry{GA $[1{,}40]$}
-      \addplot[apxblue, dashed] coordinates {(100,2.75) (120,2.44) (140,2.15) (160,2.60) (180,2.14) (200,1.87) (220,1.37) (240,1.26) (260,1.87) (280,1.41) (300,1.20) (320,1.23) (340,1.05) (360,1.17) (380,1.60) (400,1.11)};
+      \addplot[apxblue, dashed] coordinates {(100,3.58) (120,4.39) (140,3.46) (160,3.18) (180,3.00) (200,2.68) (220,2.89) (240,2.94) (260,1.79) (280,2.31) (300,2.79) (320,1.86) (340,1.41) (360,1.74) (380,1.78) (400,1.67)};
         \addlegendentry{2-approx. $[1{,}80]$}
-      \addplot[nehred, dashed] coordinates {(100,5.39) (120,4.64) (140,4.81) (160,3.97) (180,4.66) (200,5.00) (220,5.11) (240,4.64) (260,5.59) (280,3.90) (300,4.90) (320,4.30) (340,4.63) (360,5.37) (380,5.21) (400,4.47)};
+      \addplot[nehred, dashed] coordinates {(100,4.63) (120,5.37) (140,4.36) (160,5.83) (180,5.33) (200,4.67) (220,4.76) (240,6.00) (260,5.20) (280,5.53) (300,5.41) (320,5.72) (340,5.57) (360,5.78) (380,5.85) (400,5.79)};
         \addlegendentry{NEH $[1{,}80]$}
-      \addplot[gagreen, dashed] coordinates {(100,8.95) (120,9.06) (140,7.24) (160,10.21) (180,6.99) (200,6.34) (220,2.47) (240,2.09) (260,1.85) (280,0.74) (300,1.09) (320,0.51) (340,0.20) (360,0.24) (380,0.36) (400,0.13)};
+      \addplot[gagreen, dashed] coordinates {(100,16.01) (120,17.05) (140,12.57) (160,8.06) (180,5.91) (200,4.88) (220,3.63) (240,1.89) (260,1.62) (280,0.84) (300,1.97) (320,1.38) (340,0.78) (360,1.11) (380,0.81) (400,0.82)};
         \addlegendentry{GA $[1{,}80]$}
   \end{axis}
 \end{tikzpicture}
@@ -1561,30 +1721,46 @@ $400$ & $1.1$ & $3.7$ & $2.0\mathrm{e}{-1}$ & $4.3\mathrm{e}{-1}$ & $4.5$ & $7.7
 \label{fig:gap-large}
 \end{figure}
 
-The large-scale results show that the constructive heuristics remain relatively close to the lower bound, whereas the GA progressively outperforms both as the instance size increases. This suggests that the methods are better understood in terms of their complementary strengths than through a single overall ranking. The 2-approximation is the most computationally efficient method, requiring approximately six orders of magnitude less time than the GA on large instances. It achieves a mean gap of 3.52% from the optimum on small instances, with a worst-instance gap of 16.71%, and a mean gap of 1.81% from the lower bound on large instances, with a worst-instance gap of 7.57%. These results indicate that the theoretical approximation guarantee in \Cref{thm:approx2} is conservative for the tested instances. NEH offers a different balance: its initial sequence is constructed using processing-time information alone, while its insertion decisions are evaluated according to the weighted objective. Consequently, NEH performs particularly well on smaller instances but becomes less competitive as the instance size increases, with its gap remaining relatively stable rather than decreasing substantially.
-
-The two methods that extend the comparison beyond constructive heuristics serve fundamentally different purposes. The dynamic programming algorithm is the only method that certifies optimality. It remains computationally manageable for the instances to which it applies, requiring an average of 1.47 s for 40 jobs under the [1,40] processing-time range. Its applicability, however, is restricted to instances with two distinct weight classes and at most 100 jobs in the tested settings; extending the number of weight classes to three exceeds the available memory. The GA exhibits the opposite characteristics. It provides no optimality certificate and incurs substantially higher computational costs than the constructive heuristics, yet it achieves better objective values than both rules on a considerable proportion of large instances. Its average running time is more than 90 times that of NEH, and it attains the best objective value in 318 of the 640 large-scale instances, compared with 283 for the 2-approximation and 42 for NEH, with ties counted for every method attaining the best value. The GA begins to outperform NEH at around 240 jobs and the 2-approximation at around 260 jobs under [1,80] and 280 jobs under [1,40]. These comparisons should be interpreted in light of the different instance sets: the dynamic programming algorithm is evaluated on instances with two weight classes, whereas the GA is tested on instances with up to 30 distinct weight values. Thus, the two methods address different computational questions: whether optimality can be certified for restricted instances, and whether high-quality schedules can be constructed for larger and more general instances. One possible explanation for the GA's slower improvement is its initialization strategy. Since Johnson's rule does not account for job weights, the initial population may require additional generations to develop schedules that reflect the weighted objective.
-
-Two qualifications are important when interpreting these results. First, the large-scale gaps are measured relative to \(LB\), which is obtained from the three prefix-based lower bounds in \cref{eq:lb}, rather than relative to the unknown optimum. The lower bound is tight only under the specified condition that the heaviest jobs also appear earliest in the sequence. Accordingly, these gaps provide a consistent basis for comparing the methods, but do not directly establish their distances from the optimal objective values. Second, the relative performance of the heuristics depends on the processing-time range. In particular, the GA's overall mean gap of 3.97% is lower than NEH's 4.40%, but this advantage is attributable to the [1,80] range: under [1,40], GA achieves a mean gap of 4.28%, slightly higher than NEH's 4.02%.
-
-A promising direction for improving the GA is to incorporate the solution generated by the 2-approximation into its initial population. Such an initialization would introduce a weight-aware schedule at negligible additional computational cost, potentially reducing the number of generations required to obtain high-quality solutions and shifting the instance size at which the GA begins to outperform the constructive heuristics. This strategy provides a natural direction for further investigation.
-
-\FloatBarrier
-\clearpage
 
 \section{Conclusion}
 \label{sec:conclusion}
+This paper studies the two-machine flow shop scheduling problem with the maximum weighted completion time as its objective. 
+The problem is strongly NP-hard, and an optimal schedule exhibits a block structure: 
+jobs are partitioned into one block for each distinct weight, 
+Johnson's order is followed within each block, and the blocks are arranged in non-increasing order of weight. 
+This structural property leads to a dynamic programming algorithm that eliminates dominated states 
+and runs in \(O(nK2^{K}V^{3K-3})\) time, a 2-approximation algorithm with an \(O(n\log n)\) running time, 
+a fully polynomial-time approximation scheme (FPTAS) for a fixed number of weight classes, 
+and two heuristics—an adapted NEH algorithm and a genetic algorithm—to handle instances beyond the practical 
+reach of the exact methods.
 
-This paper investigates the two-machine flow shop scheduling problem with the maximum weighted completion time as its objective. We establish its strong NP-hardness and identify a structural property that enables exact solution methods: an optimal schedule can be represented as a permutation partitioned into one block for each distinct weight, with Johnson's order within each block and the blocks arranged in non-increasing order of weight. Based on this structure, we develop a dynamic programming algorithm that eliminates dominated states and runs in \(O(nK2^{K}V^{3K-3})\) time. We also propose a 2-approximation algorithm with an \(O(n\log n)\) running time, an approximation scheme that achieves a \((1+\varepsilon)\) guarantee for a fixed number of weight classes, and two heuristics—an adapted NEH algorithm and a genetic algorithm—to address instances beyond the reach of the exact methods.
+The computational study illustrates the complementary strengths of these methods. 
+The MILP model solves 436 of the 440 small-scale instances to optimality, 
+while the dynamic programming algorithm certifies optimality for instances with \(K=2\) 
+and up to 100 jobs under [1,40] and 80 jobs under [1,80], within the 600-s time limit. 
+On small instances, the 2-approximation and NEH achieve average gaps of 5.77\% and 3.14\%, 
+respectively, relative to the reference values. 
+On large instances, their average gaps relative to the lower bound are 2.67\% and 5.06\%, respectively. 
+Although the genetic algorithm performs less favorably on small instances, 
+it eventually outperforms both constructive heuristics at approximately 220–240 jobs. 
+These results suggest that the methods are complementary rather than competing alternatives: 
+the constructive heuristics offer computational efficiency, 
+the exact methods provide optimality certificates within their applicable ranges, 
+and the genetic algorithm can deliver further solution improvements on larger instances.
 
-The computational study demonstrates the complementary strengths and limitations of these methods. The mixed-integer linear programming (MILP) model solves all 440 small-scale instances to optimality. For \(K=2\), the dynamic programming algorithm also certifies optimality for instances with up to 100 jobs under the [1,40] processing-time range and up to 80 jobs under [1,80], with its scalability constrained by the 600-s time limit. On small instances, the 2-approximation and NEH achieve average gaps of 3.52% and 2.53%, respectively, relative to the optimum. On large instances, their average gaps relative to the lower bound are 1.81% and 4.40%, respectively. Although the genetic algorithm performs less favorably on small instances, it is the only heuristic that eventually outperforms both constructive methods as the instance size increases, with the crossover occurring at approximately 240–280 jobs, depending on the processing-time range. These findings suggest that the methods are best viewed as complementary rather than competing alternatives: the constructive heuristics offer computational efficiency, the exact methods provide optimality certificates within their applicable ranges, and the genetic algorithm can deliver further improvements on sufficiently large instances.
-
-Several directions for future research follow from the limitations of the present study. The first is to extend the problem to more than two machines. The MILP formulation in \Cref{sec:preliminaries} provides a possible starting point, as its assignment and completion-time constraints can be reformulated for \(m>2\) machines. However, the single-permutation property established for the two-machine problem does not generally hold when three or more machines are involved. The extended formulation must therefore account for the sequencing decisions on individual machines and the precedence relationships between operations. This extension is conceptually feasible, although it is likely to introduce substantially more sequencing variables and constraints.
-
-The second direction is to develop exact methods for problems with more weight classes. The state-space bound of the dynamic programming algorithm, \(2^{K}V^{3K-3}\), grows rapidly with \(K\), making the algorithm impractical when \(K=3\) under the available memory. A branch-and-bound framework is a promising alternative. The structural properties established in this paper can guide branching decisions over the ordering of weight blocks and the sequencing of jobs within each block. Moreover, the three lower bounds, \(LB_1\), \(LB_2\), and \(LB_3\), developed in \Cref{sub:approx2} can be incorporated to evaluate partial schedules and prune unpromising search nodes. Such a framework may extend optimality certification to instances that are beyond the practical reach of the current dynamic programming algorithm.
-
-The third direction is to consider more general production environments, particularly distributed flow shops. Since the proposed heuristics use processing times and job weights to construct schedules, they provide a basis for extensions to settings with multiple identical flow shops, where both shop assignment and job sequencing must be determined. For example, the NEH heuristic could be adapted to evaluate job insertions across candidate shops, while the genetic algorithm could encode both shop assignments and job sequences in its chromosomes. Related extensions to larger production systems containing multiple two-machine flow-shop units may also be investigated. These extensions would broaden the applicability of the proposed methods while retaining the key scheduling principles developed in this study.
-
+Three directions for future research emerge from this study. 
+First, the problem can be extended to more than two machines. 
+The existing MILP formulation provides a starting point for this extension, 
+although the single-permutation property established for the two-machine case does not generally hold for \(m>2\). 
+The extended model must therefore explicitly account for machine-specific sequencing decisions 
+and precedence constraints between operations. Second, for problems with more weight classes, 
+a branch-and-bound framework offers a promising alternative to the dynamic programming algorithm. 
+The block structure can guide branching decisions, while the lower bounds \(LB_1\), \(LB_2\), 
+and \(LB_3\) developed in \Cref{sub:approx2} can be used to evaluate partial schedules and prune unpromising nodes. 
+Third, the proposed heuristics can be extended to distributed flow shops, 
+where job assignment to shops and job sequencing must be determined jointly. 
+Since both heuristics rely on processing times and job weights, NEH can be adapted to evaluate insertions 
+across candidate shops, while the genetic algorithm can encode shop assignments together with job sequences.
 \bibliographystyle{apalike}
 \bibliography{ref_IJPR}
 

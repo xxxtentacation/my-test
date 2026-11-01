@@ -318,7 +318,7 @@ def wcmax_of_order(order: List[int], a: List[float], b: List[float], w: List[flo
 # ---------------------------------------------------------------------------
 
 INSTANCES_PER_CONFIG = 20      # paper Section 6.1: instances per configuration
-PROC_LO, PROC_HI = 1, 10       # processing times ~ normal on {1, ..., 10}
+PROC_LO, PROC_HI = 1, 10       # processing times ~ uniform on {1, ..., 10}
 
 #: name of this module, used to tag the per-instance records
 LABEL = Path(__file__).stem.upper()
@@ -421,11 +421,11 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     """
     One random instance of the benchmark protocol (paper Section 6).
 
-    Every integer of the instance comes from a normal distribution on the
-    integers of its range, with the mean at the middle of the range and the
-    standard deviation a sixth of its width, so that the two ends of the range
-    are three standard deviations from the mean.  The processing times a_j and
-    b_j are drawn on {PROC_LO, ..., proc_hi}, the upper end of the range being
+    The weights come from a normal distribution on the integers of their
+    range, with the mean at the middle of the range and the standard deviation
+    a sixth of its width, so that the two ends of the range are three standard
+    deviations from the mean.  The processing times a_j and b_j are drawn
+    uniformly on {PROC_LO, ..., proc_hi}, the upper end of the range being
     the one paper Section 6.1 gives the scale: [1,40] and [1,80] on the two
     comparison scales, and [1,20], [1,40] and [1,60] on the geometric one.  The
     weights follow the setting `weights`: the narrow regime draws them on
@@ -441,8 +441,8 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     """
     if weights not in WEIGHT_SETTINGS:
         raise ValueError("unknown weight setting: %r" % (weights,))
-    a = [_normal_int(rng, PROC_LO, proc_hi) for _ in range(n)]
-    b = [_normal_int(rng, PROC_LO, proc_hi) for _ in range(n)]
+    a = [rng.randint(PROC_LO, proc_hi) for _ in range(n)]
+    b = [rng.randint(PROC_LO, proc_hi) for _ in range(n)]
     if geometric:
         w = [10 ** _normal_int(rng, 0, K - 1) for _ in range(n)]
     elif weights == "narrow":
@@ -579,8 +579,8 @@ def main() -> None:  # pragma: no cover
     w_lo, w_hi = 1, 3     # weight range
 
     random.seed(seed)
-    a = [_normal_int(random, a_lo, a_hi) for _ in range(n)]
-    b = [_normal_int(random, b_lo, b_hi) for _ in range(n)]
+    a = [random.randint(a_lo, a_hi) for _ in range(n)]
+    b = [random.randint(b_lo, b_hi) for _ in range(n)]
     w = [_normal_int(random, w_lo, w_hi) for _ in range(n)]
 
     print("seed   :", seed, "| n =", n)

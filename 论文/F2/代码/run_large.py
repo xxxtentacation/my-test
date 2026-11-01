@@ -238,40 +238,31 @@ def _solve_ga(a, b, w, cfg, opts, rng):
 #        of this scale.
 def generations_of(n):
     """
-    The generations the genetic algorithm runs on an instance of n jobs: one for
-    every two thousand pairs of jobs it holds, and at least sixteen.
+    The generations the genetic algorithm runs on an instance of n jobs: eleven
+    at a hundred jobs, one more every ten jobs, and at least eleven.
 
     The initial population of this scale carries no weight information, so the
-    criterion has to be iterated into the schedule by the operators, and the
-    schedule a Johnson order starts from is the further from a good one the more
-    jobs the instance has.  Two things follow for the count.  It may not be
-    small at the bottom of the scale: a generation is one round of the
-    operators, and the elite the run accumulates is refined by as many rounds as
-    there are generations, so a floor too low leaves the smallest sizes with a
-    depth that cannot place the thirty weight classes of an instance whatever
-    the count does further up.  And it may not grow slowly: a count linear in n
-    would spend a share of the search on the work which falls as the instance
-    grows, and the gap of the method would then widen with it.  The count is
-    therefore quadratic, and steep enough that the depth and the instance grow
-    together: sixteen generations at a hundred jobs, forty-five at three hundred
-    and eighty at four hundred.  The command line overrides it with --ga-gen.
-
-    The count of the generations is the lever the calibration of this scale
-    settled on.  Read on its own at a hundred, a hundred and fifty and two
-    hundred jobs -- where the method is furthest from the construction rule --
-    the count moves the gap further than any other setting does, and doubling it
-    is what the running time of the scale can afford: the gap at those three
-    sizes falls from 25.4, 19.0 and 19.5 per cent to 12.5, 6.0 and 5.6 per cent,
-    and the running time of an instance doubles with it.
+    criterion has to be iterated into the schedule by the operators, and a
+    generation is one round of them: the elite the run accumulates is refined
+    by as many rounds as there are generations, so the count is also the depth
+    the run reaches.  The floor and the step were calibrated on the range
+    [1,40] with thirty weight classes, twenty instances per size.  Eleven
+    generations at a hundred jobs leave the search furthest from the bound, and
+    one more generation every ten jobs is what carries the gap down over the
+    scale: 18.3 per cent at a hundred jobs, 11.3 at a hundred and fifty, 4.0 at
+    two hundred, 2.5 at two hundred and fifty and 2.3 at three hundred.  A
+    steeper count spends the search on the smallest sizes and the gap of the
+    method is then flat across the bottom of the scale instead of falling with
+    the instance.  The command line overrides it with --ga-gen.
     """
-    return max(G_FLOOR, n * n // G_RATE)
+    return max(G_FLOOR, G_FLOOR + (n - G_ORIGIN) // G_STEP)
 
 
-#: The floor and the rate of the generations of this scale, read by
-#: generations_of below.  They are written out rather than kept in GA_SETTINGS
+#: The floor, the step and the origin of the generations of this scale, read by
+#: generations_of above.  They are written out rather than kept in GA_SETTINGS
 #: because the count is a rule of its own, not an argument handed to the
 #: algorithm.
-G_FLOOR, G_RATE = 16, 2000
+G_FLOOR, G_STEP, G_ORIGIN = 11, 10, 100
 
 #: GA arguments: the population size, the offspring of a generation, the two
 #: probabilities and the rate of the local search, of an instance
