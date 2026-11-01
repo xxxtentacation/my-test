@@ -116,15 +116,14 @@ algorithms and a computational study}
 Scheduling plays a critical role in semiconductor wafer fabrication, where each wafer lot
 undergoes hundreds of processing operations and its completion time determines the delivery
 time of the corresponding customer order. In practice, high-priority hot lots must be completed
-ahead of regular lots, and the penalties associated with delays may vary across customers and
-processing layers. Scheduling decisions should therefore not only improve overall production
-performance but also prevent excessive delays to high-priority lots. Two commonly studied
-objectives in this context are the total weighted completion time, which minimizes the sum of
-weighted completion times, and the maximum weighted completion time, which minimizes the
-largest weighted completion time. Unlike the conventional makespan, the maximum weighted
-completion time accounts for differences in lot priorities and focuses on the worst-case weighted
-completion performance. When all lots have unit weights, it reduces to the conventional
-makespan.
+ahead of regular lots, and their priority weights may vary across customers and processing
+layers. Scheduling decisions should therefore not only improve overall production performance
+but also prevent excessive delays to high-priority lots. Two relevant scheduling objectives are
+the total weighted completion time, which minimizes the sum of weighted completion times,
+and the maximum weighted completion time, which minimizes the largest weighted completion
+time. Unlike the conventional makespan, the maximum weighted completion time accounts for
+differences in lot priorities and focuses on the worst-case weighted completion performance.
+When all lots have unit weights, it reduces to the conventional makespan.
 
 Research on the maximum weighted completion time has primarily focused on single-machine
 and parallel-machine environments. For single-machine scheduling, approximation algorithms
@@ -152,13 +151,13 @@ makespan minimization \citep{johnson1954optimal}. Subsequent research has develo
 constructive heuristics for various flow-shop settings \citep{shao2021constructive}, while the
 corresponding three-machine problem remains strongly $\mathcal{NP}$-hard
 \citep{pinedo2022scheduling}. Genetic algorithms have also been adapted to related flow-shop
-problems \citep{qiao2022adaptive,wang2023extended}. Further research on two-machine and more
-general flow-shop environments has addressed disruptions \citep{hnaien2023random},
-branch-and-bound algorithms \citep{liu2024branch}, reentrant production
-\citep{liu2024robust}, alternative objective functions \citep{shabtay2024coordinating},
-deterministic NEH-based constructions \citep{puka2024deterministic}, and distributed
-manufacturing environments \citep{becker2025distributed}. Meanwhile, refinements of
-Johnson's rule continue to attract research interest \citep{dellacroce2026revisiting}.
+problems \citep{qiao2022adaptive,wang2023extended}. Other studies have investigated
+disruptions \citep{hnaien2023random}, branch-and-bound algorithms \citep{liu2024branch},
+reentrant production \citep{liu2024robust}, alternative objective functions
+\citep{shabtay2024coordinating}, deterministic NEH-based constructions
+\citep{puka2024deterministic}, and distributed manufacturing environments
+\citep{becker2025distributed}. Meanwhile, refinements of Johnson's rule continue to attract
+research interest \citep{dellacroce2026revisiting}.
 
 The two-machine flow shop provides a basic model of serial production, in which each lot
 passes through two consecutive processing stages. Such production structures arise in various
@@ -167,16 +166,19 @@ by etching, and textile manufacturing, where dyeing precedes drying.
 
 This paper makes five main contributions. First, we formulate the problem as a mixed-integer
 programming model. Second, we establish its strong $\mathcal{NP}$-hardness. Third, we derive a
-structural theorem characterizing an optimal schedule. Fourth, based on this structure, we
-develop three algorithms: an exact dynamic programming algorithm, a 2-approximation
-algorithm, and an approximation scheme. Finally, we propose an adapted NEH heuristic and a
-genetic algorithm, and conduct a computational study involving 440 small-scale and 640
-large-scale instances. The remainder of the paper is organized as follows.
-\Cref{sec:preliminaries} presents the problem formulation, and \Cref{sec:complexity}
-establishes its computational complexity. \Cref{sec:dp_algorithm} presents the structural
-theorem and the associated algorithms, while \Cref{sec:heuristics} describes the heuristic
-methods. \Cref{sec:experiments} reports the computational results, and
-\Cref{sec:conclusion} concludes the paper.
+structural theorem characterizing an optimal schedule. Fourth, exploiting this structural
+property, we develop three algorithms: an exact dynamic programming algorithm, a
+2-approximation algorithm, and an approximation scheme. Finally, we propose an adapted NEH
+heuristic and a genetic algorithm for large instances, and conduct a computational study
+involving 440 small-scale and 640 large-scale instances. The remainder of the paper is
+organized as follows. \Cref{sec:preliminaries} presents the problem formulation, and
+\Cref{sec:complexity} establishes its computational complexity. \Cref{sec:dp_algorithm}
+presents the structural theorem and the associated algorithms, while
+\Cref{sec:heuristics} describes the heuristic methods. \Cref{sec:experiments} reports the
+computational results, and \Cref{sec:conclusion} concludes the paper.
+
+
+
 \section{Problem description}    
 \label{sec:preliminaries}
 
