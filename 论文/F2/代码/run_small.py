@@ -9,8 +9,8 @@ and the methods they run, so a group can be run, interrupted and repeated on
 its own.
 
 * **Instances.**  The small scale varies the instance size and the processing-time
-  range.  Every instance carries at most 30 distinct weights, drawn from a normal
-  distribution on {1, ..., 30}, and its processing times are drawn from the
+  range.  Every instance carries at most 100 distinct weights, drawn from a normal
+  distribution on {1, ..., 100}, and its processing times are drawn from the
   same distribution on one of the two ranges [1,40] and [1,80].  The eleven instance sizes crossed with the two
   ranges give the 22 configurations of the scale, each of them replicated 20
   times.
@@ -21,7 +21,7 @@ its own.
   gap against the reference value LB of Section 4.3, which the instance alone
   determines, and on its running time.  The dynamic program of the paper is not
   run here: its cost grows exponentially in the number of distinct weights, so
-  instances with thirty of them are out of its reach, and it is reported on a set
+  instances with a hundred of them are out of its reach, and it is reported on a set
   of its own, which ``run_dp.py`` runs.  Every method runs once on every
   instance, so no comparison rests on a different sample.
 
@@ -125,7 +125,7 @@ SCALE = "small"
 #: the weights of an instance: drawn from a normal distribution on
 #: {1, ..., K}, so that an instance carries at most K distinct ones, and
 #: fewer when it has fewer jobs
-WEIGHT_COUNT = 30
+WEIGHT_COUNT = 100
 
 #: the processing-time ranges of the scale, by the upper end of the range on
 #: the integers of which both processing times are drawn uniformly; the two of
@@ -435,7 +435,7 @@ def config_of(n, K, proc_hi):
 
     K is the number of weights the instance may take, drawn from a normal
     distribution on {1, ..., K} -- the rule of paper Section 6.1 for this scale, where the count
-    is arbitrary and no larger than 30 -- and proc_hi the upper end of the range
+    is arbitrary and no larger than 100 -- and proc_hi the upper end of the range
     the processing times are drawn from.
     """
     return {
