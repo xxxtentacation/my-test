@@ -76,11 +76,6 @@ from typing import List, Optional, Sequence
 
 from NEH import neh as neh_heuristic
 
-try:                                    # optional: the pure-Python path remains
-    import numpy as _np                 # the one used when numpy is absent
-except ImportError:                     # pragma: no cover
-    _np = None
-
 
 def wcmax_of_order(order: Sequence[int], a: Sequence[float], b: Sequence[float],
                    w: Sequence[float]) -> float:
@@ -189,129 +184,6 @@ def pmx(p1: Sequence[int], p2: Sequence[int], cut1: int, cut2: int) -> List[int]
     return [int(x) for x in child]
 
 
-#: How many weight classes one application of the block mutation moves.  The
-#: strength of the move is measured in classes rather than in jobs, because the
-#: block structure of \\Cref{lem:block-johnson} has one block per class: an
-#: instance of K classes needs about K moves to build its block order, whatever
-#: the number of jobs it holds.  Fixing the move at a single class therefore
-#: ties the strength of the search to the instance size, and it is the setting
-#: of the study -- thirty classes -- that the divisor names: a move keeps its
-#: calibrated strength there and grows linearly with the number of classes, so
-#: that an instance of K classes advances by ceil(K / 10) classes per mutation
-#: instead of by one.  When K is of the order of n, a class holds a single job
-#: and a single-class move is no more than an insertion; the divisor is what
-#: keeps the mutation from degenerating into it.
-#:
-#: The divisor trades the gap of the run for its running time, both roughly
-#: linear in the number of classes moved (five instances, the rest of the
-#: settings of the large scale): at K=100 the mean gap is 62 per cent with one
-#: class per mutation, 41 with four, 11 with ten and 1.1 with twenty at a
-#: hundred jobs, and 42, 16, 1.9 and 0.8 at two hundred jobs; at the study's
-#: K=30 it is 27, 7.4 and 2.3 per cent with one, three and six classes.  Ten is
-#: the balance taken here: it keeps most of the quality of the strongest setting
-#: at a fraction of its cost.
-MOVE_CLASSES = 10
-
-
-def mutation_moves_of(w: Sequence[float]) -> int:
-    """The number of weight classes one application of the block mutation moves."""
-    K = len(set(w))
-    return min(K, max(1, -(-K // MOVE_CLASSES)))
-
-
-#: The candidate index of every insertion position, cached by the shape it
-#: serves: row r holds the positions of rest[:r] + members + rest[r:] in the
-#: concatenation rest + members.  The shapes repeat over the moves of a run, so
-#: building the array once per shape saves the construction on every move.
-_INDEX_CACHE: dict = {}
-
-
-def _insertion_index(n: int, m: int):
-    """The cached index array of n jobs of rest and m jobs of the run."""
-    idx = _INDEX_CACHE.get((n, m))
-    if idx is None:
-        cols = _np.arange(n + m, dtype=_np.int32)[None, :]
-        rows = _np.arange(n + 1, dtype=_np.int32)[:, None]
-        idx = _np.where(cols < rows, cols,
-                        _np.where(cols < rows + m, n + (cols - rows), cols - m))
-        idx.flags.writeable = False
-        _INDEX_CACHE[(n, m)] = idx
-    return idx
-
-
-def _best_insertion(rest: Sequence[int], members: Sequence[int],
-                    a: Sequence[float], b: Sequence[float],
-                    w: Sequence[float]):
-    """
-    The position at which the run `members`, inserted into `rest`, minimizes
-    W C_max, and the value it reaches there.
-
-    The candidates are the len(rest)+1 concatenations rest[:r] + members +
-    rest[r:].  Each one is scored by the forward pass of eq:completion, but the
-    pass is vectorized over the candidates when numpy is available.  The
-    cascade
-
-        C_t = B_t + max_{i <= t} ( A_i - B_{i-1} ),
-
-    with A and B the prefix sums of the two processing times along a candidate,
-    is the same forward pass written as a running maximum, so the whole set of
-    candidates is scored in a few array operations.  Without numpy the prefix
-    of `rest` is computed once, every candidate continues from it, and the scan
-    of a candidate stops as soon as its value can no longer beat the best
-    position found so far.  Both paths return the first position attaining the
-    minimum, which is the position the plain scan of the candidates returned.
-    """
-    n, m = len(rest), len(members)
-
-    if _np is not None:
-        idx = _insertion_index(n, m)
-        base = _np.asarray(list(rest) + list(members), dtype=_np.int32)[idx]
-        pa = _np.asarray(a, dtype=_np.float64)[base]
-        pb = _np.asarray(b, dtype=_np.float64)[base]
-        pw = _np.asarray(w, dtype=_np.float64)[base]
-        A = _np.cumsum(pa, axis=1)
-        B = _np.cumsum(pb, axis=1)
-        D = A.copy()
-        D[:, 1:] -= B[:, :-1]
-        C = B + _np.maximum.accumulate(D, axis=1)
-        vals = (pw * C).max(axis=1)
-        r = int(vals.argmin())
-        return r, float(vals[r])
-
-    xs = [0.0] * (n + 1)                # M1 state of every prefix of rest
-    ys = [0.0] * (n + 1)                # M2 state of every prefix of rest
-    pre = [0.0] * (n + 1)               # W C_max of every prefix of rest
-    for i in range(n):
-        j = rest[i]
-        xs[i + 1] = xs[i] + a[j]
-        ys[i + 1] = max(xs[i + 1], ys[i]) + b[j]
-        v = w[j] * ys[i + 1]
-        pre[i + 1] = v if v > pre[i] else pre[i]
-
-    best_r, best_val = 0, float("inf")
-    for r in range(n + 1):
-        val = pre[r]
-        xx, yy = xs[r], ys[r]
-        for j in members:
-            xx += a[j]
-            yy = (xx if xx > yy else yy) + b[j]
-            v = w[j] * yy
-            if v > val:
-                val = v
-        for t in range(r, n):
-            if val >= best_val:         # the prefix of this candidate is lost
-                break
-            j = rest[t]
-            xx += a[j]
-            yy = (xx if xx > yy else yy) + b[j]
-            v = w[j] * yy
-            if v > val:
-                val = v
-        if val < best_val:
-            best_r, best_val = r, val
-    return best_r, best_val
-
-
 def block_mutation(sigma: Sequence[int], a: Sequence[float],
                    b: Sequence[float], w: Sequence[float],
                    rng: random.Random) -> List[int]:
@@ -322,10 +194,7 @@ def block_mutation(sigma: Sequence[int], a: Sequence[float],
             they hold in it, and put the run back at the position that lowers
             W C_max most;
     Step 2  the weight is the one of a job attaining W C_max, and, with
-            probability one half, one drawn at random instead;
-    Step 3  repeat Steps 1 and 2 with weights not yet moved until
-            ceil(K / MOVE_CLASSES) classes have been moved, K being the number
-            of distinct weights of the instance.
+            probability one half, one drawn at random instead.
 
     A weight is not a single job: it is a block of the schedule, and
     \\Cref{lem:block-johnson} says that an optimal schedule holds one such block
@@ -337,48 +206,28 @@ def block_mutation(sigma: Sequence[int], a: Sequence[float],
     proposed whether or not it lowers the criterion -- there are orders the
     criterion rewards that no single accepted move reaches -- and the survival
     of the generation decides what becomes of it.
-
-    Step 3 is what carries the number of weight classes into the operator: with
-    few classes a class is a long block and one move already rearranges several
-    jobs, whereas with as many classes as jobs each class is a single job and
-    one move is an insertion.  Moving ceil(K / MOVE_CLASSES) classes per
-    mutation keeps the number of blocks rearranged per mutation at the level the
-    study was calibrated on, so that the search reaches the block order of a
-    many-class instance in about the same number of generations as that of a
-    thirty-class one.  The classes are moved one at a time, each to the position
-    that minimizes W C_max after the previous moves, and no class is moved twice
-    in the same mutation.
     """
     n = len(sigma)
     if n < 2:
         return list(sigma)
 
-    sigma = list(sigma)
-    moved = set()
-    for _ in range(mutation_moves_of(w)):
-        # Step 1: the block to move.
-        weight = None
-        if rng.random() < 0.5:
-            t_star, _ = _critical_job(sigma, a, b, w)
-            candidate = w[sigma[t_star]]
-            if candidate not in moved:
-                weight = candidate
-        if weight is None:
-            remaining = [W for W in set(w) if W not in moved]
-            if not remaining:
-                break
-            weight = rng.choice(remaining)
-        moved.add(weight)
-
-        # Step 2: where it goes.
-        members = [j for j in sigma if w[j] == weight]
-        if len(members) == n:
-            continue                      # the whole schedule: nothing to move
-        rest = [j for j in sigma if w[j] != weight]
-        r, _val = _best_insertion(rest, members, a, b, w)
-        sigma = rest[:r] + members + rest[r:]
-
-    return sigma
+    # Step 1: the block, and where it goes.
+    if rng.random() < 0.5:
+        t_star, _ = _critical_job(sigma, a, b, w)
+        weight = w[sigma[t_star]]
+    else:
+        weight = w[rng.choice(sigma)]
+    members = [j for j in sigma if w[j] == weight]
+    if len(members) == n:
+        return list(sigma)                # the whole schedule: nothing to move
+    rest = [j for j in sigma if w[j] != weight]
+    best_val, best = None, list(sigma)
+    for r in range(len(rest) + 1):
+        cand = rest[:r] + members + rest[r:]
+        val = _wcmax_fast(cand, a, b, w)
+        if best_val is None or val < best_val:
+            best_val, best = val, cand
+    return best
 
 
 def _worst_jobs(sigma: Sequence[int], a: Sequence[float], b: Sequence[float],

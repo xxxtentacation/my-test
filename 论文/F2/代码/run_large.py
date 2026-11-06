@@ -12,8 +12,8 @@ The script follows the design of paper Section 6 rather than inventing its own:
 
 * **Instances.**  The large scale of paper Table 1 varies the instance size and
   the processing-time range, at the weight setting of the small scale: every
-  instance carries at most 100 distinct weights, drawn from a normal
-  distribution on {1, ..., 100}.  Its processing times are drawn from the same
+  instance carries at most 30 distinct weights, drawn from a normal
+  distribution on {1, ..., 30}.  Its processing times are drawn from the same
   distribution on one of the two ranges [1,40] and [1,80].  The sixteen instance sizes crossed with the two ranges give
   the 32 configurations of the scale, each of them replicated 20 times.
 
@@ -116,8 +116,8 @@ ARCHIVE_DIR = RECORD_DIR / "结果存档"
 #: which draws the weights normally on {1, ..., k}, so that an instance takes
 #: at most k distinct values and the tables of the paper label the row with the
 #: count.  This scale runs at the same setting as the small one: the weights are
-#: arbitrary in number, and no more than 100.
-WEIGHT_SETTINGS = ("K100",)
+#: arbitrary in number, and no more than 30.
+WEIGHT_SETTINGS = ("K30",)
 
 #: processing-time ranges of the scale: the label of the table row, and the upper
 #: end of the range on the integers of which both processing times are drawn
