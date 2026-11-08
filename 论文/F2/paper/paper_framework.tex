@@ -1,6 +1,5 @@
-﻿        ﻿\documentclass[12pt]{article} \textheight=24.5cm \textwidth=16.5cm \parskip = 0.165cm
-\renewcommand\baselinestretch{1.2}
-        \topmargin=-2cm \oddsidemargin=0cm \evensidemargin=0cm
+﻿\documentclass[12pt]{article} \textheight=24.5cm \textwidth=16.5cm \parskip = 0.165cm
+\renewcommand\baselinestretch{1.2}\topmargin=-2cm \oddsidemargin=0cm \evensidemargin=0cm
 
 \usepackage{amsfonts}
 \usepackage{amsmath}
@@ -86,7 +85,13 @@
         \maketitle
 
         \begin{abstract}
-
+        Motivated by the scheduling of hot lots in semiconductor wafer fabrication, this paper studies the two-machine flow shop problem with the maximum weighted completion time objective, also known as the weighted makespan. 
+        We establish binary NP-hardness even with two distinct weights and strong NP-hardness when the number of distinct weights is arbitrary. 
+        We further prove that an optimal schedule has a block structure, with one block per distinct weight, blocks arranged in non-increasing order of weight, and jobs within each block sequenced according to Johnson's rule. 
+        Exploiting this structure, we develop an exact dynamic programming algorithm that is pseudo-polynomial for a fixed number of distinct weights, a fully polynomial-time approximation scheme for a fixed number of distinct weights, and a polynomial-time approximation scheme when the ratio of the largest to the smallest weight is bounded. 
+        We also propose a near-linear-time two-approximation algorithm and adapt the NEH heuristic and a weight-block genetic algorithm (WBGA) for larger instances. 
+        Computational experiments on 440 small-scale and 640 large-scale instances are conducted using a mixed-integer programming model and a lower bound as benchmarks. 
+        The results show that the two-approximation algorithm is the fastest method and remains closest to the lower bound on large instances. NEH offers the best quality-cost trade-off on small instances, whereas WBGA achieves the best solution quality on large instances at a substantially higher computational cost.
         \end{abstract}
 
         \noindent \textbf{Keywords:} Scheduling; Two-machine flow shop; Dynamic programming; Weighted makespan;
@@ -119,18 +124,14 @@
         The two-machine flow shop provides a basic model of serial production, in which each lot passes through two consecutive processing stages.
         Such production structures arise in various industries, including semiconductor manufacturing, where lots undergo lithography followed by etching, and textile manufacturing, where dyeing precedes drying.
 
-        This paper makes five main contributions.
-        First, we formulate the problem as a mixed-integer programming model.
-        Second, we establish its strong $\mathcal{NP}$-hardness.
-        Third, we derive a structural theorem characterizing an optimal schedule.
-        Fourth, exploiting this structural property, we develop three algorithms: an exact dynamic programming algorithm, a 2-approximation algorithm, and an approximation scheme.
-        Finally, we propose an adapted NEH heuristic and a genetic algorithm for large instances, and conduct a computational study involving 440 small-scale and 640 large-scale instances.
-        The remainder of the paper is organized as follows.
-        \Cref{sec:preliminaries} presents the problem formulation, and \Cref{sec:complexity} establishes its computational complexity.
-        \Cref{sec:dp_algorithm} presents the structural theorem and the associated algorithms, while \Cref{Sec-Heu} describes the heuristic methods, and \Cref{sec:experiments} reports the computational results.
+        The rest of the paper is organized as follows. \Cref{sec:preliminaries} fixes
+        the notation, states the completion-time recurrence and gives the mixed integer programming
+        formulation. \Cref{sec:complexity} establishes the complexity of the problem. \Cref{sec:dp_algorithm} proves the structural properties, develops the exact dynamic
+        program, and presents the approximation schemes. \Cref{sec:heuristics} describes the
+        2-approximation and the two heuristics. \Cref{sec:experiments} reports the computational study,
+        and \Cref{sec:conclusion} concludes.
 
-
-        \section{Problem description}    \label{sec:preliminaries}
+        \section{Problem description} \label{sec:preliminaries}
 
         Consider a set $\mathcal{J} = \{J_1, J_2, \dots, J_n\}$ of $n$ independent and non-preemptive jobs to be scheduled in a two-machine flow shop with machines $M_1$ and $M_2$.
         All jobs are released at time zero and follow the same route, $M_1 \to M_2$.
@@ -197,7 +198,7 @@
         Constraint \cref{milp:wcmax} imposes  $W C_{\max} \geq w_j C_j$ for each job, so minimizing $C_{\max}^w$ yields the optimal objective value of \cref{eq:wcmax}.
         Constraints \cref{milp:x} and \cref{milp:dom} require the decision variables $x_{jk}$ to be binary and the completion times nonnegative.
 
-        \section{Computational complexity}  \label{sec:complexity}
+        \section{Computational complexity} \label{sec:complexity}
 
         When $K=1$ (i.e., all jobs have equal weights), $F2 \mid \mid C_{\max}^w$ reduces to $F2 \mid \mid C_{\max}$, which is solvable in $O(n \log n)$ time \citep{Johnson1954NRL}.
         In contrast, We show that $F2 \mid \mid C_{\max}^w$ is binary $\mathcal{NP}$-hard even with only two distinct weights and strongly $\mathcal{NP}$-hard when $K$ is arbitrary.
@@ -418,7 +419,7 @@
         Therefore, $(\mathcal{X}_1, \mathcal{X}_2, \ldots, \mathcal{X}_r)$ is a solution to 3-\textsc{Partition}.
         \end{proof}
 
-        \section{Fixed number of weights}  \label{sec:dp_algorithm}
+        \section{Fixed number of weights} \label{sec:dp_algorithm}
 
         In this section, we focus on the case where the number of weights $K$ is fixed, i.e., $K=O(1)$.
         For $K=1$, the problem is exactly $F2 \mid \mid C_{\max}$, which Johnson's rule solves in $O(n \log n)$ time \citep{Johnson1954NRL}; the rule is summarized in \Cref{alg:Johnson}.
@@ -444,7 +445,7 @@
 
         Let $W_1 > W_2 > \cdots > W_K$ denote the distinct weights of the $n$ jobs, and let $\mathcal{G}_k = \{J_j \in \mathcal{J}: w_j = W_k\}$ be set of jobs having weight $W_k$, $k=1, 2,\ldots, K$.
 
-        \subsection{Block structure of an optimal schedule} \label{sec-block}
+        \subsection{Block structure of an optimal schedule} \label{sec:block}
 
         To establish the key structural lemma, we first introduce some notation for partitioning a permutation schedule into blocks.
         \begin{definition} \label{def:block}
@@ -675,13 +676,13 @@
         \end{equation}
         Hence, $C_{\max}^w(\pi)=C_{\max}^w(\pi[1: K])$.
 
-        \subsection{An exact DP algorithm} \label{sec-DP}
+        \subsection{An exact DP algorithm} \label{sec:dp}
 
         Recall that $W_1 >W_2 > \cdots W_K$.
         For each job $J_j$ ($j=1, 2, \ldots, n$), let $g_j \in \{1, 2, \ldots, K\}$ be the index such that $w_j=W_{g_j}$, i.e., $J_j\in\mathcal{G}_{g_j}$.
         Assume that the jobs in $\mathcal{J}$ are indexed in accordance with Johnson's rule.
 
-        Building on the preceding discussion in \Cref{sec-block}, we develop an exact DP algorithm for $F2 \mid \mid C_{\max}^w$.
+        Building on the preceding discussion in \Cref{sec:block}, we develop an exact DP algorithm for $F2 \mid \mid C_{\max}^w$.
         It generates a sequence of sets $\mathcal{H}_0, \mathcal{H}_1, \ldots, \mathcal{H}_n$.
         Each $\mathcal{H}_j$ consists of $K$-tuples $(X_1, X_2, \ldots, X_K)$, where $X_k=(A_k, B_k, C_k, L_k)$ for $k=1, 2, \ldots, K$.
         A tuple in $\mathcal{H}_j$ ($j=1, 2, \ldots, n$) encodes an assignment of jobs $J_1, J_2, \ldots, J_j$ to $K$ schedules (i.e., blocks) $\pi_1(j), \pi_2(j), \ldots, \pi_K(j)$, with jobs in each schedule processed from time zero in increasing order of their indices.
@@ -832,7 +833,7 @@
             \end{tikzpicture}
         \end{figure}
 
-        \subsection{An FPTAS for fixed number of weights} \label{Sec-FPTAS}
+        \subsection{An FPTAS for fixed number of weights} \label{sec:fptas}
 
         Let $0 < \epsilon \leq 1$ be real, and let $\delta=1+\epsilon/(2n)$.
         Define the function $\Delta(\cdot)$ on $[0, +\infty)$ by
@@ -1051,7 +1052,7 @@
         Consequently, the algorithm runs in $O((n^{3K}/\epsilon^{3K-1}) (\log P)^{3K-1})$ time.
         \end{proof}
 
-        \subsection{The bounded max-to-min weight ratio}  \label{Sec:bounded-weight}
+        \subsection{The bounded max-to-min weight ratio} \label{sec:bounded_weight}
 
         Consider the bounded max-to-min ratio weight case where $w_{\max}/w_{\min} \leq C$ for some constant $C$.
         Here, $w_{\max}=\max_{1 \leq j \leq n} \{w_j\}$ is the maximum weight of the $n$ jobs, and $w_{\min}=\min_{1 \leq j \leq n} \{w_j\}$ is the minimum weight.
@@ -1064,7 +1065,7 @@
         \end{equation}
 
 
-        By combining job-weight rounding with the FPTAS in \Cref{Sec-FPTAS}, a PTAS for the bounded max-to-min ratio weight case is given as follows.
+        By combining job-weight rounding with the FPTAS in \Cref{sec:fptas}, a PTAS for the bounded max-to-min ratio weight case is given as follows.
 
         \begin{algorithm}[H]
             \small
@@ -1117,16 +1118,17 @@
 
 
 
-        \section{Heuristic algorithms}  \label{Sec-Heu}
-
-        This section presents two heuristic methods for instances that are too large to be solved efficiently by the exact methods: an adaptation of the NEH heuristic, which constructs a schedule through sequential job insertion, and a genetic algorithm, which searches the space of job permutations.
-
-
-        \subsection{The LW algorithm}  \label{Subsec-LW}
-
-        \cite{Sun2024JOCO} proved that the LW-based greedy algorithm is a $(2-1/m)$-approximation for $Pm \mid \mid C_{\max}^w$.
-        For $F2 \mid \mid C_{\max}^w$, we describe the analogous LW-based algorithm and show that its worst-case approximation ratio is $2$.
-
+        \section{Heuristic algorithms} \label{sec:heuristics}
+        
+        This section presents two heuristic methods for instances that are too large to be solved efficiently 
+        by the exact methods: an adaptation of the NEH heuristic, which constructs a schedule through sequential job insertion, 
+        and a genetic algorithm, which searches the space of job permutations.
+        
+        
+        \subsection{The LW algorithm} \label{sec:lw}
+        
+        \cite{Sun2024JOCO} proved that the LW-based greedy algorithm is a $(2-1/m)$-approximation for $Pm \mid \mid C_{\max}^w$. For $F2 \mid \mid C_{\max}^w$, we describe the analogous LW-based algorithm and show that its worst-case approximation ratio is $2$.
+        
         \begin{algorithm}[H]
             \small
             \linespread{1.2}\selectfont
@@ -1136,30 +1138,29 @@
             \KwIn{Job set $\mathcal{J}$; job parameters $a_j$, $b_j$, and $w_j$ for $j=1, 2, \ldots, n$.}
             \BlankLine
             \textbf{Step 1.} Renumber the jobs in nonincreasing order of their weights (i.e., the LW order), so that $w_1 \geq w_2 \geq \cdots \geq w_n$. \;
-
+            
             \textbf{Step 2.} Process the jobs in this order on $M_1$ and then on $M_2$, yielding the permutation schedule $\pi_{\mathrm{lw}}$. \;
-
+            
             \KwOut{The resulting schedule $\pi_{\mathrm{lw}}$.}
         \end{algorithm}
-
+        
         \begin{theorem}\label{Thm-LW}
-        For $F2 \mid \mid C_{\max}^w$, \Cref{Alg-LW} has a worst-case approximation ratio of $2$, which is tight, and runs in $O(n\log n)$ time.
+            For $F2 \mid \mid C_{\max}^w$, \Cref{Alg-LW} has a worst-case approximation ratio of $2$, which is tight, and runs in $O(n\log n)$ time.
         \end{theorem}
-
+        
         \begin{proof}
-        Since $1 \mid \mid C_{\max}^w$ can be solved in $O(n\log n)$ time by the LW rule \citep{NongChengNg2011EJOR}, we have
+            Since $1 \mid \mid C_{\max}^w$ can be solved in $O(n\log n)$ time by the LW rule \citep{NongChengNg2011EJOR}, we have
             \begin{equation}\label{Eq-LB}
                 C_{\max}^w(\pi_{\mathrm{opt}}) \geq LB=\max \Big \{\max_{1 \leq j \leq n} \Big\{w_j \sum_{i=1}^j a_i \Big\}, \max_{1 \leq j \leq n} \Big\{w_j \sum_{i=1}^j b_i\Big\}, \max_{1 \leq j \leq n} \Big\{w_j (a_j+b_j)\Big\} \Big\},
             \end{equation}
-        where the first two terms are machine-based lower bounds and the last is a job-based lower bound.
-
-        By construction, \Cref{Alg-LW} yields $\pi_{\mathrm{lw}}(j)=j$ for $j=1, 2, \ldots, n$.
-        Combining \cref{eq:completion} with  \cref{eq:wcmax}, the weighted makespan of $\pi_{lw}$ can be written as
+            where the first two terms are machine-based lower bounds and the last is a job-based lower bound.   
+            
+            By construction, \Cref{Alg-LW} yields $\pi_{\mathrm{lw}}(j)=j$ for $j=1, 2, \ldots, n$. Combining \cref{eq:completion} with  \cref{eq:wcmax}, the weighted makespan of $\pi_{lw}$ can be written as 
             \begin{equation}\label{Eq-LW-WC-1}
                 C_{\max}^w(\pi_{\mathrm{lw}}) =\max_{1 \leq j \leq n}\Big\{ w_{\pi_{\mathrm{lw}}(j)} C_{\pi_{\mathrm{lw}}(j)}\Big\}=\max_{1 \leq j \leq n} \Big\{w_j \max_{1 \leq i \leq j} \Big (\sum_{h=1}^{i}a_h + \sum_{h=i}^{j}b_h \Big) \Big\}.
             \end{equation}
-
-        By \cref{Eq-LB} and \cref{Eq-LW-WC-1}, we have
+            
+            By \cref{Eq-LB} and \cref{Eq-LW-WC-1}, we have 
             \begin{equation}\label{Eq-LW-WC-2}
                 \begin{aligned}
                     C_{\max}^w(\pi_{\mathrm{lw}}) & \leq \max_{1 \leq j \leq n} \Big\{w_j \sum_{h=1}^{j}a_h + w_j \sum_{h=1}^{j}b_h \Big\} \\
@@ -1167,25 +1168,14 @@
                     & \leq 2 C_{\max}^w(\pi_{\mathrm{opt}}).
                 \end{aligned}
             \end{equation}
-
-        To show that the bound is tight, consider an instance with two jobs: $J_1$ has  $a_1=1+\epsilon$, $b_1=\epsilon$, and $w_1= 1+\epsilon$, and $J_2$ has $a_2=\epsilon$, $b_2=1+\epsilon$, and $w_2= 1$, where $\epsilon > 0$ is arbitrarily small.
-        \Cref{Alg-LW} yields the schedule $\pi_{\mathrm{lw}}=(1,2)$ with $C_{\max}^w(\pi_{\mathrm{lw}})=2+\epsilon$, while the optimal schedule is $\pi_{\mathrm{opt}}=(2,1)$ with $C_{\max}^w(\pi_{\mathrm{opt}})=(1+\epsilon)(1+2\epsilon)$.
-        Hence, $C_{\max}^w(\pi_{\mathrm{lw}})/C_{\max}^w(\pi_{\mathrm{opt}}) \to 2$ as $\epsilon \to 0$.
+            
+            To show that the bound is tight, consider an instance with two jobs: $J_1$ has  $a_1=1+\epsilon$, $b_1=\epsilon$, and $w_1= 1+\epsilon$, and $J_2$ has $a_2=\epsilon$, $b_2=1+\epsilon$, and $w_2= 1$, where $\epsilon > 0$ is arbitrarily small. \Cref{Alg-LW} yields the schedule $\pi_{\mathrm{lw}}=(1,2)$ with $C_{\max}^w(\pi_{\mathrm{lw}})=2+\epsilon$, while the optimal schedule is $\pi_{\mathrm{opt}}=(2,1)$ with $C_{\max}^w(\pi_{\mathrm{opt}})=(1+\epsilon)(1+2\epsilon)$. Hence, $C_{\max}^w(\pi_{\mathrm{lw}})/C_{\max}^w(\pi_{\mathrm{opt}}) \to 2$ as $\epsilon \to 0$.
         \end{proof}
-
-        \subsection{The NEH algorithm}
-
-        The NEH heuristic is a classical insertion-based constructive method for the permutation flow-shop scheduling problem.
-        In the formulation of Nawaz et al. \cite{NawazEnscoreHam1983Omega}, jobs are placed sequentially: at each iteration, an unassigned job is examined at every feasible position in the current partial schedule, and the position with the smallest resulting makespan is retained.
-        This procedure has proven competitive in diverse scheduling settings.
-        In addition, NEH has recently been used in scheduling research as a construction to be refined \citep{PukaSkalnaIwona2024COR}, as a rule for assigning jobs in distributed lot-streaming and cascaded flow shops \citep{ShaoShaoPi2023ESWA,WangPanSang2024RCIM}, and as the core of composite heuristics for a constrained distributed group scheduling problem \citep{WangPanGao2024CIE}.
-        For the weighted makespan objective, two properties are relevant.
-        First, jobs with large total processing time $a_j+b_j$ tend to lengthen the schedule and should be scheduled early to avoid delaying other jobs.
-        Second, for a fixed makespan, jobs with larger weight $w_j$ benefit more from earlier positions, since this reduces their maximum weighted completion time.
-        Accordingly, we prioritize jobs by nonincreasing $a_j+b_j$, breaking ties by nonincreasing $w_j$, and insert each job into the position yielding the smallest objective value.
-        The detailed procedure is presented in \Cref{Alg-NEH}.
-        At iteration $k$, evaluating all $k$ insertion positions requires $O(k^2)$ time, so the overall running time is $O(n^3)$.
-
+        
+        \subsection{The NEH algorithm} \label{sec:neh}
+        
+        The NEH heuristic is a classical insertion-based constructive method for the permutation flow-shop scheduling problem. In the formulation of Nawaz et al. \cite{NawazEnscoreHam1983Omega}, jobs are placed sequentially: at each iteration, an unassigned job is examined at every feasible position in the current partial schedule, and the position with the smallest resulting makespan is retained. This procedure has proven competitive in diverse scheduling settings. In addition, NEH has recently been used in scheduling research as a construction to be refined \citep{PukaSkalnaIwona2024COR}, as a rule for assigning jobs in distributed lot-streaming and cascaded flow shops \citep{ShaoShaoPi2023ESWA,WangPanSang2024RCIM}, and as the core of composite heuristics for a constrained distributed group scheduling problem \citep{WangPanGao2024CIE}. For the $C_{\max}^w$ objective, two properties are relevant. First, jobs with large total processing time $a_j+b_j$ tend to lengthen the schedule and should be scheduled early to avoid delaying other jobs. Second, for a fixed makespan, jobs with larger weight $w_j$ benefit more from earlier positions, since this reduces the objective value. Accordingly, we prioritize jobs by nonincreasing $a_j+b_j$, breaking ties by nonincreasing $w_j$, and insert each job into the position yielding the smallest objective value. The detailed procedure is presented in \Cref{Alg-NEH}. At iteration $k$, evaluating all $k$ insertion positions requires $O(k^2)$ time, so the overall running time is $O(n^3)$.
+        
         \begin{algorithm}[H]
             \small
             \linespread{1.2}\selectfont
@@ -1195,151 +1185,68 @@
             \KwIn{Job set $\mathcal{J}$; job parameters $a_j$, $b_j$, and $w_j$ for $j=1, 2, \ldots, n$.}
             \BlankLine
             \textbf{Step 1.} [Preprocessing] Renumber the jobs in $\mathcal{J}$ by nonincreasing $a_j+b_j$, and the ties are broken by nonincreasing $w_j$.  \;
-
+            
             \textbf{Step 2.} [Initialization] $\pi \gets (J_{1})$. \;
-
+            
             \textbf{Step 3.} [Insertion] \For{$k=2$ \KwTo $n$}
             {
                 $\pi \gets$ insert $J_{k}$ into $\pi$ at a position that minimizes $C_{\max}^w$. \;
             }
             \KwOut{The resulting schedule $\pi$.}
         \end{algorithm}
-
-        \subsection{The genetic algorithm}  \label{Subset:GA}
-
-
-
-        Genetic algorithm (GA) have been widely applied to scheduling problems, with problem-specific operators designed to exploit structural features of the underlying problems.
-        Recent flow-shop studies, for example, develop genetic operators to accommodate blocking constraints \citep{deAthaydePrataFuchigami2024JIM}, sequence-independent setup times and non-interruption requirements \citep{QiaoWuHeLi2022ESA}, or energy consumption under variable machine speeds \citep{WangWang2023EAAI}.
-        In the present problem, the key structural property is that an optimal schedule consists of weight-based blocks, ordered by non-increasing weight, with jobs within each block following Johnson's order (\Cref{lem:block-johnson}).
-        We exploit this property to develop a single-objective GA, termed the Weight-Block Genetic Algorithm (WBGA), whose main feature is a weight-class-based mutation operator.
-
-        Each chromosome represents a job permutation, whose objective value $WC_{\max}$ is evaluated in $O(n)$ time using \cref{eq:completion}.
-        The initial population contains Johnson's schedule and $N-1$ variants obtained by exchanging adjacent jobs.
-        Although Johnson's rule ignores job weights, it provides a structured starting point for subsequent weight-aware search.
-        Parent selection is performed through binary tournaments based on fitness.
-        Partially mapped crossover (PMX) is applied with probability $p_c$, and mutation with probability $p_m$.
-        Elitist selection then retains the $N$ best individuals from the combined parent and offspring populations, preserving the best solution across generations.
-
-        The main problem-specific feature of WBGA is its weight-block mutation.
-        Rather than moving individual jobs, the operator extracts an entire weight class, preserves the relative order of its jobs, and reinserts the class as a block at the position that yields the smallest $WC_{\max}$.
-        The selected class is either the one containing a job that attains the current $WC_{\max}$ or a randomly chosen class, with equal probability.
-        This operator exploits the block structure by repositioning all jobs of a weight class simultaneously.
-        Since moving a block forward may delay the jobs it passes, the resulting move is not necessarily improving; its acceptance is determined by the subsequent selection process.
-
-        To further improve solution quality, a local search iteratively reinserts the $k$ jobs with the largest $w_jC_j$ at their best positions, terminating when no further reinsertion reduces $WC_{\max}$ or after at most $G$ rounds.
-        The population size is set to $N=\min\{20,\max\{6,\lceil n/2\rceil\}\}$, while the number of generations is set to $G=\max\{2,\lfloor n/4\rfloor\}$ for small instances and $G=11+\lfloor(n-100)/10\rfloor$ for large instances.
-        These settings balance solution quality and computational time.
-        The number of offspring, crossover and mutation probabilities, and local-search parameter $k$ are also scaled with $n$, with their specific values reported in \Cref{sec:experiments}.
-        The complete WBGA is presented in \Cref{alg:ga}.
-
-        \Cref{fig:pmx} illustrates PMX using six jobs.
-        Two cut points, $s_1<s_2$, define the segment inherited from the first parent.
-        For $s_1=2$ and $s_2=4$, the child $\pi'_1$ retains positions 2–4 of $\pi_1$ (shaded in grey) and fills the remaining positions using the order in $\pi_2$.
-        If a job from $\pi_2$ already appears in the inherited segment, the mapping induced by the two parents determines its replacement, ensuring a valid permutation without additional repair.
-        Reversing the roles of the parents produces the complementary offspring $\pi''_2$.
-
-        \begin{figure}[H]
-            \centering
-            \refstepcounter{figure}
-            \begin{tikzpicture}[x=0.44in, y=0.32in, font=\footnotesize]
-
-                \tikzset{
-                    plaincell/.style = {draw},
-                    segcell/.style   = {draw, fill=gray!40},
-                    fillcell/.style  = {draw, fill=gray!12},
-                    clashcell/.style = {draw=red!55!black, thick},
-                    plainclash/.style = {plaincell, clashcell},
-                    segclash/.style   = {segcell, clashcell},
-                    fillclash/.style  = {fillcell, clashcell},
-                }
-                \node[anchor=east] at (-0.15,7.15) {$\pi_1$};
-                \foreach \t/\job/\st in {1/{$J_2$}/plaincell, 2/{$J_4$}/segcell,
-                    3/{$J_6$}/segclash, 4/{$J_1$}/segclash,
-                    5/{$J_3$}/plaincell, 6/{$J_5$}/plaincell}
-                \draw[\st] ({(\t-1)*1.6},6.6) rectangle ({\t*1.6},7.7) node[midway] {\job};
-                \foreach \t in {1,...,6} \node[font=\scriptsize] at ({(\t-0.5)*1.6},7.85) {\t};
-
-                \node[anchor=east] at (-0.15,5.25) {$\pi_2$};
-                \foreach \t/\job/\st in {1/{$J_6$}/plainclash, 2/{$J_3$}/segcell,
-                    3/{$J_1$}/segclash, 4/{$J_5$}/segclash,
-                    5/{$J_2$}/plaincell, 6/{$J_4$}/plaincell}
-                \draw[\st] ({(\t-1)*1.6},4.7) rectangle ({\t*1.6},5.8) node[midway] {\job};
-
-                \foreach \x/\lab in {1.6/{$s_1$}, 6.4/{$s_2$}} {
-                    \draw[dashed] (\x,0.3) -- (\x,8.1);
-                    \node[font=\scriptsize] at (\x,8.3) {\lab};
-                }
-                \foreach \t in {2,3,4}
-                \draw[<->, shorten >= 1.5pt, shorten <= 1.5pt]
-                ({(\t-0.5)*1.6},6.55) -- ({(\t-0.5)*1.6},5.85);
-
-
-                \node[anchor=east] at (-0.15,2.95) {$\pi'_1$};
-                \foreach \t/\job/\st in {1/{$J_5$}/fillclash, 2/{$J_4$}/segcell,
-                    3/{$J_6$}/segcell, 4/{$J_1$}/segcell,
-                    5/{$J_2$}/fillcell, 6/{$J_3$}/fillcell}
-                \draw[\st] ({(\t-1)*1.6},2.4) rectangle ({\t*1.6},3.5) node[midway] {\job};
-
-                \node[anchor=east] at (-0.15,1.05) {$\pi''_2$};
-                \foreach \t/\job/\st in {1/{$J_2$}/fillcell, 2/{$J_3$}/segcell,
-                    3/{$J_1$}/segcell, 4/{$J_5$}/segcell,
-                    5/{$J_4$}/fillcell, 6/{$J_6$}/fillcell}
-                \draw[\st] ({(\t-1)*1.6},0.5) rectangle ({\t*1.6},1.6) node[midway] {\job};
-
-                \foreach \x/\y/\k in {0/5.8/1, 3.2/7.7/2, 3.2/5.8/3, 4.8/7.7/4, 4.8/5.8/5,
-                    0/3.5/6}
-                \node[anchor=north west, font=\tiny, text=red!55!black]
-                at ({\x+0.1},{\y-0.05}) {\k};
-
-                \node[below, text width=13.5cm, align=flush center] at (4.8,-0.6) {Figure~\thefigure: One
-                    application of the partially mapped crossover, with cut points $s_1=2$ and $s_2=4$};
-            \end{tikzpicture}
-            \label{fig:pmx}
-        \end{figure}
-
+        
+        \subsection{The genetic algorithm} \label{sec:ga}
+        
+        Genetic algorithms (GAs) are commonly applied in scheduling, where operators are tailored to problem structure. Recent flow-shop studies have developed genetic operators for blocking constraints \citep{deAthaydePrataFuchigami2024JIM},  sequence-independent setup times and non-interruption requirements \citep{QiaoWuHeLi2022ESA}, and energy consumption under variable machine speeds \citep{WangWang2023EAAI}. For the $C_{\max}^w$ objective, an optimal schedule consists of weight-based blocks, and jobs within each block follow Johnson's order (\Cref{lem:block-johnson}). Using this structural property, we design a weight-block genetic algorithm (which we call \Cref{Alg-GA}) with a weight-class-based mutation operator as its core component.
+        
+        Each chromosome encodes a job permutation. The initial population contains the schedule constructed from Johnson's rule  and $N-1$ adjacent-swap variants, where $N$ is the population size. Johnson's rule ignores job weights, but it provides a structured, makespan-minimizing schedule as a starting point for the weight-aware search. Parents are selected by fitness-based binary tournament. Partially mapped crossover is applied with probability $p_c$ and mutation with probability $p_m$. Elitist selection keeps the $N$ best individuals from the combined parent and offspring pools, preserving the best solution across generations.
+        
+        The distinctive component of \Cref{Alg-GA} is its weight-class mutation operator. Rather than moving individual jobs, it removes a whole weight class, keeps the relative order of its jobs, and reinserts the class as a block at the position yielding the smallest $C_{\max}^w$. The class is chosen with equal probability either from classes containing a job that attains the current $C_{\max}^w$ or uniformly at random. Repositioning all jobs of a class at once makes use of the block structure. A forward move can delay the jobs passed over, so the move is not guaranteed to improve the schedule; its retention is left to the subsequent selection. To improve schedule quality, a local search sequentially relocates the $k$ jobs with the largest $w_j C_j$ values to the position minimizing $C_{\max}^w$. It stops when a round produces no improvement in $C_{\max}^w$ or after $G$ rounds. 
 
         \begin{algorithm}[H]
             \small
             \linespread{1.2}\selectfont
             \SetAlgoLined
             \DontPrintSemicolon
-            \caption{The weight-block genetic algorithm (WBGA) for $F2 \mid \mid WC_{\max}$}\label{alg:ga}
+            \caption{The weight-block genetic algorithm (WBGA) for $F2 \mid \mid C_{\max}^w$} \label{Alg-GA}
+            
             \KwIn{Job set $\mathcal{J}$; population size $N$; generations $G$; offspring
                 $\lambda$; probabilities $p_c$, $p_m$; reinsertion count $k$.}
             \BlankLine
-            \textbf{Step 1.} [Initialization] Build $P_0$ from Johnson's schedule and $N-1$
-            permutations obtained from it by exchanging adjacent jobs, and evaluate all
-            individuals. \;
-            \textbf{Step 2.} [Evolution] \For{$g=1$ \KwTo $G$}{
-                \textbf{Selection} Form the mating pool $M_g$ from $P_{g-1}$ by binary tournament
-                selection. \;
-                \textbf{Crossover} \While{$|O_g|<\lambda$}{
-                    Draw two parents from $M_g$; with probability $p_c$ apply the crossover to
-                    obtain two children, otherwise copy the parents. Add the children to $O_g$
-                    one at a time, and stop when it holds $\lambda$ offspring. \;
+            \textbf{Step 1.} [Initialization] Build $P_0$ from Johnson's rule and $N-1$ adjacent-swap variants; evaluate all individuals. \;
+            
+            \textbf{Step 2.} [Evolution] \For{$g=1$ \KwTo $G$}
+            {
+                \textbf{Selection} Form the mating pool $M_g$ from $P_{g-1}$ by binary tournament selection. \;
+                 
+                \textbf{Crossover} \While{$|O_g|<\lambda$}
+                {
+                    Draw two parents from $M_g$. With probability $p_c$, apply crossover to obtain two children; otherwise copy the parents. Add the children to $O_g$ one by one, stoping once $|O_g|=\lambda$. \;
                 }
-                \textbf{Mutation} Apply the block mutation to each offspring with probability $p_m$;
-                evaluate every child by \cref{eq:completion}. \;
-                \textbf{Survival} $P_g\gets$ the $N$ schedules of smallest $W C_{\max}$ among
-                $P_{g-1}\cup O_g$, so that the best schedule of a generation is never lost. \;
+                
+                \textbf{Mutation} For each child, apply block mutation with probability $p_m$; evaluate all children using \cref{eq:completion} and \cref{eq:wcmax}. \;
+                
+                \textbf{Survival} $P_g \gets$ the $N$ schedules with the minimum $C_{\max}^w$ in $P_{g-1}\cup O_g$. \;
             }
-            \textbf{Set} $\pi^{*}\gets$ the schedule of smallest $W C_{\max}$ in $P_G$. \;
-            \textbf{Step 3.} [Local search] \Repeat{no reinsertion lowers $W C_{\max}(\pi^{*})$,
-                or $G$ rounds have been performed}{
-                Let $J_{1},\dots,J_{k}$ be the jobs of $\pi^{*}$ with the largest $w_jC_j$. \;
-                Form, for every $J_i$ and every position $r$, the schedule obtained by removing
-                $J_i$ and reinserting it at position $r$, and evaluate it by \cref{eq:completion};
-                let $\pi'$ be the best of them. \;
-                \If{$W C_{\max}(\pi')<W C_{\max}(\pi^{*})$}{$\pi^{*}\gets\pi'$ \;}
+            
+            $\pi^{*} \gets$ the schedule with the minimum $C_{\max}^w$ in $P_G$. \;
+            
+            \textbf{Step 3.} [Local search] \Repeat{no reinsertion lowers $C_{\max}^w(\pi^{*})$, or $G$ rounds have been performed.}
+            {
+                Let $J_{1}, J_{2}, \ldots, J_{k}$ be the jobs of $\pi^{*}$ with the largest $w_jC_j$ value. \;
+                
+                For each $J_i$ and each position $r$, construct the schedule obtained by removing $J_i$ and reinserting it into position $r$, and evaluate it using \cref{eq:completion} and \cref{eq:wcmax}. Let $\pi'$ denote the best resulting schedule. \;
+                
+                \If{$C_{\max}^w(\pi')<C_{\max}^w(\pi^{*})$}
+                {
+                  $\pi^{*} \gets \pi'$ \;
+                }
             }
-            \KwOut{Best schedule $\pi^{*}$.}
+            \KwOut{The best schedule $\pi^{*}$.}
         \end{algorithm}
 
 
-
-        \section{Numerical experiments}
-        \label{sec:experiments}
+        \section{Numerical experiments} \label{sec:experiments}
 
 
         All algorithms were implemented in Python 3.13 and run on a computer equipped with an Intel Core Ultra 5 230F processor and 16 GB of RAM, running Windows 11.
@@ -1347,42 +1254,49 @@
         Each method was run once per instance, with a time limit of 600 s.
         All objective values were evaluated using the same recurrence \cref{eq:completion}.
 
-        \subsection{Experimental setup}
+        \subsection{Experimental setup} \label{sec:setup}
 
-        An instance consists of $n$ jobs, where job $J_j$ has processing times $a_j$ on $M_1$ and $b_j$ on $M_2$ and a weight $w_j$.
-        Processing times are drawn independently from $\mathcal{U}{\sim}(1,40)$ or $\mathcal{U}{\sim}(1,80)$, and weights from $\{1,\ldots,K\}$.
-        Each configuration is generated from a fixed random seed, so that all methods are run on the same instances and the experiments can be reproduced.
-        Three groups of test instances are used, all of them on the two processing-time ranges, and each of them holds 20 independently generated instances per configuration.
-        Group 1 examines the performance of $\mathbf{DP}$ over a broad range of instance sizes.
-        Here, $n\in\{40,60,80,100\}$, $K=2$ and the weights are $\{1,10\}$, giving eight configurations.
-        Group 2 compares the $\mathbf{MILP}$ model with the $\mathbf{LW}$, $\mathbf{NEH}$, $\mathbf{GA}$ on $n=10,15,\ldots,60$, giving 22 configurations.
-        Group 3 compares the $\mathbf{LW}$, $\mathbf{NEH}$, $\mathbf{GA}$ on $n=100,120,\ldots,400$, giving 32 configurations.
-        Groups 2 and 3 use $K=30$ and the weights $\{1,2,\ldots,30\}$.
+        An instance consists of $n$ jobs, where each job $J_j$ has processing times $a_j$ and $b_j$ on machines $M_1$ and $M_2$, respectively, and a weight $w_j$.
+        The processing times are independently drawn from $\mathcal{U}(1,40)$ or $\mathcal{U}(1,80)$, while the weights are drawn from $\{1,\ldots,K\}$.
+        A fixed random seed is assigned to each configuration to ensure that all methods are tested on identical instances and that the experiments are reproducible.
 
+        Three groups of test instances are considered, covering both processing-time ranges.
+        Each configuration contains 20 independently generated instances.
+        Group 1 evaluates the performance of $\mathbf{DP}$ across different instance sizes, with $n\in\{40,60,80,100\}$, $K=2$, and weights restricted to $\{1,10\}$, resulting in eight configurations.
+        Group 2 compares the $\mathbf{MILP}$ model with $\mathbf{LW}$, $\mathbf{NEH}$, and $\mathbf{GA}$ for $n=10,15,\ldots,60$, resulting in 22 configurations.
+        Group 3 compares the three heuristic methods, $\mathbf{LW}$, $\mathbf{NEH}$, and $\mathbf{GA}$, on larger instances with $n=100,120,\ldots,400$, resulting in 32 configurations.
+        Groups 2 and 3 use $K=30$, with weights drawn from $\{1,2,\ldots,30\}$.
+
+        For $\mathbf{GA}$, the population size is set to $N=\min\{20,\max\{6,\lceil n/2\rceil\}\}$.
+        The number of generations is set to $G=\max\{2,\lfloor n/4\rfloor\}$ for small instances and $G=11+\lfloor(n-100)/10\rfloor$ for large instances.
+        These parameter settings are designed to balance solution quality and computational time.
 
         Algorithmic performance is evaluated using the relative percentage gap:
         \begin{equation}\label{eq:gap}
             \text{gap}_A =
             \frac{z_A-z_{\text{base}}}{z_{\text{base}}}\times 100\%,
         \end{equation}
-        where $z_A$ is the objective value obtained by $\mathbf{method A}$ $( \mathbf{DP}, \mathbf{LW}, \mathbf{NEH}, \mathbf{GA})$, and $z_{\text{base}}$ is the reference value.
+        where $z_A$ is the objective value obtained by $\mathbf{method\ A}$ $( \mathbf{DP}, \mathbf{LW}, \mathbf{NEH}, \mathbf{GA})$, and $z_{\text{base}}$ is the reference value.
         For the small-scale instances, $z_{\text{base}}$ is the $\mathbf{MILP}$ optimum whenever optimality is proven by the solver.
-        For the large-scale instances, it is the lower bound $LB=\max\{LB_1,LB_2,LB_3\}$ defined in \cref{Eq-LB}.
+        For the large-scale instances, it is the lower bound $LB$ of \cref{Eq-LB}, the maximum of the two machine-based bounds and the job-based bound.
         Thus, large-scale gaps measure the distance from a common lower bound rather than from competing heuristic solutions.
         This bound is tight only when the heaviest jobs also appear earliest.
 
-        \subsection{Computational results}
+        \subsection{Computational results} \label{sec:results}
 
-        \subsubsection{The dynamic program}
+        The five methods exhibit different trade-offs between solution quality, computational cost and generality, with none dominating across all instances.
 
-        The $\mathbf{DP}$ is the only exact method considered and certifies optimality for every instance solved to completion.
-        It solves all twenty instances in seven of the eight configurations, with mean running times of 1.47 s and 4.98 s for forty jobs under $[1,40]$ and $[1,80]$, respectively (\Cref{tab:results-dp-k2}).
-        However, its computational cost increases rapidly with instance size.
-        Under $[1,40]$, the mean running time rises from 1.47 s at forty jobs to 89.59 s at one hundred jobs, while the mean objective value increases by only a factor of 2.5.
-        Extending the range to $[1,80]$ further increases the running time by a factor of 2.9--3.7.
-        At one hundred jobs under $[1,80]$, six of the twenty instances reach the 600 s time limit, while the remaining fourteen require an average of 329.01 s.
-        Memory imposes an additional limitation, as the $\mathbf{DP}$ cannot accommodate a third weight class, restricting all experiments to $K=2$.
-        Thus, the $\mathbf{DP}$ is effective for small instances with few distinct weights, whereas larger instances require heuristic methods.
+
+        \subsubsection{The dynamic program} \label{sec:results_dp}
+
+        The $\mathbf{DP}$ is the only exact method considered and guarantees optimality whenever it terminates.
+        It solves all twenty instances in seven of the eight configurations, with mean running times of 1.47 s and 4.98 s for forty-job instances under $[1,40]$ and $[1,80]$, respectively (\Cref{tab:results-dp-k2}).
+        However, its running time increases rapidly with instance size.
+        Under $[1,40]$, the mean running time rises from 1.47 s for forty jobs to 89.59 s for one hundred jobs, a 61-fold increase, while the mean objective value increases by only a factor of 2.5.
+        Expanding the processing-time range to $[1,80]$ further increases the mean running time by factors of 2.9--3.7.
+        For one hundred-job instances under $[1,80]$, six of the twenty instances reach the 600 s time limit, and the remaining fourteen require an average of 329.01 s.
+        Moreover, the $\mathbf{DP}$ cannot handle a third weight class due to memory limitations, restricting its applicability to $K=2$.
+        These results indicate that the $\mathbf{DP}$ is effective for relatively small instances with few distinct weights but has limited scalability.
 
         \begin{table}[H]
             \resultstable
@@ -1408,23 +1322,30 @@
                 $600$\,s limit; the other six are cut short.}
         \end{table}
 
-        \subsubsection{The small scale}
+        \subsubsection{The small scale} \label{sec:results_small}
 
-        The $\mathbf{MILP}$ model solves 436 of the 440 small-scale instances to optimality and provides the reference values.
-        Its mean running time increases from 70 ms at ten jobs to 160.7 s at sixty under $[1,40]$, with four instances at the largest size reaching the time limit.
-        The wider range roughly doubles the objective value but has no consistent effect on running time.
+        \Crefrange{tab:results-small-40}{tab:results-small-80} report the objective values, running times and gaps of the four methods under $[1,40]$ and $[1,80]$, respectively.
 
-        $\mathbf{NEH}$ outperforms the $\mathbf{LW}$ in all 22 configurations, with overall mean gaps of 3.14\% and 5.77\%, respectively, and worst individual-instance gaps of 24.89\% and 21.49\%.
-        This improvement requires more computation: $\mathbf{NEH}$ takes 2.66 ms on average, compared with 0.02 ms for the $\mathbf{LW}$, as it evaluates insertion positions sequentially, whereas the latter constructs the sequence in a single pass.
-        Thus, the $\mathbf{LW}$ is preferable when computational efficiency takes priority over solution quality.
+        The $\mathbf{MILP}$ model solves 436 of the 440 instances to optimality, providing reference values.
+        Under $[1,40]$, its mean running time increases from 70 ms for ten jobs to 160.7 s for sixty jobs, with four instances at the largest size reaching the time limit.
+        The wider processing-time range roughly doubles the objective values but has no consistent effect on running time.
 
-        The $\mathbf{GA}$ exhibits the opposite trend: its mean gap decreases from 12.61\% to 1.70\% under $[1,40]$ and from 14.29\% to 3.90\% under $[1,80]$ as the number of jobs increases from ten to sixty.
-        At sixty jobs, it outperforms both constructive methods.
-        However, its overall mean gap remains the largest at 10.07\%, and its performance is non-monotonic, with a worst individual-instance gap of 57.53\% at twenty-five jobs.
-        This may be attributed to the limited search budget at smaller sizes: six individuals and two generations at ten jobs provide insufficient opportunities to establish the block structure.
-        Its mean running time increases from 0.64 ms to 1.69 s, but remains well below that of the $\mathbf{MILP}$ model.
-        At sixty jobs, the mean gaps of the three heuristics differ by less than three percentage points (\Crefrange{tab:results-small-40}{tab:results-small-80}, \Cref{fig:gap-small}).
-        The effectiveness of the additional computational effort required by the $\mathbf{GA}$ on larger instances is examined next.
+        $\mathbf{NEH}$ outperforms $\mathbf{LW}$ in all 22 configurations, achieving overall mean gaps of 3.14\% and 5.77\%, respectively, and worst individual-instance gaps of 24.89\% and 21.49\%.
+        This improvement comes at a higher computational cost: $\mathbf{NEH}$ takes 2.66 ms on average, compared with 0.02 ms for $\mathbf{LW}$, reflecting its sequential evaluation of insertion positions versus the latter's single-pass construction.
+        Thus, $\mathbf{LW}$ is preferable when computational efficiency outweighs solution quality.
+
+        The $\mathbf{GA}$ shows the opposite trend, with its mean gap decreasing from 12.61\% to 1.70\% under $[1,40]$ and from 14.29\% to 3.90\% under $[1,80]$ as the number of jobs increases from ten to sixty.
+        It outperforms both constructive methods at sixty jobs.
+        Nevertheless, its overall mean gap remains the largest (10.07\%), and its performance is non-monotonic, with a worst individual-instance gap of 57.53\% at twenty-five jobs.
+        This may reflect the limited search budget at smaller sizes, where six individuals and two generations for ten jobs provide insufficient opportunities to establish the block structure.
+        Its mean running time rises from 0.64 ms to 1.69 s, remaining well below that of the $\mathbf{MILP}$ model.
+        At sixty jobs, however, the mean gaps of the three heuristics differ by less than three percentage points.
+
+        Overall, the small-scale results distinguish the methods primarily by computational cost.
+        The $\mathbf{MILP}$ model alone certifies optimality but becomes increasingly expensive as the instance size grows.
+        Among the heuristics, $\mathbf{NEH}$ offers the best quality-cost trade-off, $\mathbf{LW}$ sacrifices some solution quality for substantially lower running times, while $\mathbf{GA}$ performs worst in solution quality and incurs the highest computational cost (\Cref{fig:gap-small}).
+        Hence, $\mathbf{NEH}$ is the preferred heuristic for small instances unless optimality certification is required.
+        The effectiveness of the additional search effort invested in $\mathbf{GA}$ on larger instances is examined next.
 
         \begin{table}[H]
             \resultstable
@@ -1517,18 +1438,25 @@
         \end{figure}
 
 
-        \subsubsection{The large scale}
+        \subsubsection{The large scale} \label{sec:results_large}
 
-        On the large scale, the ranking changes with instance size.
+        \Crefrange{tab:results-large-40}{tab:results-large-80} report the gaps and running times of the three heuristics under $[1,40]$ and $[1,80]$, respectively.
+
+        On the large scale, the ranking varies with instance size.
         The $\mathbf{LW}$ achieves the smallest overall mean gap of 2.67\% across the 32 configurations, with a worst individual-instance gap of 12.92\%, followed by $\mathbf{NEH}$ at 5.06\% and 10.77\%, respectively.
-        In contrast, the $\mathbf{GA}$ improves substantially as instance size increases, with its mean gap decreasing from 18.33\% to 0.62\% under $[1,40]$ and from 16.01\% to 0.82\% under $[1,80]$ between one hundred and four hundred jobs.
-        It overtakes $\mathbf{NEH}$ at 220 jobs in both ranges and the $\mathbf{LW}$ at 220 and 240 jobs, respectively.
+        By contrast, the $\mathbf{GA}$ improves substantially with instance size: its mean gap decreases from 18.33\% to 0.62\% under $[1,40]$ and from 16.01\% to 0.82\% under $[1,80]$ between one hundred and four hundred jobs.
+        It overtakes $\mathbf{NEH}$ at 220 jobs under both ranges and $\mathbf{LW}$ at 220 and 240 jobs, respectively.
 
-        The $\mathbf{GA}$ thus becomes the most effective method for sufficiently large instances, at a higher computational cost.
-        It achieves the best objective value in 328 of the 640 instances, compared with 250 for the $\mathbf{LW}$ and 62 for $\mathbf{NEH}$, with a mean running time of 42.2 s, compared with 0.74 s and 0.09 ms, respectively.
-        Unlike the $\mathbf{DP}$, the $\mathbf{GA}$ also handles instances with 30 distinct weight classes.
-        The processing-time range does not change the overall ranking: the mean gaps are 2.74\%, 4.75\% and 4.44\% under $[1,40]$ and 2.59\%, 5.36\% and 4.96\% under $[1,80]$ for the $\mathbf{LW}$, $\mathbf{NEH}$ and $\mathbf{GA}$, respectively (\Crefrange{tab:results-large-40}{tab:results-large-80}, \Cref{fig:gap-large}).
-        These values are measured against the lower bound $LB$ defined in \cref{Eq-LB}, which is tight only when the heaviest jobs appear earliest; they therefore represent deviations from $LB$ rather than true optimality gaps.
+        For sufficiently large instances, the $\mathbf{GA}$ achieves the best solution quality at a higher computational cost.
+        It obtains the best objective values in 328 of the 640 instances, compared with 250 for $\mathbf{LW}$ and 62 for $\mathbf{NEH}$, while its mean running time is 42.2 s, compared with 0.74 s and 0.09 ms, respectively.
+        Unlike the $\mathbf{DP}$, it also handles instances with 30 distinct weight classes.
+        The processing-time range has little effect on the overall ranking: the mean gaps of $\mathbf{LW}$, $\mathbf{NEH}$ and $\mathbf{GA}$ are 2.74\%, 4.75\% and 4.44\% under $[1,40]$, and 2.59\%, 5.36\% and 4.96\% under $[1,80]$, respectively.
+        These gaps are measured against the lower bound $LB$ defined in \cref{Eq-LB}, which is tight only when the heaviest jobs appear earliest; they therefore measure deviations from $LB$ rather than true optimality gaps.
+
+        Overall, the large-scale results highlight the trade-off between solution quality and computational time.
+        The $\mathbf{LW}$ is the fastest method and achieves the smallest overall mean gap, while $\mathbf{NEH}$ offers intermediate performance at negligible computational cost.
+        The $\mathbf{GA}$ achieves the best solutions on sufficiently large instances but requires substantially more time (\Cref{fig:gap-large}).
+        The choice therefore depends on whether computational speed or solution quality is the priority.
 
         \begin{table}[H]
             \resultstable
@@ -1628,20 +1556,8 @@
             \label{fig:gap-large}
         \end{figure}
 
-        \subsection{Summary of the methods}
 
-        The five methods exhibit different trade-offs between solution quality, computational cost and generality, with none dominating across all instances.
-        The $\mathbf{MILP}$ model certifies optimality on the small scale, but its running time increases sharply with instance size.
-        The $\mathbf{DP}$ provides an exact alternative when the number of weight classes is small, although its memory requirements grow rapidly with $K$, restricting its applicability to instances with few distinct weights.
-        The $\mathbf{LW}$ is the fastest method and achieves the smallest gap among the three heuristics on large instances, but performs less favorably on the small scale. $\mathbf{NEH}$ produces better solutions than the $\mathbf{LW}$ on small instances, but loses this advantage on the large scale, while maintaining a negligible computational cost compared with the exact methods.
-        The $\mathbf{GA}$ incurs the highest computational cost and performs less favorably on small instances, but is the only method whose gap decreases with instance size.
-
-        Overall, $\mathbf{NEH}$ offers the best balance between solution quality and computational cost on small instances, while the $\mathbf{MILP}$ model and $\mathbf{DP}$ are suitable when optimality certification is required.
-        On large instances, the $\mathbf{LW}$ is preferable when computational efficiency is paramount, whereas the $\mathbf{GA}$ is more effective when solution quality justifies longer running times.
-
-
-\section{Conclusion}
-\label{sec:conclusion}
+        \section{Conclusion} \label{sec:conclusion}
 
         This paper studies the two-machine flow shop scheduling problem with the maximum weighted completion time objective.
         The problem is strongly NP-hard, and its optimal schedules exhibit a weight-based block structure, with Johnson's order within each block and blocks arranged in non-increasing order of weight.
@@ -1662,8 +1578,8 @@
         For the $\mathbf{GA}$, the chromosome can be extended to encode shop assignments together with job sequences, while the weight-block mutation can be retained or modified to preserve the structural advantages identified in this study.
         These extensions may provide effective solution approaches for larger and more complex production environments.
 
-\bibliographystyle{apalike}
-    \bibliography{ref_IJPR}
+        \bibliographystyle{apalike}
+        \bibliography{ref_IJPR}
 
     \end{sloppypar}
 \end{document}
