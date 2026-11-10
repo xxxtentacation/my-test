@@ -99,12 +99,21 @@
         \section{Introduction} \label{sec:intro}
 
 
-        Scheduling plays a critical role in semiconductor wafer fabrication, where each wafer lot undergoes hundreds of processing operations and its completion time determines the delivery time of the corresponding customer order.
-        In practice, high-priority hot lots must be completed ahead of regular lots, and their priority weights may vary across customers and processing layers.
-        Scheduling decisions should therefore not only improve overall production performance but also prevent excessive delays to high-priority lots.
-        Two relevant scheduling objectives are the total weighted completion time, which minimizes the sum of weighted completion times, and the maximum weighted completion time, which minimizes the largest weighted completion time.
-        Unlike the conventional makespan, the maximum weighted completion time accounts for differences in lot priorities and focuses on the worst-case weighted completion performance.
-        When all lots have unit weights, it reduces to the conventional makespan.
+        Consider a manufacturing environment in which every batch must pass through two processing stages in the same order before leaving the factory. Examples include mixing followed by drying, coating followed by curing, and formulation followed by sterilization. 
+        The first stage is typically faster, causing jobs to accumulate between the two stages. 
+        However, batches waiting in this intermediate queue continue to deteriorate in quality: enzymes remain active, microorganisms continue to grow, and thermal budgets are progressively consumed.
+        The rate of quality deterioration varies across batches. A
+        batch with ten times the sensitivity incurs ten times the loss when subjected to the same waiting time. 
+        Thus, the quality loss of a batch is proportional to the product of its sensitivity and its time in the system, rather than to time alone. 
+        The manufacturer, however, is not primarily concerned with the sum of these losses. 
+        Once the quality loss of a batch exceeds an acceptable threshold, the entire batch may have to be scrapped or recalled. 
+        The loss associated with a single such batch can outweigh the cumulative delays of all other batches. Consequently, the critical concern is the batch with the largest loss, measured by the product of its sensitivity and completion time. 
+        The scheduling objective is therefore to minimize the maximum of these products.
+        The same structure arises beyond the food and pharmaceutical industries. 
+        In the maintenance of high-value equipment, the two stages may correspond to disassembly and inspection, with the weight representing the cost incurred per hour of equipment downtime. 
+        In hospital diagnostics, the two stages may represent medical imaging and treatment, with the weight reflecting the severity of a patient's condition. 
+        In these settings, each job is assigned a weight that determines the cost associated with its completion time, and the objective is to minimize the maximum weighted completion time rather than the total weighted completion time. 
+        This is precisely the two-machine flow shop scheduling problem with the maximum weighted completion time objective.
 
         Research on the maximum weighted completion time has primarily focused on single-machine and parallel-machine environments.
         For single-machine scheduling, approximation algorithms and polynomial-time approximation schemes have been developed in two-agent settings \citep{NongChengNg2011EJOR}, while online variants have been extensively investigated, with competitive algorithms established for both preemptive and non-preemptive settings \citep{Li-Wenjie2015APJOR}.
