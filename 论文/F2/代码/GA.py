@@ -34,11 +34,16 @@ starts from the order that is shortest on the two machines and carries nothing
 of the weights; the criterion is brought in by the mutation below.
 
 Operators.
-    PMX (Algorithm alg:pmx) copies a contiguous segment of one parent and fills
-    the remaining positions from the other parent, resolving a gene that the
-    segment already holds through the mapping the segment induces, so that the
-    child is always a valid permutation.  Swapping the roles of the two parents
-    yields the second child.
+    Block crossover (block_order_crossover) reads each parent as a sequence of
+    weight blocks, places a random number of the heaviest blocks first in
+    non-increasing order of weight, and fills the rest with the blocks of the
+    second parent in their order; a block keeps the internal order of the first
+    parent and is never split.  The heavy prefix pushes the heaviest classes
+    forward, which PMX, blind to the labels, cannot do.
+    PMX (Algorithm alg:pmx) is kept for reference: it copies a contiguous
+    segment of one parent and fills the remaining positions from the other
+    parent, resolving a gene that the segment already holds through the mapping
+    the segment induces, so that the child is always a valid permutation.
     Block mutation (Algorithm alg:cm) moves a block of the schedule: the jobs of
     one weight leave it together, keeping the order they hold, and come back as
     one run at the position that serves the criterion best.  The block is the one
@@ -182,6 +187,49 @@ def pmx(p1: Sequence[int], p2: Sequence[int], cut1: int, cut2: int) -> List[int]
         used.add(j)
 
     return [int(x) for x in child]
+
+
+def block_sequence(sigma: Sequence[int], w: Sequence[float]) -> List[float]:
+    """The distinct weights of a schedule, in the order they first appear."""
+    seen = set()
+    seq: List[float] = []
+    for j in sigma:
+        if w[j] not in seen:
+            seen.add(w[j])
+            seq.append(w[j])
+    return seq
+
+
+def block_order_crossover(p1: Sequence[int], p2: Sequence[int],
+                          w: Sequence[float],
+                          rng: random.Random) -> List[int]:
+    """
+    Weight-guided block crossover (WBX): recombine the block orders of the parents.
+
+    A schedule is read as a sequence of weight blocks, one per distinct weight.
+    The weights are ranked in non-increasing order, a random number r of the
+    heaviest blocks (0 <= r <= K) is placed first in that order, and the
+    remaining blocks follow in the order they hold in the second parent; the
+    jobs of a block keep the order they hold in the first parent.  No block is
+    split, so the child is again a sequence of weight blocks, and the heavy
+    prefix is what lets the operator push the heaviest classes forward, which
+    PMX, blind to the labels, cannot do.  With r = 0 the child is the block
+    order of the second parent; with r = K it is the weight order, so the
+    operator covers the range between recombination and construction.
+    """
+    ranked = sorted(set(w), reverse=True)
+    s2 = block_sequence(p2, w)
+    r = rng.randint(0, len(ranked))
+    heavy = set(ranked[:r])
+    order = ranked[:r] + [wt for wt in s2 if wt not in heavy]
+
+    pos1 = {job: t for t, job in enumerate(p1)}
+    child: List[int] = []
+    for wt in order:
+        block = [j for j in p1 if w[j] == wt]
+        block.sort(key=lambda j: pos1[j])
+        child.extend(block)
+    return child
 
 
 def block_mutation(sigma: Sequence[int], a: Sequence[float],
@@ -435,7 +483,7 @@ def _evolve(pop: List[List[int]], a: Sequence[float], b: Sequence[float],
             w: Sequence[float], N: int, lam: int, G: int, pc: float, pm: float,
             rng: random.Random):
     """
-    The NSGA-II loop: tournament on (rank, crowding), PMX, the block mutation,
+    The NSGA-II loop: tournament on (rank, crowding), the block crossover, the block mutation,
     and (mu + lambda) survival by non-dominated sorting on the three objectives.
 
     A generation produces `lam` offspring from a population of N parents, so the
@@ -467,15 +515,14 @@ def _evolve(pop: List[List[int]], a: Sequence[float], b: Sequence[float],
             pick = i if (rank[i], -crowd[i]) <= (rank[j], -crowd[j]) else j
             pool.append(pop[pick])
 
-        # Crossover: PMX, or the two parents copied.
+        # Crossover: the weight-guided block crossover, or the two parents copied.
         offspring: List[List[int]] = []
         while len(offspring) < lam:
             p1 = pool[rng.randrange(len(pool))]
             p2 = pool[rng.randrange(len(pool))]
             if n >= 2 and rng.random() < pc:
-                # two distinct cut points, so that p1 < p2 as alg:pmx states
-                cut1, cut2 = rng.sample(range(n), 2)
-                kids = [pmx(p1, p2, cut1, cut2), pmx(p2, p1, cut1, cut2)]
+                kids = [block_order_crossover(p1, p2, w, rng),
+                        block_order_crossover(p2, p1, w, rng)]
             else:
                 kids = [list(p1), list(p2)]
             for kid in kids:

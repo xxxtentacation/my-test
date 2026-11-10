@@ -11,16 +11,16 @@ methods they run, so a group can be run, interrupted and repeated on its own.
 The script follows the design of paper Section 6.1 rather than inventing its
 own:
 
-* **Instances.**  The instance sizes 40, 60, 80 and 100, crossed with the weight
-  count K = 2, whose weights are the geometric ladder {1, 10}, so that the weight
-  classes are decades apart, and with the two processing-time ranges [1,40] and
-  [1,80] of the other two groups, so that the three groups of the study share
-  them.  The eight configurations are each replicated 20 times, for the 160
-  instances of the group.  The ladder starts at 40 and rises by 20 a step, and it
-  is carried to the largest size the 600 s limit of the study still reaches:
-  [1,40] is settled well within it at every size of the group, while on [1,80]
-  the limit binds from about a hundred jobs on, which the count of instances the
-  method settles is what reports.
+* **Instances.**  Two groups, each crossing a ladder of instance sizes with the
+  two processing-time ranges [1,40] and [1,80] of the other two groups, so that
+  the three groups of the study share them.  The weights of a group are drawn
+  from a geometric ladder, so that the weight classes are decades apart: the
+  first group uses the two values {1, 10} at 40, 50 and 60 jobs, and the second
+  the three values {1, 10, 100} at 10, 20, 30 and 40 jobs.  The state space of
+  the exact method grows exponentially in the number of distinct weights, which
+  is why the ladder of the larger sizes carries two values and the one of the
+  smaller sizes three.  The fourteen configurations are each replicated 20
+  times, for the 280 instances of the two groups.
 
 * **Methods.**  The dynamic program of the paper alone.  Its running time
   O(n K V^(3K-3)) grows so fast in the number K of distinct weights that the
@@ -94,43 +94,43 @@ DEFAULT_OUT = RECORD_DIR / "结果_dp_最新.txt"
 #: overwrites the results of an earlier one
 ARCHIVE_DIR = RECORD_DIR / "结果存档"
 
-#: the group this file runs; there is only one, so the name is a constant
-SCALE = "dp"
+#: The two groups of the dynamic program, and the only place where their weight
+#: values and instance sizes are written down.  The weights of a group are the
+#: geometric ladder {1, 10, ..., 10^(K-1)} of K values -- {1, 10} in the first
+#: group and {1, 10, 100} in the second -- so that the weight classes are
+#: decades apart.  The state space of the exact method grows exponentially in
+#: the number of distinct weights, which is why the ladder of the larger sizes
+#: carries two values and the one of the smaller sizes three.
+DP_GROUPS = {
+    "dp1": {"weights": (1, 10), "sizes": (40, 50, 60)},
+    "dp2": {"weights": (1, 10, 100), "sizes": (10, 20, 30, 40)},
+}
 
-#: the number of distinct weights of the group, one configuration each: the
-#: weights are drawn from the geometric ladder {1, 10, ..., 10^(K-1)}, and the
-#: group runs at the smallest count the ladder allows, where the state space the
-#: exact method builds stays within reach
-WEIGHT_COUNTS = (2,)
-
-#: the processing-time ranges of the group, by the upper end of the discrete
+#: the processing-time ranges of the groups, by the upper end of the discrete
 #: range on the integers of which both processing times are drawn; they are the
-#: two the other groups of the study use, and are crossed with the instance sizes
+#: two the other groups of the study use, and are crossed with the sizes
 RANGES = (40, 80)
 
-#: the instance sizes of the group, the ladder the study reads the exact method
-#: on: it starts at 40 and rises by 20 a step up to the largest size the 600 s
-#: limit still reaches
-SIZES = (40, 60, 80, 100)
-
-#: The configuration of this group, and the only place where it is written down:
-#: the four instance sizes crossed with the weight count and the two
-#: processing-time ranges, 20 instances each, for the 8 configurations and 160
-#: instances of the group.  "configs" holds one (n, K, processing-time range)
-#: triple per configuration; "instances" is the replication count; "methods" the
-#: method the group is reported on; and "baseline" is None, the dynamic program
-#: being exact and read on the number of instances it settles rather than on a
-#: gap against a reference value.
+#: The configurations of the two groups, and the only place where they are
+#: written down: the three instance sizes of the first group crossed with its two
+#: weight values and the two processing-time ranges, and the four sizes of the
+#: second crossed with its three, for six and eight configurations.  20
+#: instances each, for the 14 configurations and 280 instances of the two
+#: groups.  "configs" holds one (n, K, processing-time range) triple per
+#: configuration, K being the number of weight values of the group; "instances"
+#: is the replication count; "methods" the method the group is reported on; and
+#: "baseline" is None, the dynamic program being exact and read on the number of
+#: instances it settles rather than on a gap against a reference value.
 SCALES = {
-    "dp": {
+    group: {
         "instances": 20,
         "methods": ("dp",),
         "baseline": None,
-        "configs": tuple((n, K, proc_hi)
-                         for n in SIZES
-                         for K in WEIGHT_COUNTS
+        "configs": tuple((n, len(spec["weights"]), proc_hi)
+                         for n in spec["sizes"]
                          for proc_hi in RANGES),
-    },
+    }
+    for group, spec in DP_GROUPS.items()
 }
 
 
@@ -152,30 +152,111 @@ def _run_dp(n, cfg, instances, seed, opts, progress=None, first=1):
 METHODS = {
     "dp":      ("DP",       _run_dp),
 }
-#: the group run when none is named: this file has only the one
-DEFAULT_SCALES = [SCALE]
+#: the groups run when none is named: this file runs both of its groups
+DEFAULT_SCALES = list(SCALES)
 
 
 # ---------------------------------------------------------------------------
 # experiment driver
 # ---------------------------------------------------------------------------
 
+def method_of_label(label):
+    """The method a label of a record file belongs to, or None."""
+    for name, (lab, _runner) in METHODS.items():
+        if label == lab:
+            return name
+    return None
+
+
+def parse_record(path):
+    """
+    The per-instance rows of a record file of an earlier run.
+
+    Returns a dict (method, n, K, proc_hi, seed, instance) -> (value, seconds,
+    proved, line, instances), the line being the one the file holds, so that a
+    resumed run carries it into its own record word for word.  A file that cannot
+    be read gives no rows, and a line that does not parse is skipped: the resume
+    is then simply the rows the file was legible enough to give.
+    """
+    rows = {}
+    try:
+        text = Path(path).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        print("cannot read the record file %s: nothing is resumed" % path,
+              file=sys.stderr)
+        return rows
+    for line in text.splitlines():
+        if line.count("|") != 5 or "instance" not in line:
+            continue                      # a header, a summary or a blank
+        head, seed, inst, value, _gap, tail = [p.strip()
+                                              for p in line.split("|")]
+        tok = head.split()
+        if len(tok) < 6 or not tok[3].startswith("n=") \
+                or not tok[4].startswith("K="):
+            continue
+        method = method_of_label(tok[2])
+        rlabel = tok[5]
+        if method is None or not rlabel.startswith("[1,"):
+            continue
+        try:
+            done = int(inst.split("/")[0].split()[-1])
+            total = int(inst.split("/")[1])
+            obj = value.split(" ", 1)[1].strip()
+        except (IndexError, ValueError):
+            continue
+        words = tail.split()
+        proved = {"optimal": True, "time limit": False, "-": None}.get(
+            " ".join(words[:-2]) if len(words) > 2
+            else (words[0] if words else "-"))
+        # The running time of a line is read in the unit it carries.
+        time_units = None
+        for token in reversed(words):
+            if token in ("s", "ms"):
+                time_units = token
+                break
+        seconds = float(words[-2]) if len(words) >= 2 else 0.0
+        if time_units == "ms":
+            seconds /= 1000.0
+        rows[(method, int(tok[3].split("=")[1]), int(tok[4].split("=")[1]),
+              int(rlabel.split(",")[1].rstrip("]")),
+              int(seed.split("=")[1]), done)] = (
+            None if obj == "none" else float(obj),
+            seconds, proved, line, total, str(path))
+    return rows
+
+
+def _result_of(objs, times):
+    """The dict the runner returns, built from the values of the instances."""
+    vals = [o for o in objs if o is not None]
+    secs = [t for t in times if t is not None]
+    return {
+        "objs": objs,
+        "times": times,
+        "mean_time": statistics.fmean(secs) if secs else float("nan"),
+        "solved": len(vals),
+        "failed": sum(1 for o in objs if o is None),
+        "mean_obj": statistics.fmean(vals) if vals else float("nan"),
+        "best_obj": min(vals) if vals else float("nan"),
+    }
+
+
 def config_of(n, K, proc_hi):
     """
     The arguments of one configuration, and the labels its row is written with.
 
     K is the number of weights the instance may take, drawn from the geometric
-    ladder {1, 10, ..., 10^(K-1)} -- the rule of paper Section 6.1 for this group,
-    where the weight classes are decades apart and the exact method stays within
-    reach -- and proc_hi the upper end of the range the processing times are
-    drawn from.
+    ladder {1, 10, ..., 10^(K-1)} -- the rule of paper Section 6.1 for these
+    groups, where the weight classes are decades apart and the exact method stays
+    within reach -- and proc_hi the upper end of the range the processing times
+    are drawn from.  The row is labelled with the values themselves, so that the
+    tables read {1,10} and {1,10,100} rather than the count of them.
     """
     return {
         "K": K,
         "weights": "narrow",
         "geometric": True,
         "proc_hi": proc_hi,
-        "weight_label": "K=%d" % K,
+        "weight_label": "W={%s}" % ",".join(str(10 ** i) for i in range(K)),
         "range_label": "[1,%d]" % proc_hi,
     }
 
@@ -237,7 +318,7 @@ def _instance_reporter(label, n, weights, rlabel, stream):
     started = time.perf_counter()
 
     def report(done, total, obj, seconds, proved=None, base=None):
-        print("      %-4s n=%-4d %-6s %-7s | instance %2d/%-2d | value %-12s"
+        print("      %-4s n=%-4d %-12s %-7s | instance %2d/%-2d | value %-12s"
               " | %-10s %9s | elapsed %s"
               % (label, n, weights, rlabel, done, total,
                  "none" if obj is None else "%.1f" % obj,
@@ -266,6 +347,18 @@ def run_scale(scale, methods, args, stream=sys.stdout):
     # so that it reads as the live output did.
     record_path = getattr(args, "record_path", None)
 
+    # The rows an earlier run left, when the caller asked to resume one: the
+    # instances it already holds are taken from it instead of being solved
+    # again, so that a run which stopped inside the heavy configurations is
+    # continued rather than repeated.
+    resumed = {}
+    for path in (getattr(args, "resume", None) or ()):
+        resumed.update(parse_record(path))
+    redo = set(getattr(args, "redo", None) or ())
+    held = {}
+    for key in resumed:
+        held[key[:5]] = held.get(key[:5], 0) + 1
+
     # The order of the runs follows the order of the tables of Section 6.2: the
     # configurations one after the other, every one of them run to the end.
     state = {}
@@ -281,12 +374,42 @@ def run_scale(scale, methods, args, stream=sys.stdout):
                 done += 1
                 if done > 1:
                     print(RULE, file=stream, flush=True)   # separate the setups
-                head = ("  n=%-4d %-6s %-7s | %s (seed %d)"
+                # The instances of this configuration an earlier run holds, as
+                # the prefix of its instance order that run reached.
+                kept = {}
+                if name not in redo:
+                    for i in range(1, instances + 1):
+                        row = resumed.get((name, n, k, proc_hi, seed, i))
+                        if row is not None and row[4] == instances:
+                            kept[i] = row
+                first = 0
+                while first + 1 in kept:
+                    first += 1
+                head = ("  n=%-4d %-12s %-7s | %s (seed %d)"
                         % (n, wlabel, rlabel, label, seed))
-                print(head, file=stream, flush=True)
-                _record(record_path, head)
-                res = runner(n, cfg, instances, seed, args,
-                             _instance_reporter(label, n, wlabel, rlabel, stream))
+                if first >= instances:
+                    print(head + " | resumed %d/%d" % (first, instances),
+                          file=stream, flush=True)
+                    res = _result_of(
+                        [kept[i][0] for i in range(1, instances + 1)],
+                        [kept[i][1] for i in range(1, instances + 1)])
+                else:
+                    if first:
+                        print(head + " | resumed %d/%d" % (first, instances),
+                              file=stream, flush=True)
+                    else:
+                        print(head, file=stream, flush=True)
+                    _record(record_path, head)
+                    fresh = runner(n, cfg, instances, seed, args,
+                                   _instance_reporter(label, n, wlabel, rlabel,
+                                                      stream),
+                                   first=first + 1)
+                    res = _result_of(
+                        [kept[i][0] for i in range(1, first + 1)]
+                        + list(fresh["objs"]),
+                        [kept[i][1] for i in range(1, first + 1)]
+                        + list(fresh["times"]))
+                res["optimal"] = res["solved"]
                 state[(name, n, k, proc_hi)] = res
 
                 missing = sum(1 for o in res["objs"] if o is None)
@@ -307,6 +430,7 @@ def run_scale(scale, methods, args, stream=sys.stdout):
                     "label": label,
                     "n": n,
                     "K": k,
+                    "weights": wlabel,
                     "proc_hi": proc_hi,
                     "range": rlabel,
                     "instances": instances,
@@ -327,17 +451,18 @@ def run_scale(scale, methods, args, stream=sys.stdout):
                 # The summary line of the configuration, written to the record
                 # file as it is printed, so that the file carries the totals of
                 # every group of instances as well as the instances themselves.
-                summary = ("  [%2d/%2d] %-4s n=%-4d %-6s %-7s | opt %-7s |"
+                summary = ("  [%2d/%2d] %-4s n=%-4d %-12s %-7s | opt %-7s |"
                            " obj %9.1f (%8.1f, %9.1f) "
                            "| time %9.2f ms (%8.2f, %10.2f) | no value %d"
                            % (done, total, label, n, wlabel, rlabel,
                               "%d/%d" % (opt, instances) if opt else "none",
                               o_mean, o_min, o_max, 1000.0 * t_mean, 1000.0 * t_min, 1000.0 * t_max, missing))
                 # The summary closes the configuration in the live output and in
-                # the record file alike; this group has no resume, so a
-                # configuration is always run to its end before it is written.
-                print(summary, file=stream, flush=True)
-                _record(record_path, summary)
+                # the record file alike; a configuration an earlier run already
+                # holds in full is not summarised a second time.
+                if first < instances:
+                    print(summary, file=stream, flush=True)
+                    _record(record_path, summary)
 
     # The best value found on each instance, now that the method has run on it:
     # the dynamic program is exact, so that value is the optimum of the instance.
@@ -402,19 +527,21 @@ def _scale_block(lines, scale, records, summary, args):
     lines.append("")
     lines.append("# " + "=" * 84)
     lines.append("# scale %s  --  configurations: %s"
-                 % (scale, ", ".join("n=%d/K=%d/[1,%d]" % (n, K, proc_hi)
+                 % (scale, ", ".join("n=%d/W={%s}/[1,%d]"
+                                     % (n, ",".join(str(10 ** i)
+                                                    for i in range(K)), proc_hi)
                                      for n, K, proc_hi in spec["configs"])))
     lines.append("# " + "=" * 84)
     lines.append("# per-configuration results")
-    lines.append("# %-5s %5s %-7s %-7s %9s %8s %23s %31s"
+    lines.append("# %-5s %5s %-12s %-7s %9s %8s %23s %31s"
                  % ("algo", "n", "weights", "range", "instances", "opt",
                     "objective mean (min, max)", "time(ms) mean (min, max)"))
     for r in records:
         o = r["obj"] or (float("nan"),) * 3
         t = r["time"] or (float("nan"),) * 3
-        lines.append("  %-5s %5d %-7s %-7s %9d %8s"
+        lines.append("  %-5s %5d %-12s %-7s %9d %8s"
                      " %10.1f (%8.1f, %9.1f) %12.4f (%8.4f, %10.4f)"
-                     % (r["label"], r["n"], "K=%d" % r["K"], r["range"],
+                     % (r["label"], r["n"], r["weights"], r["range"],
                         r["instances"],
                         "%d/%d" % (r["opt"], r["instances"]) if r["opt"] else "none",
                         o[0], o[1], o[2],
@@ -431,16 +558,16 @@ def _scale_block(lines, scale, records, summary, args):
         key = (r["n"], r["K"], r["range"])
         if key not in seen:            # the same for every method of the configuration
             seen.add(key)
-            lines.append("  %-5s %5d %-7s %-7s best  : %s"
-                         % ("-", r["n"], "K=%d" % r["K"], r["range"],
+            lines.append("  %-5s %5d %-12s %-7s best  : %s"
+                         % ("-", r["n"], r["weights"], r["range"],
                             " ".join("none" if b is None else "%.1f" % b
                                      for b in r["best_of_instance"])))
-        lines.append("  %-5s %5d %-7s %-7s objs  : %s"
-                     % (r["label"], r["n"], "K=%d" % r["K"], r["range"],
+        lines.append("  %-5s %5d %-12s %-7s objs  : %s"
+                     % (r["label"], r["n"], r["weights"], r["range"],
                         " ".join("none" if o is None else "%.1f" % o
                                  for o in r["objs"])))
-        lines.append("  %-5s %5d %-7s %-7s times : %s"
-                     % (r["label"], r["n"], "K=%d" % r["K"], r["range"],
+        lines.append("  %-5s %5d %-12s %-7s times : %s"
+                     % (r["label"], r["n"], r["weights"], r["range"],
                         " ".join("none" if t is None else "%.4f" % (1000.0 * t)
                                  for t in r["times"])))
     lines.append("#")
@@ -500,6 +627,15 @@ def parse_args(argv=None):
     p.add_argument("--time-limit", type=float, default=600.0,
                    help="time limit in seconds for the dynamic program "
                         "(default: 600, the limit of paper Section 6)")
+    p.add_argument("--resume", nargs="+", default=None, metavar="FILE",
+                   help="record file(s) of an earlier run, whose instances are"
+                        " taken from it instead of being solved again: an"
+                        " interrupted run is continued rather than repeated, and"
+                        " it writes into the first of those files")
+    p.add_argument("--redo", nargs="+", default=None, metavar="METHOD",
+                   help="methods whose rows are computed again rather than read"
+                        " back from the resumed file (any of: %s)"
+                        % ", ".join(METHODS))
     p.add_argument("--out", default=str(DEFAULT_OUT),
                    help="results file (default: %s; a .csv suffix writes CSV)"
                         % DEFAULT_OUT)
@@ -544,14 +680,16 @@ def main(argv=None):
         print("methods:")
         for name, (label, _) in METHODS.items():
             print("  %-8s %s" % (name, label))
-        print("scale %s:" % SCALE)
-        print("methods:")
-        for name in SCALES[SCALE]["methods"]:
-            print("  %-8s %s" % (name, METHODS[name][0]))
-        print("configurations:")
-        for n, K, proc_hi in SCALES[SCALE]["configs"]:
-            print("  n=%-4d %-7s %-7s"
-                  % (n, "K=%d" % K, "[1,%d]" % proc_hi))
+        for scale in DEFAULT_SCALES:
+            print("scale %s:" % scale)
+            print("methods:")
+            for name in SCALES[scale]["methods"]:
+                print("  %-8s %s" % (name, METHODS[name][0]))
+            print("configurations:")
+            for n, K, proc_hi in SCALES[scale]["configs"]:
+                print("  n=%-4d %-14s %-7s"
+                      % (n, config_of(n, K, proc_hi)["weight_label"],
+                         "[1,%d]" % proc_hi))
         return
 
     methods = resolve_methods(args.algos)
@@ -569,8 +707,15 @@ def main(argv=None):
     started = datetime.now()
     stamp = started.strftime("%Y-%m-%d_%H-%M-%S")
     RECORD_DIR.mkdir(parents=True, exist_ok=True)
-    args.record_path = RECORD_DIR / ("实例记录_%s_%s.txt"
-                                     % ("-".join(scales), stamp))
+    # A run that resumes an earlier one writes its instances into the record of
+    # that run: the record of a group, interrupted and continued, is then one
+    # document rather than one file per attempt.
+    if args.resume:
+        first = Path(args.resume[0])
+        args.record_path = first if first.is_absolute() else HERE / first
+    else:
+        args.record_path = RECORD_DIR / ("实例记录_%s_%s.txt"
+                                         % ("-".join(scales), stamp))
 
     print("F2 || WCmax -- computational study (paper Section 6)")
     print("  scales    : %s" % ", ".join(scales))

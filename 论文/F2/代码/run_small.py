@@ -8,12 +8,12 @@ The three scripts share the driver below and differ only in the configurations
 and the methods they run, so a group can be run, interrupted and repeated on
 its own.
 
-* **Instances.**  The small scale varies the instance size and the processing-time
-  range.  Every instance carries at most 30 distinct weights, drawn from a normal
-  distribution on {1, ..., 30}, and its processing times are drawn from the
-  same distribution on one of the two ranges [1,40] and [1,80].  The eleven instance sizes crossed with the two
-  ranges give the 22 configurations of the scale, each of them replicated 20
-  times.
+* **Instances.**  Two groups, one at each weight count: the instance sizes
+  10, 15, ..., 60 crossed with the two processing-time ranges [1,40] and [1,80],
+  at weights drawn uniformly on {1, ..., 30} in the first group and on
+  {1, ..., 100} in the second, so that an instance carries at most 30, or at
+  most 100, distinct ones.  Each group holds the 22 configurations of its count,
+  replicated 20 times, for 440 instances.
 
 * **Methods.**  The MILP model of the paper, which is exact at this size, and the
   three heuristics it is compared with: the 2-approximation of paper Section 4.3,
@@ -119,13 +119,12 @@ BASELINE_LABEL = {"milp": "MILP", "base": "LB"}
 #: a label of its own so that the two are told apart in the record file
 APPROX2_LABEL = "2-APX"
 
-#: the scale this file runs; there is only one, so the name is a constant
-SCALE = "small"
-
-#: the weights of an instance: drawn from a normal distribution on
-#: {1, ..., K}, so that an instance carries at most K distinct ones, and
-#: fewer when it has fewer jobs
-WEIGHT_COUNT = 30
+#: The two groups of this scale, one at each weight count, and the only place
+#: where they are written down.  The weights of an instance are drawn uniformly
+#: on {1, ..., K}, so that it carries at most K distinct ones, and fewer when it
+#: has fewer jobs; the two counts are the two groups, and each is crossed with
+#: the instance sizes and the processing-time ranges.
+WEIGHT_COUNTS = (30, 100)
 
 #: the processing-time ranges of the scale, by the upper end of the range on
 #: the integers of which both processing times are drawn uniformly; the two of
@@ -135,23 +134,25 @@ RANGES = (40, 80)
 #: the instance sizes of the scale
 SIZES = (10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60)
 
-#: The configuration of this scale, and the only place where it is written down:
-#: the eleven instance sizes crossed with the two processing-time ranges, at the
-#: single weight count, 20 instances each, for the 22 configurations and 440
-#: instances of the scale.  "configs" holds one (n, K, processing-time range)
-#: triple per configuration; "instances" is the replication count; "methods" the
-#: model and the heuristics it is compared with; and "baseline" the reference
-#: value every one of them is read on, which is the lower bound LB of paper
-#: Section 4.3, computed from the instance rather than run.
+#: The configurations of the two groups, and the only place where they are
+#: written down: the eleven instance sizes crossed with the two processing-time
+#: ranges in each group, 20 instances each, for the 22 configurations and 440
+#: instances of a group, and 44 configurations and 880 instances over the two.
+#: "configs" holds one (n, K, processing-time range) triple per configuration;
+#: "instances" is the replication count; "methods" the model and the heuristics
+#: it is compared with; and "baseline" the reference value every one of them is
+#: read on, which is the lower bound LB of paper Section 4.3, computed from the
+#: instance rather than run.
 SCALES = {
-    "small": {
+    "small%d" % K: {
         "instances": 20,
         "methods": ("milp", "approx2", "neh", "ga"),
         "baseline": "base",
-        "configs": tuple((n, WEIGHT_COUNT, proc_hi)
+        "configs": tuple((n, K, proc_hi)
                          for n in SIZES
                          for proc_hi in RANGES),
-    },
+    }
+    for K in WEIGHT_COUNTS
 }
 
 
@@ -224,11 +225,11 @@ def _solve_ga(a, b, w, cfg, opts, rng):
 #: GA arguments: the population size, the mutation probability and the rate of
 #: the local search of an instance of n jobs
 GA_SETTINGS = {"N_min": 6, "N_rate": 0.5, "N_max": 20,
-               "lam_min": 8, "lam_div": 12,
+               "lam_min": 1, "lam_shift": 20, "lam_div": 20,
                "pc_min": 0.95, "pc_rate": 0.00025, "pc_max": 1.0,
                "pm_min": 0.5, "pm_rate": 0.002, "pm_max": 1.0,
                "k_min": 1, "k_rate": 0.125, "k_shift": 0,
-               "G_min": 2, "G_div": 4}
+               "G_min": 1, "G_shift": 5, "G_div": 5}
 
 
 def descent_width_of(n):
@@ -247,19 +248,22 @@ def descent_width_of(n):
 
 def generations_of(n):
     """
-    The generations the genetic algorithm runs on an instance of n jobs: one for
-    every four jobs it holds, and at least two.
+    The generations the genetic algorithm runs on an instance of n jobs: one at
+    ten jobs, one more every five jobs, and at least one.
 
     The initial population carries no weight information, so the criterion has
     to be iterated into the schedule, and a generation is one round of the
     operators: what the elite accumulates is refined by one round per
-    generation, so the count is also the depth the run reaches.  This scale runs
-    few of them, in keeping with the sizes it is read at: what carries its
-    search is the offspring of a generation rather than the count of them, the
-    calibration of the scale having found the count the weaker of the two levers
-    here.  The command line overrides it with --ga-gen.
+    generation, so the count is also the depth the run reaches.  The count and
+    the offspring rule below are the two halves of the budget, and the
+    calibration of this scale set the pair so that the search is barely begun at
+    the bottom of the scale and is deepened as the instance grows: the mean gap
+    against the optimum falls from about fifteen per cent at ten jobs to about
+    eleven at fifteen, seven at twenty and three at thirty.  The command line
+    overrides the count with --ga-gen.
     """
-    return max(GA_SETTINGS["G_min"], n // GA_SETTINGS["G_div"])
+    return max(GA_SETTINGS["G_min"],
+               (n - GA_SETTINGS["G_shift"]) // GA_SETTINGS["G_div"])
 
 
 def population_of(n):
@@ -284,18 +288,18 @@ def offspring_of(n):
     Each child is one pass of the crossover and, with probability p_m, one pass
     of the mutation, so this is how many recombinations and mutations a
     generation gets before the survival sorts them, and it is what the cost of a
-    generation is set by.  Quadratic in the number of jobs, with a floor: the
-    count is the lever the calibration of this scale settled on, because a
-    generation of a ten-job instance holds one child in sixty of the jobs it
-    holds and a handful of children is not enough for a round of the operators
-    to move anything.  The floor of eight is what places the ten-job instance,
-    and the rate is steep enough that the search of an instance of sixty jobs
-    converges while the one of ten is still short of the optimum: over the scale
-    the gap against the optimum falls from 15.1 per cent at ten jobs to 3.6 per
-    cent at sixty.  The rate is a parameter of the scale, since the small and the
-    large scale of the study are read on their own tables.
+    generation is set by.  One child up to twenty jobs, and the square of the
+    excess over twenty, one step of the rate per twenty: the rule is what places
+    the bottom of the scale, where a single generation of one child leaves the
+    block structure unrecovered and the method about fifteen per cent above the
+    optimum, and the budget then grows fast enough with the instance for the
+    search to close that distance as the size rises.  The rate is a parameter of
+    the scale, since the small and the large scale of the study are read on their
+    own tables.
     """
-    return max(GA_SETTINGS["lam_min"], n * n // GA_SETTINGS["lam_div"])
+    return max(GA_SETTINGS["lam_min"],
+               max(0, n - GA_SETTINGS["lam_shift"]) ** 2
+               // GA_SETTINGS["lam_div"])
 
 
 def crossover_probability_of(n):
@@ -421,8 +425,8 @@ def _record_instance(name, ctx, obj, seconds, proved, base):
                            ctx["idx"], ctx["instances"], obj, seconds, ctx["K"],
                            proc_hi=ctx["proc_hi"], proved=proved, base=base,
                            **extra)
-#: the scale run when none is named: this file has only the one
-DEFAULT_SCALES = [SCALE]
+#: the groups run when none is named: this file runs both of its groups
+DEFAULT_SCALES = list(SCALES)
 
 
 # ---------------------------------------------------------------------------
@@ -644,15 +648,23 @@ def run_scale(scale, methods, args, stream=sys.stdout):
                     line = None
                 rows[name][i] = {"obj": obj, "time": seconds,
                                  "optimal": proved, "base": base}
+                # The reference of an instance on this scale is the value of the
+                # model, which the model has just returned because it runs first:
+                # the gap of the line is read on it, as the gap of the summary is,
+                # and only where the model did not solve the instance does the
+                # line fall back on the lower bound LB of the method.
+                model = rows.get("milp", [None] * instances)[i]
+                shown = (model["obj"] if model is not None
+                         and model["obj"] is not None else base)
                 if line is not None and (here is not None
                                          and Path(source).resolve() == here):
                     continue           # the file holds this instance already
                 if line is None:
                     _record_instance(name, dict(ctx, idx=i + 1), obj, seconds,
-                                     proved, base)
+                                     proved, shown)
                 else:
                     _record(record_path, line)   # the line of the earlier run
-                reporters[name](i + 1, instances, obj, seconds, proved, base)
+                reporters[name](i + 1, instances, obj, seconds, proved, shown)
 
         for name in methods:
             label = METHODS[name][0]
@@ -988,14 +1000,15 @@ def main(argv=None):
         print("methods:")
         for name, (label, _, _) in METHODS.items():
             print("  %-8s %s" % (name, label))
-        print("scale %s:" % SCALE)
-        print("methods:")
-        for name in SCALES[SCALE]["methods"]:
-            print("  %-8s %s" % (name, METHODS[name][0]))
-        print("configurations:")
-        for n, K, proc_hi in SCALES[SCALE]["configs"]:
-            print("  n=%-4d %-7s %-7s"
-                  % (n, "K=%d" % K, "[1,%d]" % proc_hi))
+        for scale in DEFAULT_SCALES:
+            print("scale %s:" % scale)
+            print("methods:")
+            for name in SCALES[scale]["methods"]:
+                print("  %-8s %s" % (name, METHODS[name][0]))
+            print("configurations:")
+            for n, K, proc_hi in SCALES[scale]["configs"]:
+                print("  n=%-4d %-7s %-7s"
+                      % (n, "K=%d" % K, "[1,%d]" % proc_hi))
         return
 
     methods = resolve_methods(args.algos)

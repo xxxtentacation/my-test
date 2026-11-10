@@ -200,7 +200,7 @@ SCALES = {
 WIDE_K = {"indep": 3, "corr": 9}
 
 #: weight settings of paper Section 6.1.1
-#:   "narrow"  weights normal on {1, ..., K} with K small, so that few weight
+#:   "narrow"  weights uniform on {1, ..., K} with K small, so that few weight
 #:             classes keep the exact methods tractable;
 #:   "indep"   weights normal on {1, ..., 3}, independent of the processing times;
 #:   "corr"    the jobs split into 9 weight classes by the rank of a_j + b_j, so
@@ -232,32 +232,30 @@ def gen_instance(n, K, rng, geometric=False, weights="narrow", proc_hi=PROC_HI):
     """
     One random instance of the benchmark protocol (paper Section 6).
 
-    The weights come from a normal distribution on the integers of their
-    range, with the mean at the middle of the range and the standard deviation
-    a sixth of its width, so that the two ends of the range are three standard
-    deviations from the mean.  The processing times a_j and b_j are drawn
-    uniformly on {PROC_LO, ..., proc_hi}, the upper end of the range being
-    the one paper Section 6.1 gives the scale: [1,40] and [1,80] on the two
-    comparison scales, and [1,20], [1,40] and [1,60] on the geometric one.  The
-    weights follow the setting `weights`: the narrow regime draws them on
+    The processing times a_j and b_j are drawn uniformly on
+    {PROC_LO, ..., proc_hi}, the upper end of the range being the one paper
+    Section 6.1 gives the scale: [1,40] and [1,80] on the two comparison
+    scales, and [1,20], [1,40] and [1,60] on the geometric one.  The weights
+    follow the setting `weights`: the narrow regime draws them uniformly on
     {1, ..., K}, so that K is the number of values they can take; the
-    independent regime draws them on {1, ..., 3}; the correlated regime sorts
-    the jobs by a_j + b_j and cuts that order into 9 equal classes, so that the
-    heaviest jobs are also the longest, which is a construction rather than a
-    draw; and the free regime draws them on {1, ..., n}, which places no bound
-    on how many values they take.  `geometric` draws the exponent of the ladder
-    {1, 10, ..., 10^(K-1)} instead, the rule of the first scale of paper
-    Section 6.1, so that the K weight classes are decades apart rather than
-    neighbouring integers; it takes precedence over `weights` when set.
+    independent regime draws them from a discrete normal on {1, ..., 3}; the
+    correlated regime sorts the jobs by a_j + b_j and cuts that order into 9
+    equal classes, so that the heaviest jobs are also the longest, which is a
+    construction rather than a draw; and the free regime draws them from a
+    discrete normal on {1, ..., n}, which places no bound on how many values
+    they take.  `geometric` draws the exponent of the ladder
+    {1, 10, ..., 10^(K-1)} uniformly instead, the rule of the first scale of
+    paper Section 6.1, so that the K weight classes are decades apart rather
+    than neighbouring integers; it takes precedence over `weights` when set.
     """
     if weights not in WEIGHT_SETTINGS:
         raise ValueError("unknown weight setting: %r" % (weights,))
     a = [rng.randint(PROC_LO, proc_hi) for _ in range(n)]
     b = [rng.randint(PROC_LO, proc_hi) for _ in range(n)]
     if geometric:
-        w = [10 ** _normal_int(rng, 0, K - 1) for _ in range(n)]
+        w = [10 ** rng.randint(0, K - 1) for _ in range(n)]
     elif weights == "narrow":
-        w = [_normal_int(rng, 1, K) for _ in range(n)]
+        w = [rng.randint(1, K) for _ in range(n)]
     elif weights == "indep":
         w = [_normal_int(rng, 1, WIDE_K["indep"]) for _ in range(n)]
     elif weights == "free":

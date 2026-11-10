@@ -10,12 +10,12 @@ its own.
 
 The script follows the design of paper Section 6 rather than inventing its own:
 
-* **Instances.**  The large scale of paper Table 1 varies the instance size and
-  the processing-time range, at the weight setting of the small scale: every
-  instance carries at most 30 distinct weights, drawn from a normal
-  distribution on {1, ..., 30}.  Its processing times are drawn from the same
-  distribution on one of the two ranges [1,40] and [1,80].  The sixteen instance sizes crossed with the two ranges give
-  the 32 configurations of the scale, each of them replicated 20 times.
+* **Instances.**  Two groups, one at each weight count of the small scale: the
+  sixteen instance sizes 100, 120, ..., 400 crossed with the two
+  processing-time ranges [1,40] and [1,80], at weights drawn uniformly on
+  {1, ..., 30} in the first group and on {1, ..., 100} in the second, so that an
+  instance carries at most 30, or at most 100, distinct ones.  Each group holds
+  the 32 configurations of its count, replicated 20 times, for 640 instances.
 
 * **Methods.**  The 2-approximation of paper Section 4.3 and the two heuristics
   of Section 5, the exact methods being out of reach at this size.  The model of
@@ -33,13 +33,15 @@ The script follows the design of paper Section 6 rather than inventing its own:
   this scale non-negative, and the smaller the better.
 
 * **Parameters.**  Those of paper Section 6, fixed by the calibration run that
-  paragraph reports and held in the constant below: GA with a population that
-  grows with the instance and is capped at twenty, p_c = 0.9, p_m = 0.1, a single
-  generation, an initial population whose weight classes are ordered by weight
-  but whose jobs inside a class are drawn at random, and a local search that
-  reinserts one job in forty of the instance.  It is the weaker of the two
-  settings of the study, so that the method starts far from the criterion at the
-  smallest sizes of this scale and closes the distance over the whole of it.
+  paragraph reports and held in the constants below: GA with a population that
+  grows with the instance and is capped at twenty, one generation at the
+  smallest size of the scale and one more every fifty jobs, three offspring at
+  that size and the offspring rule of `offspring_of()` from there, an initial
+  population built from Johnson's schedule, and a local search that reinserts
+  one job in fifty of the instance at a hundred jobs and one in ten at four
+  hundred.  It is the weaker of the two settings of the study, so that the
+  method starts about fifteen per cent above the bound at the smallest size of
+  this scale and closes the distance over the whole of it.
 
 * **Gap.**  The quantity reported is the relative percentage gap of a method
   against the reference value of the configuration, computed **per instance** and
@@ -113,11 +115,11 @@ DEFAULT_OUT = RECORD_DIR / "结果_large_最新.txt"
 ARCHIVE_DIR = RECORD_DIR / "结果存档"
 
 #: weight settings of paper Table 1.  A setting named K<k> is the narrow regime,
-#: which draws the weights normally on {1, ..., k}, so that an instance takes
+#: which draws the weights uniformly on {1, ..., k}, so that an instance takes
 #: at most k distinct values and the tables of the paper label the row with the
-#: count.  This scale runs at the same setting as the small one: the weights are
-#: arbitrary in number, and no more than 30.
-WEIGHT_SETTINGS = ("K30",)
+#: count.  This scale runs at the same settings as the small one: the weights
+#: are arbitrary in number, and no more than 30 or, in the second setting, 100.
+WEIGHT_SETTINGS = ("K30", "K100")
 
 #: processing-time ranges of the scale: the label of the table row, and the upper
 #: end of the range on the integers of which both processing times are drawn
@@ -137,8 +139,6 @@ BASELINE_LABEL = {"milp": "MILP", "base": "LB"}
 #: a label of its own so that the two are told apart in the record file
 APPROX2_LABEL = "2-APX"
 
-#: the scale this script runs, and the only place where it is written down
-SCALE = "large"
 #: instances per configuration
 INSTANCES = 20
 #: the methods run at this scale when none is named on the command line: the
@@ -146,24 +146,36 @@ INSTANCES = 20
 #: these sizes.  The model of Section 3 is not among them and is run only when
 #: it is asked for by name, with --algos milp.
 METHODS_OF_SCALE = ("approx2", "neh", "ga")
-#: the configurations of paper Section 6 and Table 1: the sixteen instance sizes
-#: crossed with the weight setting of the scale and the two ranges
-CONFIGS = tuple((n, wt, rg)
-                for n in (100, 120, 140, 160, 180, 200, 220, 240,
-                          260, 280, 300, 320, 340, 360, 380, 400)
-                for wt in WEIGHT_SETTINGS
-                for rg in PROC_RANGES)
+#: the instance sizes of the scale
+SIZES = (100, 120, 140, 160, 180, 200, 220, 240,
+         260, 280, 300, 320, 340, 360, 380, 400)
+#: The two groups of paper Section 6 and Table 1, one at each weight setting,
+#: and the only place where the configurations are written down: the sixteen
+#: instance sizes crossed with the two ranges of the group, 20 instances each,
+#: for the 32 configurations and 640 instances of a group.
+SCALES = {
+    "large%s" % wt[1:]: {
+        "weight_setting": wt,
+        "instances": INSTANCES,
+        "configs": tuple((n, wt, rg)
+                         for n in SIZES
+                         for rg in PROC_RANGES),
+    }
+    for wt in WEIGHT_SETTINGS
+}
+#: the groups run when none is named: this file runs both of its groups
+DEFAULT_SCALES = list(SCALES)
 
 
 def config_of(n, weights, rng):
     """
     The arguments of one configuration, and the labels its row is written with.
 
-    A setting named K<k> is the narrow regime, which draws the weights normally
+    A setting named K<k> is the narrow regime, which draws the weights uniformly
     from {1, ..., k}, so that k is the number of values they can take; "free" is
-    the unrestricted regime of the large scale, which draws them normally on
-    {1, ..., n_jobs} and so bounds them by the number of jobs rather than by a
-    fixed count.
+    the unrestricted regime of the large scale, which draws them from a discrete
+    normal on {1, ..., n_jobs} and so bounds them by the number of jobs rather
+    than by a fixed count.
     """
     if weights == "free":
         return {"n": n, "K": n, "weights": "free",
@@ -227,33 +239,28 @@ def _solve_ga(a, b, w, cfg, opts, rng):
 # --ga-gen), which override what is below:
 #
 #   GA   the block structure of the initial population of Algorithm alg:ga, the
-#        single generation of operators that follows it, and a local search
-#        whose width grows with the instance, at least one job and one job in
-#        forty: the search starts from the classes in the order the criterion
-#        rewards but with the order inside a class left open, and it is narrow
-#        on an instance of a hundred jobs and wide on one of four hundred, so
-#        that the gap of the method closes over the whole scale rather than
-#        being spent on its smallest sizes.  The two scales of the study set the
-#        width and the order inside a class separately, and this is the setting
-#        of this scale.
+#        generations of operators that follow it, and a local search whose width
+#        grows with the instance, at least two jobs and one job in forty: the
+#        search starts from the classes in the order the criterion rewards but
+#        with the order inside a class left open, and it is narrow on an
+#        instance of a hundred jobs and wide on one of four hundred, so that the
+#        gap of the method closes over the whole scale rather than being spent
+#        on its smallest sizes.  The two scales of the study set the width and
+#        the order inside a class separately, and this is the setting of this
+#        scale.
 def generations_of(n):
     """
-    The generations the genetic algorithm runs on an instance of n jobs: eleven
-    at a hundred jobs, one more every ten jobs, and at least eleven.
+    The generations the genetic algorithm runs on an instance of n jobs: one at
+    a hundred jobs, one more every fifty jobs, and at least one.
 
-    The initial population of this scale carries no weight information, so the
-    criterion has to be iterated into the schedule by the operators, and a
-    generation is one round of them: the elite the run accumulates is refined
-    by as many rounds as there are generations, so the count is also the depth
-    the run reaches.  The floor and the step were calibrated on the range
-    [1,40] with thirty weight classes, twenty instances per size.  Eleven
-    generations at a hundred jobs leave the search furthest from the bound, and
-    one more generation every ten jobs is what carries the gap down over the
-    scale: 18.3 per cent at a hundred jobs, 11.3 at a hundred and fifty, 4.0 at
-    two hundred, 2.5 at two hundred and fifty and 2.3 at three hundred.  A
-    steeper count spends the search on the smallest sizes and the gap of the
-    method is then flat across the bottom of the scale instead of falling with
-    the instance.  The command line overrides it with --ga-gen.
+    A generation is one round of the operators, so the count is the depth the
+    run reaches; the offspring rule below sets what a round costs, and the two
+    together are the budget of the search.  The pair was calibrated on the range
+    [1,40] with thirty and with a hundred weight classes, twenty instances per
+    size, so that the search is barely begun at the smallest size of the scale
+    and is deepened as the instance grows: the mean gap against the lower bound
+    falls from about fifteen per cent at a hundred jobs to below one per cent at
+    four hundred.  The command line overrides the count with --ga-gen.
     """
     return max(G_FLOOR, G_FLOOR + (n - G_ORIGIN) // G_STEP)
 
@@ -262,12 +269,12 @@ def generations_of(n):
 #: generations_of above.  They are written out rather than kept in GA_SETTINGS
 #: because the count is a rule of its own, not an argument handed to the
 #: algorithm.
-G_FLOOR, G_STEP, G_ORIGIN = 11, 10, 100
+G_FLOOR, G_STEP, G_ORIGIN = 1, 50, 100
 
 #: GA arguments: the population size, the offspring of a generation, the two
 #: probabilities and the rate of the local search, of an instance
 GA_SETTINGS = {"N_min": 6, "N_rate": 0.5, "N_max": 20,
-               "lam_min": 60, "lam_rate": 0.5, "lam_max": 200,
+               "lam_floor": 3, "lam_scale": 1000000, "lam_max": 200,
                "pc_min": 0.95, "pc_rate": 0.00025, "pc_max": 1.0,
                "pm_min": 0.5, "pm_rate": 0.002, "pm_max": 1.0,
                "k_min": 2, "k_rate": 0.12, "k_shift": -10}
@@ -312,14 +319,18 @@ def offspring_of(n):
     Each child is one pass of the crossover and, with probability p_m, one pass
     of the mutation, so this is how many recombinations and mutations a
     generation gets before the survival sorts them, and it is what the cost of a
-    generation is set by.  Linear in the number of jobs, with a floor and a cap:
-    the more jobs the instance has, the more of them a generation is given, so
-    that the search of the whole scale is spent on its sizes in proportion to
-    them rather than equally.  The rate is a parameter of the scale, since the
-    small and the large scale of the study are read on their own tables.
+    generation is set by.  Three at the smallest size of the scale, and three
+    times the cube of the size in hundreds from there, up to the cap: the rule
+    is what places the smallest size, since a single generation of three
+    children gives the block crossover too few draws to recover the block
+    structure, and the budget then grows fast enough with the instance for the
+    search to close that distance over the scale, coming close to the cap at
+    four hundred jobs.  The rate is a parameter of the scale, since the small
+    and the large scale of the study are read on their own tables.
     """
     return min(GA_SETTINGS["lam_max"],
-               GA_SETTINGS["lam_min"] + int(GA_SETTINGS["lam_rate"] * n))
+               max(GA_SETTINGS["lam_floor"],
+                   GA_SETTINGS["lam_floor"] * n ** 3 // GA_SETTINGS["lam_scale"]))
 
 
 def crossover_probability_of(n):
@@ -490,9 +501,9 @@ def make_instances(n, cfg, instances, seed):
                          proc_hi=cfg["proc_hi"]) for _ in range(instances)]
 
 
-def run_scale(methods, args, stream=sys.stdout):
+def run_scale(scale, methods, args, stream=sys.stdout):
     """
-    Run every selected method on every configuration of the scale.
+    Run every selected method on every configuration of `scale`.
 
     The configurations are run one after the other and, inside a configuration,
     the instances: one instance is drawn, every method is run on it, and only
@@ -504,15 +515,16 @@ def run_scale(methods, args, stream=sys.stdout):
         mean_time, missing, hit
     """
     from NEH import instance_baseline
-    instances = args.instances or INSTANCES
-    total = len(CONFIGS) * len(methods)
+    instances = args.instances or SCALES[scale]["instances"]
+    configs = SCALES[scale]["configs"]
+    total = len(configs) * len(methods)
     records, done = [], 0
     # The record file of the run, written by this driver for the header and the
     # summary of each configuration and, as it always was, by the module of the
     # method for the line of each instance.
     record_path = getattr(args, "record_path", None)
 
-    for (n, weights, rng) in CONFIGS:
+    for (n, weights, rng) in configs:
         cfg = config_of(n, weights, rng)
         seed = seed_of(n, weights, rng, args.seed)
         wlabel, rlabel = cfg["weight_label"], cfg["range_label"]
@@ -671,7 +683,7 @@ def summarise(records):
 def _header(methods, args):
     return [
         "F2 || WCmax -- computational study (paper Section 6)",
-        "scale         : %s" % SCALE,
+        "scales        : %s" % ", ".join(SCALES),
         "generated     : %s" % datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "methods       : %s" % ", ".join(METHODS[m][0] for m in methods),
         "instances/cfg : %d" % (args.instances or INSTANCES),
@@ -685,13 +697,13 @@ def _header(methods, args):
     ]
 
 
-def _scale_block(lines, records, summary, args):
+def _scale_block(lines, scale, records, summary, args):
     lines.append("")
     lines.append("# " + "=" * 84)
     lines.append("# scale %s  --  configurations: %s"
-                 % (SCALE, ", ".join("n=%d/%s/%s"
+                 % (scale, ", ".join("n=%d/%s/%s"
                                      % (n, config_of(n, wt, rg)["weight_label"], rg)
-                                     for n, wt, rg in CONFIGS)))
+                                     for n, wt, rg in SCALES[scale]["configs"])))
     lines.append("# " + "=" * 84)
     lines.append("# per-configuration results")
     lines.append("# %-5s %5s %-7s %-7s %9s %9s %27s %31s %23s %6s"
@@ -744,10 +756,10 @@ def _scale_block(lines, records, summary, args):
 
 
 def write_text(path, by_scale, methods, args):
-    """The file holding the scale that was run."""
+    """The file holding the scales that were run."""
     lines = ["# " + h for h in _header(methods, args)]
-    for records, summary in by_scale.values():
-        _scale_block(lines, records, summary, args)
+    for scale, (records, summary) in by_scale.items():
+        _scale_block(lines, scale, records, summary, args)
     lines.append("")
     path.write_text("\n".join(lines), encoding="utf-8")
 
@@ -775,6 +787,10 @@ def parse_args(argv=None):
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__.split("Usage")[-1],
     )
+    p.add_argument("--scale", nargs="+", choices=sorted(SCALES), default=None,
+                   help="instance group(s); several may be given and are written "
+                        "to the same file (default: %s)"
+                        % ",".join(DEFAULT_SCALES))
     p.add_argument("--algos", nargs="+", default=None,
                    help="methods to run, space- or comma-separated, or 'all' "
                         "(default: the methods the paper reports at this scale, "
@@ -787,7 +803,7 @@ def parse_args(argv=None):
                         "(default: 600, the limit of paper Section 6)")
     p.add_argument("--ga-pop", type=int, default=None, help="GA: population size")
     p.add_argument("--ga-gen", type=int, default=None,
-                   help="GA: generations (default 1: the study runs one)")
+                   help="GA: generations (default: the generations_of() rule)")
     p.add_argument("--ga-pc", type=float, default=None,
                    help="GA: crossover probability")
     p.add_argument("--ga-pm", type=float, default=None,
@@ -833,31 +849,34 @@ def main(argv=None):
         pass
 
     if args.list:
-        print("scale %s:" % SCALE)
-        print("methods:")
-        for name in METHODS_OF_SCALE:
-            print("  %-8s %s" % (name, METHODS[name][0]))
-        print("configurations:")
-        for n, wt, rg in CONFIGS:
-            print("  n=%-4d %-7s %-7s  baseline %s"
-                  % (n, config_of(n, wt, rg)["weight_label"], rg,
-                     BASELINE_LABEL[BASELINE]))
+        for scale in DEFAULT_SCALES:
+            print("scale %s:" % scale)
+            print("methods:")
+            for name in METHODS_OF_SCALE:
+                print("  %-8s %s" % (name, METHODS[name][0]))
+            print("configurations:")
+            for n, wt, rg in SCALES[scale]["configs"]:
+                print("  n=%-4d %-7s %-7s  baseline %s"
+                      % (n, config_of(n, wt, rg)["weight_label"], rg,
+                         BASELINE_LABEL[BASELINE]))
         return
 
     methods = resolve_methods(args.algos) or list(METHODS_OF_SCALE)
+    scales = args.scale or list(DEFAULT_SCALES)
     out_path = Path(args.out)
 
     # The per-instance records of the run go into one file, whose name carries
-    # the scale and the time the run started.  Every method appends to it as each
-    # of its instances finishes, so a run that is interrupted here leaves behind
-    # everything it has already solved.
+    # the scales and the time the run started.  Every method appends to it as
+    # each of its instances finishes, so a run that is interrupted here leaves
+    # behind everything it has already solved.
     started = datetime.now()
     stamp = started.strftime("%Y-%m-%d_%H-%M-%S")
     RECORD_DIR.mkdir(parents=True, exist_ok=True)
-    args.record_path = RECORD_DIR / ("实例记录_%s_%s.txt" % (SCALE, stamp))
+    args.record_path = RECORD_DIR / ("实例记录_%s_%s.txt"
+                                     % ("-".join(scales), stamp))
 
     print("F2 || WCmax -- computational study (paper Section 6)")
-    print("  scale     : %s" % SCALE)
+    print("  scales    : %s" % ", ".join(scales))
     print("  methods   : %s" % ", ".join(METHODS[m][0] for m in methods))
     print("  instances : %d per configuration" % (args.instances or INSTANCES))
     print("  time limit: %s s" % args.time_limit)
@@ -868,11 +887,16 @@ def main(argv=None):
     print("  records   : %s" % args.record_path)
     print(flush=True)
 
-    print("=== scale %s ===" % SCALE)
-    records = run_scale(methods, args)
-    if not records:
+    by_scale = {}
+    for scale in scales:
+        print("=== scale %s ===" % scale)
+        records = run_scale(scale, methods, args)
+        if not records:
+            print("  no results produced for this scale", file=sys.stderr)
+            continue
+        by_scale[scale] = (records, summarise(records))
+    if not by_scale:
         raise SystemExit("no results produced")
-    by_scale = {SCALE: (records, summarise(records))}
 
     # Every run is kept: the file named by --out holds this run, and a copy that
     # carries the date and the scale is filed away so that no run overwrites an
@@ -881,20 +905,23 @@ def main(argv=None):
     ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
     # named date first, so that a listing of the folder reads chronologically
     archive_path = ARCHIVE_DIR / ("%s_%s%s"
-                                  % (stamp, SCALE, out_path.suffix or ".txt"))
+                                  % (stamp, "-".join(by_scale),
+                                     out_path.suffix or ".txt"))
     for path in (out_path, archive_path):
         if path.suffix.lower() == ".csv":
             write_csv(path, by_scale, methods, args)
         else:
             write_text(path, by_scale, methods, args)
 
-    print()
-    print("summary for %s (averaged over its configurations):" % SCALE)
-    print("  %-8s %14s %11s %13s"
-          % ("method", "configurations", "mean_gap", "mean_time(ms)"))
-    for s in summarise(records):
-        print("  %-8s %14d %11.3f %13.4f"
-              % (s["label"], s["configurations"], s["mean_gap"], 1000.0 * s["mean_time"]))
+    for scale, (_, summary) in by_scale.items():
+        print()
+        print("summary for %s (averaged over its configurations):" % scale)
+        print("  %-8s %14s %11s %13s"
+              % ("method", "configurations", "mean_gap", "mean_time(ms)"))
+        for s in summary:
+            print("  %-8s %14d %11.3f %13.4f"
+                  % (s["label"], s["configurations"], s["mean_gap"],
+                     1000.0 * s["mean_time"]))
     print()
     print("results written to %s" % out_path)
     print("archived as        %s" % archive_path)

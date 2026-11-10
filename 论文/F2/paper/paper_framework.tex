@@ -1210,39 +1210,37 @@
             \DontPrintSemicolon
             \caption{The weight-block genetic algorithm (WBGA) for $F2 \mid \mid C_{\max}^w$} \label{Alg-GA}
             
-            \KwIn{Job set $\mathcal{J}$; population size $N$; generations $G$; offspring
-                $\lambda$; probabilities $p_c$, $p_m$; reinsertion count $k$.}
+            \KwIn{Job set $\mathcal{J}$; number of distinct weights $K$; population size
+                $N$; generations $G$; offspring $\lambda$; probabilities $p_c$, $p_m$;
+                reinsertion count $k$.}
             \BlankLine
-            \textbf{Step 1.} [Initialization] Build $P_0$ from Johnson's rule and $N-1$ adjacent-swap variants; evaluate all individuals. \;
-            
+            \textbf{Step 1.} [Initialization] $P_0\gets$ Johnson's schedule and $N-1$ adjacent-swap variants; evaluate. \;
+
             \textbf{Step 2.} [Evolution] \For{$g=1$ \KwTo $G$}
             {
-                \textbf{Selection} Form the mating pool $M_g$ from $P_{g-1}$ by binary tournament selection. \;
-                 
+                \textbf{Selection} $M_g\gets$ binary tournament on $P_{g-1}$. \;
+
                 \textbf{Crossover} \While{$|O_g|<\lambda$}
                 {
-                    Draw two parents from $M_g$. With probability $p_c$, apply crossover to obtain two children; otherwise copy the parents. Add the children to $O_g$ one by one, stoping once $|O_g|=\lambda$. \;
+                    Draw $\pi_1,\pi_2$ from $M_g$; with probability $p_c$ obtain two children by block crossover, otherwise copy the parents; add them to $O_g$. \;
                 }
-                
-                \textbf{Mutation} For each child, apply block mutation with probability $p_m$; evaluate all children using \cref{eq:completion} and \cref{eq:wcmax}. \;
-                
-                \textbf{Survival} $P_g \gets$ the $N$ schedules with the minimum $C_{\max}^w$ in $P_{g-1}\cup O_g$. \;
+
+                \textbf{Mutation} Apply block mutation to each child with probability $p_m$; evaluate. \;
+
+                \textbf{Survival} $P_g\gets$ the $N$ best of $P_{g-1}\cup O_g$ by $C_{\max}^w$. \;
             }
-            
-            $\pi^{*} \gets$ the schedule with the minimum $C_{\max}^w$ in $P_G$. \;
-            
-            \textbf{Step 3.} [Local search] \Repeat{no reinsertion lowers $C_{\max}^w(\pi^{*})$, or $G$ rounds have been performed.}
+
+            $\pi^{*}\gets$ the best of $P_G$. \;
+
+            \textbf{Step 3.} [Local search] \Repeat{no reinsertion lowers $C_{\max}^w(\pi^{*})$, or $G$ rounds have been reached}
             {
-                Let $J_{1}, J_{2}, \ldots, J_{k}$ be the jobs of $\pi^{*}$ with the largest $w_jC_j$ value. \;
-                
-                For each $J_i$ and each position $r$, construct the schedule obtained by removing $J_i$ and reinserting it into position $r$, and evaluate it using \cref{eq:completion} and \cref{eq:wcmax}. Let $\pi'$ denote the best resulting schedule. \;
-                
-                \If{$C_{\max}^w(\pi')<C_{\max}^w(\pi^{*})$}
-                {
-                  $\pi^{*} \gets \pi'$ \;
-                }
+                $J_1,\ldots,J_k\gets$ the $k$ jobs of $\pi^{*}$ with the largest $w_jC_j$. \;
+
+                $\pi'\gets$ best schedule from removing one $J_i$ and reinserting it at one position. \;
+
+                \If{$C_{\max}^w(\pi')<C_{\max}^w(\pi^{*})$}{$\pi^{*}\gets\pi'$ \;}
             }
-            \KwOut{The best schedule $\pi^{*}$.}
+            \KwOut{$\pi^{*}$.}
         \end{algorithm}
 
 
@@ -1251,24 +1249,22 @@
 
         All algorithms were implemented in Python 3.13 and run on a computer equipped with an Intel Core Ultra 5 230F processor and 16 GB of RAM, running Windows 11.
         The $\mathbf{MILP}$ model was solved using Gurobi 13.0 with a single thread.
-        Each method was run once per instance, with a time limit of 600 s.
-        All objective values were evaluated using the same recurrence \cref{eq:completion}.
 
         \subsection{Experimental setup} \label{sec:setup}
 
-        An instance consists of $n$ jobs, where each job $J_j$ has processing times $a_j$ and $b_j$ on machines $M_1$ and $M_2$, respectively, and a weight $w_j$.
-        The processing times are independently drawn from $\mathcal{U}(1,40)$ or $\mathcal{U}(1,80)$, while the weights are drawn from $\{1,\ldots,K\}$.
-        A fixed random seed is assigned to each configuration to ensure that all methods are tested on identical instances and that the experiments are reproducible.
+        Three groups of test instances are considered.Each configuration contains 20 independently generated instances.
+        Each instance is subject to a time limit of 600 s.
+        The processing times are independently drawn from $\mathcal{U} \thicksim (1,p_{\max})$, where $p_{\max}=40$ or $80$.
 
-        Three groups of test instances are considered, covering both processing-time ranges.
-        Each configuration contains 20 independently generated instances.
-        Group 1 evaluates the performance of $\mathbf{DP}$ across different instance sizes, with $n\in\{40,60,80,100\}$, $K=2$, and weights restricted to $\{1,10\}$, resulting in eight configurations.
-        Group 2 compares the $\mathbf{MILP}$ model with $\mathbf{LW}$, $\mathbf{NEH}$, and $\mathbf{GA}$ for $n=10,15,\ldots,60$, resulting in 22 configurations.
-        Group 3 compares the three heuristic methods, $\mathbf{LW}$, $\mathbf{NEH}$, and $\mathbf{GA}$, on larger instances with $n=100,120,\ldots,400$, resulting in 32 configurations.
-        Groups 2 and 3 use $K=30$, with weights drawn from $\{1,2,\ldots,30\}$.
+        Group 1 evaluates the performance of $\mathbf{DP}$ with $n\in\{40,60,80,100\}$, and weights $\in \{1,10\}$ or $\in \{1,10,100\}$.
+
+        Group 2 compares small-scale instances of the $\mathbf{MILP}$ model with $\mathbf{LW}$, $\mathbf{NEH}$, and $\mathbf{GA}$ for $n\in\{10,15,\ldots,60$\}, and weights $\in \{1,2,\ldots,30\}$ or weights $\in \{1,2,\ldots,100\}$.
+
+        Group 3 compares large-scale instances of $\mathbf{LW}$, $\mathbf{NEH}$, and $\mathbf{GA}$ for $n\in\{100,15,\ldots,400$\}, and weights $\in \{1,2,\ldots,30\}$ or weights $\in \{1,2,\ldots,100\}$.
 
         For $\mathbf{GA}$, the population size is set to $N=\min\{20,\max\{6,\lceil n/2\rceil\}\}$.
-        The number of generations is set to $G=\max\{2,\lfloor n/4\rfloor\}$ for small instances and $G=11+\lfloor(n-100)/10\rfloor$ for large instances.
+        The number of generations is set to $G=\max\{1,\lfloor(n-5)/5\rfloor\}$ for small instances and $G=1+\lfloor(n-100)/50\rfloor$ for large instances.
+        The number of offspring per generation is set to $\lambda=\max\{1,\lfloor\max\{0,n-20\}^2/20\rfloor\}$ for small instances and $\lambda=\max\{3,\lfloor 3n^3/10^6\rfloor\}$ for large instances.
         These parameter settings are designed to balance solution quality and computational time.
 
         Algorithmic performance is evaluated using the relative percentage gap:
@@ -1287,20 +1283,20 @@
         The five methods exhibit different trade-offs between solution quality, computational cost and generality, with none dominating across all instances.
 
 
-        \subsubsection{The dynamic program} \label{sec:results_dp}
+        \subsubsection{The DP} \label{sec:results_dp}
 
         The $\mathbf{DP}$ is the only exact method considered and guarantees optimality whenever it terminates.
-        It solves all twenty instances in seven of the eight configurations, with mean running times of 1.47 s and 4.98 s for forty-job instances under $[1,40]$ and $[1,80]$, respectively (\Cref{tab:results-dp-k2}).
+        It solves the instances in almost all configurations, with mean running times of 1.47 s and 4.98 s for forty-job instances under $[1,40]$ and $[1,80]$, respectively (\Cref{tab:results-dp-k2}).
         However, its running time increases rapidly with instance size.
         Under $[1,40]$, the mean running time rises from 1.47 s for forty jobs to 89.59 s for one hundred jobs, a 61-fold increase, while the mean objective value increases by only a factor of 2.5.
         Expanding the processing-time range to $[1,80]$ further increases the mean running time by factors of 2.9--3.7.
-        For one hundred-job instances under $[1,80]$, six of the twenty instances reach the 600 s time limit, and the remaining fourteen require an average of 329.01 s.
+        For one hundred-job instances under $[1,80]$, some instances reach the 600 s time limit, and the remaining ones require an average of 329.01 s.
         Moreover, the $\mathbf{DP}$ cannot handle a third weight class due to memory limitations, restricting its applicability to $K=2$.
         These results indicate that the $\mathbf{DP}$ is effective for relatively small instances with few distinct weights but has limited scalability.
 
         \begin{table}[H]
             \resultstable
-            \caption{The dynamic program, $K=2$}
+            \caption{DP, weights $\in\{1,10\}$}
             \label{tab:results-dp-k2}
             \setlength{\tabcolsep}{9.0pt}
             \begin{tabular*}{\resultstabwidth}{@{}l r r r r r @{\hspace{14pt}} r r r r r@{}}
@@ -1318,19 +1314,19 @@
                 \bottomrule
             \end{tabular*}
             \par\vspace{2pt}
-            {\scriptsize Averages at $n=100$ on $[1,80]$ cover the $14$ instances settled within the
-                $600$\,s limit; the other six are cut short.}
+            {\scriptsize Averages at $n=100$ on $[1,80]$ cover only the instances settled within the
+                $600$\,s limit; the others are cut short.}
         \end{table}
 
-        \subsubsection{The small scale} \label{sec:results_small}
+        \subsubsection{Small-scale instances} \label{sec:results_small}
 
         \Crefrange{tab:results-small-40}{tab:results-small-80} report the objective values, running times and gaps of the four methods under $[1,40]$ and $[1,80]$, respectively.
 
-        The $\mathbf{MILP}$ model solves 436 of the 440 instances to optimality, providing reference values.
-        Under $[1,40]$, its mean running time increases from 70 ms for ten jobs to 160.7 s for sixty jobs, with four instances at the largest size reaching the time limit.
+        The $\mathbf{MILP}$ model solves almost all instances to optimality, providing reference values.
+        Under $[1,40]$, its mean running time increases from 70 ms for ten jobs to 160.7 s for sixty jobs, with a few instances at the largest size reaching the time limit.
         The wider processing-time range roughly doubles the objective values but has no consistent effect on running time.
 
-        $\mathbf{NEH}$ outperforms $\mathbf{LW}$ in all 22 configurations, achieving overall mean gaps of 3.14\% and 5.77\%, respectively, and worst individual-instance gaps of 24.89\% and 21.49\%.
+        $\mathbf{NEH}$ outperforms $\mathbf{LW}$ in every configuration, achieving overall mean gaps of 3.14\% and 5.77\%, respectively, and worst individual-instance gaps of 24.89\% and 21.49\%.
         This improvement comes at a higher computational cost: $\mathbf{NEH}$ takes 2.66 ms on average, compared with 0.02 ms for $\mathbf{LW}$, reflecting its sequential evaluation of insertion positions versus the latter's single-pass construction.
         Thus, $\mathbf{LW}$ is preferable when computational efficiency outweighs solution quality.
 
@@ -1349,7 +1345,7 @@
 
         \begin{table}[H]
             \resultstable
-            \caption{The small scale, $a_j,b_j\in[1,40]$: MILP, LW, NEH, GA}
+            \caption{Small scale, $p_{\max}=40$, weights $\in\{1,\ldots,30\}$}
             \label{tab:results-small-40}
             \setlength{\tabcolsep}{3.95pt}
             \scriptsize
@@ -1378,7 +1374,7 @@
 
         \begin{table}[H]
             \resultstable
-            \caption{The small scale, $a_j,b_j\in[1,80]$: MILP, LW, NEH, GA}
+            \caption{Small scale, $p_{\max}=80$, weights $\in\{1,\ldots,30\}$}
             \label{tab:results-small-80}
             \setlength{\tabcolsep}{3.95pt}
             \scriptsize
@@ -1416,7 +1412,7 @@
                     tick label style={font=\scriptsize}, label style={font=\small},
                     every axis plot/.append style={line width=0.9pt},
                     legend columns=3,
-                    legend style={font=\scriptsize, at={(0.5,-0.30)}, anchor=north, draw=none,
+                    legend style={font=\scriptsize, at={(0.5,1.03)}, anchor=south, draw=none,
                         /tikz/every even column/.append style={column sep=10pt}},
                     ]
                     \addplot[apxblue] coordinates {(10,7.33) (15,6.77) (20,6.15) (25,5.60) (30,5.63) (35,5.68) (40,4.90) (45,6.00) (50,4.53) (55,4.70) (60,4.73)};
@@ -1433,25 +1429,25 @@
                     \addlegendentry{GA $[1{,}80]$}
                 \end{axis}
             \end{tikzpicture}
-            \caption{Mean relative gap of the LW and the two heuristics on the small scale, against the optimum the model returned. A solid line is $a_j,b_j\in[1,40]$, a dashed line $a_j,b_j\in[1,80]$.}
+            \caption{Small scale: LW, NEH, GA against the optimum.}
             \label{fig:gap-small}
         \end{figure}
 
 
-        \subsubsection{The large scale} \label{sec:results_large}
+        \subsubsection{Large-scale instances} \label{sec:results_large}
 
         \Crefrange{tab:results-large-40}{tab:results-large-80} report the gaps and running times of the three heuristics under $[1,40]$ and $[1,80]$, respectively.
 
         On the large scale, the ranking varies with instance size.
-        The $\mathbf{LW}$ achieves the smallest overall mean gap of 2.67\% across the 32 configurations, with a worst individual-instance gap of 12.92\%, followed by $\mathbf{NEH}$ at 5.06\% and 10.77\%, respectively.
+        The $\mathbf{LW}$ achieves the smallest overall mean gap of 2.67\%, with a worst individual-instance gap of 12.92\%, followed by $\mathbf{NEH}$ at 5.06\% and 10.77\%, respectively.
         By contrast, the $\mathbf{GA}$ improves substantially with instance size: its mean gap decreases from 18.33\% to 0.62\% under $[1,40]$ and from 16.01\% to 0.82\% under $[1,80]$ between one hundred and four hundred jobs.
         It overtakes $\mathbf{NEH}$ at 220 jobs under both ranges and $\mathbf{LW}$ at 220 and 240 jobs, respectively.
 
         For sufficiently large instances, the $\mathbf{GA}$ achieves the best solution quality at a higher computational cost.
-        It obtains the best objective values in 328 of the 640 instances, compared with 250 for $\mathbf{LW}$ and 62 for $\mathbf{NEH}$, while its mean running time is 42.2 s, compared with 0.74 s and 0.09 ms, respectively.
+        It obtains the best objective values in 328 instances, compared with 250 for $\mathbf{LW}$ and 62 for $\mathbf{NEH}$, while its mean running time is 42.2 s, compared with 0.74 s and 0.09 ms, respectively.
         Unlike the $\mathbf{DP}$, it also handles instances with 30 distinct weight classes.
         The processing-time range has little effect on the overall ranking: the mean gaps of $\mathbf{LW}$, $\mathbf{NEH}$ and $\mathbf{GA}$ are 2.74\%, 4.75\% and 4.44\% under $[1,40]$, and 2.59\%, 5.36\% and 4.96\% under $[1,80]$, respectively.
-        These gaps are measured against the lower bound $LB$ defined in \cref{Eq-LB}, which is tight only when the heaviest jobs appear earliest; they therefore measure deviations from $LB$ rather than true optimality gaps.
+        The bound $LB$ is tight only when the heaviest jobs appear earliest; the gaps therefore measure deviations from $LB$ rather than true optimality gaps.
 
         Overall, the large-scale results highlight the trade-off between solution quality and computational time.
         The $\mathbf{LW}$ is the fastest method and achieves the smallest overall mean gap, while $\mathbf{NEH}$ offers intermediate performance at negligible computational cost.
@@ -1460,7 +1456,7 @@
 
         \begin{table}[H]
             \resultstable
-            \caption{The large scale, $a_j,b_j\in[1,40]$: LW, NEH, GA}
+            \caption{Large scale, $p_{\max}=40$, weights $\in\{1,\ldots,30\}$}
             \label{tab:results-large-40}
             \setlength{\tabcolsep}{8.15pt}
             \begin{tabular*}{\resultstabwidth}{@{}l r r r r @{\hspace{14pt}} r r r r @{\hspace{14pt}} r r r r@{}}
@@ -1493,7 +1489,7 @@
 
         \begin{table}[H]
             \resultstable
-            \caption{The large scale, $a_j,b_j\in[1,80]$: LW, NEH, GA}
+            \caption{Large scale, $p_{\max}=80$, weights $\in\{1,\ldots,30\}$}
             \label{tab:results-large-80}
             \setlength{\tabcolsep}{8.15pt}
             \begin{tabular*}{\resultstabwidth}{@{}l r r r r @{\hspace{14pt}} r r r r @{\hspace{14pt}} r r r r@{}}
@@ -1535,7 +1531,7 @@
                     tick label style={font=\scriptsize}, label style={font=\small},
                     every axis plot/.append style={line width=0.9pt},
                     legend columns=3,
-                    legend style={font=\scriptsize, at={(0.5,-0.30)}, anchor=north, draw=none,
+                    legend style={font=\scriptsize, at={(0.5,1.03)}, anchor=south, draw=none,
                         /tikz/every even column/.append style={column sep=10pt}},
                     ]
                     \addplot[apxblue] coordinates {(100,4.42) (120,3.53) (140,3.01) (160,3.38) (180,2.56) (200,2.56) (220,3.45) (240,2.84) (260,2.61) (280,2.49) (300,2.05) (320,2.98) (340,1.46) (360,2.20) (380,2.26) (400,2.05)};
@@ -1552,7 +1548,7 @@
                     \addlegendentry{GA $[1{,}80]$}
                 \end{axis}
             \end{tikzpicture}
-            \caption{Mean relative gap of the LW and the two heuristics on the large scale, against the lower bound $LB$. A solid line is $a_j,b_j\in[1,40]$, a dashed line $a_j,b_j\in[1,80]$.}
+            \caption{Large scale: LW, NEH, GA against $LB$.}
             \label{fig:gap-large}
         \end{figure}
 
