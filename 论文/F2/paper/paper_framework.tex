@@ -85,7 +85,7 @@
         \maketitle
 
         \begin{abstract}
-        Motivated by the scheduling of hot lots in semiconductor wafer fabrication, this paper studies the two-machine flow shop problem with the maximum weighted completion time objective, also known as the weighted makespan. 
+        Motivated by the scheduling of perishable lots in process industries, this paper studies the two-machine flow shop problem with the maximum weighted completion time objective, also known as the weighted makespan.
         We establish binary NP-hardness even with two distinct weights and strong NP-hardness when the number of distinct weights is arbitrary. 
         We further prove that an optimal schedule has a block structure, with one block per distinct weight, blocks arranged in non-increasing order of weight, and jobs within each block sequenced according to Johnson's rule. 
         Exploiting this structure, we develop an exact dynamic programming algorithm that is pseudo-polynomial for a fixed number of distinct weights, a fully polynomial-time approximation scheme for a fixed number of distinct weights, and a polynomial-time approximation scheme when the ratio of the largest to the smallest weight is bounded. 
@@ -98,47 +98,51 @@
 
         \section{Introduction} \label{sec:intro}
 
+        Consider a manufacturing environment in which every batch must pass through two processing stages in the same order before leaving the factory.
+        Typical examples include mixing followed by drying, coating followed by curing, and formulation followed by sterilization.
+        Since the first stage is typically faster, batches accumulate in the buffer between the two stages, where they continue to deteriorate in quality: enzymes remain active, microorganisms continue to grow, and thermal budgets are progressively consumed.
 
-        Consider a manufacturing environment in which every batch must pass through two processing stages in the same order before leaving the factory. Examples include mixing followed by drying, coating followed by curing, and formulation followed by sterilization. 
-        The first stage is typically faster, causing jobs to accumulate between the two stages. 
-        However, batches waiting in this intermediate queue continue to deteriorate in quality: enzymes remain active, microorganisms continue to grow, and thermal budgets are progressively consumed.
-        The rate of quality deterioration varies across batches. A
-        batch with ten times the sensitivity incurs ten times the loss when subjected to the same waiting time. 
-        Thus, the quality loss of a batch is proportional to the product of its sensitivity and its time in the system, rather than to time alone. 
-        The manufacturer, however, is not primarily concerned with the sum of these losses. 
-        Once the quality loss of a batch exceeds an acceptable threshold, the entire batch may have to be scrapped or recalled. 
-        The loss associated with a single such batch can outweigh the cumulative delays of all other batches. Consequently, the critical concern is the batch with the largest loss, measured by the product of its sensitivity and completion time. 
-        The scheduling objective is therefore to minimize the maximum of these products.
-        The same structure arises beyond the food and pharmaceutical industries. 
-        In the maintenance of high-value equipment, the two stages may correspond to disassembly and inspection, with the weight representing the cost incurred per hour of equipment downtime. 
-        In hospital diagnostics, the two stages may represent medical imaging and treatment, with the weight reflecting the severity of a patient's condition. 
-        In these settings, each job is assigned a weight that determines the cost associated with its completion time, and the objective is to minimize the maximum weighted completion time rather than the total weighted completion time. 
-        This is precisely the two-machine flow shop scheduling problem with the maximum weighted completion time objective.
+        The rate of quality deterioration varies across batches.
+        A batch with ten times the sensitivity incurs ten times the quality loss under the same exposure time.
+        Accordingly, the loss associated with a batch depends on both its sensitivity and its time in the system, rather than on time alone.
+        The manufacturer, however, is not primarily concerned with the total quality loss across all batches.
+        Once the loss of an individual batch exceeds an acceptable threshold, the entire batch may have to be scrapped or recalled.
+        The resulting loss from a single batch can outweigh the cumulative losses of all other batches.
+        Therefore, the critical concern is the batch with the largest weighted completion time, and the scheduling objective is to minimize the maximum weighted completion time.
 
-        Research on the maximum weighted completion time has primarily focused on single-machine and parallel-machine environments.
-        For single-machine scheduling, approximation algorithms and polynomial-time approximation schemes have been developed in two-agent settings \citep{NongChengNg2011EJOR}, while online variants have been extensively investigated, with competitive algorithms established for both preemptive and non-preemptive settings \citep{Li-Wenjie2015APJOR}.
-        Online algorithms with best-possible guarantees were subsequently developed \citep{ChaiLuLi2018APJOR}.
-        Online variants have since been extended to no-delayed-processing constraints \citep{LiLiu2023OptimLett}, unexpected machine breakdowns \citep{GuoChenMao2024APJOR}, and a single restart of the jobs \citep{LiangLuSun2024AIMSMath}.
-        Later studies have considered release dates, preemption, and multiple objectives in multi-agent scheduling \citep{YuanNgCheng2020EJOR}, lot scheduling with the maximum weighted tardiness objective \citep{MosheiovSarig2023JOCO}, and identical parallel machines \citep{Sun2024JOCO}.
-        More recent work has addressed order acceptance and rejection decisions \citep{LuZuoZhangOu20254OR}, lot scheduling under the same objective \citep{ZhengLiLiu2025JOCO}, online scheduling on an unbounded parallel-batch machine \citep{ZhangLuYuan2025JOCO}, online settings under (dis)agreeability conditions \citep{FanLuShi2026JIMO}, and scheduling with restricted rate- or weight-modifying activities \citep{ZuoZhangShiFan2026DAM,ZuoLuZhang2026IJFCS}.
-        Despite these advances, the maximum weighted completion time objective has received limited attention in flow-shop environments, particularly in the two-machine setting.
-        This gap is practically relevant to semiconductor manufacturing, where delays in high-priority lots may postpone the delivery of entire customer orders.
-        Motivated by this application, we investigate the two-machine flow-shop scheduling problem with the objective of minimizing the maximum weighted completion time.
+        The same structure arises beyond the food and pharmaceutical industries.
+        In the maintenance of high-value equipment, the two stages may correspond to disassembly and inspection, with the weight representing the cost per unit of equipment downtime.
+        In hospital diagnostics, they may correspond to medical imaging and treatment, with the weight reflecting the severity of a patient's condition.
+        In these settings, each job incurs a cost proportional to its weight and completion time, and the objective is to minimize the maximum individual cost rather than the total cost.
+        These applications motivate the study of the two-machine flow shop scheduling problem with the maximum weighted completion time objective.
+
+        Research on the maximum weighted completion time objective has primarily focused on single-machine and parallel-machine environments.
+        For single-machine scheduling, approximation algorithms and polynomial-time approximation schemes have been developed in two-agent settings \citep{NongChengNg2011EJOR}.
+        Online variants have also received considerable attention, with competitive algorithms established for both preemptive and non-preemptive settings \citep{Li-Wenjie2015APJOR}, followed by online algorithms with best-possible competitive guarantees \citep{ChaiLuLi2018APJOR}.
+        Subsequent studies have extended these settings to incorporate no-delayed-processing constraints \citep{LiLiu2023OptimLett}, unexpected machine breakdowns \citep{GuoChenMao2024APJOR}, and a single restart of the jobs \citep{LiangLuSun2024AIMSMath}.
+        Further research has considered release dates, preemption, and multiple objectives in multi-agent scheduling \citep{YuanNgCheng2020EJOR}, as well as lot scheduling with the maximum weighted tardiness objective \citep{MosheiovSarig2023JOCO} and identical parallel machines \citep{Sun2024JOCO}.
+        More recent contributions have addressed order acceptance and rejection decisions \citep{LuZuoZhangOu20254OR}, lot scheduling under the same objective \citep{ZhengLiLiu2025JOCO}, online scheduling on an unbounded parallel-batch machine \citep{ZhangLuYuan2025JOCO}, online settings under (dis)agreeability conditions \citep{FanLuShi2026JIMO}, and scheduling with restricted rate- or weight-modifying activities \citep{ZuoZhangShiFan2026DAM,ZuoLuZhang2026IJFCS}.
+        Despite these advances, the maximum weighted completion time objective has received limited attention in flow shop environments, particularly in the two-machine setting.
+        This gap motivates our investigation of the two-machine flow shop scheduling problem with the objective of minimizing the maximum weighted completion time.
 
         The two-machine flow shop has been extensively studied since Johnson established his rule for makespan minimization \citep{Johnson1954NRL}.
-        Subsequent research has developed constructive heuristics for various flow-shop settings \citep{ShaoShaoPi2021COR}, while the corresponding three-machine problem remains strongly $\mathcal{NP}$-hard \citep{Pinedo2022scheduling}.
+        Subsequent research has developed constructive heuristics for various flow shop settings \citep{ShaoShaoPi2021COR}, while the corresponding three-machine problem remains strongly $\mathcal{NP}$-hard \citep{Pinedo2022scheduling}.
         Other studies have investigated disruptions \citep{HnaienArbaoui2023ANOR}, branch-and-bound algorithms \citep{LiuUrgo2024IJPR}, reentrant production \citep{LiuUrgo2024ANOR}, alternative objective functions \mbox{\citep{ShabtayGerstl2024EJOR}}, and distributed manufacturing environments \citep{BeckerNeufeldBuscher2025EJOR}.
         Meanwhile, refinements of Johnson's rule continue to attract research interest \citep{DellaCroceSchau2026ORL}.
 
-        The two-machine flow shop provides a basic model of serial production, in which each lot passes through two consecutive processing stages.
-        Such production structures arise in various industries, including semiconductor manufacturing, where lots undergo lithography followed by etching, and textile manufacturing, where dyeing precedes drying.
+        A related stream of research has addressed scheduling problems involving perishable products, in which quality deterioration occurs while batches wait between processing stages.
+        Existing studies have modeled deterioration through constraints on the maximum allowable waiting time between stages \citep{YangChern1995CIE,FondrevelleOulamaraPortmann2006COR} or by explicitly incorporating product quality into the scheduling model \citep{SteinbacherRippelSchulze2023JMS,JafariNozarBehnamian2021EO}.
+        In these approaches, product tolerance is typically represented by a time limit or a quality threshold, and the scheduling objective does not directly minimize the maximum weighted completion time.
+        In contrast, we consider a setting in which batches have different deterioration sensitivities, and the resulting exposure is measured by the product of each batch's weight and completion time.
+        Since a single batch exceeding its quality threshold may lead to the loss of the entire batch, controlling the worst-case exposure is of particular practical importance.
+        This motivates the study of the maximum weighted completion time objective in a two-machine flow shop.
 
-        The rest of the paper is organized as follows. \Cref{sec:preliminaries} fixes
-        the notation, states the completion-time recurrence and gives the mixed integer programming
-        formulation. \Cref{sec:complexity} establishes the complexity of the problem. \Cref{sec:dp_algorithm} proves the structural properties, develops the exact dynamic
-        program, and presents the approximation schemes. \Cref{sec:heuristics} describes the
-        2-approximation and the two heuristics. \Cref{sec:experiments} reports the computational study,
-        and \Cref{sec:conclusion} concludes.
+        The rest of the paper is organized as follows.
+        \Cref{sec:preliminaries} fixes the notation, states the completion-time recurrence and gives the mixed integer programming formulation.
+        \Cref{sec:complexity} establishes the complexity of the problem.
+        \Cref{sec:dp_algorithm} proves the structural properties, develops the exact dynamic program, and presents the approximation schemes.
+        \Cref{sec:heuristics} describes the 2-approximation and the two heuristics.
+        \Cref{sec:experiments} reports the computational study, and \Cref{sec:conclusion} concludes.
 
         \section{Problem description} \label{sec:preliminaries}
 
