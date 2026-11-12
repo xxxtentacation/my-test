@@ -101,6 +101,8 @@
         Consider a manufacturing environment in which every batch must pass through two processing stages in the same order before leaving the factory.
         Typical examples include mixing followed by drying, coating followed by curing, and formulation followed by sterilization.
         Since the first stage is typically faster, batches accumulate in the buffer between the two stages, where they continue to deteriorate in quality: enzymes remain active, microorganisms continue to grow, and thermal budgets are progressively consumed.
+        Production scheduling models have taken this deterioration into account, either by tracking the quality of each batch as it waits \citep{SteinbacherRippelSchulze2023JMS} or by trading quality against distribution decisions \citep{JafariNozarBehnamian2021EO}.
+        In these models quality enters the schedule as a constraint on which batches may wait, not as a charge on the time at which each batch completes.
 
         The rate of quality deterioration varies across batches.
         A batch with ten times the sensitivity incurs ten times the quality loss under the same exposure time.
@@ -129,13 +131,6 @@
         Subsequent research has developed constructive heuristics for various flow shop settings \citep{ShaoShaoPi2021COR}, while the corresponding three-machine problem remains strongly $\mathcal{NP}$-hard \citep{Pinedo2022scheduling}.
         Other studies have investigated disruptions \citep{HnaienArbaoui2023ANOR}, branch-and-bound algorithms \citep{LiuUrgo2024IJPR}, reentrant production \citep{LiuUrgo2024ANOR}, alternative objective functions \mbox{\citep{ShabtayGerstl2024EJOR}}, and distributed manufacturing environments \citep{BeckerNeufeldBuscher2025EJOR}.
         Meanwhile, refinements of Johnson's rule continue to attract research interest \citep{DellaCroceSchau2026ORL}.
-
-        A related stream of research has addressed scheduling problems involving perishable products, in which quality deterioration occurs while batches wait between processing stages.
-        Existing studies have modeled deterioration through constraints on the maximum allowable waiting time between stages \citep{YangChern1995CIE,FondrevelleOulamaraPortmann2006COR} or by explicitly incorporating product quality into the scheduling model \citep{SteinbacherRippelSchulze2023JMS,JafariNozarBehnamian2021EO}.
-        In these approaches, product tolerance is typically represented by a time limit or a quality threshold, and the scheduling objective does not directly minimize the maximum weighted completion time.
-        In contrast, we consider a setting in which batches have different deterioration sensitivities, and the resulting exposure is measured by the product of each batch's weight and completion time.
-        Since a single batch exceeding its quality threshold may lead to the loss of the entire batch, controlling the worst-case exposure is of particular practical importance.
-        This motivates the study of the maximum weighted completion time objective in a two-machine flow shop.
 
         The rest of the paper is organized as follows.
         \Cref{sec:preliminaries} fixes the notation, states the completion-time recurrence and gives the mixed integer programming formulation.
@@ -1261,7 +1256,7 @@
 
 
         All algorithms were implemented in Python 3.13 and run on a computer equipped with an Intel Core Ultra 5 230F processor and 16 GB of RAM, running Windows 11.
-        The $\mathbf{MILP}$ model was solved using Gurobi 13.0 with a single thread.
+        The $\mathrm{MILP}$ model was solved using Gurobi 13.0 with a single thread.
 
         \subsection{Experimental setup} \label{sec:setup}
 
@@ -1269,13 +1264,13 @@
         Each instance is subject to a time limit of 600 s.
         The processing times are independently drawn from $\mathcal{U} \thicksim (1,p_{\max})$, where $p_{\max}=40$ or $80$.
 
-        Group 1 evaluates the performance of $\mathbf{DP}$ with $n\in\{40,60,80,100\}$, and weights $\in \{1,10\}$ or $\in \{1,10,100\}$.
+        Group 1 evaluates the performance of $\mathrm{DP}$ with $n\in\{40,60,80,100\}$, and weights $\in \{1,10\}$ or $\in \{1,10,100\}$.
 
-        Group 2 compares small-scale instances of the $\mathbf{MILP}$ model with $\mathbf{LW}$, $\mathbf{NEH}$, and $\mathbf{GA}$ for $n\in\{10,15,\ldots,60$\}, and weights $\in \{1,2,\ldots,30\}$ or weights $\in \{1,2,\ldots,100\}$.
+        Group 2 compares small-scale instances of the $\mathrm{MILP}$ model with $\mathrm{LW}$, $\mathrm{NEH}$, and $\mathrm{GA}$ for $n\in\{10,15,\ldots,60$\}, and weights $\in \{1,2,\ldots,30\}$ or weights $\in \{1,2,\ldots,100\}$.
 
-        Group 3 compares large-scale instances of $\mathbf{LW}$, $\mathbf{NEH}$, and $\mathbf{GA}$ for $n\in\{100,15,\ldots,400$\}, and weights $\in \{1,2,\ldots,30\}$ or weights $\in \{1,2,\ldots,100\}$.
+        Group 3 compares large-scale instances of $\mathrm{LW}$, $\mathrm{NEH}$, and $\mathrm{GA}$ for $n\in\{100,15,\ldots,400$\}, and weights $\in \{1,2,\ldots,30\}$ or weights $\in \{1,2,\ldots,100\}$.
 
-        For $\mathbf{GA}$, the population size is set to $N=\min\{20,\max\{6,\lceil n/2\rceil\}\}$.
+        For $\mathrm{GA}$, the population size is set to $N=\min\{20,\max\{6,\lceil n/2\rceil\}\}$.
         The number of generations is set to $G=\max\{1,\lfloor(n-5)/5\rfloor\}$ for small instances and $G=1+\lfloor(n-100)/50\rfloor$ for large instances.
         The number of offspring per generation is set to $\lambda=\max\{1,\lfloor\max\{0,n-20\}^2/20\rfloor\}$ for small instances and $\lambda=\max\{3,\lfloor 3n^3/10^6\rfloor\}$ for large instances.
         These parameter settings are designed to balance solution quality and computational time.
@@ -1285,8 +1280,8 @@
             \text{gap}_A =
             \frac{z_A-z_{\text{base}}}{z_{\text{base}}}\times 100\%,
         \end{equation}
-        where $z_A$ is the objective value obtained by $\mathbf{method\ A}$ $( \mathbf{DP}, \mathbf{LW}, \mathbf{NEH}, \mathbf{GA})$, and $z_{\text{base}}$ is the reference value.
-        For the small-scale instances, $z_{\text{base}}$ is the $\mathbf{MILP}$ optimum whenever optimality is proven by the solver.
+        where $z_A$ is the objective value obtained by $\mathrm{method\ A}$ $( \mathrm{DP}, \mathrm{LW}, \mathrm{NEH}, \mathrm{GA})$, and $z_{\text{base}}$ is the reference value.
+        For the small-scale instances, $z_{\text{base}}$ is the $\mathrm{MILP}$ optimum whenever optimality is proven by the solver.
         For the large-scale instances, it is the lower bound $LB$ of \cref{Eq-LB}, the maximum of the two machine-based bounds and the job-based bound.
         Thus, large-scale gaps measure the distance from a common lower bound rather than from competing heuristic solutions.
         This bound is tight only when the heaviest jobs also appear earliest.
@@ -1298,120 +1293,121 @@
 
         \subsubsection{The DP} \label{sec:results_dp}
 
-        The $\mathbf{DP}$ is the only exact method considered and guarantees optimality whenever it terminates.
+        The $\mathrm{DP}$ is the only exact method considered and guarantees optimality whenever it terminates.
         It solves the instances in almost all configurations, with mean running times of 1.47 s and 4.98 s for forty-job instances under $[1,40]$ and $[1,80]$, respectively (\Cref{tab:results-dp-k2}).
         However, its running time increases rapidly with instance size.
         Under $[1,40]$, the mean running time rises from 1.47 s for forty jobs to 89.59 s for one hundred jobs, a 61-fold increase, while the mean objective value increases by only a factor of 2.5.
         Expanding the processing-time range to $[1,80]$ further increases the mean running time by factors of 2.9--3.7.
         For one hundred-job instances under $[1,80]$, some instances reach the 600 s time limit, and the remaining ones require an average of 329.01 s.
-        Moreover, the $\mathbf{DP}$ cannot handle a third weight class due to memory limitations, restricting its applicability to $K=2$.
-        These results indicate that the $\mathbf{DP}$ is effective for relatively small instances with few distinct weights but has limited scalability.
+        Moreover, the $\mathrm{DP}$ cannot handle a third weight class due to memory limitations, restricting its applicability to $K=2$.
+        These results indicate that the $\mathrm{DP}$ is effective for relatively small instances with few distinct weights but has limited scalability.
 
         \begin{table}[H]
             \resultstable
             \caption{DP, weights $\in\{1,10\}$}
             \label{tab:results-dp-k2}
-            \setlength{\tabcolsep}{9.0pt}
-            \begin{tabular*}{\resultstabwidth}{@{}l r r r r r @{\hspace{14pt}} r r r r r@{}}
+            \setlength{\tabcolsep}{10pt}
+            \begin{tabular}{@{}l r r r @{\hspace{14pt}} r r r@{}}
                 \toprule
-                \multirow{3}{*}{$n$} & \multicolumn{5}{c}{$a_j,b_j\in[1,40]$} & \multicolumn{5}{c}{$a_j,b_j\in[1,80]$} \\
-                \cmidrule(lr){2-6}\cmidrule(lr){7-11}
-                & \multicolumn{2}{c}{$W C_{\max}$} & \multicolumn{2}{c}{time (ms)} & opt. & \multicolumn{2}{c}{$W C_{\max}$} & \multicolumn{2}{c}{time (ms)} & opt. \\
-                \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){7-8}\cmidrule(lr){9-10}
-                & avg & max & avg & max &  & avg & max & avg & max &  \\
+                \multirow{3}{*}{$n$} & \multicolumn{3}{c}{$a_j,b_j\in[1,40]$} & \multicolumn{3}{c}{$a_j,b_j\in[1,80]$} \\
+                \cmidrule(lr){2-4}\cmidrule(lr){5-7}
+                & \multicolumn{2}{c}{time (s)} & opt. & \multicolumn{2}{c}{time (s)} & opt. \\
+                \cmidrule(lr){2-3}\cmidrule(lr){5-6}
+                & avg & max & & avg & max & \\
                 \midrule
-                $40$ & $4335.0$ & $5480.0$ & $1.5\mathrm{e}3$ & $4.3\mathrm{e}3$ & $20/20$ & $8604.5$ & $10590.0$ & $5.0\mathrm{e}3$ & $2.4\mathrm{e}4$ & $20/20$ \\
-                $60$ & $6340.0$ & $7270.0$ & $1.4\mathrm{e}4$ & $3.1\mathrm{e}4$ & $20/20$ & $12344.5$ & $15020.0$ & $5.3\mathrm{e}4$ & $1.1\mathrm{e}5$ & $20/20$ \\
-                $80$ & $8221.0$ & $9750.0$ & $4.5\mathrm{e}4$ & $1.1\mathrm{e}5$ & $20/20$ & $17341.5$ & $19580.0$ & $1.3\mathrm{e}5$ & $2.8\mathrm{e}5$ & $20/20$ \\
-                $100$ & $10647.0$ & $12350.0$ & $9.0\mathrm{e}4$ & $1.7\mathrm{e}5$ & $20/20$ & $21544.3$ & $24240.0$ & $3.3\mathrm{e}5$ & $6.0\mathrm{e}5$ & $14/20$ \\
+                $20$ & & & & & & \\
+                $40$ & $1.47$ & $4.26$ & $20/20$ & $4.98$ & $24.45$ & $20/20$ \\
+                $60$ & $14.23$ & $31.36$ & $20/20$ & $52.54$ & $113.54$ & $20/20$ \\
+                $80$ & $45.13$ & $109.54$ & $20/20$ & $134.03$ & $278.54$ & $20/20$ \\
+                $100$ & $89.59$ & $168.85$ & $20/20$ & $329.01$ & $600.00$ & $14/20$ \\
+                $120$ & & & & & & \\
+                $140$ & & & & & & \\
                 \bottomrule
-            \end{tabular*}
+            \end{tabular}
             \par\vspace{2pt}
-            {\scriptsize Averages at $n=100$ on $[1,80]$ cover only the instances settled within the
-                $600$\,s limit; the others are cut short.}
         \end{table}
 
         \subsubsection{Small-scale instances} \label{sec:results_small}
 
-        \Crefrange{tab:results-small-40}{tab:results-small-80} report the objective values, running times and gaps of the four methods under $[1,40]$ and $[1,80]$, respectively.
+        \Crefrange{tab:results-small-40}{tab:results-small-80} report the running times of the four methods and the gaps of the three heuristics under $[1,40]$ and $[1,80]$, respectively.
 
-        The $\mathbf{MILP}$ model solves almost all instances to optimality, providing reference values.
-        Under $[1,40]$, its mean running time increases from 70 ms for ten jobs to 160.7 s for sixty jobs, with a few instances at the largest size reaching the time limit.
+        The $\mathrm{MILP}$ model solves almost all instances to optimality, providing reference values.
+        Under $[1,40]$, its mean running time increases from $7.0\mathrm{e}1$ ms for ten jobs to $1.6\mathrm{e}5$ ms for sixty jobs, with a few instances at the largest size reaching the time limit.
         The wider processing-time range roughly doubles the objective values but has no consistent effect on running time.
 
-        $\mathbf{NEH}$ outperforms $\mathbf{LW}$ in every configuration, achieving overall mean gaps of 3.14\% and 5.77\%, respectively, and worst individual-instance gaps of 24.89\% and 21.49\%.
-        This improvement comes at a higher computational cost: $\mathbf{NEH}$ takes 2.66 ms on average, compared with 0.02 ms for $\mathbf{LW}$, reflecting its sequential evaluation of insertion positions versus the latter's single-pass construction.
-        Thus, $\mathbf{LW}$ is preferable when computational efficiency outweighs solution quality.
+        $\mathrm{NEH}$ outperforms $\mathrm{LW}$ in every configuration: its mean gap is 3.4\% against 7.3\% for $\mathrm{LW}$ at ten jobs and 4.3\% against 4.7\% at sixty jobs, with worst individual-instance gaps of 24.9\% and 21.5\%, respectively.
+        This improvement comes at a higher computational cost: at ten jobs $\mathrm{NEH}$ takes $7.3\mathrm{e}{-2}$ ms against $8.8\mathrm{e}{-3}$ ms for $\mathrm{LW}$, and at sixty jobs $8.0\mathrm{e}0$ ms against $2.5\mathrm{e}{-2}$ ms, reflecting its sequential evaluation of insertion positions versus the latter's single-pass construction.
+        Thus, $\mathrm{LW}$ is preferable when computational efficiency outweighs solution quality.
 
-        The $\mathbf{GA}$ shows the opposite trend, with its mean gap decreasing from 12.61\% to 1.70\% under $[1,40]$ and from 14.29\% to 3.90\% under $[1,80]$ as the number of jobs increases from ten to sixty.
+        The $\mathrm{GA}$ shows the opposite trend, with its mean gap decreasing from 12.6\% to 1.7\% under $[1,40]$ and from 14.3\% to 3.9\% under $[1,80]$ as the number of jobs increases from ten to sixty.
         It outperforms both constructive methods at sixty jobs.
-        Nevertheless, its overall mean gap remains the largest (10.07\%), and its performance is non-monotonic, with a worst individual-instance gap of 57.53\% at twenty-five jobs.
-        This may reflect the limited search budget at smaller sizes, where six individuals and two generations for ten jobs provide insufficient opportunities to establish the block structure.
-        Its mean running time rises from 0.64 ms to 1.69 s, remaining well below that of the $\mathbf{MILP}$ model.
-        At sixty jobs, however, the mean gaps of the three heuristics differ by less than three percentage points.
+        Nevertheless, its gap is the largest at the smaller sizes, and its performance is non-monotonic, with a worst individual-instance gap of 57.5\% at twenty-five jobs.
+        This may reflect the limited search budget at smaller sizes, where six individuals, one generation and a single offspring for ten jobs provide insufficient opportunities to establish the block structure.
+        Its mean running time rises from $6.4\mathrm{e}{-1}$ ms to $1.7\mathrm{e}3$ ms, remaining well below that of the $\mathrm{MILP}$ model.
+        At sixty jobs, however, the mean gaps of the three heuristics differ by about three percentage points.
 
         Overall, the small-scale results distinguish the methods primarily by computational cost.
-        The $\mathbf{MILP}$ model alone certifies optimality but becomes increasingly expensive as the instance size grows.
-        Among the heuristics, $\mathbf{NEH}$ offers the best quality-cost trade-off, $\mathbf{LW}$ sacrifices some solution quality for substantially lower running times, while $\mathbf{GA}$ performs worst in solution quality and incurs the highest computational cost (\Cref{fig:gap-small}).
-        Hence, $\mathbf{NEH}$ is the preferred heuristic for small instances unless optimality certification is required.
-        The effectiveness of the additional search effort invested in $\mathbf{GA}$ on larger instances is examined next.
+        The $\mathrm{MILP}$ model alone certifies optimality but becomes increasingly expensive as the instance size grows.
+        Among the heuristics, $\mathrm{NEH}$ offers the best quality-cost trade-off, $\mathrm{LW}$ sacrifices some solution quality for substantially lower running times, while $\mathrm{GA}$ performs worst in solution quality and incurs the highest computational cost (\Cref{fig:gap-small}).
+        Hence, $\mathrm{NEH}$ is the preferred heuristic for small instances unless optimality certification is required.
+        The effectiveness of the additional search effort invested in $\mathrm{GA}$ on larger instances is examined next.
 
         \begin{table}[H]
             \resultstable
             \caption{Small scale, $p_{\max}=40$, weights $\in\{1,\ldots,30\}$}
             \label{tab:results-small-40}
-            \setlength{\tabcolsep}{3.95pt}
+            \setlength{\tabcolsep}{5.5pt}
             \scriptsize
-            \begin{tabular*}{\resultstabwidth}{@{}l r r r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r@{}}
+            \begin{tabular}{@{}l r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r@{}}
                 \toprule
-                \multirow{3}{*}{$n$} & \multicolumn{4}{c}{MILP} & \multicolumn{4}{c}{LW} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
-                \cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}
-                & \multicolumn{2}{c}{$W C_{\max}$} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} \\
-                \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}\cmidrule(lr){14-15}\cmidrule(lr){16-17}
-                & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
+                \multirow{3}{*}{$n$} & \multicolumn{2}{c}{MILP} & \multicolumn{4}{c}{LW} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
+                \cmidrule(lr){2-3}\cmidrule(lr){4-7}\cmidrule(lr){8-11}\cmidrule(lr){12-15}
+                & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} \\
+                \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}\cmidrule(lr){14-15}
+                & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
                 \midrule
-                $10$ & $2607.8$ & $4369.0$ & $7.0\mathrm{e}1$ & $1.2\mathrm{e}2$ & $7.3$ & $17.2$ & $8.8\mathrm{e}{-3}$ & $2.5\mathrm{e}{-2}$ & $\mathbf{3.4}$ & $24.9$ & $7.3\mathrm{e}{-2}$ & $7.9\mathrm{e}{-2}$ & $12.6$ & $30.6$ & $6.4\mathrm{e}{-1}$ & $7.2\mathrm{e}{-1}$ \\
-                $15$ & $3758.2$ & $5049.0$ & $1.9\mathrm{e}2$ & $4.7\mathrm{e}2$ & $6.8$ & $16.9$ & $9.9\mathrm{e}{-3}$ & $1.9\mathrm{e}{-2}$ & $\mathbf{2.1}$ & $8.5$ & $1.9\mathrm{e}{-1}$ & $2.0\mathrm{e}{-1}$ & $18.2$ & $49.5$ & $2.6\mathrm{e}0$ & $2.9\mathrm{e}0$ \\
-                $20$ & $4811.3$ & $5967.0$ & $5.6\mathrm{e}2$ & $1.9\mathrm{e}3$ & $6.2$ & $19.9$ & $1.3\mathrm{e}{-2}$ & $2.3\mathrm{e}{-2}$ & $\mathbf{2.7}$ & $11.7$ & $3.8\mathrm{e}{-1}$ & $4.1\mathrm{e}{-1}$ & $12.1$ & $33.0$ & $1.0\mathrm{e}1$ & $1.1\mathrm{e}1$ \\
-                $25$ & $5590.8$ & $7059.0$ & $1.5\mathrm{e}3$ & $5.7\mathrm{e}3$ & $5.6$ & $21.5$ & $1.4\mathrm{e}{-2}$ & $2.5\mathrm{e}{-2}$ & $\mathbf{3.7}$ & $17.5$ & $7.0\mathrm{e}{-1}$ & $7.4\mathrm{e}{-1}$ & $15.3$ & $57.5$ & $2.8\mathrm{e}1$ & $3.3\mathrm{e}1$ \\
-                $30$ & $6888.1$ & $8025.0$ & $2.8\mathrm{e}3$ & $1.0\mathrm{e}4$ & $5.6$ & $14.9$ & $1.4\mathrm{e}{-2}$ & $2.6\mathrm{e}{-2}$ & $\mathbf{3.9}$ & $10.8$ & $1.1\mathrm{e}0$ & $1.2\mathrm{e}0$ & $11.6$ & $26.7$ & $6.2\mathrm{e}1$ & $7.0\mathrm{e}1$ \\
-                $35$ & $7719.7$ & $9373.0$ & $8.4\mathrm{e}3$ & $3.6\mathrm{e}4$ & $5.7$ & $12.2$ & $1.4\mathrm{e}{-2}$ & $2.4\mathrm{e}{-2}$ & $\mathbf{3.2}$ & $13.8$ & $1.8\mathrm{e}0$ & $1.8\mathrm{e}0$ & $12.8$ & $38.7$ & $1.2\mathrm{e}2$ & $1.3\mathrm{e}2$ \\
-                $40$ & $8830.8$ & $10309.0$ & $2.1\mathrm{e}4$ & $1.2\mathrm{e}5$ & $4.9$ & $10.6$ & $1.7\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{2.4}$ & $6.2$ & $2.5\mathrm{e}0$ & $2.6\mathrm{e}0$ & $7.0$ & $17.5$ & $2.4\mathrm{e}2$ & $2.5\mathrm{e}2$ \\
-                $45$ & $9669.2$ & $11791.0$ & $3.1\mathrm{e}4$ & $2.5\mathrm{e}5$ & $6.0$ & $19.0$ & $1.8\mathrm{e}{-2}$ & $3.8\mathrm{e}{-2}$ & $\mathbf{3.7}$ & $10.3$ & $3.5\mathrm{e}0$ & $3.7\mathrm{e}0$ & $8.8$ & $24.7$ & $4.1\mathrm{e}2$ & $4.5\mathrm{e}2$ \\
-                $50$ & $10904.9$ & $12558.0$ & $8.4\mathrm{e}4$ & $5.1\mathrm{e}5$ & $4.5$ & $13.0$ & $1.8\mathrm{e}{-2}$ & $3.1\mathrm{e}{-2}$ & $\mathbf{3.6}$ & $8.4$ & $4.8\mathrm{e}0$ & $4.9\mathrm{e}0$ & $6.5$ & $22.9$ & $6.7\mathrm{e}2$ & $7.3\mathrm{e}2$ \\
-                $55$ & $11858.3$ & $14340.0$ & $1.1\mathrm{e}5$ & $5.2\mathrm{e}5$ & $4.7$ & $10.9$ & $2.7\mathrm{e}{-2}$ & $4.7\mathrm{e}{-2}$ & $\mathbf{3.1}$ & $11.9$ & $6.2\mathrm{e}0$ & $6.4\mathrm{e}0$ & $4.2$ & $14.6$ & $1.0\mathrm{e}3$ & $1.2\mathrm{e}3$ \\
-                $60$ & $13051.7$ & $15330.0$ & $1.6\mathrm{e}5$ & $6.0\mathrm{e}5$ & $4.7$ & $11.7$ & $2.5\mathrm{e}{-2}$ & $4.2\mathrm{e}{-2}$ & $4.3$ & $8.8$ & $8.0\mathrm{e}0$ & $8.2\mathrm{e}0$ & $\mathbf{1.7}$ & $8.2$ & $1.7\mathrm{e}3$ & $1.9\mathrm{e}3$ \\
+                $10$ & $7.0\mathrm{e}1$ & $1.2\mathrm{e}2$ & $7.3$ & $17.2$ & $8.8\mathrm{e}{-3}$ & $2.5\mathrm{e}{-2}$ & $\mathbf{3.4}$ & $24.9$ & $7.3\mathrm{e}{-2}$ & $7.9\mathrm{e}{-2}$ & $12.6$ & $30.6$ & $6.4\mathrm{e}{-1}$ & $7.2\mathrm{e}{-1}$ \\
+                $15$ & $1.9\mathrm{e}2$ & $4.7\mathrm{e}2$ & $6.8$ & $16.9$ & $9.9\mathrm{e}{-3}$ & $1.9\mathrm{e}{-2}$ & $\mathbf{2.1}$ & $8.5$ & $1.9\mathrm{e}{-1}$ & $2.0\mathrm{e}{-1}$ & $18.2$ & $49.5$ & $2.6\mathrm{e}0$ & $2.9\mathrm{e}0$ \\
+                $20$ & $5.6\mathrm{e}2$ & $1.9\mathrm{e}3$ & $6.2$ & $19.9$ & $1.3\mathrm{e}{-2}$ & $2.3\mathrm{e}{-2}$ & $\mathbf{2.7}$ & $11.7$ & $3.8\mathrm{e}{-1}$ & $4.1\mathrm{e}{-1}$ & $12.1$ & $33.0$ & $1.0\mathrm{e}1$ & $1.1\mathrm{e}1$ \\
+                $25$ & $1.5\mathrm{e}3$ & $5.7\mathrm{e}3$ & $5.6$ & $21.5$ & $1.4\mathrm{e}{-2}$ & $2.5\mathrm{e}{-2}$ & $\mathbf{3.7}$ & $17.5$ & $7.0\mathrm{e}{-1}$ & $7.4\mathrm{e}{-1}$ & $15.3$ & $57.5$ & $2.8\mathrm{e}1$ & $3.3\mathrm{e}1$ \\
+                $30$ & $2.8\mathrm{e}3$ & $1.0\mathrm{e}4$ & $5.6$ & $14.9$ & $1.4\mathrm{e}{-2}$ & $2.6\mathrm{e}{-2}$ & $\mathbf{3.9}$ & $10.8$ & $1.1\mathrm{e}0$ & $1.2\mathrm{e}0$ & $11.6$ & $26.7$ & $6.2\mathrm{e}1$ & $7.0\mathrm{e}1$ \\
+                $35$ & $8.4\mathrm{e}3$ & $3.6\mathrm{e}4$ & $5.7$ & $12.2$ & $1.4\mathrm{e}{-2}$ & $2.4\mathrm{e}{-2}$ & $\mathbf{3.2}$ & $13.8$ & $1.8\mathrm{e}0$ & $1.8\mathrm{e}0$ & $12.8$ & $38.7$ & $1.2\mathrm{e}2$ & $1.3\mathrm{e}2$ \\
+                $40$ & $2.1\mathrm{e}4$ & $1.2\mathrm{e}5$ & $4.9$ & $10.6$ & $1.7\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{2.4}$ & $6.2$ & $2.5\mathrm{e}0$ & $2.6\mathrm{e}0$ & $7.0$ & $17.5$ & $2.4\mathrm{e}2$ & $2.5\mathrm{e}2$ \\
+                $45$ & $3.1\mathrm{e}4$ & $2.5\mathrm{e}5$ & $6.0$ & $19.0$ & $1.8\mathrm{e}{-2}$ & $3.8\mathrm{e}{-2}$ & $\mathbf{3.7}$ & $10.3$ & $3.5\mathrm{e}0$ & $3.7\mathrm{e}0$ & $8.8$ & $24.7$ & $4.1\mathrm{e}2$ & $4.5\mathrm{e}2$ \\
+                $50$ & $8.4\mathrm{e}4$ & $5.1\mathrm{e}5$ & $4.5$ & $13.0$ & $1.8\mathrm{e}{-2}$ & $3.1\mathrm{e}{-2}$ & $\mathbf{3.6}$ & $8.4$ & $4.8\mathrm{e}0$ & $4.9\mathrm{e}0$ & $6.5$ & $22.9$ & $6.7\mathrm{e}2$ & $7.3\mathrm{e}2$ \\
+                $55$ & $1.1\mathrm{e}5$ & $5.2\mathrm{e}5$ & $4.7$ & $10.9$ & $2.7\mathrm{e}{-2}$ & $4.7\mathrm{e}{-2}$ & $\mathbf{3.1}$ & $11.9$ & $6.2\mathrm{e}0$ & $6.4\mathrm{e}0$ & $4.2$ & $14.6$ & $1.0\mathrm{e}3$ & $1.2\mathrm{e}3$ \\
+                $60$ & $1.6\mathrm{e}5$ & $6.0\mathrm{e}5$ & $4.7$ & $11.7$ & $2.5\mathrm{e}{-2}$ & $4.2\mathrm{e}{-2}$ & $4.3$ & $8.8$ & $8.0\mathrm{e}0$ & $8.2\mathrm{e}0$ & $\mathbf{1.7}$ & $8.2$ & $1.7\mathrm{e}3$ & $1.9\mathrm{e}3$ \\
                 \bottomrule
-            \end{tabular*}
+            \end{tabular}
         \end{table}
 
         \begin{table}[H]
             \resultstable
             \caption{Small scale, $p_{\max}=80$, weights $\in\{1,\ldots,30\}$}
             \label{tab:results-small-80}
-            \setlength{\tabcolsep}{3.95pt}
+            \setlength{\tabcolsep}{5.5pt}
             \scriptsize
-            \begin{tabular*}{\resultstabwidth}{@{}l r r r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r@{}}
+            \begin{tabular}{@{}l r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r@{}}
                 \toprule
-                \multirow{3}{*}{$n$} & \multicolumn{4}{c}{MILP} & \multicolumn{4}{c}{LW} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
-                \cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}
-                & \multicolumn{2}{c}{$W C_{\max}$} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} \\
-                \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}\cmidrule(lr){14-15}\cmidrule(lr){16-17}
-                & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
+                \multirow{3}{*}{$n$} & \multicolumn{2}{c}{MILP} & \multicolumn{4}{c}{LW} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
+                \cmidrule(lr){2-3}\cmidrule(lr){4-7}\cmidrule(lr){8-11}\cmidrule(lr){12-15}
+                & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} \\
+                \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}\cmidrule(lr){14-15}
+                & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
                 \midrule
-                $10$ & $5029.9$ & $7345.0$ & $5.1\mathrm{e}1$ & $1.0\mathrm{e}2$ & $8.1$ & $17.5$ & $8.5\mathrm{e}{-3}$ & $1.8\mathrm{e}{-2}$ & $\mathbf{0.8}$ & $5.7$ & $7.2\mathrm{e}{-2}$ & $7.8\mathrm{e}{-2}$ & $14.3$ & $47.5$ & $6.1\mathrm{e}{-1}$ & $6.8\mathrm{e}{-1}$ \\
-                $15$ & $7182.1$ & $8624.0$ & $2.9\mathrm{e}2$ & $1.8\mathrm{e}3$ & $7.7$ & $19.7$ & $9.5\mathrm{e}{-3}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{2.4}$ & $14.5$ & $1.9\mathrm{e}{-1}$ & $2.1\mathrm{e}{-1}$ & $15.9$ & $37.5$ & $2.6\mathrm{e}0$ & $2.9\mathrm{e}0$ \\
-                $20$ & $9328.9$ & $12103.0$ & $4.5\mathrm{e}2$ & $1.8\mathrm{e}3$ & $4.5$ & $11.8$ & $1.2\mathrm{e}{-2}$ & $2.9\mathrm{e}{-2}$ & $\mathbf{2.6}$ & $9.6$ & $3.8\mathrm{e}{-1}$ & $4.1\mathrm{e}{-1}$ & $16.3$ & $39.1$ & $1.0\mathrm{e}1$ & $1.2\mathrm{e}1$ \\
-                $25$ & $10816.3$ & $14100.0$ & $1.6\mathrm{e}3$ & $4.6\mathrm{e}3$ & $4.7$ & $16.2$ & $1.2\mathrm{e}{-2}$ & $2.1\mathrm{e}{-2}$ & $\mathbf{2.1}$ & $7.9$ & $7.0\mathrm{e}{-1}$ & $7.4\mathrm{e}{-1}$ & $15.7$ & $37.6$ & $2.8\mathrm{e}1$ & $3.0\mathrm{e}1$ \\
-                $30$ & $12972.5$ & $16005.0$ & $3.2\mathrm{e}3$ & $9.5\mathrm{e}3$ & $5.6$ & $11.7$ & $1.5\mathrm{e}{-2}$ & $2.9\mathrm{e}{-2}$ & $\mathbf{2.6}$ & $13.6$ & $1.2\mathrm{e}0$ & $1.2\mathrm{e}0$ & $14.4$ & $34.2$ & $6.1\mathrm{e}1$ & $6.6\mathrm{e}1$ \\
-                $35$ & $15093.3$ & $17667.0$ & $8.7\mathrm{e}3$ & $4.1\mathrm{e}4$ & $7.0$ & $18.1$ & $1.8\mathrm{e}{-2}$ & $3.1\mathrm{e}{-2}$ & $\mathbf{4.3}$ & $7.9$ & $1.8\mathrm{e}0$ & $1.8\mathrm{e}0$ & $11.5$ & $27.5$ & $1.2\mathrm{e}2$ & $1.3\mathrm{e}2$ \\
-                $40$ & $16757.4$ & $20146.0$ & $2.4\mathrm{e}4$ & $1.5\mathrm{e}5$ & $6.3$ & $20.8$ & $1.8\mathrm{e}{-2}$ & $3.1\mathrm{e}{-2}$ & $\mathbf{2.4}$ & $7.6$ & $2.5\mathrm{e}0$ & $2.6\mathrm{e}0$ & $5.5$ & $15.9$ & $2.5\mathrm{e}2$ & $2.7\mathrm{e}2$ \\
-                $45$ & $19621.4$ & $24528.0$ & $6.8\mathrm{e}4$ & $3.8\mathrm{e}5$ & $4.8$ & $12.3$ & $1.6\mathrm{e}{-2}$ & $1.9\mathrm{e}{-2}$ & $\mathbf{2.8}$ & $11.9$ & $3.5\mathrm{e}0$ & $3.7\mathrm{e}0$ & $5.3$ & $13.1$ & $4.2\mathrm{e}2$ & $4.5\mathrm{e}2$ \\
-                $50$ & $21338.0$ & $25044.0$ & $7.7\mathrm{e}4$ & $4.8\mathrm{e}5$ & $6.2$ & $12.4$ & $1.9\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{3.8}$ & $11.1$ & $4.7\mathrm{e}0$ & $4.8\mathrm{e}0$ & $4.2$ & $12.0$ & $6.6\mathrm{e}2$ & $7.4\mathrm{e}2$ \\
-                $55$ & $23019.6$ & $25376.0$ & $1.4\mathrm{e}5$ & $4.7\mathrm{e}5$ & $5.0$ & $11.4$ & $2.2\mathrm{e}{-2}$ & $3.9\mathrm{e}{-2}$ & $5.0$ & $16.2$ & $6.2\mathrm{e}0$ & $6.5\mathrm{e}0$ & $\mathbf{3.5}$ & $14.7$ & $1.1\mathrm{e}3$ & $1.2\mathrm{e}3$ \\
-                $60$ & $26079.5$ & $31320.0$ & $1.9\mathrm{e}5$ & $6.0\mathrm{e}5$ & $5.0$ & $13.5$ & $2.8\mathrm{e}{-2}$ & $4.4\mathrm{e}{-2}$ & $4.4$ & $15.4$ & $8.0\mathrm{e}0$ & $8.2\mathrm{e}0$ & $\mathbf{3.9}$ & $20.8$ & $1.7\mathrm{e}3$ & $1.8\mathrm{e}3$ \\
+                $10$ & $5.1\mathrm{e}1$ & $1.0\mathrm{e}2$ & $8.1$ & $17.5$ & $8.5\mathrm{e}{-3}$ & $1.8\mathrm{e}{-2}$ & $\mathbf{0.8}$ & $5.7$ & $7.2\mathrm{e}{-2}$ & $7.8\mathrm{e}{-2}$ & $14.3$ & $47.5$ & $6.1\mathrm{e}{-1}$ & $6.8\mathrm{e}{-1}$ \\
+                $15$ & $2.9\mathrm{e}2$ & $1.8\mathrm{e}3$ & $7.7$ & $19.7$ & $9.5\mathrm{e}{-3}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{2.4}$ & $14.5$ & $1.9\mathrm{e}{-1}$ & $2.1\mathrm{e}{-1}$ & $15.9$ & $37.5$ & $2.6\mathrm{e}0$ & $2.9\mathrm{e}0$ \\
+                $20$ & $4.5\mathrm{e}2$ & $1.8\mathrm{e}3$ & $4.5$ & $11.8$ & $1.2\mathrm{e}{-2}$ & $2.9\mathrm{e}{-2}$ & $\mathbf{2.6}$ & $9.6$ & $3.8\mathrm{e}{-1}$ & $4.1\mathrm{e}{-1}$ & $16.3$ & $39.1$ & $1.0\mathrm{e}1$ & $1.2\mathrm{e}1$ \\
+                $25$ & $1.6\mathrm{e}3$ & $4.6\mathrm{e}3$ & $4.7$ & $16.2$ & $1.2\mathrm{e}{-2}$ & $2.1\mathrm{e}{-2}$ & $\mathbf{2.1}$ & $7.9$ & $7.0\mathrm{e}{-1}$ & $7.4\mathrm{e}{-1}$ & $15.7$ & $37.6$ & $2.8\mathrm{e}1$ & $3.0\mathrm{e}1$ \\
+                $30$ & $3.2\mathrm{e}3$ & $9.5\mathrm{e}3$ & $5.6$ & $11.7$ & $1.5\mathrm{e}{-2}$ & $2.9\mathrm{e}{-2}$ & $\mathbf{2.6}$ & $13.6$ & $1.2\mathrm{e}0$ & $1.2\mathrm{e}0$ & $14.4$ & $34.2$ & $6.1\mathrm{e}1$ & $6.6\mathrm{e}1$ \\
+                $35$ & $8.7\mathrm{e}3$ & $4.1\mathrm{e}4$ & $7.0$ & $18.1$ & $1.8\mathrm{e}{-2}$ & $3.1\mathrm{e}{-2}$ & $\mathbf{4.3}$ & $7.9$ & $1.8\mathrm{e}0$ & $1.8\mathrm{e}0$ & $11.5$ & $27.5$ & $1.2\mathrm{e}2$ & $1.3\mathrm{e}2$ \\
+                $40$ & $2.4\mathrm{e}4$ & $1.5\mathrm{e}5$ & $6.3$ & $20.8$ & $1.8\mathrm{e}{-2}$ & $3.1\mathrm{e}{-2}$ & $\mathbf{2.4}$ & $7.6$ & $2.5\mathrm{e}0$ & $2.6\mathrm{e}0$ & $5.5$ & $15.9$ & $2.5\mathrm{e}2$ & $2.7\mathrm{e}2$ \\
+                $45$ & $6.8\mathrm{e}4$ & $3.8\mathrm{e}5$ & $4.8$ & $12.3$ & $1.6\mathrm{e}{-2}$ & $1.9\mathrm{e}{-2}$ & $\mathbf{2.8}$ & $11.9$ & $3.5\mathrm{e}0$ & $3.7\mathrm{e}0$ & $5.3$ & $13.1$ & $4.2\mathrm{e}2$ & $4.5\mathrm{e}2$ \\
+                $50$ & $7.7\mathrm{e}4$ & $4.8\mathrm{e}5$ & $6.2$ & $12.4$ & $1.9\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{3.8}$ & $11.1$ & $4.7\mathrm{e}0$ & $4.8\mathrm{e}0$ & $4.2$ & $12.0$ & $6.6\mathrm{e}2$ & $7.4\mathrm{e}2$ \\
+                $55$ & $1.4\mathrm{e}5$ & $4.7\mathrm{e}5$ & $5.0$ & $11.4$ & $2.2\mathrm{e}{-2}$ & $3.9\mathrm{e}{-2}$ & $5.0$ & $16.2$ & $6.2\mathrm{e}0$ & $6.5\mathrm{e}0$ & $\mathbf{3.5}$ & $14.7$ & $1.1\mathrm{e}3$ & $1.2\mathrm{e}3$ \\
+                $60$ & $1.9\mathrm{e}5$ & $6.0\mathrm{e}5$ & $5.0$ & $13.5$ & $2.8\mathrm{e}{-2}$ & $4.4\mathrm{e}{-2}$ & $4.4$ & $15.4$ & $8.0\mathrm{e}0$ & $8.2\mathrm{e}0$ & $\mathbf{3.9}$ & $20.8$ & $1.7\mathrm{e}3$ & $1.8\mathrm{e}3$ \\
                 \bottomrule
-            \end{tabular*}
+            \end{tabular}
         \end{table}
 
         \begin{figure}[H]
@@ -1452,26 +1448,26 @@
         \Crefrange{tab:results-large-40}{tab:results-large-80} report the gaps and running times of the three heuristics under $[1,40]$ and $[1,80]$, respectively.
 
         On the large scale, the ranking varies with instance size.
-        The $\mathbf{LW}$ achieves the smallest overall mean gap of 2.67\%, with a worst individual-instance gap of 12.92\%, followed by $\mathbf{NEH}$ at 5.06\% and 10.77\%, respectively.
-        By contrast, the $\mathbf{GA}$ improves substantially with instance size: its mean gap decreases from 18.33\% to 0.62\% under $[1,40]$ and from 16.01\% to 0.82\% under $[1,80]$ between one hundred and four hundred jobs.
-        It overtakes $\mathbf{NEH}$ at 220 jobs under both ranges and $\mathbf{LW}$ at 220 and 240 jobs, respectively.
+        The $\mathrm{LW}$ achieves the smaller mean gap at every size: 4.4\% against 5.2\% for $\mathrm{NEH}$ at one hundred jobs and 2.0\% against 3.9\% at four hundred, with worst individual-instance gaps of 12.9\% and 10.8\%, respectively.
+        By contrast, the $\mathrm{GA}$ improves substantially with instance size: its mean gap decreases from 18.3\% to 0.6\% under $[1,40]$ and from 16.0\% to 0.8\% under $[1,80]$ between one hundred and four hundred jobs.
+        It overtakes $\mathrm{NEH}$ at 220 jobs under both ranges and $\mathrm{LW}$ at 220 and 240 jobs, respectively.
 
-        For sufficiently large instances, the $\mathbf{GA}$ achieves the best solution quality at a higher computational cost.
-        It obtains the best objective values in 328 instances, compared with 250 for $\mathbf{LW}$ and 62 for $\mathbf{NEH}$, while its mean running time is 42.2 s, compared with 0.74 s and 0.09 ms, respectively.
-        Unlike the $\mathbf{DP}$, it also handles instances with 30 distinct weight classes.
-        The processing-time range has little effect on the overall ranking: the mean gaps of $\mathbf{LW}$, $\mathbf{NEH}$ and $\mathbf{GA}$ are 2.74\%, 4.75\% and 4.44\% under $[1,40]$, and 2.59\%, 5.36\% and 4.96\% under $[1,80]$, respectively.
+        For sufficiently large instances, the $\mathrm{GA}$ achieves the best solution quality at a higher computational cost.
+        At four hundred jobs, its mean gap is 0.6\% against 2.0\% for $\mathrm{LW}$ and 3.9\% for $\mathrm{NEH}$, while its mean running time is $1.28\mathrm{e}5$ ms, against $1.46\mathrm{e}{-1}$ ms and $2.18\mathrm{e}3$ ms, respectively.
+        Unlike the $\mathrm{DP}$, it also handles instances with 30 distinct weight classes.
+        The processing-time range has little effect on the ranking: at four hundred jobs under $[1,80]$, the mean gaps are 1.7\% for $\mathrm{LW}$, 5.8\% for $\mathrm{NEH}$ and 0.8\% for $\mathrm{GA}$.
         The bound $LB$ is tight only when the heaviest jobs appear earliest; the gaps therefore measure deviations from $LB$ rather than true optimality gaps.
 
         Overall, the large-scale results highlight the trade-off between solution quality and computational time.
-        The $\mathbf{LW}$ is the fastest method and achieves the smallest overall mean gap, while $\mathbf{NEH}$ offers intermediate performance at negligible computational cost.
-        The $\mathbf{GA}$ achieves the best solutions on sufficiently large instances but requires substantially more time (\Cref{fig:gap-large}).
+        The $\mathrm{LW}$ is the fastest method and achieves the smallest overall mean gap, while $\mathrm{NEH}$ offers intermediate performance at negligible computational cost.
+        The $\mathrm{GA}$ achieves the best solutions on sufficiently large instances but requires substantially more time (\Cref{fig:gap-large}).
         The choice therefore depends on whether computational speed or solution quality is the priority.
 
         \begin{table}[H]
             \resultstable
             \caption{Large scale, $p_{\max}=40$, weights $\in\{1,\ldots,30\}$}
             \label{tab:results-large-40}
-            \setlength{\tabcolsep}{8.15pt}
+            \setlength{\tabcolsep}{5.5pt}
             \begin{tabular*}{\resultstabwidth}{@{}l r r r r @{\hspace{14pt}} r r r r @{\hspace{14pt}} r r r r@{}}
                 \toprule
                 \multirow{3}{*}{$n$} & \multicolumn{4}{c}{LW} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
@@ -1480,22 +1476,22 @@
                 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}
                 & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
                 \midrule
-                $100$ & $\mathbf{4.4}$ & $10.0$ & $3.4\mathrm{e}{-2}$ & $6.2\mathrm{e}{-2}$ & $5.2$ & $9.7$ & $3.7\mathrm{e}1$ & $6.3\mathrm{e}1$ & $18.3$ & $29.2$ & $9.7\mathrm{e}2$ & $1.1\mathrm{e}3$ \\
-                $120$ & $\mathbf{3.5}$ & $6.5$ & $4.8\mathrm{e}{-2}$ & $1.1\mathrm{e}{-1}$ & $4.8$ & $10.0$ & $6.1\mathrm{e}1$ & $6.3\mathrm{e}1$ & $13.8$ & $32.1$ & $1.8\mathrm{e}3$ & $1.8\mathrm{e}3$ \\
-                $140$ & $\mathbf{3.0}$ & $6.6$ & $5.8\mathrm{e}{-2}$ & $1.2\mathrm{e}{-1}$ & $5.3$ & $8.5$ & $9.7\mathrm{e}1$ & $1.0\mathrm{e}2$ & $9.3$ & $20.6$ & $3.1\mathrm{e}3$ & $3.2\mathrm{e}3$ \\
-                $160$ & $\mathbf{3.4}$ & $7.5$ & $6.7\mathrm{e}{-2}$ & $1.3\mathrm{e}{-1}$ & $4.2$ & $7.4$ & $1.4\mathrm{e}2$ & $1.5\mathrm{e}2$ & $6.5$ & $14.4$ & $5.1\mathrm{e}3$ & $5.3\mathrm{e}3$ \\
-                $180$ & $\mathbf{2.6}$ & $7.8$ & $7.1\mathrm{e}{-2}$ & $9.8\mathrm{e}{-2}$ & $4.9$ & $7.6$ & $2.0\mathrm{e}2$ & $2.2\mathrm{e}2$ & $5.3$ & $13.8$ & $8.0\mathrm{e}3$ & $8.4\mathrm{e}3$ \\
-                $200$ & $\mathbf{2.6}$ & $5.6$ & $7.5\mathrm{e}{-2}$ & $1.2\mathrm{e}{-1}$ & $4.4$ & $7.6$ & $2.7\mathrm{e}2$ & $2.9\mathrm{e}2$ & $4.5$ & $15.7$ & $1.2\mathrm{e}4$ & $1.3\mathrm{e}4$ \\
-                $220$ & $3.4$ & $8.6$ & $8.7\mathrm{e}{-2}$ & $1.1\mathrm{e}{-1}$ & $5.0$ & $8.2$ & $3.6\mathrm{e}2$ & $3.8\mathrm{e}2$ & $\mathbf{3.0}$ & $11.7$ & $1.8\mathrm{e}4$ & $1.8\mathrm{e}4$ \\
-                $240$ & $\mathbf{2.8}$ & $5.9$ & $8.5\mathrm{e}{-2}$ & $1.1\mathrm{e}{-1}$ & $4.7$ & $7.3$ & $4.9\mathrm{e}2$ & $5.1\mathrm{e}2$ & $2.8$ & $7.4$ & $2.6\mathrm{e}4$ & $2.7\mathrm{e}4$ \\
-                $260$ & $2.6$ & $6.0$ & $1.0\mathrm{e}{-1}$ & $1.5\mathrm{e}{-1}$ & $5.4$ & $8.7$ & $5.7\mathrm{e}2$ & $5.8\mathrm{e}2$ & $\mathbf{1.6}$ & $4.7$ & $3.2\mathrm{e}4$ & $3.3\mathrm{e}4$ \\
-                $280$ & $2.5$ & $7.8$ & $9.7\mathrm{e}{-2}$ & $1.2\mathrm{e}{-1}$ & $5.1$ & $7.7$ & $7.2\mathrm{e}2$ & $7.4\mathrm{e}2$ & $\mathbf{0.8}$ & $3.9$ & $4.3\mathrm{e}4$ & $4.4\mathrm{e}4$ \\
-                $300$ & $2.0$ & $4.9$ & $1.1\mathrm{e}{-1}$ & $1.8\mathrm{e}{-1}$ & $4.9$ & $8.6$ & $9.0\mathrm{e}2$ & $9.1\mathrm{e}2$ & $\mathbf{0.9}$ & $5.0$ & $5.3\mathrm{e}4$ & $5.4\mathrm{e}4$ \\
-                $320$ & $3.0$ & $7.6$ & $1.1\mathrm{e}{-1}$ & $1.2\mathrm{e}{-1}$ & $4.4$ & $7.4$ & $1.1\mathrm{e}3$ & $1.1\mathrm{e}3$ & $\mathbf{1.2}$ & $6.3$ & $6.5\mathrm{e}4$ & $6.6\mathrm{e}4$ \\
-                $340$ & $1.5$ & $3.7$ & $1.3\mathrm{e}{-1}$ & $2.4\mathrm{e}{-1}$ & $4.7$ & $7.1$ & $1.3\mathrm{e}3$ & $1.3\mathrm{e}3$ & $\mathbf{1.2}$ & $8.0$ & $7.8\mathrm{e}4$ & $7.9\mathrm{e}4$ \\
-                $360$ & $2.2$ & $5.5$ & $1.3\mathrm{e}{-1}$ & $1.6\mathrm{e}{-1}$ & $4.7$ & $7.0$ & $1.6\mathrm{e}3$ & $1.6\mathrm{e}3$ & $\mathbf{0.9}$ & $7.1$ & $9.3\mathrm{e}4$ & $9.6\mathrm{e}4$ \\
-                $380$ & $2.3$ & $6.2$ & $1.4\mathrm{e}{-1}$ & $1.5\mathrm{e}{-1}$ & $4.5$ & $8.7$ & $1.9\mathrm{e}3$ & $1.9\mathrm{e}3$ & $\mathbf{0.3}$ & $1.5$ & $1.1\mathrm{e}5$ & $1.1\mathrm{e}5$ \\
-                $400$ & $2.0$ & $5.9$ & $1.5\mathrm{e}{-1}$ & $1.7\mathrm{e}{-1}$ & $3.9$ & $8.0$ & $2.2\mathrm{e}3$ & $2.2\mathrm{e}3$ & $\mathbf{0.6}$ & $2.7$ & $1.3\mathrm{e}5$ & $1.3\mathrm{e}5$ \\
+                $100$ & $\mathbf{4.4}$ & $10.0$ & $3.36\mathrm{e}{-2}$ & $6.16\mathrm{e}{-2}$ & $5.2$ & $9.7$ & $3.73\mathrm{e}1$& $6.30\mathrm{e}1$& $18.3$ & $29.2$ & $9.67\mathrm{e}2$& $1.10\mathrm{e}3$ \\
+                $120$ & $\mathbf{3.5}$ & $6.5$ & $4.82\mathrm{e}{-2}$ & $1.05\mathrm{e}{-1}$ & $4.8$ & $10.0$ & $6.08\mathrm{e}1$& $6.32\mathrm{e}1$& $13.8$ & $32.1$ & $1.78\mathrm{e}3$& $1.85\mathrm{e}3$ \\
+                $140$ & $\mathbf{3.0}$ & $6.6$ & $5.76\mathrm{e}{-2}$ & $1.19\mathrm{e}{-1}$ & $5.3$ & $8.5$ & $9.66\mathrm{e}1$& $1.03\mathrm{e}2$& $9.3$ & $20.6$ & $3.11\mathrm{e}3$& $3.20\mathrm{e}3$ \\
+                $160$ & $\mathbf{3.4}$ & $7.5$ & $6.72\mathrm{e}{-2}$ & $1.28\mathrm{e}{-1}$ & $4.2$ & $7.4$ & $1.42\mathrm{e}2$& $1.47\mathrm{e}2$& $6.5$ & $14.4$ & $5.12\mathrm{e}3$& $5.29\mathrm{e}3$ \\
+                $180$ & $\mathbf{2.6}$ & $7.8$ & $7.09\mathrm{e}{-2}$ & $9.77\mathrm{e}{-2}$ & $4.9$ & $7.6$ & $2.04\mathrm{e}2$& $2.15\mathrm{e}2$& $5.3$ & $13.8$ & $8.04\mathrm{e}3$& $8.37\mathrm{e}3$ \\
+                $200$ & $\mathbf{2.6}$ & $5.6$ & $7.51\mathrm{e}{-2}$ & $1.17\mathrm{e}{-1}$ & $4.4$ & $7.6$ & $2.74\mathrm{e}2$& $2.89\mathrm{e}2$& $4.5$ & $15.7$ & $1.22\mathrm{e}4$& $1.26\mathrm{e}4$ \\
+                $220$ & $3.4$ & $8.6$ & $8.67\mathrm{e}{-2}$ & $1.05\mathrm{e}{-1}$ & $5.0$ & $8.2$ & $3.64\mathrm{e}2$& $3.76\mathrm{e}2$& $\mathbf{3.0}$ & $11.7$ & $1.76\mathrm{e}4$& $1.84\mathrm{e}4$ \\
+                $240$ & $\mathbf{2.8}$ & $5.9$ & $8.52\mathrm{e}{-2}$ & $1.11\mathrm{e}{-1}$ & $4.7$ & $7.3$ & $4.86\mathrm{e}2$& $5.08\mathrm{e}2$& $2.8$ & $7.4$ & $2.59\mathrm{e}4$& $2.69\mathrm{e}4$ \\
+                $260$ & $2.6$ & $6.0$ & $9.98\mathrm{e}{-2}$ & $1.48\mathrm{e}{-1}$ & $5.4$ & $8.7$ & $5.69\mathrm{e}2$& $5.84\mathrm{e}2$& $\mathbf{1.6}$ & $4.7$ & $3.24\mathrm{e}4$& $3.29\mathrm{e}4$ \\
+                $280$ & $2.5$ & $7.8$ & $9.67\mathrm{e}{-2}$ & $1.20\mathrm{e}{-1}$ & $5.1$ & $7.7$ & $7.22\mathrm{e}2$& $7.39\mathrm{e}2$& $\mathbf{0.8}$ & $3.9$ & $4.31\mathrm{e}4$& $4.37\mathrm{e}4$ \\
+                $300$ & $2.0$ & $4.9$ & $1.11\mathrm{e}{-1}$ & $1.79\mathrm{e}{-1}$ & $4.9$ & $8.6$ & $8.99\mathrm{e}2$& $9.12\mathrm{e}2$& $\mathbf{0.9}$ & $5.0$ & $5.34\mathrm{e}4$& $5.45\mathrm{e}4$ \\
+                $320$ & $3.0$ & $7.6$ & $1.13\mathrm{e}{-1}$ & $1.23\mathrm{e}{-1}$ & $4.4$ & $7.4$ & $1.10\mathrm{e}3$& $1.12\mathrm{e}3$& $\mathbf{1.2}$ & $6.3$ & $6.50\mathrm{e}4$& $6.59\mathrm{e}4$ \\
+                $340$ & $1.5$ & $3.7$ & $1.27\mathrm{e}{-1}$ & $2.41\mathrm{e}{-1}$ & $4.7$ & $7.1$ & $1.32\mathrm{e}3$& $1.35\mathrm{e}3$& $\mathbf{1.2}$ & $8.0$ & $7.78\mathrm{e}4$& $7.89\mathrm{e}4$ \\
+                $360$ & $2.2$ & $5.5$ & $1.31\mathrm{e}{-1}$ & $1.58\mathrm{e}{-1}$ & $4.7$ & $7.0$ & $1.58\mathrm{e}3$& $1.63\mathrm{e}3$& $\mathbf{0.9}$ & $7.1$ & $9.28\mathrm{e}4$& $9.61\mathrm{e}4$ \\
+                $380$ & $2.3$ & $6.2$ & $1.36\mathrm{e}{-1}$ & $1.50\mathrm{e}{-1}$ & $4.5$ & $8.7$ & $1.87\mathrm{e}3$& $1.92\mathrm{e}3$& $\mathbf{0.3}$ & $1.5$ & $1.09\mathrm{e}5$& $1.11\mathrm{e}5$ \\
+                $400$ & $2.0$ & $5.9$ & $1.46\mathrm{e}{-1}$ & $1.69\mathrm{e}{-1}$ & $3.9$ & $8.0$ & $2.18\mathrm{e}3$& $2.22\mathrm{e}3$& $\mathbf{0.6}$ & $2.7$ & $1.28\mathrm{e}5$& $1.30\mathrm{e}5$ \\
                 \bottomrule
             \end{tabular*}
         \end{table}
@@ -1504,7 +1500,7 @@
             \resultstable
             \caption{Large scale, $p_{\max}=80$, weights $\in\{1,\ldots,30\}$}
             \label{tab:results-large-80}
-            \setlength{\tabcolsep}{8.15pt}
+            \setlength{\tabcolsep}{5.5pt}
             \begin{tabular*}{\resultstabwidth}{@{}l r r r r @{\hspace{14pt}} r r r r @{\hspace{14pt}} r r r r@{}}
                 \toprule
                 \multirow{3}{*}{$n$} & \multicolumn{4}{c}{LW} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
@@ -1513,22 +1509,22 @@
                 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}
                 & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
                 \midrule
-                $100$ & $\mathbf{3.6}$ & $8.9$ & $4.1\mathrm{e}{-2}$ & $1.3\mathrm{e}{-1}$ & $4.6$ & $10.8$ & $3.6\mathrm{e}1$ & $4.1\mathrm{e}1$ & $16.0$ & $30.1$ & $9.6\mathrm{e}2$ & $1.0\mathrm{e}3$ \\
-                $120$ & $\mathbf{4.4}$ & $12.9$ & $4.3\mathrm{e}{-2}$ & $7.1\mathrm{e}{-2}$ & $5.4$ & $9.3$ & $6.1\mathrm{e}1$ & $6.2\mathrm{e}1$ & $17.1$ & $38.5$ & $1.8\mathrm{e}3$ & $1.8\mathrm{e}3$ \\
-                $140$ & $\mathbf{3.5}$ & $10.7$ & $5.2\mathrm{e}{-2}$ & $9.4\mathrm{e}{-2}$ & $4.4$ & $7.7$ & $9.6\mathrm{e}1$ & $9.9\mathrm{e}1$ & $12.6$ & $25.3$ & $3.1\mathrm{e}3$ & $3.2\mathrm{e}3$ \\
-                $160$ & $\mathbf{3.2}$ & $11.4$ & $6.8\mathrm{e}{-2}$ & $1.1\mathrm{e}{-1}$ & $5.8$ & $9.9$ & $1.4\mathrm{e}2$ & $1.5\mathrm{e}2$ & $8.1$ & $25.8$ & $5.1\mathrm{e}3$ & $5.2\mathrm{e}3$ \\
-                $180$ & $\mathbf{3.0}$ & $7.3$ & $6.7\mathrm{e}{-2}$ & $9.6\mathrm{e}{-2}$ & $5.3$ & $9.0$ & $2.1\mathrm{e}2$ & $2.5\mathrm{e}2$ & $5.9$ & $14.3$ & $8.3\mathrm{e}3$ & $8.5\mathrm{e}3$ \\
-                $200$ & $\mathbf{2.7}$ & $8.6$ & $9.3\mathrm{e}{-2}$ & $2.5\mathrm{e}{-1}$ & $4.7$ & $7.2$ & $2.8\mathrm{e}2$ & $2.9\mathrm{e}2$ & $4.9$ & $10.1$ & $1.2\mathrm{e}4$ & $1.3\mathrm{e}4$ \\
-                $220$ & $\mathbf{2.9}$ & $8.0$ & $8.0\mathrm{e}{-2}$ & $1.1\mathrm{e}{-1}$ & $4.8$ & $8.7$ & $3.8\mathrm{e}2$ & $4.0\mathrm{e}2$ & $3.6$ & $9.0$ & $1.8\mathrm{e}4$ & $1.9\mathrm{e}4$ \\
-                $240$ & $2.9$ & $6.4$ & $8.9\mathrm{e}{-2}$ & $1.2\mathrm{e}{-1}$ & $6.0$ & $8.9$ & $4.5\mathrm{e}2$ & $4.8\mathrm{e}2$ & $\mathbf{1.9}$ & $6.5$ & $2.4\mathrm{e}4$ & $2.5\mathrm{e}4$ \\
-                $260$ & $1.8$ & $5.3$ & $9.1\mathrm{e}{-2}$ & $1.1\mathrm{e}{-1}$ & $5.2$ & $9.3$ & $5.7\mathrm{e}2$ & $5.8\mathrm{e}2$ & $\mathbf{1.6}$ & $8.0$ & $3.2\mathrm{e}4$ & $3.3\mathrm{e}4$ \\
-                $280$ & $2.3$ & $4.8$ & $1.0\mathrm{e}{-1}$ & $1.3\mathrm{e}{-1}$ & $5.5$ & $9.2$ & $7.2\mathrm{e}2$ & $7.3\mathrm{e}2$ & $\mathbf{0.8}$ & $4.3$ & $4.3\mathrm{e}4$ & $4.4\mathrm{e}4$ \\
-                $300$ & $2.8$ & $6.3$ & $1.0\mathrm{e}{-1}$ & $1.2\mathrm{e}{-1}$ & $5.4$ & $7.5$ & $9.0\mathrm{e}2$ & $9.1\mathrm{e}2$ & $\mathbf{2.0}$ & $11.8$ & $5.3\mathrm{e}4$ & $5.4\mathrm{e}4$ \\
-                $320$ & $1.9$ & $4.7$ & $1.2\mathrm{e}{-1}$ & $2.3\mathrm{e}{-1}$ & $5.7$ & $8.5$ & $1.1\mathrm{e}3$ & $1.1\mathrm{e}3$ & $\mathbf{1.4}$ & $6.1$ & $6.5\mathrm{e}4$ & $6.6\mathrm{e}4$ \\
-                $340$ & $1.4$ & $3.0$ & $1.2\mathrm{e}{-1}$ & $1.3\mathrm{e}{-1}$ & $5.6$ & $8.6$ & $1.3\mathrm{e}3$ & $1.4\mathrm{e}3$ & $\mathbf{0.8}$ & $3.3$ & $7.8\mathrm{e}4$ & $8.0\mathrm{e}4$ \\
-                $360$ & $1.7$ & $3.2$ & $1.3\mathrm{e}{-1}$ & $1.5\mathrm{e}{-1}$ & $5.8$ & $8.2$ & $1.6\mathrm{e}3$ & $1.6\mathrm{e}3$ & $\mathbf{1.1}$ & $7.3$ & $9.3\mathrm{e}4$ & $9.4\mathrm{e}4$ \\
-                $380$ & $1.8$ & $4.0$ & $1.4\mathrm{e}{-1}$ & $1.6\mathrm{e}{-1}$ & $5.9$ & $9.1$ & $1.9\mathrm{e}3$ & $1.9\mathrm{e}3$ & $\mathbf{0.8}$ & $2.9$ & $1.1\mathrm{e}5$ & $1.1\mathrm{e}5$ \\
-                $400$ & $1.7$ & $4.6$ & $1.5\mathrm{e}{-1}$ & $2.1\mathrm{e}{-1}$ & $5.8$ & $9.1$ & $2.2\mathrm{e}3$ & $2.3\mathrm{e}3$ & $\mathbf{0.8}$ & $2.9$ & $1.3\mathrm{e}5$ & $1.3\mathrm{e}5$ \\
+                $100$ & $\mathbf{3.6}$ & $8.9$ & $4.09\mathrm{e}{-2}$ & $1.25\mathrm{e}{-1}$ & $4.6$ & $10.8$ & $3.63\mathrm{e}1$& $4.12\mathrm{e}1$& $16.0$ & $30.1$ & $9.64\mathrm{e}2$& $1.02\mathrm{e}3$ \\
+                $120$ & $\mathbf{4.4}$ & $12.9$ & $4.30\mathrm{e}{-2}$ & $7.13\mathrm{e}{-2}$ & $5.4$ & $9.3$ & $6.09\mathrm{e}1$& $6.21\mathrm{e}1$& $17.1$ & $38.5$ & $1.79\mathrm{e}3$& $1.85\mathrm{e}3$ \\
+                $140$ & $\mathbf{3.5}$ & $10.7$ & $5.21\mathrm{e}{-2}$ & $9.38\mathrm{e}{-2}$ & $4.4$ & $7.7$ & $9.61\mathrm{e}1$& $9.95\mathrm{e}1$& $12.6$ & $25.3$ & $3.10\mathrm{e}3$& $3.24\mathrm{e}3$ \\
+                $160$ & $\mathbf{3.2}$ & $11.4$ & $6.84\mathrm{e}{-2}$ & $1.12\mathrm{e}{-1}$ & $5.8$ & $9.9$ & $1.42\mathrm{e}2$& $1.51\mathrm{e}2$& $8.1$ & $25.8$ & $5.10\mathrm{e}3$& $5.23\mathrm{e}3$ \\
+                $180$ & $\mathbf{3.0}$ & $7.3$ & $6.74\mathrm{e}{-2}$ & $9.56\mathrm{e}{-2}$ & $5.3$ & $9.0$ & $2.08\mathrm{e}2$& $2.50\mathrm{e}2$& $5.9$ & $14.3$ & $8.27\mathrm{e}3$& $8.55\mathrm{e}3$ \\
+                $200$ & $\mathbf{2.7}$ & $8.6$ & $9.31\mathrm{e}{-2}$ & $2.55\mathrm{e}{-1}$ & $4.7$ & $7.2$ & $2.75\mathrm{e}2$& $2.88\mathrm{e}2$& $4.9$ & $10.1$ & $1.22\mathrm{e}4$& $1.26\mathrm{e}4$ \\
+                $220$ & $\mathbf{2.9}$ & $8.0$ & $7.99\mathrm{e}{-2}$ & $1.12\mathrm{e}{-1}$ & $4.8$ & $8.7$ & $3.75\mathrm{e}2$& $3.97\mathrm{e}2$& $3.6$ & $9.0$ & $1.83\mathrm{e}4$& $1.93\mathrm{e}4$ \\
+                $240$ & $2.9$ & $6.4$ & $8.86\mathrm{e}{-2}$ & $1.17\mathrm{e}{-1}$ & $6.0$ & $8.9$ & $4.55\mathrm{e}2$& $4.80\mathrm{e}2$& $\mathbf{1.9}$ & $6.5$ & $2.40\mathrm{e}4$& $2.54\mathrm{e}4$ \\
+                $260$ & $1.8$ & $5.3$ & $9.07\mathrm{e}{-2}$ & $1.07\mathrm{e}{-1}$ & $5.2$ & $9.3$ & $5.71\mathrm{e}2$& $5.82\mathrm{e}2$& $\mathbf{1.6}$ & $8.0$ & $3.24\mathrm{e}4$& $3.32\mathrm{e}4$ \\
+                $280$ & $2.3$ & $4.8$ & $1.02\mathrm{e}{-1}$ & $1.27\mathrm{e}{-1}$ & $5.5$ & $9.2$ & $7.22\mathrm{e}2$& $7.31\mathrm{e}2$& $\mathbf{0.8}$ & $4.3$ & $4.31\mathrm{e}4$& $4.38\mathrm{e}4$ \\
+                $300$ & $2.8$ & $6.3$ & $1.03\mathrm{e}{-1}$ & $1.23\mathrm{e}{-1}$ & $5.4$ & $7.5$ & $8.98\mathrm{e}2$& $9.13\mathrm{e}2$& $\mathbf{2.0}$ & $11.8$ & $5.32\mathrm{e}4$& $5.41\mathrm{e}4$ \\
+                $320$ & $1.9$ & $4.7$ & $1.21\mathrm{e}{-1}$ & $2.31\mathrm{e}{-1}$ & $5.7$ & $8.5$ & $1.10\mathrm{e}3$& $1.12\mathrm{e}3$& $\mathbf{1.4}$ & $6.1$ & $6.47\mathrm{e}4$& $6.62\mathrm{e}4$ \\
+                $340$ & $1.4$ & $3.0$ & $1.19\mathrm{e}{-1}$ & $1.33\mathrm{e}{-1}$ & $5.6$ & $8.6$ & $1.33\mathrm{e}3$& $1.36\mathrm{e}3$& $\mathbf{0.8}$ & $3.3$ & $7.80\mathrm{e}4$& $7.97\mathrm{e}4$ \\
+                $360$ & $1.7$ & $3.2$ & $1.27\mathrm{e}{-1}$ & $1.51\mathrm{e}{-1}$ & $5.8$ & $8.2$ & $1.58\mathrm{e}3$& $1.63\mathrm{e}3$& $\mathbf{1.1}$ & $7.3$ & $9.26\mathrm{e}4$& $9.39\mathrm{e}4$ \\
+                $380$ & $1.8$ & $4.0$ & $1.37\mathrm{e}{-1}$ & $1.56\mathrm{e}{-1}$ & $5.9$ & $9.1$ & $1.87\mathrm{e}3$& $1.94\mathrm{e}3$& $\mathbf{0.8}$ & $2.9$ & $1.09\mathrm{e}5$& $1.13\mathrm{e}5$ \\
+                $400$ & $1.7$ & $4.6$ & $1.48\mathrm{e}{-1}$ & $2.07\mathrm{e}{-1}$ & $5.8$ & $9.1$ & $2.19\mathrm{e}3$& $2.26\mathrm{e}3$& $\mathbf{0.8}$ & $2.9$ & $1.27\mathrm{e}5$& $1.29\mathrm{e}5$ \\
                 \bottomrule
             \end{tabular*}
         \end{table}
@@ -1570,21 +1566,21 @@
 
         This paper studies the two-machine flow shop scheduling problem with the maximum weighted completion time objective.
         The problem is strongly NP-hard, and its optimal schedules exhibit a weight-based block structure, with Johnson's order within each block and blocks arranged in non-increasing order of weight.
-        Exploiting this structure, we develop the $\mathbf{DP}$, an FPTAS for a fixed number of weight classes, and three heuristics  the $\mathbf{LW}$ rule, $\mathbf{NEH}$ and the $\mathbf{GA}$.
+        Exploiting this structure, we develop the $\mathrm{DP}$, an FPTAS for a fixed number of weight classes, and three heuristics  the $\mathrm{LW}$ rule, $\mathrm{NEH}$ and the $\mathrm{GA}$.
 
         Several directions for future research remain.
         First, the problem can be extended to more than two machines.
-        Although the existing $\mathbf{MILP}$ formulation provides a starting point, the single-permutation property established for two machines does not generally hold for $m>2$.
+        Although the existing $\mathrm{MILP}$ formulation provides a starting point, the single-permutation property established for two machines does not generally hold for $m>2$.
         The extended model must therefore account for machine-specific sequencing decisions and precedence constraints between operations.
         Investigating the structural properties of optimal schedules in this setting may also provide a basis for developing more efficient exact and approximation algorithms.
 
-        Second, for instances with more distinct weight classes, branch-and-bound offers a promising alternative to the $\mathbf{DP}$, whose computational requirements increase rapidly with $K$.
+        Second, for instances with more distinct weight classes, branch-and-bound offers a promising alternative to the $\mathrm{DP}$, whose computational requirements increase rapidly with $K$.
         The weight-based block structure can guide branching decisions, while the lower bounds can be used to evaluate partial schedules and prune unpromising nodes.
         Further improvements may be obtained by combining these bounds with dominance rules and heuristic solutions to establish strong upper bounds at early stages of the search.
 
         Third, the proposed heuristics can be extended to distributed flow shops, where job assignment to production shops and job sequencing must be optimized jointly.
-        The $\mathbf{NEH}$ algorithm can be adapted to evaluate job insertions across candidate shops, accounting for both assignment and sequencing decisions.
-        For the $\mathbf{GA}$, the chromosome can be extended to encode shop assignments together with job sequences, while the weight-block mutation can be retained or modified to preserve the structural advantages identified in this study.
+        The $\mathrm{NEH}$ algorithm can be adapted to evaluate job insertions across candidate shops, accounting for both assignment and sequencing decisions.
+        For the $\mathrm{GA}$, the chromosome can be extended to encode shop assignments together with job sequences, while the weight-block mutation can be retained or modified to preserve the structural advantages identified in this study.
         These extensions may provide effective solution approaches for larger and more complex production environments.
 
         \bibliographystyle{apalike}

@@ -15,12 +15,12 @@ own:
   two processing-time ranges [1,40] and [1,80] of the other two groups, so that
   the three groups of the study share them.  The weights of a group are drawn
   from a geometric ladder, so that the weight classes are decades apart: the
-  first group uses the two values {1, 10} at 40, 50 and 60 jobs, and the second
-  the three values {1, 10, 100} at 10, 20, 30 and 40 jobs.  The state space of
-  the exact method grows exponentially in the number of distinct weights, which
-  is why the ladder of the larger sizes carries two values and the one of the
-  smaller sizes three.  The fourteen configurations are each replicated 20
-  times, for the 280 instances of the two groups.
+  first group uses the two values {1, 10} at 20, 40, 50, 60, 120 and 140 jobs,
+  and the second the three values {1, 10, 100} at 10, 20, 30 and 40 jobs.  The
+  state space of the exact method grows exponentially in the number of distinct
+  weights, which is why the ladder of the larger sizes carries two values and
+  the one of the smaller sizes three.  The twenty configurations are each
+  replicated 20 times, for the 400 instances of the two groups.
 
 * **Methods.**  The dynamic program of the paper alone.  Its running time
   O(n K V^(3K-3)) grows so fast in the number K of distinct weights that the
@@ -102,7 +102,7 @@ ARCHIVE_DIR = RECORD_DIR / "结果存档"
 #: the number of distinct weights, which is why the ladder of the larger sizes
 #: carries two values and the one of the smaller sizes three.
 DP_GROUPS = {
-    "dp1": {"weights": (1, 10), "sizes": (40, 50, 60)},
+    "dp1": {"weights": (1, 10), "sizes": (20, 40, 50, 60, 120, 140)},
     "dp2": {"weights": (1, 10, 100), "sizes": (10, 20, 30, 40)},
 }
 
@@ -112,10 +112,10 @@ DP_GROUPS = {
 RANGES = (40, 80)
 
 #: The configurations of the two groups, and the only place where they are
-#: written down: the three instance sizes of the first group crossed with its two
+#: written down: the six instance sizes of the first group crossed with its two
 #: weight values and the two processing-time ranges, and the four sizes of the
-#: second crossed with its three, for six and eight configurations.  20
-#: instances each, for the 14 configurations and 280 instances of the two
+#: second crossed with its three, for twelve and eight configurations.  20
+#: instances each, for the 20 configurations and 400 instances of the two
 #: groups.  "configs" holds one (n, K, processing-time range) triple per
 #: configuration, K being the number of weight values of the group; "instances"
 #: is the replication count; "methods" the method the group is reported on; and
