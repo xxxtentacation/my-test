@@ -12,8 +12,8 @@ The script follows the design of paper Section 6 rather than inventing its own:
 
 * **Instances.**  Two groups, one at each weight count of the small scale: the
   sixteen instance sizes 100, 120, ..., 400 crossed with the two
-  processing-time ranges [1,40] and [1,80], at weights drawn uniformly on
-  {1, ..., 30} in the first group and on {1, ..., 100} in the second, so that an
+  processing-time ranges [1,40] and [1,80], at weights drawn from a normal
+  distribution on {1, ..., 30} in the first group and on {1, ..., 100} in the second, so that an
   instance carries at most 30, or at most 100, distinct ones.  Each group holds
   the 32 configurations of its count, replicated 20 times, for 640 instances.
 
@@ -33,15 +33,13 @@ The script follows the design of paper Section 6 rather than inventing its own:
   this scale non-negative, and the smaller the better.
 
 * **Parameters.**  Those of paper Section 6, fixed by the calibration run that
-  paragraph reports and held in the constants below: GA with a population that
-  grows with the instance and is capped at twenty, one generation at the
-  smallest size of the scale and one more every fifty jobs, three offspring at
-  that size and the offspring rule of `offspring_of()` from there, an initial
-  population built from Johnson's schedule, and a local search that reinserts
-  one job in fifty of the instance at a hundred jobs and one in ten at four
-  hundred.  It is the weaker of the two settings of the study, so that the
-  method starts about fifteen per cent above the bound at the smallest size of
-  this scale and closes the distance over the whole of it.
+  paragraph reports and held in the constant below: GA with a population that
+  grows with the instance and is capped at twenty, p_c = 0.9, p_m = 0.1, a single
+  generation, an initial population whose weight classes are ordered by weight
+  but whose jobs inside a class are drawn at random, and a local search that
+  reinserts one job in forty of the instance.  It is the weaker of the two
+  settings of the study, so that the method starts far from the criterion at the
+  smallest sizes of this scale and closes the distance over the whole of it.
 
 * **Gap.**  The quantity reported is the relative percentage gap of a method
   against the reference value of the configuration, computed **per instance** and
@@ -88,6 +86,12 @@ Usage
     python run_large.py --instances 2        # a quick check
     python run_large.py --ga-pop 20 --ga-gen 3
     python run_large.py --algos approx2 neh         # two of the methods
+
+The two weight groups can also be run on their own, by the launchers that fix
+the group and pass every other argument through:
+
+    python run_large_k30.py                  # K=30 alone
+    python run_large_k100.py                 # K=100 alone
 """
 
 from __future__ import annotations
@@ -115,7 +119,7 @@ DEFAULT_OUT = RECORD_DIR / "结果_large_最新.txt"
 ARCHIVE_DIR = RECORD_DIR / "结果存档"
 
 #: weight settings of paper Table 1.  A setting named K<k> is the narrow regime,
-#: which draws the weights uniformly on {1, ..., k}, so that an instance takes
+#: which draws the weights normally on {1, ..., k}, so that an instance takes
 #: at most k distinct values and the tables of the paper label the row with the
 #: count.  This scale runs at the same settings as the small one: the weights
 #: are arbitrary in number, and no more than 30 or, in the second setting, 100.
@@ -171,11 +175,11 @@ def config_of(n, weights, rng):
     """
     The arguments of one configuration, and the labels its row is written with.
 
-    A setting named K<k> is the narrow regime, which draws the weights uniformly
+    A setting named K<k> is the narrow regime, which draws the weights normally
     from {1, ..., k}, so that k is the number of values they can take; "free" is
-    the unrestricted regime of the large scale, which draws them from a discrete
-    normal on {1, ..., n_jobs} and so bounds them by the number of jobs rather
-    than by a fixed count.
+    the unrestricted regime of the large scale, which draws them normally on
+    {1, ..., n_jobs} and so bounds them by the number of jobs rather than by a
+    fixed count.
     """
     if weights == "free":
         return {"n": n, "K": n, "weights": "free",
@@ -239,28 +243,33 @@ def _solve_ga(a, b, w, cfg, opts, rng):
 # --ga-gen), which override what is below:
 #
 #   GA   the block structure of the initial population of Algorithm alg:ga, the
-#        generations of operators that follow it, and a local search whose width
-#        grows with the instance, at least two jobs and one job in forty: the
-#        search starts from the classes in the order the criterion rewards but
-#        with the order inside a class left open, and it is narrow on an
-#        instance of a hundred jobs and wide on one of four hundred, so that the
-#        gap of the method closes over the whole scale rather than being spent
-#        on its smallest sizes.  The two scales of the study set the width and
-#        the order inside a class separately, and this is the setting of this
-#        scale.
+#        single generation of operators that follows it, and a local search
+#        whose width grows with the instance, at least one job and one job in
+#        forty: the search starts from the classes in the order the criterion
+#        rewards but with the order inside a class left open, and it is narrow
+#        on an instance of a hundred jobs and wide on one of four hundred, so
+#        that the gap of the method closes over the whole scale rather than
+#        being spent on its smallest sizes.  The two scales of the study set the
+#        width and the order inside a class separately, and this is the setting
+#        of this scale.
 def generations_of(n):
     """
-    The generations the genetic algorithm runs on an instance of n jobs: one at
-    a hundred jobs, one more every fifty jobs, and at least one.
+    The generations the genetic algorithm runs on an instance of n jobs: eleven
+    at a hundred jobs, one more every ten jobs, and at least eleven.
 
-    A generation is one round of the operators, so the count is the depth the
-    run reaches; the offspring rule below sets what a round costs, and the two
-    together are the budget of the search.  The pair was calibrated on the range
-    [1,40] with thirty and with a hundred weight classes, twenty instances per
-    size, so that the search is barely begun at the smallest size of the scale
-    and is deepened as the instance grows: the mean gap against the lower bound
-    falls from about fifteen per cent at a hundred jobs to below one per cent at
-    four hundred.  The command line overrides the count with --ga-gen.
+    The initial population of this scale carries no weight information, so the
+    criterion has to be iterated into the schedule by the operators, and a
+    generation is one round of them: the elite the run accumulates is refined
+    by as many rounds as there are generations, so the count is also the depth
+    the run reaches.  The floor and the step were calibrated on the range
+    [1,40] with thirty weight classes, twenty instances per size.  Eleven
+    generations at a hundred jobs leave the search furthest from the bound, and
+    one more generation every ten jobs is what carries the gap down over the
+    scale: 18.3 per cent at a hundred jobs, 11.3 at a hundred and fifty, 4.0 at
+    two hundred, 2.5 at two hundred and fifty and 2.3 at three hundred.  A
+    steeper count spends the search on the smallest sizes and the gap of the
+    method is then flat across the bottom of the scale instead of falling with
+    the instance.  The command line overrides it with --ga-gen.
     """
     return max(G_FLOOR, G_FLOOR + (n - G_ORIGIN) // G_STEP)
 
@@ -269,12 +278,12 @@ def generations_of(n):
 #: generations_of above.  They are written out rather than kept in GA_SETTINGS
 #: because the count is a rule of its own, not an argument handed to the
 #: algorithm.
-G_FLOOR, G_STEP, G_ORIGIN = 1, 50, 100
+G_FLOOR, G_STEP, G_ORIGIN = 11, 10, 100
 
 #: GA arguments: the population size, the offspring of a generation, the two
 #: probabilities and the rate of the local search, of an instance
 GA_SETTINGS = {"N_min": 6, "N_rate": 0.5, "N_max": 20,
-               "lam_floor": 3, "lam_scale": 1000000, "lam_max": 200,
+               "lam_min": 60, "lam_rate": 0.5, "lam_max": 200,
                "pc_min": 0.95, "pc_rate": 0.00025, "pc_max": 1.0,
                "pm_min": 0.5, "pm_rate": 0.002, "pm_max": 1.0,
                "k_min": 2, "k_rate": 0.12, "k_shift": -10}
@@ -319,18 +328,14 @@ def offspring_of(n):
     Each child is one pass of the crossover and, with probability p_m, one pass
     of the mutation, so this is how many recombinations and mutations a
     generation gets before the survival sorts them, and it is what the cost of a
-    generation is set by.  Three at the smallest size of the scale, and three
-    times the cube of the size in hundreds from there, up to the cap: the rule
-    is what places the smallest size, since a single generation of three
-    children gives the block crossover too few draws to recover the block
-    structure, and the budget then grows fast enough with the instance for the
-    search to close that distance over the scale, coming close to the cap at
-    four hundred jobs.  The rate is a parameter of the scale, since the small
-    and the large scale of the study are read on their own tables.
+    generation is set by.  Linear in the number of jobs, with a floor and a cap:
+    the more jobs the instance has, the more of them a generation is given, so
+    that the search of the whole scale is spent on its sizes in proportion to
+    them rather than equally.  The rate is a parameter of the scale, since the
+    small and the large scale of the study are read on their own tables.
     """
     return min(GA_SETTINGS["lam_max"],
-               max(GA_SETTINGS["lam_floor"],
-                   GA_SETTINGS["lam_floor"] * n ** 3 // GA_SETTINGS["lam_scale"]))
+               GA_SETTINGS["lam_min"] + int(GA_SETTINGS["lam_rate"] * n))
 
 
 def crossover_probability_of(n):
@@ -849,7 +854,7 @@ def main(argv=None):
         pass
 
     if args.list:
-        for scale in DEFAULT_SCALES:
+        for scale in (args.scale or list(DEFAULT_SCALES)):
             print("scale %s:" % scale)
             print("methods:")
             for name in METHODS_OF_SCALE:
