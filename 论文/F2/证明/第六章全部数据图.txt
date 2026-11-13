@@ -1,0 +1,427 @@
+        \begin{table}[H]
+            \resultstable
+            \setlength{\tabcolsep}{27.0pt}
+            \caption{DP, weights $\in\{1,10\}$}
+            \label{tab:results-dp-k2}
+            \begin{tabular}{@{}l r r r @{\hspace{14pt}} r r r@{}}
+                \toprule
+                \multirow{3}{*}{$n$} & \multicolumn{3}{c}{$a_j,b_j\in[1,40]$} & \multicolumn{3}{c}{$a_j,b_j\in[1,80]$} \\
+                \cmidrule(lr){2-4}\cmidrule(lr){5-7}
+                & \multicolumn{2}{c}{time (s)} & opt. & \multicolumn{2}{c}{time (s)} & opt. \\
+                \cmidrule(lr){2-3}\cmidrule(lr){5-6}
+                & avg & max & & avg & max & \\
+                \midrule
+                $20$ & $0.01$ & $0.11$ & $20/20$ & $0.01$ & $0.08$ & $20/20$ \\
+                $40$ & $2.41$ & $7.02$ & $20/20$ & $7.95$ & $32.37$ & $20/20$ \\
+                $50$ & $11.80$ & $24.25$ & $20/20$ & $28.90$ & $63.55$ & $20/20$ \\
+                $60$ & $25.05$ & $58.58$ & $20/20$ & $78.55$ & $176.76$ & $20/20$ \\
+                $120$ & $269.83$ & $600.00$ & $19/20$ & $565.30$ & $600.00$ & $2/20$ \\
+                $140$ & $405.57$ & $600.00$ & $16/20$ & $--$ & $--$ & $--$ \\
+                \bottomrule
+            \end{tabular}
+            \par\vspace{2pt}
+        \end{table}
+
+        \begin{table}[H]
+            \resultstable
+            \setlength{\tabcolsep}{28.5pt}
+            \caption{DP, weights $\in\{1,10,100\}$}
+            \label{tab:results-dp-k3}
+            \begin{tabular}{@{}l r r r @{\hspace{14pt}} r r r@{}}
+                \toprule
+                \multirow{3}{*}{$n$} & \multicolumn{3}{c}{$a_j,b_j\in[1,40]$} & \multicolumn{3}{c}{$a_j,b_j\in[1,80]$} \\
+                \cmidrule(lr){2-4}\cmidrule(lr){5-7}
+                & \multicolumn{2}{c}{time (s)} & opt. & \multicolumn{2}{c}{time (s)} & opt. \\
+                \cmidrule(lr){2-3}\cmidrule(lr){5-6}
+                & avg & max & & avg & max & \\
+                \midrule
+                $10$ & $0.00$ & $0.01$ & $20/20$ & $0.00$ & $0.00$ & $20/20$ \\
+                $20$ & $1.09$ & $4.21$ & $20/20$ & $1.59$ & $6.56$ & $20/20$ \\
+                $30$ & $58.67$ & $417.68$ & $20/20$ & $91.51$ & $600.00$ & $19/20$ \\
+                $40$ & $--$ & $--$ & $--$ & $--$ & $--$ & $--$ \\
+                \bottomrule
+            \end{tabular}
+            \par\vspace{2pt}
+        \end{table}
+
+
+######################################################################################################
+
+
+        \begin{table}[H]
+            \resultstable
+            \setlength{\tabcolsep}{4.9pt}
+            \caption{Small scale, $p_{\max}=40$, weights $\in\{1,\ldots,30\}$}
+            \label{tab:results-small-40}
+            \begin{tabular}{@{}l r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r@{}}
+                \toprule
+                \multirow{3}{*}{$n$} & \multicolumn{2}{c}{MILP} & \multicolumn{4}{c}{LW} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
+                \cmidrule(lr){2-3}\cmidrule(lr){4-7}\cmidrule(lr){8-11}\cmidrule(lr){12-15}
+                & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} \\
+                \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}\cmidrule(lr){14-15}
+                & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
+                \midrule
+                $10$ & $7.0\mathrm{e}1$ & $1.2\mathrm{e}2$ & $7.3$ & $17.2$ & $8.8\mathrm{e}{-3}$ & $2.5\mathrm{e}{-2}$ & $\mathbf{3.4}$ & $24.9$ & $7.3\mathrm{e}{-2}$ & $7.9\mathrm{e}{-2}$ & $12.6$ & $30.6$ & $6.4\mathrm{e}{-1}$ & $7.2\mathrm{e}{-1}$ \\
+                $15$ & $1.9\mathrm{e}2$ & $4.7\mathrm{e}2$ & $6.8$ & $16.9$ & $9.9\mathrm{e}{-3}$ & $1.9\mathrm{e}{-2}$ & $\mathbf{2.1}$ & $8.5$ & $1.9\mathrm{e}{-1}$ & $2.0\mathrm{e}{-1}$ & $18.2$ & $49.5$ & $2.6\mathrm{e}0$ & $2.9\mathrm{e}0$ \\
+                $20$ & $5.6\mathrm{e}2$ & $1.9\mathrm{e}3$ & $6.2$ & $19.9$ & $1.3\mathrm{e}{-2}$ & $2.3\mathrm{e}{-2}$ & $\mathbf{2.7}$ & $11.7$ & $3.8\mathrm{e}{-1}$ & $4.1\mathrm{e}{-1}$ & $12.1$ & $33.0$ & $1.0\mathrm{e}1$ & $1.1\mathrm{e}1$ \\
+                $25$ & $1.5\mathrm{e}3$ & $5.7\mathrm{e}3$ & $5.6$ & $21.5$ & $1.4\mathrm{e}{-2}$ & $2.5\mathrm{e}{-2}$ & $\mathbf{3.7}$ & $17.5$ & $7.0\mathrm{e}{-1}$ & $7.4\mathrm{e}{-1}$ & $15.3$ & $57.5$ & $2.8\mathrm{e}1$ & $3.3\mathrm{e}1$ \\
+                $30$ & $2.8\mathrm{e}3$ & $1.0\mathrm{e}4$ & $5.6$ & $14.9$ & $1.4\mathrm{e}{-2}$ & $2.6\mathrm{e}{-2}$ & $\mathbf{3.9}$ & $10.8$ & $1.1\mathrm{e}0$ & $1.2\mathrm{e}0$ & $11.6$ & $26.7$ & $6.2\mathrm{e}1$ & $7.0\mathrm{e}1$ \\
+                $35$ & $8.4\mathrm{e}3$ & $3.6\mathrm{e}4$ & $5.7$ & $12.2$ & $1.4\mathrm{e}{-2}$ & $2.4\mathrm{e}{-2}$ & $\mathbf{3.2}$ & $13.8$ & $1.8\mathrm{e}0$ & $1.8\mathrm{e}0$ & $12.8$ & $38.7$ & $1.2\mathrm{e}2$ & $1.3\mathrm{e}2$ \\
+                $40$ & $2.1\mathrm{e}4$ & $1.2\mathrm{e}5$ & $4.9$ & $10.6$ & $1.7\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{2.4}$ & $6.2$ & $2.5\mathrm{e}0$ & $2.6\mathrm{e}0$ & $7.0$ & $17.5$ & $2.4\mathrm{e}2$ & $2.5\mathrm{e}2$ \\
+                $45$ & $3.1\mathrm{e}4$ & $2.5\mathrm{e}5$ & $6.0$ & $19.0$ & $1.8\mathrm{e}{-2}$ & $3.8\mathrm{e}{-2}$ & $\mathbf{3.7}$ & $10.3$ & $3.5\mathrm{e}0$ & $3.7\mathrm{e}0$ & $8.8$ & $24.7$ & $4.1\mathrm{e}2$ & $4.5\mathrm{e}2$ \\
+                $50$ & $8.4\mathrm{e}4$ & $5.1\mathrm{e}5$ & $4.5$ & $13.0$ & $1.8\mathrm{e}{-2}$ & $3.1\mathrm{e}{-2}$ & $\mathbf{3.6}$ & $8.4$ & $4.8\mathrm{e}0$ & $4.9\mathrm{e}0$ & $6.5$ & $22.9$ & $6.7\mathrm{e}2$ & $7.3\mathrm{e}2$ \\
+                $55$ & $1.1\mathrm{e}5$ & $5.2\mathrm{e}5$ & $4.7$ & $10.9$ & $2.7\mathrm{e}{-2}$ & $4.7\mathrm{e}{-2}$ & $\mathbf{3.1}$ & $11.9$ & $6.2\mathrm{e}0$ & $6.4\mathrm{e}0$ & $4.2$ & $14.6$ & $1.0\mathrm{e}3$ & $1.2\mathrm{e}3$ \\
+                $60$ & $1.6\mathrm{e}5$ & $6.0\mathrm{e}5$ & $4.7$ & $11.7$ & $2.5\mathrm{e}{-2}$ & $4.2\mathrm{e}{-2}$ & $4.3$ & $8.8$ & $8.0\mathrm{e}0$ & $8.2\mathrm{e}0$ & $\mathbf{1.7}$ & $8.2$ & $1.7\mathrm{e}3$ & $1.9\mathrm{e}3$ \\
+                \bottomrule
+            \end{tabular}
+        \end{table}
+
+        \begin{table}[H]
+            \resultstable
+            \setlength{\tabcolsep}{4.9pt}
+            \caption{Small scale, $p_{\max}=80$, weights $\in\{1,\ldots,30\}$}
+            \label{tab:results-small-80}
+            \begin{tabular}{@{}l r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r@{}}
+                \toprule
+                \multirow{3}{*}{$n$} & \multicolumn{2}{c}{MILP} & \multicolumn{4}{c}{LW} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
+                \cmidrule(lr){2-3}\cmidrule(lr){4-7}\cmidrule(lr){8-11}\cmidrule(lr){12-15}
+                & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} \\
+                \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}\cmidrule(lr){14-15}
+                & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
+                \midrule
+                $10$ & $5.1\mathrm{e}1$ & $1.0\mathrm{e}2$ & $8.1$ & $17.5$ & $8.5\mathrm{e}{-3}$ & $1.8\mathrm{e}{-2}$ & $\mathbf{0.8}$ & $5.7$ & $7.2\mathrm{e}{-2}$ & $7.8\mathrm{e}{-2}$ & $14.3$ & $47.5$ & $6.1\mathrm{e}{-1}$ & $6.8\mathrm{e}{-1}$ \\
+                $15$ & $2.9\mathrm{e}2$ & $1.8\mathrm{e}3$ & $7.7$ & $19.7$ & $9.5\mathrm{e}{-3}$ & $2.0\mathrm{e}{-2}$ & $\mathbf{2.4}$ & $14.5$ & $1.9\mathrm{e}{-1}$ & $2.1\mathrm{e}{-1}$ & $15.9$ & $37.5$ & $2.6\mathrm{e}0$ & $2.9\mathrm{e}0$ \\
+                $20$ & $4.5\mathrm{e}2$ & $1.8\mathrm{e}3$ & $4.5$ & $11.8$ & $1.2\mathrm{e}{-2}$ & $2.9\mathrm{e}{-2}$ & $\mathbf{2.6}$ & $9.6$ & $3.8\mathrm{e}{-1}$ & $4.1\mathrm{e}{-1}$ & $16.3$ & $39.1$ & $1.0\mathrm{e}1$ & $1.2\mathrm{e}1$ \\
+                $25$ & $1.6\mathrm{e}3$ & $4.6\mathrm{e}3$ & $4.7$ & $16.2$ & $1.2\mathrm{e}{-2}$ & $2.1\mathrm{e}{-2}$ & $\mathbf{2.1}$ & $7.9$ & $7.0\mathrm{e}{-1}$ & $7.4\mathrm{e}{-1}$ & $15.7$ & $37.6$ & $2.8\mathrm{e}1$ & $3.0\mathrm{e}1$ \\
+                $30$ & $3.2\mathrm{e}3$ & $9.5\mathrm{e}3$ & $5.6$ & $11.7$ & $1.5\mathrm{e}{-2}$ & $2.9\mathrm{e}{-2}$ & $\mathbf{2.6}$ & $13.6$ & $1.2\mathrm{e}0$ & $1.2\mathrm{e}0$ & $14.4$ & $34.2$ & $6.1\mathrm{e}1$ & $6.6\mathrm{e}1$ \\
+                $35$ & $8.7\mathrm{e}3$ & $4.1\mathrm{e}4$ & $7.0$ & $18.1$ & $1.8\mathrm{e}{-2}$ & $3.1\mathrm{e}{-2}$ & $\mathbf{4.3}$ & $7.9$ & $1.8\mathrm{e}0$ & $1.8\mathrm{e}0$ & $11.5$ & $27.5$ & $1.2\mathrm{e}2$ & $1.3\mathrm{e}2$ \\
+                $40$ & $2.4\mathrm{e}4$ & $1.5\mathrm{e}5$ & $6.3$ & $20.8$ & $1.8\mathrm{e}{-2}$ & $3.1\mathrm{e}{-2}$ & $\mathbf{2.4}$ & $7.6$ & $2.5\mathrm{e}0$ & $2.6\mathrm{e}0$ & $5.5$ & $15.9$ & $2.5\mathrm{e}2$ & $2.7\mathrm{e}2$ \\
+                $45$ & $6.8\mathrm{e}4$ & $3.8\mathrm{e}5$ & $4.8$ & $12.3$ & $1.6\mathrm{e}{-2}$ & $1.9\mathrm{e}{-2}$ & $\mathbf{2.8}$ & $11.9$ & $3.5\mathrm{e}0$ & $3.7\mathrm{e}0$ & $5.3$ & $13.1$ & $4.2\mathrm{e}2$ & $4.5\mathrm{e}2$ \\
+                $50$ & $7.7\mathrm{e}4$ & $4.8\mathrm{e}5$ & $6.2$ & $12.4$ & $1.9\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{3.8}$ & $11.1$ & $4.7\mathrm{e}0$ & $4.8\mathrm{e}0$ & $4.2$ & $12.0$ & $6.6\mathrm{e}2$ & $7.4\mathrm{e}2$ \\
+                $55$ & $1.4\mathrm{e}5$ & $4.7\mathrm{e}5$ & $5.0$ & $11.4$ & $2.2\mathrm{e}{-2}$ & $3.9\mathrm{e}{-2}$ & $5.0$ & $16.2$ & $6.2\mathrm{e}0$ & $6.5\mathrm{e}0$ & $\mathbf{3.5}$ & $14.7$ & $1.1\mathrm{e}3$ & $1.2\mathrm{e}3$ \\
+                $60$ & $1.9\mathrm{e}5$ & $6.0\mathrm{e}5$ & $5.0$ & $13.5$ & $2.8\mathrm{e}{-2}$ & $4.4\mathrm{e}{-2}$ & $4.4$ & $15.4$ & $8.0\mathrm{e}0$ & $8.2\mathrm{e}0$ & $\mathbf{3.9}$ & $20.8$ & $1.7\mathrm{e}3$ & $1.8\mathrm{e}3$ \\
+                \bottomrule
+            \end{tabular}
+        \end{table}
+
+        \begin{figure}[H]
+            \centering
+            \begin{tikzpicture}
+                \begin{axis}[
+                    width=0.88\textwidth, height=5.4cm,
+                    xlabel={instance size $n$}, ylabel={mean gap (\%)},
+                    xtick={10,15,20,25,30,35,40,45,50,55,60}, xticklabels={10,15,20,25,30,35,40,45,50,55,60},
+                    ymin=0, ymax=20,
+                    tick label style={font=\scriptsize}, label style={font=\small},
+                    every axis plot/.append style={line width=0.9pt},
+                    legend columns=3,
+                    legend style={font=\scriptsize, at={(0.5,1.03)}, anchor=south, draw=none,
+                        /tikz/every even column/.append style={column sep=10pt}},
+                    ]
+                    \addplot[apxblue] coordinates {(10,7.33) (15,6.77) (20,6.15) (25,5.60) (30,5.63) (35,5.68) (40,4.90) (45,6.00) (50,4.53) (55,4.70) (60,4.73)};
+                    \addlegendentry{LW $[1{,}40]$}
+                    \addplot[nehred] coordinates {(10,3.44) (15,2.15) (20,2.68) (25,3.68) (30,3.85) (35,3.18) (40,2.36) (45,3.71) (50,3.56) (55,3.07) (60,4.26)};
+                    \addlegendentry{NEH $[1{,}40]$}
+                    \addplot[gagreen] coordinates {(10,12.61) (15,18.21) (20,12.14) (25,15.28) (30,11.57) (35,12.83) (40,7.04) (45,8.83) (50,6.53) (55,4.24) (60,1.70)};
+                    \addlegendentry{GA $[1{,}40]$}
+                    \addplot[apxblue, dashed] coordinates {(10,8.06) (15,7.66) (20,4.54) (25,4.72) (30,5.58) (35,7.02) (40,6.33) (45,4.81) (50,6.21) (55,5.00) (60,5.04)};
+                    \addlegendentry{LW $[1{,}80]$}
+                    \addplot[nehred, dashed] coordinates {(10,0.84) (15,2.36) (20,2.59) (25,2.13) (30,2.60) (35,4.29) (40,2.40) (45,2.76) (50,3.78) (55,4.99) (60,4.42)};
+                    \addlegendentry{NEH $[1{,}80]$}
+                    \addplot[gagreen, dashed] coordinates {(10,14.29) (15,15.90) (20,16.30) (25,15.66) (30,14.43) (35,11.52) (40,5.53) (45,5.28) (50,4.18) (55,3.51) (60,3.90)};
+                    \addlegendentry{GA $[1{,}80]$}
+                \end{axis}
+            \end{tikzpicture}
+            \caption{Small scale: LW, NEH, GA against the optimum.}
+            \label{fig:gap-small}
+        \end{figure}
+
+######################################################################################################
+
+        \begin{table}[H]
+            \resultstable
+            \setlength{\tabcolsep}{4.9pt}
+            \caption{Small scale, $p_{\max}=40$, weights $\in\{1,\ldots,100\}$}
+            \label{tab:results-small100-40}
+            \begin{tabular}{@{}l r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r@{}}
+                \toprule
+                \multirow{3}{*}{$n$} & \multicolumn{2}{c}{MILP} & \multicolumn{4}{c}{LW} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
+                \cmidrule(lr){2-3}\cmidrule(lr){4-7}\cmidrule(lr){8-11}\cmidrule(lr){12-15}
+                & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} \\
+                \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}\cmidrule(lr){14-15}
+                & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
+                \midrule
+                $10$ & $7.0\mathrm{e}1$ & $1.4\mathrm{e}2$ & $6.5$ & $23.9$ & $8.2\mathrm{e}{-3}$ & $1.6\mathrm{e}{-2}$ & $\mathbf{1.1}$ & $9.0$ & $7.4\mathrm{e}{-2}$ & $8.1\mathrm{e}{-2}$ & $20.6$ & $60.4$ & $6.4\mathrm{e}{-1}$ & $7.7\mathrm{e}{-1}$ \\
+                $15$ & $2.0\mathrm{e}2$ & $4.4\mathrm{e}2$ & $6.8$ & $29.3$ & $1.0\mathrm{e}{-2}$ & $1.9\mathrm{e}{-2}$ & $\mathbf{2.7}$ & $22.9$ & $1.9\mathrm{e}{-1}$ & $2.2\mathrm{e}{-1}$ & $21.2$ & $51.3$ & $2.6\mathrm{e}0$ & $3.0\mathrm{e}0$ \\
+                $20$ & $3.8\mathrm{e}2$ & $6.2\mathrm{e}2$ & $4.7$ & $19.8$ & $1.1\mathrm{e}{-2}$ & $2.4\mathrm{e}{-2}$ & $\mathbf{2.6}$ & $11.0$ & $3.9\mathrm{e}{-1}$ & $4.9\mathrm{e}{-1}$ & $20.1$ & $42.0$ & $1.1\mathrm{e}1$ & $1.2\mathrm{e}1$ \\
+                $25$ & $1.3\mathrm{e}3$ & $2.9\mathrm{e}3$ & $6.6$ & $16.7$ & $1.3\mathrm{e}{-2}$ & $2.3\mathrm{e}{-2}$ & $\mathbf{2.4}$ & $9.2$ & $7.1\mathrm{e}{-1}$ & $7.5\mathrm{e}{-1}$ & $24.8$ & $52.9$ & $2.9\mathrm{e}1$ & $3.6\mathrm{e}1$ \\
+                $30$ & $4.6\mathrm{e}3$ & $1.9\mathrm{e}4$ & $6.7$ & $13.0$ & $1.4\mathrm{e}{-2}$ & $2.2\mathrm{e}{-2}$ & $\mathbf{2.4}$ & $7.5$ & $1.1\mathrm{e}0$ & $1.2\mathrm{e}0$ & $23.5$ & $58.9$ & $6.3\mathrm{e}1$ & $6.8\mathrm{e}1$ \\
+                $35$ & $1.1\mathrm{e}4$ & $5.4\mathrm{e}4$ & $5.4$ & $14.5$ & $1.6\mathrm{e}{-2}$ & $3.2\mathrm{e}{-2}$ & $\mathbf{3.0}$ & $10.9$ & $1.7\mathrm{e}0$ & $1.8\mathrm{e}0$ & $26.8$ & $59.2$ & $1.3\mathrm{e}2$ & $1.4\mathrm{e}2$ \\
+                $40$ & $2.2\mathrm{e}4$ & $1.1\mathrm{e}5$ & $5.4$ & $15.8$ & $1.7\mathrm{e}{-2}$ & $2.9\mathrm{e}{-2}$ & $\mathbf{3.4}$ & $10.4$ & $2.6\mathrm{e}0$ & $2.7\mathrm{e}0$ & $21.3$ & $51.6$ & $2.6\mathrm{e}2$ & $3.1\mathrm{e}2$ \\
+                $45$ & $3.5\mathrm{e}4$ & $2.1\mathrm{e}5$ & $4.9$ & $12.9$ & $1.9\mathrm{e}{-2}$ & $3.6\mathrm{e}{-2}$ & $\mathbf{3.5}$ & $11.9$ & $3.5\mathrm{e}0$ & $3.8\mathrm{e}0$ & $20.3$ & $36.9$ & $4.2\mathrm{e}2$ & $4.6\mathrm{e}2$ \\
+                $50$ & $8.2\mathrm{e}4$ & $3.9\mathrm{e}5$ & $4.8$ & $14.9$ & $2.0\mathrm{e}{-2}$ & $3.3\mathrm{e}{-2}$ & $\mathbf{4.1}$ & $10.0$ & $4.8\mathrm{e}0$ & $4.9\mathrm{e}0$ & $21.0$ & $44.3$ & $6.9\mathrm{e}2$ & $7.3\mathrm{e}2$ \\
+                $55$ & $1.1\mathrm{e}5$ & $4.1\mathrm{e}5$ & $4.5$ & $14.9$ & $2.1\mathrm{e}{-2}$ & $3.4\mathrm{e}{-2}$ & $\mathbf{3.1}$ & $6.9$ & $6.3\mathrm{e}0$ & $6.4\mathrm{e}0$ & $17.7$ & $31.9$ & $1.1\mathrm{e}3$ & $1.1\mathrm{e}3$ \\
+                \bottomrule
+            \end{tabular}
+        \end{table}
+
+        \begin{table}[H]
+            \resultstable
+            \setlength{\tabcolsep}{4.9pt}
+            \caption{Small scale, $p_{\max}=80$, weights $\in\{1,\ldots,100\}$}
+            \label{tab:results-small100-80}
+            \begin{tabular}{@{}l r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r @{\hspace{5pt}} r r r r@{}}
+                \toprule
+                \multirow{3}{*}{$n$} & \multicolumn{2}{c}{MILP} & \multicolumn{4}{c}{LW} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
+                \cmidrule(lr){2-3}\cmidrule(lr){4-7}\cmidrule(lr){8-11}\cmidrule(lr){12-15}
+                & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} \\
+                \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}\cmidrule(lr){14-15}
+                & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
+                \midrule
+                $10$ & $7.9\mathrm{e}1$ & $1.4\mathrm{e}2$ & $9.1$ & $25.1$ & $8.6\mathrm{e}{-3}$ & $1.6\mathrm{e}{-2}$ & $\mathbf{2.2}$ & $10.2$ & $7.4\mathrm{e}{-2}$ & $8.8\mathrm{e}{-2}$ & $14.7$ & $47.2$ & $6.5\mathrm{e}{-1}$ & $7.6\mathrm{e}{-1}$ \\
+                $15$ & $2.5\mathrm{e}2$ & $6.4\mathrm{e}2$ & $7.1$ & $15.5$ & $1.0\mathrm{e}{-2}$ & $1.7\mathrm{e}{-2}$ & $\mathbf{1.8}$ & $13.7$ & $2.0\mathrm{e}{-1}$ & $2.5\mathrm{e}{-1}$ & $17.3$ & $46.8$ & $2.6\mathrm{e}0$ & $2.8\mathrm{e}0$ \\
+                $20$ & $4.9\mathrm{e}2$ & $8.1\mathrm{e}2$ & $4.9$ & $19.6$ & $1.2\mathrm{e}{-2}$ & $2.1\mathrm{e}{-2}$ & $\mathbf{1.6}$ & $11.4$ & $3.9\mathrm{e}{-1}$ & $4.3\mathrm{e}{-1}$ & $18.6$ & $37.9$ & $1.1\mathrm{e}1$ & $1.2\mathrm{e}1$ \\
+                $25$ & $2.3\mathrm{e}3$ & $9.6\mathrm{e}3$ & $7.2$ & $18.6$ & $1.5\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{3.1}$ & $10.3$ & $7.0\mathrm{e}{-1}$ & $7.5\mathrm{e}{-1}$ & $24.5$ & $50.9$ & $2.8\mathrm{e}1$ & $3.2\mathrm{e}1$ \\
+                $30$ & $3.2\mathrm{e}3$ & $1.0\mathrm{e}4$ & $6.1$ & $23.5$ & $1.4\mathrm{e}{-2}$ & $2.7\mathrm{e}{-2}$ & $\mathbf{2.6}$ & $11.6$ & $1.1\mathrm{e}0$ & $1.2\mathrm{e}0$ & $20.1$ & $41.8$ & $6.2\mathrm{e}1$ & $6.7\mathrm{e}1$ \\
+                $35$ & $8.1\mathrm{e}3$ & $3.0\mathrm{e}4$ & $5.0$ & $11.0$ & $1.6\mathrm{e}{-2}$ & $2.7\mathrm{e}{-2}$ & $\mathbf{2.7}$ & $6.5$ & $1.8\mathrm{e}0$ & $1.8\mathrm{e}0$ & $22.4$ & $48.5$ & $1.2\mathrm{e}2$ & $1.3\mathrm{e}2$ \\
+                $40$ & $4.0\mathrm{e}4$ & $6.0\mathrm{e}5$ & $4.9$ & $14.6$ & $1.8\mathrm{e}{-2}$ & $3.0\mathrm{e}{-2}$ & $\mathbf{4.3}$ & $10.4$ & $2.5\mathrm{e}0$ & $2.6\mathrm{e}0$ & $21.7$ & $35.7$ & $2.5\mathrm{e}2$ & $2.7\mathrm{e}2$ \\
+                $45$ & $3.7\mathrm{e}4$ & $2.4\mathrm{e}5$ & $5.3$ & $13.7$ & $1.8\mathrm{e}{-2}$ & $4.2\mathrm{e}{-2}$ & $\mathbf{4.2}$ & $12.2$ & $3.5\mathrm{e}0$ & $3.6\mathrm{e}0$ & $20.2$ & $45.6$ & $4.3\mathrm{e}2$ & $4.6\mathrm{e}2$ \\
+                $50$ & $5.0\mathrm{e}4$ & $1.8\mathrm{e}5$ & $5.7$ & $25.7$ & $2.3\mathrm{e}{-2}$ & $3.6\mathrm{e}{-2}$ & $\mathbf{5.2}$ & $11.8$ & $4.8\mathrm{e}0$ & $5.0\mathrm{e}0$ & $17.6$ & $28.3$ & $6.8\mathrm{e}2$ & $7.4\mathrm{e}2$ \\
+                $55$ & $1.1\mathrm{e}5$ & $4.8\mathrm{e}5$ & $3.8$ & $9.6$ & $1.9\mathrm{e}{-2}$ & $3.4\mathrm{e}{-2}$ & $\mathbf{3.4}$ & $6.6$ & $6.3\mathrm{e}0$ & $6.5\mathrm{e}0$ & $15.9$ & $32.2$ & $1.1\mathrm{e}3$ & $1.1\mathrm{e}3$ \\
+                \bottomrule
+            \end{tabular}
+        \end{table}
+
+        \begin{figure}[H]
+            \centering
+            \begin{tikzpicture}
+                \begin{axis}[
+                    width=0.88\textwidth, height=5.4cm,
+                    xlabel={instance size $n$}, ylabel={mean gap (\%)},
+                    xtick={10,15,20,25,30,35,40,45,50,55}, xticklabels={10,15,20,25,30,35,40,45,50,55},
+                    ymin=0, ymax=30,
+                    tick label style={font=\scriptsize}, label style={font=\small},
+                    every axis plot/.append style={line width=0.9pt},
+                    legend columns=3,
+                    legend style={font=\scriptsize, at={(0.5,1.03)}, anchor=south, draw=none,
+                        /tikz/every even column/.append style={column sep=10pt}},
+                    ]
+                    \addplot[apxblue] coordinates {(10,6.50) (15,6.80) (20,4.66) (25,6.55) (30,6.68) (35,5.38) (40,5.36) (45,4.94) (50,4.82) (55,4.48)};
+                    \addlegendentry{LW $[1{,}40]$}
+                    \addplot[nehred] coordinates {(10,1.11) (15,2.65) (20,2.58) (25,2.37) (30,2.41) (35,3.01) (40,3.37) (45,3.47) (50,4.12) (55,3.06)};
+                    \addlegendentry{NEH $[1{,}40]$}
+                    \addplot[gagreen] coordinates {(10,20.63) (15,21.22) (20,20.14) (25,24.81) (30,23.47) (35,26.78) (40,21.31) (45,20.34) (50,21.02) (55,17.70)};
+                    \addlegendentry{GA $[1{,}40]$}
+                    \addplot[apxblue, dashed] coordinates {(10,9.10) (15,7.10) (20,4.94) (25,7.22) (30,6.07) (35,4.99) (40,4.92) (45,5.34) (50,5.73) (55,3.79)};
+                    \addlegendentry{LW $[1{,}80]$}
+                    \addplot[nehred, dashed] coordinates {(10,2.21) (15,1.80) (20,1.55) (25,3.08) (30,2.56) (35,2.72) (40,4.27) (45,4.15) (50,5.20) (55,3.39)};
+                    \addlegendentry{NEH $[1{,}80]$}
+                    \addplot[gagreen, dashed] coordinates {(10,14.71) (15,17.34) (20,18.63) (25,24.52) (30,20.08) (35,22.38) (40,21.71) (45,20.20) (50,17.56) (55,15.88)};
+                    \addlegendentry{GA $[1{,}80]$}
+                \end{axis}
+            \end{tikzpicture}
+            \caption{Small scale, one hundred weight classes: LW, NEH, GA against the optimum.}
+            \label{fig:gap-small-k100}
+        \end{figure}
+
+
+######################################################################################################
+
+        \begin{table}[H]
+            \resultstable
+            \setlength{\tabcolsep}{6.74pt}
+            \caption{Large scale, $p_{\max}=40$, weights $\in\{1,\ldots,30\}$}
+            \label{tab:results-large-40}
+            \begin{tabular}{@{}l r r r r @{\hspace{14pt}} r r r r @{\hspace{14pt}} r r r r@{}}
+                \toprule
+                \multirow{3}{*}{$n$} & \multicolumn{4}{c}{LW} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
+                \cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}
+                & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} \\
+                \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}
+                & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
+                \midrule
+                $100$ & $\mathbf{4.4}$ & $10.0$ & $3.36\mathrm{e}{-2}$ & $6.16\mathrm{e}{-2}$ & $5.2$ & $9.7$ & $3.73\mathrm{e}1$& $6.30\mathrm{e}1$& $18.3$ & $29.2$ & $9.67\mathrm{e}2$& $1.10\mathrm{e}3$ \\
+                $120$ & $\mathbf{3.5}$ & $6.5$ & $4.82\mathrm{e}{-2}$ & $1.05\mathrm{e}{-1}$ & $4.8$ & $10.0$ & $6.08\mathrm{e}1$& $6.32\mathrm{e}1$& $13.8$ & $32.1$ & $1.78\mathrm{e}3$& $1.85\mathrm{e}3$ \\
+                $140$ & $\mathbf{3.0}$ & $6.6$ & $5.76\mathrm{e}{-2}$ & $1.19\mathrm{e}{-1}$ & $5.3$ & $8.5$ & $9.66\mathrm{e}1$& $1.03\mathrm{e}2$& $9.3$ & $20.6$ & $3.11\mathrm{e}3$& $3.20\mathrm{e}3$ \\
+                $160$ & $\mathbf{3.4}$ & $7.5$ & $6.72\mathrm{e}{-2}$ & $1.28\mathrm{e}{-1}$ & $4.2$ & $7.4$ & $1.42\mathrm{e}2$& $1.47\mathrm{e}2$& $6.5$ & $14.4$ & $5.12\mathrm{e}3$& $5.29\mathrm{e}3$ \\
+                $180$ & $\mathbf{2.6}$ & $7.8$ & $7.09\mathrm{e}{-2}$ & $9.77\mathrm{e}{-2}$ & $4.9$ & $7.6$ & $2.04\mathrm{e}2$& $2.15\mathrm{e}2$& $5.3$ & $13.8$ & $8.04\mathrm{e}3$& $8.37\mathrm{e}3$ \\
+                $200$ & $\mathbf{2.6}$ & $5.6$ & $7.51\mathrm{e}{-2}$ & $1.17\mathrm{e}{-1}$ & $4.4$ & $7.6$ & $2.74\mathrm{e}2$& $2.89\mathrm{e}2$& $4.5$ & $15.7$ & $1.22\mathrm{e}4$& $1.26\mathrm{e}4$ \\
+                $220$ & $3.4$ & $8.6$ & $8.67\mathrm{e}{-2}$ & $1.05\mathrm{e}{-1}$ & $5.0$ & $8.2$ & $3.64\mathrm{e}2$& $3.76\mathrm{e}2$& $\mathbf{3.0}$ & $11.7$ & $1.76\mathrm{e}4$& $1.84\mathrm{e}4$ \\
+                $240$ & $\mathbf{2.8}$ & $5.9$ & $8.52\mathrm{e}{-2}$ & $1.11\mathrm{e}{-1}$ & $4.7$ & $7.3$ & $4.86\mathrm{e}2$& $5.08\mathrm{e}2$& $2.8$ & $7.4$ & $2.59\mathrm{e}4$& $2.69\mathrm{e}4$ \\
+                $260$ & $2.6$ & $6.0$ & $9.98\mathrm{e}{-2}$ & $1.48\mathrm{e}{-1}$ & $5.4$ & $8.7$ & $5.69\mathrm{e}2$& $5.84\mathrm{e}2$& $\mathbf{1.6}$ & $4.7$ & $3.24\mathrm{e}4$& $3.29\mathrm{e}4$ \\
+                $280$ & $2.5$ & $7.8$ & $9.67\mathrm{e}{-2}$ & $1.20\mathrm{e}{-1}$ & $5.1$ & $7.7$ & $7.22\mathrm{e}2$& $7.39\mathrm{e}2$& $\mathbf{0.8}$ & $3.9$ & $4.31\mathrm{e}4$& $4.37\mathrm{e}4$ \\
+                $300$ & $2.0$ & $4.9$ & $1.11\mathrm{e}{-1}$ & $1.79\mathrm{e}{-1}$ & $4.9$ & $8.6$ & $8.99\mathrm{e}2$& $9.12\mathrm{e}2$& $\mathbf{0.9}$ & $5.0$ & $5.34\mathrm{e}4$& $5.45\mathrm{e}4$ \\
+                $320$ & $3.0$ & $7.6$ & $1.13\mathrm{e}{-1}$ & $1.23\mathrm{e}{-1}$ & $4.4$ & $7.4$ & $1.10\mathrm{e}3$& $1.12\mathrm{e}3$& $\mathbf{1.2}$ & $6.3$ & $6.50\mathrm{e}4$& $6.59\mathrm{e}4$ \\
+                $340$ & $1.5$ & $3.7$ & $1.27\mathrm{e}{-1}$ & $2.41\mathrm{e}{-1}$ & $4.7$ & $7.1$ & $1.32\mathrm{e}3$& $1.35\mathrm{e}3$& $\mathbf{1.2}$ & $8.0$ & $7.78\mathrm{e}4$& $7.89\mathrm{e}4$ \\
+                $360$ & $2.2$ & $5.5$ & $1.31\mathrm{e}{-1}$ & $1.58\mathrm{e}{-1}$ & $4.7$ & $7.0$ & $1.58\mathrm{e}3$& $1.63\mathrm{e}3$& $\mathbf{0.9}$ & $7.1$ & $9.28\mathrm{e}4$& $9.61\mathrm{e}4$ \\
+                $380$ & $2.3$ & $6.2$ & $1.36\mathrm{e}{-1}$ & $1.50\mathrm{e}{-1}$ & $4.5$ & $8.7$ & $1.87\mathrm{e}3$& $1.92\mathrm{e}3$& $\mathbf{0.3}$ & $1.5$ & $1.09\mathrm{e}5$& $1.11\mathrm{e}5$ \\
+                $400$ & $2.0$ & $5.9$ & $1.46\mathrm{e}{-1}$ & $1.69\mathrm{e}{-1}$ & $3.9$ & $8.0$ & $2.18\mathrm{e}3$& $2.22\mathrm{e}3$& $\mathbf{0.6}$ & $2.7$ & $1.28\mathrm{e}5$& $1.30\mathrm{e}5$ \\
+                \bottomrule
+            \end{tabular}
+        \end{table}
+
+        \begin{table}[H]
+            \resultstable
+            \setlength{\tabcolsep}{6.74pt}
+            \caption{Large scale, $p_{\max}=80$, weights $\in\{1,\ldots,30\}$}
+            \label{tab:results-large-80}
+            \begin{tabular}{@{}l r r r r @{\hspace{14pt}} r r r r @{\hspace{14pt}} r r r r@{}}
+                \toprule
+                \multirow{3}{*}{$n$} & \multicolumn{4}{c}{LW} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
+                \cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}
+                & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} \\
+                \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}
+                & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
+                \midrule
+                $100$ & $\mathbf{3.6}$ & $8.9$ & $4.09\mathrm{e}{-2}$ & $1.25\mathrm{e}{-1}$ & $4.6$ & $10.8$ & $3.63\mathrm{e}1$& $4.12\mathrm{e}1$& $16.0$ & $30.1$ & $9.64\mathrm{e}2$& $1.02\mathrm{e}3$ \\
+                $120$ & $\mathbf{4.4}$ & $12.9$ & $4.30\mathrm{e}{-2}$ & $7.13\mathrm{e}{-2}$ & $5.4$ & $9.3$ & $6.09\mathrm{e}1$& $6.21\mathrm{e}1$& $17.1$ & $38.5$ & $1.79\mathrm{e}3$& $1.85\mathrm{e}3$ \\
+                $140$ & $\mathbf{3.5}$ & $10.7$ & $5.21\mathrm{e}{-2}$ & $9.38\mathrm{e}{-2}$ & $4.4$ & $7.7$ & $9.61\mathrm{e}1$& $9.95\mathrm{e}1$& $12.6$ & $25.3$ & $3.10\mathrm{e}3$& $3.24\mathrm{e}3$ \\
+                $160$ & $\mathbf{3.2}$ & $11.4$ & $6.84\mathrm{e}{-2}$ & $1.12\mathrm{e}{-1}$ & $5.8$ & $9.9$ & $1.42\mathrm{e}2$& $1.51\mathrm{e}2$& $8.1$ & $25.8$ & $5.10\mathrm{e}3$& $5.23\mathrm{e}3$ \\
+                $180$ & $\mathbf{3.0}$ & $7.3$ & $6.74\mathrm{e}{-2}$ & $9.56\mathrm{e}{-2}$ & $5.3$ & $9.0$ & $2.08\mathrm{e}2$& $2.50\mathrm{e}2$& $5.9$ & $14.3$ & $8.27\mathrm{e}3$& $8.55\mathrm{e}3$ \\
+                $200$ & $\mathbf{2.7}$ & $8.6$ & $9.31\mathrm{e}{-2}$ & $2.55\mathrm{e}{-1}$ & $4.7$ & $7.2$ & $2.75\mathrm{e}2$& $2.88\mathrm{e}2$& $4.9$ & $10.1$ & $1.22\mathrm{e}4$& $1.26\mathrm{e}4$ \\
+                $220$ & $\mathbf{2.9}$ & $8.0$ & $7.99\mathrm{e}{-2}$ & $1.12\mathrm{e}{-1}$ & $4.8$ & $8.7$ & $3.75\mathrm{e}2$& $3.97\mathrm{e}2$& $3.6$ & $9.0$ & $1.83\mathrm{e}4$& $1.93\mathrm{e}4$ \\
+                $240$ & $2.9$ & $6.4$ & $8.86\mathrm{e}{-2}$ & $1.17\mathrm{e}{-1}$ & $6.0$ & $8.9$ & $4.55\mathrm{e}2$& $4.80\mathrm{e}2$& $\mathbf{1.9}$ & $6.5$ & $2.40\mathrm{e}4$& $2.54\mathrm{e}4$ \\
+                $260$ & $1.8$ & $5.3$ & $9.07\mathrm{e}{-2}$ & $1.07\mathrm{e}{-1}$ & $5.2$ & $9.3$ & $5.71\mathrm{e}2$& $5.82\mathrm{e}2$& $\mathbf{1.6}$ & $8.0$ & $3.24\mathrm{e}4$& $3.32\mathrm{e}4$ \\
+                $280$ & $2.3$ & $4.8$ & $1.02\mathrm{e}{-1}$ & $1.27\mathrm{e}{-1}$ & $5.5$ & $9.2$ & $7.22\mathrm{e}2$& $7.31\mathrm{e}2$& $\mathbf{0.8}$ & $4.3$ & $4.31\mathrm{e}4$& $4.38\mathrm{e}4$ \\
+                $300$ & $2.8$ & $6.3$ & $1.03\mathrm{e}{-1}$ & $1.23\mathrm{e}{-1}$ & $5.4$ & $7.5$ & $8.98\mathrm{e}2$& $9.13\mathrm{e}2$& $\mathbf{2.0}$ & $11.8$ & $5.32\mathrm{e}4$& $5.41\mathrm{e}4$ \\
+                $320$ & $1.9$ & $4.7$ & $1.21\mathrm{e}{-1}$ & $2.31\mathrm{e}{-1}$ & $5.7$ & $8.5$ & $1.10\mathrm{e}3$& $1.12\mathrm{e}3$& $\mathbf{1.4}$ & $6.1$ & $6.47\mathrm{e}4$& $6.62\mathrm{e}4$ \\
+                $340$ & $1.4$ & $3.0$ & $1.19\mathrm{e}{-1}$ & $1.33\mathrm{e}{-1}$ & $5.6$ & $8.6$ & $1.33\mathrm{e}3$& $1.36\mathrm{e}3$& $\mathbf{0.8}$ & $3.3$ & $7.80\mathrm{e}4$& $7.97\mathrm{e}4$ \\
+                $360$ & $1.7$ & $3.2$ & $1.27\mathrm{e}{-1}$ & $1.51\mathrm{e}{-1}$ & $5.8$ & $8.2$ & $1.58\mathrm{e}3$& $1.63\mathrm{e}3$& $\mathbf{1.1}$ & $7.3$ & $9.26\mathrm{e}4$& $9.39\mathrm{e}4$ \\
+                $380$ & $1.8$ & $4.0$ & $1.37\mathrm{e}{-1}$ & $1.56\mathrm{e}{-1}$ & $5.9$ & $9.1$ & $1.87\mathrm{e}3$& $1.94\mathrm{e}3$& $\mathbf{0.8}$ & $2.9$ & $1.09\mathrm{e}5$& $1.13\mathrm{e}5$ \\
+                $400$ & $1.7$ & $4.6$ & $1.48\mathrm{e}{-1}$ & $2.07\mathrm{e}{-1}$ & $5.8$ & $9.1$ & $2.19\mathrm{e}3$& $2.26\mathrm{e}3$& $\mathbf{0.8}$ & $2.9$ & $1.27\mathrm{e}5$& $1.29\mathrm{e}5$ \\
+                \bottomrule
+            \end{tabular}
+        \end{table}
+
+        \begin{figure}[H]
+            \centering
+            \begin{tikzpicture}
+                \begin{axis}[
+                    width=0.88\textwidth, height=5.4cm,
+                    xlabel={instance size $n$}, ylabel={mean gap (\%)},
+                    xtick={100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400}, xticklabels={100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400},
+                    ymin=0, ymax=20,
+                    tick label style={font=\scriptsize}, label style={font=\small},
+                    every axis plot/.append style={line width=0.9pt},
+                    legend columns=3,
+                    legend style={font=\scriptsize, at={(0.5,1.03)}, anchor=south, draw=none,
+                        /tikz/every even column/.append style={column sep=10pt}},
+                    ]
+                    \addplot[apxblue] coordinates {(100,4.42) (120,3.53) (140,3.01) (160,3.38) (180,2.56) (200,2.56) (220,3.45) (240,2.84) (260,2.61) (280,2.49) (300,2.05) (320,2.98) (340,1.46) (360,2.20) (380,2.26) (400,2.05)};
+                    \addlegendentry{LW $[1{,}40]$}
+                    \addplot[nehred] coordinates {(100,5.17) (120,4.78) (140,5.27) (160,4.21) (180,4.86) (200,4.42) (220,4.97) (240,4.67) (260,5.38) (280,5.13) (300,4.94) (320,4.37) (340,4.69) (360,4.72) (380,4.52) (400,3.94)};
+                    \addlegendentry{NEH $[1{,}40]$}
+                    \addplot[gagreen] coordinates {(100,18.33) (120,13.77) (140,9.35) (160,6.47) (180,5.30) (200,4.47) (220,3.04) (240,2.85) (260,1.59) (280,0.83) (300,0.91) (320,1.22) (340,1.22) (360,0.85) (380,0.30) (400,0.62)};
+                    \addlegendentry{GA $[1{,}40]$}
+                    \addplot[apxblue, dashed] coordinates {(100,3.58) (120,4.39) (140,3.46) (160,3.18) (180,3.00) (200,2.68) (220,2.89) (240,2.94) (260,1.79) (280,2.31) (300,2.79) (320,1.86) (340,1.41) (360,1.74) (380,1.78) (400,1.67)};
+                    \addlegendentry{LW $[1{,}80]$}
+                    \addplot[nehred, dashed] coordinates {(100,4.63) (120,5.37) (140,4.36) (160,5.83) (180,5.33) (200,4.67) (220,4.76) (240,6.00) (260,5.20) (280,5.53) (300,5.41) (320,5.72) (340,5.57) (360,5.78) (380,5.85) (400,5.79)};
+                    \addlegendentry{NEH $[1{,}80]$}
+                    \addplot[gagreen, dashed] coordinates {(100,16.01) (120,17.05) (140,12.57) (160,8.06) (180,5.91) (200,4.88) (220,3.63) (240,1.89) (260,1.62) (280,0.84) (300,1.97) (320,1.38) (340,0.78) (360,1.11) (380,0.81) (400,0.82)};
+                    \addlegendentry{GA $[1{,}80]$}
+                \end{axis}
+            \end{tikzpicture}
+            \caption{Large scale: LW, NEH, GA against $LB$.}
+            \label{fig:gap-large}
+        \end{figure}
+
+######################################################################################################
+
+        \begin{table}[H]
+            \resultstable
+            \setlength{\tabcolsep}{8.22pt}
+            \caption{Large scale, $p_{\max}=40$, weights $\in\{1,\ldots,100\}$}
+            \label{tab:results-large100-40}
+            \begin{tabular}{@{}l r r r r @{\hspace{14pt}} r r r r @{\hspace{14pt}} r r r r@{}}
+                \toprule
+                \multirow{3}{*}{$n$} & \multicolumn{4}{c}{LW} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
+                \cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}
+                & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} \\
+                \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}
+                & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
+                \midrule
+                $100$ & $\mathbf{4.0}$ & $10.6$ & $4.4\mathrm{e}{-2}$ & $9.6\mathrm{e}{-2}$ & $5.9$ & $9.6$ & $8.8\mathrm{e}1$ & $1.4\mathrm{e}2$ & $48.9$ & $76.5$ & $2.1\mathrm{e}3$ & $2.5\mathrm{e}3$ \\
+                $120$ & $\mathbf{3.3}$ & $11.6$ & $6.5\mathrm{e}{-2}$ & $1.8\mathrm{e}{-1}$ & $5.6$ & $9.6$ & $1.4\mathrm{e}2$ & $1.7\mathrm{e}2$ & $48.0$ & $68.7$ & $4.1\mathrm{e}3$ & $4.7\mathrm{e}3$ \\
+                $140$ & $\mathbf{2.9}$ & $8.8$ & $7.2\mathrm{e}{-2}$ & $3.0\mathrm{e}{-1}$ & $5.2$ & $9.1$ & $2.3\mathrm{e}2$ & $2.9\mathrm{e}2$ & $42.1$ & $63.9$ & $6.9\mathrm{e}3$ & $7.5\mathrm{e}3$ \\
+                $160$ & $\mathbf{3.1}$ & $5.7$ & $8.8\mathrm{e}{-2}$ & $2.3\mathrm{e}{-1}$ & $5.6$ & $8.0$ & $3.0\mathrm{e}2$ & $4.3\mathrm{e}2$ & $45.1$ & $72.8$ & $1.1\mathrm{e}4$ & $1.2\mathrm{e}4$ \\
+                $180$ & $\mathbf{3.5}$ & $7.6$ & $7.3\mathrm{e}{-2}$ & $1.9\mathrm{e}{-1}$ & $5.7$ & $9.4$ & $4.3\mathrm{e}2$ & $6.1\mathrm{e}2$ & $42.0$ & $57.8$ & $1.7\mathrm{e}4$ & $1.9\mathrm{e}4$ \\
+                $200$ & $\mathbf{3.2}$ & $8.7$ & $8.3\mathrm{e}{-2}$ & $1.4\mathrm{e}{-1}$ & $6.1$ & $10.6$ & $6.3\mathrm{e}2$ & $8.4\mathrm{e}2$ & $42.2$ & $85.2$ & $2.6\mathrm{e}4$ & $2.8\mathrm{e}4$ \\
+                $220$ & $\mathbf{2.5}$ & $6.2$ & $1.0\mathrm{e}{-1}$ & $1.5\mathrm{e}{-1}$ & $5.8$ & $9.0$ & $8.2\mathrm{e}2$ & $9.6\mathrm{e}2$ & $33.7$ & $44.3$ & $4.0\mathrm{e}4$ & $4.7\mathrm{e}4$ \\
+                $240$ & $\mathbf{2.6}$ & $7.5$ & $1.2\mathrm{e}{-1}$ & $2.0\mathrm{e}{-1}$ & $5.9$ & $8.8$ & $1.0\mathrm{e}3$ & $1.3\mathrm{e}3$ & $31.9$ & $57.2$ & $5.5\mathrm{e}4$ & $5.8\mathrm{e}4$ \\
+                $260$ & $\mathbf{2.8}$ & $5.0$ & $1.6\mathrm{e}{-1}$ & $3.1\mathrm{e}{-1}$ & $5.7$ & $7.9$ & $1.3\mathrm{e}3$ & $1.6\mathrm{e}3$ & $30.2$ & $46.2$ & $7.7\mathrm{e}4$ & $8.5\mathrm{e}4$ \\
+                $280$ & $\mathbf{2.2}$ & $4.2$ & $1.5\mathrm{e}{-1}$ & $3.5\mathrm{e}{-1}$ & $6.1$ & $8.9$ & $1.9\mathrm{e}3$ & $2.6\mathrm{e}3$ & $26.6$ & $40.1$ & $1.2\mathrm{e}5$ & $1.6\mathrm{e}5$ \\
+                $300$ & $\mathbf{2.2}$ & $4.9$ & $1.3\mathrm{e}{-1}$ & $2.6\mathrm{e}{-1}$ & $5.7$ & $8.6$ & $1.8\mathrm{e}3$ & $1.8\mathrm{e}3$ & $24.7$ & $37.0$ & $1.1\mathrm{e}5$ & $1.1\mathrm{e}5$ \\
+                $320$ & $\mathbf{1.9}$ & $4.5$ & $1.7\mathrm{e}{-1}$ & $4.2\mathrm{e}{-1}$ & $5.1$ & $8.3$ & $2.2\mathrm{e}3$ & $2.3\mathrm{e}3$ & $23.2$ & $38.1$ & $1.3\mathrm{e}5$ & $1.4\mathrm{e}5$ \\
+                $340$ & $\mathbf{1.6}$ & $3.2$ & $1.6\mathrm{e}{-1}$ & $2.8\mathrm{e}{-1}$ & $5.8$ & $8.0$ & $2.7\mathrm{e}3$ & $2.8\mathrm{e}3$ & $21.7$ & $34.7$ & $1.6\mathrm{e}5$ & $1.6\mathrm{e}5$ \\
+                $360$ & $\mathbf{1.9}$ & $4.5$ & $1.6\mathrm{e}{-1}$ & $2.6\mathrm{e}{-1}$ & $5.7$ & $8.5$ & $3.2\mathrm{e}3$ & $3.3\mathrm{e}3$ & $17.5$ & $24.9$ & $1.9\mathrm{e}5$ & $1.9\mathrm{e}5$ \\
+                $380$ & $\mathbf{1.7}$ & $5.6$ & $1.7\mathrm{e}{-1}$ & $2.6\mathrm{e}{-1}$ & $5.5$ & $8.9$ & $3.7\mathrm{e}3$ & $3.9\mathrm{e}3$ & $22.0$ & $39.6$ & $2.2\mathrm{e}5$ & $2.2\mathrm{e}5$ \\
+                $400$ & $\mathbf{1.6}$ & $5.8$ & $1.7\mathrm{e}{-1}$ & $3.2\mathrm{e}{-1}$ & $5.3$ & $7.8$ & $4.3\mathrm{e}3$ & $4.4\mathrm{e}3$ & $19.3$ & $36.7$ & $2.5\mathrm{e}5$ & $2.6\mathrm{e}5$ \\
+                \bottomrule
+            \end{tabular}
+        \end{table}
+
+        \begin{table}[H]
+            \resultstable
+            \setlength{\tabcolsep}{8.22pt}
+            \caption{Large scale, $p_{\max}=80$, weights $\in\{1,\ldots,100\}$}
+            \label{tab:results-large100-80}
+            \begin{tabular}{@{}l r r r r @{\hspace{14pt}} r r r r @{\hspace{14pt}} r r r r@{}}
+                \toprule
+                \multirow{3}{*}{$n$} & \multicolumn{4}{c}{LW} & \multicolumn{4}{c}{NEH} & \multicolumn{4}{c}{GA} \\
+                \cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}
+                & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} & \multicolumn{2}{c}{gap} & \multicolumn{2}{c}{time (ms)} \\
+                \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}
+                & avg & max & avg & max & avg & max & avg & max & avg & max & avg & max \\
+                \midrule
+                $100$ & $\mathbf{4.3}$ & $10.9$ & $3.8\mathrm{e}{-2}$ & $6.9\mathrm{e}{-2}$ & $5.3$ & $10.0$ & $8.1\mathrm{e}1$ & $1.1\mathrm{e}2$ & $50.7$ & $78.0$ & $2.2\mathrm{e}3$ & $2.5\mathrm{e}3$ \\
+                $120$ & $\mathbf{4.4}$ & $13.1$ & $5.7\mathrm{e}{-2}$ & $9.8\mathrm{e}{-2}$ & $5.7$ & $11.8$ & $1.4\mathrm{e}2$ & $1.8\mathrm{e}2$ & $45.8$ & $75.3$ & $4.0\mathrm{e}3$ & $4.4\mathrm{e}3$ \\
+                $140$ & $\mathbf{3.1}$ & $8.3$ & $7.6\mathrm{e}{-2}$ & $2.4\mathrm{e}{-1}$ & $6.2$ & $10.2$ & $2.2\mathrm{e}2$ & $3.4\mathrm{e}2$ & $44.5$ & $69.1$ & $7.0\mathrm{e}3$ & $7.5\mathrm{e}3$ \\
+                $160$ & $\mathbf{3.0}$ & $8.0$ & $7.7\mathrm{e}{-2}$ & $1.4\mathrm{e}{-1}$ & $5.0$ & $7.7$ & $3.0\mathrm{e}2$ & $3.5\mathrm{e}2$ & $38.9$ & $56.4$ & $1.1\mathrm{e}4$ & $1.2\mathrm{e}4$ \\
+                $180$ & $\mathbf{3.2}$ & $7.0$ & $8.0\mathrm{e}{-2}$ & $2.3\mathrm{e}{-1}$ & $5.9$ & $11.1$ & $4.3\mathrm{e}2$ & $7.8\mathrm{e}2$ & $40.5$ & $61.4$ & $1.7\mathrm{e}4$ & $1.9\mathrm{e}4$ \\
+                $200$ & $\mathbf{3.4}$ & $7.2$ & $1.1\mathrm{e}{-1}$ & $3.3\mathrm{e}{-1}$ & $6.7$ & $9.9$ & $6.3\mathrm{e}2$ & $1.1\mathrm{e}3$ & $37.1$ & $49.3$ & $2.7\mathrm{e}4$ & $3.2\mathrm{e}4$ \\
+                $220$ & $\mathbf{3.0}$ & $7.0$ & $1.2\mathrm{e}{-1}$ & $2.4\mathrm{e}{-1}$ & $6.5$ & $9.5$ & $8.2\mathrm{e}2$ & $1.0\mathrm{e}3$ & $35.0$ & $59.2$ & $3.9\mathrm{e}4$ & $4.2\mathrm{e}4$ \\
+                $240$ & $\mathbf{2.4}$ & $5.5$ & $1.1\mathrm{e}{-1}$ & $2.0\mathrm{e}{-1}$ & $7.3$ & $10.1$ & $9.9\mathrm{e}2$ & $1.1\mathrm{e}3$ & $33.4$ & $58.6$ & $5.5\mathrm{e}4$ & $5.9\mathrm{e}4$ \\
+                $260$ & $\mathbf{2.3}$ & $5.6$ & $1.3\mathrm{e}{-1}$ & $3.0\mathrm{e}{-1}$ & $6.3$ & $9.7$ & $1.4\mathrm{e}3$ & $2.3\mathrm{e}3$ & $27.1$ & $45.4$ & $8.6\mathrm{e}4$ & $1.2\mathrm{e}5$ \\
+                $280$ & $\mathbf{1.7}$ & $5.0$ & $1.4\mathrm{e}{-1}$ & $2.2\mathrm{e}{-1}$ & $6.6$ & $9.5$ & $1.8\mathrm{e}3$ & $2.6\mathrm{e}3$ & $27.3$ & $50.3$ & $1.1\mathrm{e}5$ & $1.4\mathrm{e}5$ \\
+                $300$ & $\mathbf{2.7}$ & $6.1$ & $1.4\mathrm{e}{-1}$ & $2.1\mathrm{e}{-1}$ & $6.8$ & $9.9$ & $1.8\mathrm{e}3$ & $1.8\mathrm{e}3$ & $28.7$ & $40.8$ & $1.1\mathrm{e}5$ & $1.1\mathrm{e}5$ \\
+                $320$ & $\mathbf{2.4}$ & $6.0$ & $1.4\mathrm{e}{-1}$ & $2.5\mathrm{e}{-1}$ & $6.7$ & $10.4$ & $2.3\mathrm{e}3$ & $2.3\mathrm{e}3$ & $24.7$ & $33.1$ & $1.3\mathrm{e}5$ & $1.3\mathrm{e}5$ \\
+                $340$ & $\mathbf{2.1}$ & $4.1$ & $2.2\mathrm{e}{-1}$ & $1.5\mathrm{e}0$ & $6.5$ & $9.3$ & $2.7\mathrm{e}3$ & $2.8\mathrm{e}3$ & $22.9$ & $38.5$ & $1.6\mathrm{e}5$ & $1.6\mathrm{e}5$ \\
+                $360$ & $\mathbf{2.4}$ & $5.6$ & $1.9\mathrm{e}{-1}$ & $3.5\mathrm{e}{-1}$ & $7.6$ & $10.0$ & $3.2\mathrm{e}3$ & $3.4\mathrm{e}3$ & $21.3$ & $40.3$ & $1.9\mathrm{e}5$ & $1.9\mathrm{e}5$ \\
+                $380$ & $\mathbf{1.7}$ & $5.3$ & $1.8\mathrm{e}{-1}$ & $2.7\mathrm{e}{-1}$ & $5.5$ & $8.5$ & $3.7\mathrm{e}3$ & $3.8\mathrm{e}3$ & $18.5$ & $37.0$ & $2.2\mathrm{e}5$ & $2.2\mathrm{e}5$ \\
+                $400$ & $\mathbf{2.0}$ & $4.5$ & $2.0\mathrm{e}{-1}$ & $3.6\mathrm{e}{-1}$ & $6.6$ & $9.0$ & $4.2\mathrm{e}3$ & $4.4\mathrm{e}3$ & $18.6$ & $30.6$ & $2.6\mathrm{e}5$ & $2.7\mathrm{e}5$ \\
+                \bottomrule
+            \end{tabular}
+        \end{table}
+
+        \begin{figure}[H]
+            \centering
+            \begin{tikzpicture}
+                \begin{axis}[
+                    width=0.88\textwidth, height=5.4cm,
+                    xlabel={instance size $n$}, ylabel={mean gap (\%)},
+                    xtick={100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400}, xticklabels={100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400},
+                    ymin=0, ymax=55,
+                    tick label style={font=\scriptsize}, label style={font=\small},
+                    every axis plot/.append style={line width=0.9pt},
+                    legend columns=3,
+                    legend style={font=\scriptsize, at={(0.5,1.03)}, anchor=south, draw=none,
+                        /tikz/every even column/.append style={column sep=10pt}},
+                    ]
+                    \addplot[apxblue] coordinates {(100,4.04) (120,3.28) (140,2.90) (160,3.06) (180,3.47) (200,3.24) (220,2.45) (240,2.61) (260,2.77) (280,2.21) (300,2.17) (320,1.95) (340,1.60) (360,1.86) (380,1.68) (400,1.61)};
+                    \addlegendentry{LW $[1{,}40]$}
+                    \addplot[nehred] coordinates {(100,5.93) (120,5.60) (140,5.23) (160,5.64) (180,5.68) (200,6.08) (220,5.81) (240,5.86) (260,5.74) (280,6.05) (300,5.70) (320,5.07) (340,5.76) (360,5.68) (380,5.52) (400,5.32)};
+                    \addlegendentry{NEH $[1{,}40]$}
+                    \addplot[gagreen] coordinates {(100,48.89) (120,47.98) (140,42.08) (160,45.08) (180,41.99) (200,42.16) (220,33.71) (240,31.87) (260,30.15) (280,26.55) (300,24.69) (320,23.18) (340,21.73) (360,17.51) (380,22.00) (400,19.30)};
+                    \addlegendentry{GA $[1{,}40]$}
+                    \addplot[apxblue, dashed] coordinates {(100,4.34) (120,4.39) (140,3.11) (160,3.02) (180,3.21) (200,3.40) (220,2.98) (240,2.41) (260,2.28) (280,1.73) (300,2.65) (320,2.35) (340,2.10) (360,2.44) (380,1.72) (400,1.99)};
+                    \addlegendentry{LW $[1{,}80]$}
+                    \addplot[nehred, dashed] coordinates {(100,5.28) (120,5.68) (140,6.25) (160,5.05) (180,5.88) (200,6.65) (220,6.55) (240,7.32) (260,6.34) (280,6.62) (300,6.84) (320,6.68) (340,6.54) (360,7.63) (380,5.52) (400,6.57)};
+                    \addlegendentry{NEH $[1{,}80]$}
+                    \addplot[gagreen, dashed] coordinates {(100,50.73) (120,45.81) (140,44.54) (160,38.92) (180,40.46) (200,37.09) (220,35.01) (240,33.42) (260,27.06) (280,27.34) (300,28.73) (320,24.67) (340,22.87) (360,21.29) (380,18.50) (400,18.62)};
+                    \addlegendentry{GA $[1{,}80]$}
+                \end{axis}
+            \end{tikzpicture}
+            \caption{Large scale, one hundred weight classes: LW, NEH, GA against $LB$.}
+            \label{fig:gap-large-k100}
+        \end{figure}
+
