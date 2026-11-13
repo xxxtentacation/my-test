@@ -1311,22 +1311,28 @@
         At 40 jobs, all instances exceed the time limit, and none is solved to optimality; accordingly, the corresponding row is left blank in \Cref{tab:results-dp-k3}.
 
         On small instances, the three heuristics differ primarily in solution quality.
-        With $w_{\max}=30$, $NEH$ attains the smallest mean gap in most configurations, between 0.8\% and 5.0\%, against 4.5\% to 8.1\% for $LW$.
-        $GA$ is the least accurate at the small sizes, although its mean gap falls from 12.6\% and 14.3\% at 10 jobs to 4.2\% and 3.5\% at 55 jobs under the two processing-time ranges (\Crefrange{tab:results-small-40}{tab:results-small-80} and \Cref{fig:gap-small}).
-        With $w_{\max}=100$, $NEH$ remains the most accurate, between 1.1\% and 5.2\%, $LW$ stays between 3.8\% and 9.1\%, and $GA$ stays between 14.7\% and 26.8\%, with no comparable improvement as the instance grows (\Crefrange{tab:results-small100-40}{tab:results-small100-80} and \Cref{fig:gap-small-k100}).
-        In terms of computational cost, $LW$ is the fastest, followed closely by $NEH$, while $GA$ is considerably slower. Its mean running time increases from $0.64$ ms at 10 jobs to $1\,000$ ms at 55 jobs.
+        With $w_{\max}=30$, $NEH$ achieves the smallest mean gap in most configurations, ranging from 0.8\% to 5.0\%, compared with 4.5\% to 8.1\% for $LW$.
+        $GA$ is the least accurate on small instances, although its mean gap decreases from 12.6\% and 14.3\% at 10 jobs to 4.2\% and 3.5\% at 55 jobs under the two processing-time ranges (\Crefrange{tab:results-small-40}{tab:results-small-80} and \Cref{fig:gap-small}).
+        With $w_{\max}=100$, $NEH$ remains the most accurate, with mean gaps ranging from 1.1\% to 5.2\%, while $LW$ ranges from 3.8\% to 9.1\%. 
+        In contrast, $GA$ maintains mean gaps between 14.7\% and 26.8\%, with no substantial improvement as the number of jobs increases (\Crefrange{tab:results-small100-40}{tab:results-small100-80} and \Cref{fig:gap-small-k100}).
+        In terms of computational cost, $LW$ is the fastest, followed closely by $NEH$, whereas $GA$ is considerably slower, with its mean running time increasing from $0.64$ ms at 10 jobs to $1\,000$ ms at 55 jobs.
 
-        On large instances, $GA$'s performance remains highly sensitive to the number of weight values (\Crefrange{tab:results-large-40}{tab:results-large100-80} and \Crefrange{fig:gap-large}{fig:gap-large-k100}).
-        With $w_{\max}=30$, its mean gap decreases from 18.3\% to 0.6\% under $[1,40]$ and from 16.0\% to 0.8\% under $[1,80]$ as the number of jobs increases from 100 to 400. It outperforms $LW$ in solution quality from 220 jobs under $[1,40]$ and from 240 jobs under $[1,80]$.
-        At 400 jobs, $GA$ achieves the smallest mean gap, at 0.6\% and 0.8\%, compared with 2.0\% and 1.7\% for $LW$ and 3.9\% and 5.8\% for $NEH$ under $[1,40]$ and $[1,80]$, respectively. This improvement comes at a substantial computational cost: under $[1,40]$, $GA$ requires $128\,000$ ms, compared with $0.146$ ms for $LW$ and $2\,180$ ms for $NEH$.
-        With $w_{\max}=100$, however, $GA$'s mean gap remains between 17.5\% and 50.7\%, substantially higher than those of $LW$ (1.6\% to 4.4\%) and $NEH$ (5.0\% to 7.6\%).
+        On large instances, the three heuristics differ primarily in how their solution quality is affected by the number of weight values.
+        With $w_{\max}=30$, $LW$ achieves the smallest mean gap in most configurations, ranging from 1.4\% to 4.4\%, while the gap of $NEH$ ranges from 3.9\% to 6.0\%. 
+        By contrast, $GA$ performs worst at 100 jobs, with mean gaps of 18.3\% and 16.0\% under $[1,40]$ and $[1,80]$, respectively.
+        Its mean gap nevertheless decreases to 0.6\% and 0.8\% at 400 jobs, allowing $GA$ to outperform $LW$ in solution quality from 220 jobs under $[1,40]$ and from 240 jobs under $[1,80]$ (\Crefrange{tab:results-large-40}{tab:results-large-80} and \Cref{fig:gap-large}).
+        With $w_{\max}=100$, $LW$ remains the most accurate, with mean gaps ranging from 1.6\% to 4.4\%, while those of $NEH$ range from 5.0\% to 7.6\%. 
+        In contrast, $GA$ maintains mean gaps between 17.5\% and 50.7\%, and no longer achieves the accuracy advantage observed with 30 weight values (\Crefrange{tab:results-large100-40}{tab:results-large100-80} and \Cref{fig:gap-large-k100}).
+        This improvement in solution quality comes at a substantial computational cost: under $[1,40]$, $GA$ requires 128\,000 ms at 400 jobs, compared with 0.146 ms for $LW$ and 2\,180 ms for $NEH$.
 
         Overall, the five methods exhibit different trade-offs between solution quality and computational cost.
-        $MILP$ and $DP$ certify optimality whenever they terminate, but their applicability is limited by running time and the number of weight values, respectively.
-        $LW$ is the fastest heuristic and maintains a mean gap below 9.1\% across all configurations. $NEH$ improves on $LW$ in most small-instance configurations at a modest additional computational cost. $GA$ is most competitive on large instances with few weight values, where it achieves the smallest mean gaps, but its computational cost can be substantially higher, reaching approximately six orders of magnitude above that of $LW$ at 400 jobs under $[1,40]$.
+        $MILP$ and $DP$ certify optimality whenever they terminate, but their applicability is limited primarily by running time and the number of weight values, respectively.
+        Among the heuristics, $LW$ is the fastest and maintains a mean gap below 9.1\% across all configurations. 
+        $NEH$ achieves smaller mean gaps than $LW$ in most small-instance configurations at a modest additional computational cost. 
+        $GA$ is most competitive on large instances with few weight values, where it achieves the smallest mean gaps, but requires substantially more computation.
 
 
-    \begin{table}[H]
+        \begin{table}[H]
             \resultstable
             \setlength{\tabcolsep}{27.0pt}
             \caption{DP, weights $\in\{1,10\}$}
