@@ -48,11 +48,14 @@
 
 \newlength{\resultstabwidth}
 \setlength{\resultstabwidth}{16.2cm}
+\setlength{\floatsep}{6pt plus 1pt minus 1pt}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\intextsep}{6pt plus 1pt minus 1pt}
 \newcommand{\resultstable}{%
     \centering
     \footnotesize
     \setlength{\tabcolsep}{4pt}%
-    \renewcommand{\arraystretch}{1.15}}
+    \renewcommand{\arraystretch}{1.05}}
 
 \setcounter{topnumber}{4}
 \setcounter{bottomnumber}{3}
@@ -1302,7 +1305,6 @@
         
         \subsection{Computational results} \label{sec:results}
         
-        The $MILP$ model certifies optimality for almost all small instances, although its mean running time increases from $70$ ms at 10 jobs to $110\,000$ ms at 55 jobs (\Crefrange{tab:results-small-40}{tab:results-small100-80}).
         The $DP$ is substantially faster when applicable.
         With 2 weight values, it certifies optimality for all 20 instances at each tested size up to 60 jobs, for 19 and 2 of the 20 instances at 120 jobs under $[1,40]$ and $[1,80]$, respectively, and for 16 of the 20 instances at 140 jobs (\Cref{tab:results-dp-k2}).
         With 3 weight values, however, its running time increases much more rapidly.
@@ -1310,6 +1312,7 @@
         At 30 jobs, the mean running time increases to 58.67 s and 91.51 s, approximately fifty times the corresponding 20-job values, and one instance under $[1,80]$ reaches the 600 s time limit.
         At 40 jobs, all instances exceed the time limit, and none is solved to optimality; accordingly, the corresponding row is left blank in \Cref{tab:results-dp-k3}.
 
+        The $MILP$ model certifies optimality for almost all small instances, although its mean running time increases from $70$ ms at 10 jobs to $110\,000$ ms at 55 jobs (\Crefrange{tab:results-small-40}{tab:results-small100-80}).
         On small instances, the three heuristics differ primarily in solution quality.
         With $w_{\max}=30$, $NEH$ achieves the smallest mean gap in most configurations, ranging from 0.8\% to 5.0\%, compared with 4.5\% to 8.1\% for $LW$.
         $GA$ is the least accurate on small instances, although its mean gap decreases from 12.6\% and 14.3\% at 10 jobs to 4.2\% and 3.5\% at 55 jobs under the two processing-time ranges (\Crefrange{tab:results-small-40}{tab:results-small-80} and \Cref{fig:gap-small}).
@@ -1325,11 +1328,9 @@
         In contrast, $GA$ maintains mean gaps between 17.5\% and 50.7\%, and no longer achieves the accuracy advantage observed with 30 weight values (\Crefrange{tab:results-large100-40}{tab:results-large100-80} and \Cref{fig:gap-large-k100}).
         This improvement in solution quality comes at a substantial computational cost: under $[1,40]$, $GA$ requires 128\,000 ms at 400 jobs, compared with 0.146 ms for $LW$ and 2\,180 ms for $NEH$.
 
-        Overall, the five methods exhibit different trade-offs between solution quality and computational cost.
-        $MILP$ and $DP$ certify optimality whenever they terminate, but their applicability is limited primarily by running time and the number of weight values, respectively.
-        Among the heuristics, $LW$ is the fastest and maintains a mean gap below 9.1\% across all configurations. 
-        $NEH$ achieves smaller mean gaps than $LW$ in most small-instance configurations at a modest additional computational cost. 
-        $GA$ is most competitive on large instances with few weight values, where it achieves the smallest mean gaps, but requires substantially more computation.
+        Overall, the $DP$ certifies optimality for all instances with up to 60 jobs and two weight values, but fails to solve all instances at 40 jobs with three weight values.
+        Among the heuristics, $LW$ is the fastest and maintains a mean gap below 9.1\% across all configurations, while $NEH$ achieves the smallest mean gaps on most small instances.
+        $GA$ is most competitive on large instances with few weight values, where its mean gap decreases from 18.3\% at 100 jobs to 0.6\% at 400 jobs, at the cost of a running time approximately six orders of magnitude longer than that of $LW$.
 
 
         \begin{table}[H]
@@ -1436,7 +1437,7 @@
             \centering
             \begin{tikzpicture}
                 \begin{axis}[
-                    width=0.88\textwidth, height=5.4cm,
+                    width=0.88\textwidth, height=4.4cm,
                     xlabel={instance size $n$}, ylabel={mean gap (\%)},
                     xtick={10,15,20,25,30,35,40,45,50,55}, xticklabels={10,15,20,25,30,35,40,45,50,55},
                     ymin=0, ymax=20,
@@ -1522,7 +1523,7 @@
             \centering
             \begin{tikzpicture}
                 \begin{axis}[
-                    width=0.88\textwidth, height=5.4cm,
+                    width=0.88\textwidth, height=4.4cm,
                     xlabel={instance size $n$}, ylabel={mean gap (\%)},
                     xtick={10,15,20,25,30,35,40,45,50,55}, xticklabels={10,15,20,25,30,35,40,45,50,55},
                     ymin=0, ymax=30,
@@ -1620,7 +1621,7 @@
             \centering
             \begin{tikzpicture}
                 \begin{axis}[
-                    width=0.88\textwidth, height=5.4cm,
+                    width=0.88\textwidth, height=4.4cm,
                     xlabel={instance size $n$}, ylabel={mean gap (\%)},
                     xtick={100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400}, xticklabels={100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400},
                     ymin=0, ymax=20,
@@ -1718,7 +1719,7 @@
             \centering
             \begin{tikzpicture}
                 \begin{axis}[
-                    width=0.88\textwidth, height=5.4cm,
+                    width=0.88\textwidth, height=4.4cm,
                     xlabel={instance size $n$}, ylabel={mean gap (\%)},
                     xtick={100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400}, xticklabels={100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400},
                     ymin=0, ymax=55,
@@ -1746,7 +1747,22 @@
             \label{fig:gap-large-k100}
         \end{figure}
 
+        \section{Conclusion} \label{sec:conclusion}
 
+        The maximum weighted completion time problem has a simple optimal rule on a single machine: jobs are scheduled in non-increasing order of weight. In a two-machine flow shop, however, a job's completion time depends on its position in the sequences processed on both machines, making the problem substantially more challenging.
+        This paper studied the two-machine problem, $F2 \mid \mid WC_{\max}$, to identify the structural properties of optimal schedules and the algorithmic guarantees they enable.
+
+        We first established that the problem is binary $\mathcal{NP}$-hard even with only two distinct weights, and strongly $\mathcal{NP}$-hard when the number of distinct weights is unrestricted.
+        We then showed that an optimal schedule consists of weight-based blocks ordered by non-increasing weight, with jobs within each block arranged according to Johnson's rule.
+        This structure provides the basis for an exact $DP$ that eliminates dominated states, an $FPTAS$ for a fixed number of distinct weights, and the $LW$ rule.
+        For larger instances, we adapted the $NEH$ heuristic and developed a weight-block $GA$, and compared all these methods with the $MILP$ model.
+
+        The structural and computational limitations identified in this study motivate several directions for future research.
+        First, both the block structure and the $DP$ are developed for two machines. Extending the problem to an arbitrary number of machines requires investigating whether the block structure and ordering properties can be preserved, and how the role of Johnson's rule changes.
+        Second, the running time of the $DP$ grows rapidly with the number of distinct weight values, leaving some instances, such as those with 140 jobs under the wider processing-time range, unsolved. Whether a branch-and-bound algorithm can solve such instances more effectively remains an open question.
+        Third, the heuristics considered here rely on manually designed rules and operators. Reinforcement learning, particularly Q-learning, could be used to learn dispatching rules for this objective or to guide the mutation and crossover operators of $GA$, potentially improving their adaptability to instance families not known in advance.
+        More broadly, these results provide a structural foundation for developing exact and heuristic methods for weighted bottleneck objectives in flow shops.
+                
         \bibliographystyle{apalike}
         \bibliography{ref-shop}
         
